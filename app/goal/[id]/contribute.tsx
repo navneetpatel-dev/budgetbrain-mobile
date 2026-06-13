@@ -1,54 +1,33 @@
-import { useState, useMemo } from 'react';
-import { StyleSheet, ScrollView, Alert } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useMemo } from 'react';
+import { StyleSheet, ScrollView } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
-import { useQueryClient } from '@tanstack/react-query';
-import { Button, Input } from '@/src/components/ui';
-import { apiPost } from '@/src/services/api';
-import { useTheme } from '@/src/theme';
-
-interface ContributeForm {
-  amount: string;
-  notes: string;
-}
+import { Button, Input, useScrollContentStyle } from '@/src/shared/components/ui';
+import { useContributeGoal, type ContributeForm } from '@/src/features/goals/hooks/useContributeGoal';
+import { useTheme } from '@/src/shared/theme';
+import { useUserCurrency } from '@/src/shared/hooks/useUserCurrency';
 
 export default function ContributeGoalScreen() {
   const theme = useTheme();
+  const { amountLabel } = useUserCurrency();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { id } = useLocalSearchParams<{ id: string }>();
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  const [loading, setLoading] = useState(false);
+  const { contribute, loading } = useContributeGoal(id);
 
   const { control, handleSubmit, formState: { errors } } = useForm<ContributeForm>({
     defaultValues: { amount: '', notes: '' },
   });
 
-  const onSubmit = async (data: ContributeForm) => {
-    setLoading(true);
-    try {
-      await apiPost(`/goals/${id}/contribute`, {
-        amount: Number(data.amount),
-        notes: data.notes || undefined,
-      });
-      queryClient.invalidateQueries({ queryKey: ['goals'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      router.back();
-    } catch {
-      Alert.alert('Error', 'Could not add contribution');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const contentStyle = useScrollContentStyle();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container} contentContainerStyle={contentStyle}>
       <Controller
         control={control}
         name="amount"
         rules={{ required: 'Amount is required' }}
         render={({ field: { onChange, value } }) => (
-          <Input label="Contribution Amount (₹)" value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} />
+          <Input label={amountLabel('Contribution Amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} />
         )}
       />
       <Controller
@@ -58,7 +37,7 @@ export default function ContributeGoalScreen() {
           <Input label="Notes (optional)" value={value} onChangeText={onChange} />
         )}
       />
-      <Button title="Add Contribution" onPress={handleSubmit(onSubmit)} loading={loading} />
+      <Button title="Add Contribution" onPress={handleSubmit(contribute)} loading={loading} />
     </ScrollView>
   );
 }
@@ -66,6 +45,5 @@ export default function ContributeGoalScreen() {
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.colors.background },
-    content: { padding: 16 },
   });
 }

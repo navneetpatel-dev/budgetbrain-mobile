@@ -1,13 +1,16 @@
 import { useMemo } from 'react';
 import { StyleSheet, ScrollView, Text } from 'react-native';
-import { useTheme } from '@/src/theme';
+import { useTheme } from '@/src/shared/theme';
+import { useScrollContentStyle } from '@/src/shared/components/ui';
 
 export default function PrivacyScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
+  const contentStyle = useScrollContentStyle();
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container} contentContainerStyle={contentStyle}>
       <Text style={styles.title}>Privacy Policy</Text>
       <Text style={styles.updated}>Last updated: June 2026</Text>
 
@@ -52,7 +55,6 @@ export default function PrivacyScreen() {
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.colors.background },
-    content: { padding: 16, paddingBottom: 48 },
     title: { fontSize: 24, fontWeight: '800', color: t.colors.text, marginBottom: 4 },
     updated: { fontSize: 13, color: t.colors.textSecondary, marginBottom: 24 },
     section: { fontSize: 16, fontWeight: '700', color: t.colors.text, marginTop: 16, marginBottom: 8 },

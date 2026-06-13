@@ -1,28 +1,19 @@
-import { useState, useMemo } from 'react';
-import { StyleSheet, View, ScrollView, Alert, Pressable, Text } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useMemo } from 'react';
+import { StyleSheet, View, ScrollView, Pressable, Text } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Button, Input } from '@/src/components/ui';
-import { apiGet, apiPost } from '@/src/services/api';
-import { useTheme } from '@/src/theme';
-import type { Budget, Category } from '@/src/types';
-
-interface BudgetForm {
-  name: string;
-  type: 'monthly' | 'weekly' | 'category';
-  amount: string;
-  categoryId: string;
-  startDate: string;
-  alertThreshold: string;
-}
+import { useQuery } from '@tanstack/react-query';
+import { Button, Input, DateInput, useScrollContentStyle } from '@/src/shared/components/ui';
+import { apiGet } from '@/src/shared/services/api';
+import { useCreateBudget, type BudgetForm } from '@/src/features/budgets/hooks/useCreateBudget';
+import { useTheme } from '@/src/shared/theme';
+import { useUserCurrency } from '@/src/shared/hooks/useUserCurrency';
+import type { Category } from '@/src/shared/types';
 
 export default function AddBudgetScreen() {
   const theme = useTheme();
+  const { amountLabel } = useUserCurrency();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  const [loading, setLoading] = useState(false);
+  const { create, loading } = useCreateBudget();
 
   const { data: categories } = useQuery({
     queryKey: ['categories'],
@@ -46,33 +37,10 @@ export default function AddBudgetScreen() {
   const budgetType = watch('type');
   const selectedCategory = watch('categoryId');
 
-  const onSubmit = async (data: BudgetForm) => {
-    if (data.type === 'category' && !data.categoryId) {
-      Alert.alert('Category Required', 'Select a category for category budgets');
-      return;
-    }
-    setLoading(true);
-    try {
-      await apiPost<Budget>('/budgets', {
-        name: data.name,
-        type: data.type,
-        amount: Number(data.amount),
-        categoryId: data.type === 'category' ? data.categoryId : undefined,
-        startDate: data.startDate,
-        alertThreshold: Number(data.alertThreshold),
-      });
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      router.back();
-    } catch {
-      Alert.alert('Error', 'Could not create budget');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const contentStyle = useScrollContentStyle();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container} contentContainerStyle={contentStyle}>
       <Controller
         control={control}
         name="name"
@@ -100,7 +68,7 @@ export default function AddBudgetScreen() {
         name="amount"
         rules={{ required: 'Amount is required' }}
         render={({ field: { onChange, value } }) => (
-          <Input label="Budget Amount (₹)" value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} />
+          <Input label={amountLabel('Budget Amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} />
         )}
       />
 
@@ -108,7 +76,7 @@ export default function AddBudgetScreen() {
         control={control}
         name="startDate"
         render={({ field: { onChange, value } }) => (
-          <Input label="Start Date (YYYY-MM-DD)" value={value} onChangeText={onChange} />
+          <DateInput label="Start Date" value={value} onChange={onChange} />
         )}
       />
 
@@ -137,7 +105,7 @@ export default function AddBudgetScreen() {
         </>
       )}
 
-      <Button title="Create Budget" onPress={handleSubmit(onSubmit)} loading={loading} />
+      <Button title="Create Budget" onPress={handleSubmit(create)} loading={loading} />
     </ScrollView>
   );
 }
@@ -145,10 +113,9 @@ export default function AddBudgetScreen() {
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.colors.background },
-    content: { padding: 16 },
     label: { fontSize: 14, fontWeight: '500', color: t.colors.text, marginBottom: 8 },
     chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-    chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: t.colors.border, backgroundColor: t.colors.surface, textTransform: 'capitalize' },
+    chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: t.colors.border, backgroundColor: t.colors.surface },
     chipActive: { backgroundColor: t.colors.primary, borderColor: t.colors.primary },
     chipText: { fontSize: 13, color: t.colors.text, textTransform: 'capitalize' },
     chipTextActive: { color: t.colors.onPrimary, fontWeight: '600' },

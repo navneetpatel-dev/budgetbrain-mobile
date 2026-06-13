@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
-import { StyleSheet, View, Text, Alert, Switch, Pressable } from 'react-native';
+import { StyleSheet, View, Text, Switch, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { appHref } from '@/src/utils/navigation';
+import { appHref } from '@/src/shared/utils/navigation';
 import { useForm, Controller } from 'react-hook-form';
 import {
   Button,
@@ -12,26 +12,20 @@ import {
   Screen,
   GroupedCard,
   ListRow,
-} from '@/src/components/ui';
-import { ThemePicker } from '@/src/components/ThemePicker';
-import { apiGet, apiDelete, apiPost, apiPatch, clearTokens, getRefreshToken } from '@/src/services/api';
-import { logout, setUser } from '@/src/store/authSlice';
-import { setBiometricEnabled, setTheme, setAccent } from '@/src/store/settingsSlice';
-import { useAppDispatch, useAppSelector } from '@/src/store/hooks';
-import { queryClient } from '@/src/services/queryClient';
-import { SUBSCRIPTION_PLANS, SUPPORTED_CURRENCIES } from '@/src/constants/config';
-import { isBiometricAvailable, getBiometricType } from '@/src/services/biometrics';
-import { trackEvent } from '@/src/services/analytics';
-import { useTheme } from '@/src/theme';
-import { useResponsive } from '@/src/utils/responsive';
-import type { User } from '@/src/types';
-import type { AppIconName } from '@/src/components/AppIcon';
-
-interface ProfileForm {
-  name: string;
-  country: string;
-  currency: string;
-}
+} from '@/src/shared/components/ui';
+import { ThemePicker } from '@/src/features/settings/components/ThemePicker';
+import { useBiometricToggle } from '@/src/features/settings/hooks/useBiometricToggle';
+import { useDeleteAccount } from '@/src/features/settings/hooks/useDeleteAccount';
+import { useEditProfile, type ProfileForm } from '@/src/features/settings/hooks/useEditProfile';
+import { useLogout } from '@/src/features/settings/hooks/useLogout';
+import { usePushTest } from '@/src/features/settings/hooks/usePushTest';
+import { apiGet } from '@/src/shared/services/api';
+import { setTheme, setAccent } from '@/src/shared/store/settingsSlice';
+import { useAppDispatch, useAppSelector } from '@/src/shared/store/hooks';
+import { SUBSCRIPTION_PLANS, SUPPORTED_CURRENCIES } from '@/src/shared/constants/config';
+import { useTheme } from '@/src/shared/theme';
+import { useResponsive } from '@/src/shared/utils/responsive';
+import type { AppIconName } from '@/src/features/navigation/components/AppIcon';
 
 const FEATURE_LINKS: { label: string; href: string; icon: AppIconName }[] = [
   { label: 'Goals', href: '/(tabs)/goals', icon: 'goals' },
@@ -56,24 +50,22 @@ const ACCOUNT_LINKS: { label: string; href: string; icon: AppIconName }[] = [
 export default function SettingsScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const { horizontalPadding } = useResponsive();
+  const { screenPaddingX } = useResponsive();
   const dispatch = useAppDispatch();
   const router = useRouter();
   const user = useAppSelector((s) => s.auth.user);
   const settings = useAppSelector((s) => s.settings);
-  const [biometricType, setBiometricType] = useState('Biometric');
-  const [biometricSupported, setBiometricSupported] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
-  const [profileLoading, setProfileLoading] = useState(false);
+
+  const logout = useLogout();
+  const deleteAccount = useDeleteAccount();
+  const { save: saveProfile, loading: profileLoading } = useEditProfile();
+  const { type: biometricType, supported: biometricSupported, enabled: biometricEnabled, toggle: toggleBiometric } = useBiometricToggle();
+  const testPush = usePushTest();
 
   const { control, handleSubmit, reset } = useForm<ProfileForm>({
     defaultValues: { name: user?.name ?? '', country: user?.country ?? '', currency: user?.currency ?? 'INR' },
   });
-
-  useEffect(() => {
-    isBiometricAvailable().then(setBiometricSupported);
-    getBiometricType().then(setBiometricType);
-  }, []);
 
   useEffect(() => {
     reset({ name: user?.name ?? '', country: user?.country ?? '', currency: user?.currency ?? 'INR' });
@@ -90,9 +82,9 @@ export default function SettingsScreen() {
       StyleSheet.create({
         hero: {
           paddingTop: insets.top + 16,
-          paddingHorizontal: horizontalPadding,
-          paddingBottom: 28,
-          marginBottom: theme.spacing.lg,
+          paddingHorizontal: screenPaddingX,
+          paddingBottom: 24,
+          marginBottom: theme.spacing.md,
           borderBottomLeftRadius: theme.radii.xl,
           borderBottomRightRadius: theme.radii.xl,
         },
@@ -119,7 +111,7 @@ export default function SettingsScreen() {
           borderRadius: theme.radii.full,
         },
         badgeText: { color: '#fff', fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
-        body: { paddingHorizontal: horizontalPadding },
+        body: { paddingHorizontal: screenPaddingX },
         premium: {
           marginBottom: theme.spacing.lg,
           padding: theme.spacing.lg,
@@ -141,52 +133,28 @@ export default function SettingsScreen() {
         switchHint: { ...theme.typography.caption, color: theme.colors.textTertiary, marginTop: 2 },
         currencyRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: theme.spacing.lg, paddingHorizontal: theme.spacing.lg },
         currencyChip: {
-          paddingHorizontal: 12,
-          paddingVertical: 6,
+          paddingHorizontal: 16,
+          paddingVertical: 10,
+          minHeight: 44,
+          justifyContent: 'center',
           borderRadius: theme.radii.full,
           borderWidth: 1,
           borderColor: theme.colors.border,
         },
         currencyChipActive: { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
-        currencyText: { fontSize: 13, color: theme.colors.text },
+        currencyText: { ...theme.typography.bodyMedium, fontSize: 14, color: theme.colors.text },
         currencyTextActive: { color: theme.colors.onPrimary, fontWeight: '600' },
         actions: { gap: theme.spacing.md, marginTop: theme.spacing.lg, marginBottom: theme.spacing.xxl },
       }),
-    [theme, insets, horizontalPadding]
+    [theme, insets, screenPaddingX]
   );
 
-  const handleLogout = async () => {
-    try {
-      const refreshToken = await getRefreshToken();
-      if (refreshToken) await apiPost('/auth/logout', { refreshToken });
-    } catch { /* proceed */ }
-    await clearTokens();
-    dispatch(logout());
-    queryClient.clear();
-    trackEvent('user_logged_out');
-  };
-
-  const handleDeleteAccount = () => {
-    Alert.alert('Delete Account', 'This action is permanent and cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => { await apiDelete('/users/me'); await handleLogout(); } },
-    ]);
-  };
-
-  const saveProfile = async (data: ProfileForm) => {
-    setProfileLoading(true);
-    try {
-      const updated = await apiPatch<User>('/users/me', data);
-      if (updated) dispatch(setUser(updated));
-      setEditingProfile(false);
-    } catch {
-      Alert.alert('Error', 'Could not update profile');
-    } finally {
-      setProfileLoading(false);
-    }
-  };
-
   const isPremium = ['premium', 'lifetime'].includes(user?.role ?? '');
+
+  const onSaveProfile = async (data: ProfileForm) => {
+    const ok = await saveProfile(data);
+    if (ok) setEditingProfile(false);
+  };
 
   return (
     <Screen padded={false}>
@@ -257,14 +225,8 @@ export default function SettingsScreen() {
               <Text style={styles.switchHint}>Require auth when reopening</Text>
             </View>
             <Switch
-              value={settings.biometricEnabled}
-              onValueChange={async (v) => {
-                if (v && !(await isBiometricAvailable())) {
-                  Alert.alert('Unavailable', `${biometricType} is not set up.`);
-                  return;
-                }
-                dispatch(setBiometricEnabled(v));
-              }}
+              value={biometricEnabled}
+              onValueChange={toggleBiometric}
               disabled={!biometricSupported}
               trackColor={{ true: theme.colors.primary }}
             />
@@ -272,14 +234,7 @@ export default function SettingsScreen() {
           <ListRow
             icon="bell"
             label="Test push notification"
-            onPress={async () => {
-              try {
-                const result = await apiPost<{ sent: number }>('/notifications/test', {});
-                Alert.alert('Push', result.sent > 0 ? 'Sent!' : 'No token registered.');
-              } catch {
-                Alert.alert('Error', 'Failed to send');
-              }
-            }}
+            onPress={testPush}
             isLast
           />
         </GroupedCard>
@@ -315,14 +270,14 @@ export default function SettingsScreen() {
                   )} />
                 ))}
               </View>
-              <Button title="Save profile" onPress={handleSubmit(saveProfile)} loading={profileLoading} />
+              <Button title="Save profile" onPress={handleSubmit(onSaveProfile)} loading={profileLoading} />
             </View>
           )}
         </GroupedCard>
 
         <View style={styles.actions}>
-          <Button title="Sign out" onPress={handleLogout} variant="outline" />
-          <Button title="Delete account" onPress={handleDeleteAccount} variant="danger" />
+          <Button title="Sign out" onPress={logout} variant="outline" />
+          <Button title="Delete account" onPress={deleteAccount} variant="danger" />
         </View>
       </View>
     </Screen>

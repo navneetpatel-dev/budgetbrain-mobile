@@ -2,16 +2,21 @@ import { useMemo } from 'react';
 import { StyleSheet, View, FlatList, RefreshControl, Text, Pressable } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { appHref } from '@/src/utils/navigation';
-import { apiGet } from '@/src/services/api';
-import { Card, EmptyState, ScreenLoader } from '@/src/components/ui';
-import { Fab } from '@/src/components/Fab';
-import { useTheme } from '@/src/theme';
-import type { Goal } from '@/src/types';
+import { appHref } from '@/src/shared/utils/navigation';
+import { apiGet } from '@/src/shared/services/api';
+import { Card, EmptyState, ScreenSkeleton, ScreenContainer, ProgressBar } from '@/src/shared/components/ui';
+import { Fab } from '@/src/features/navigation/components/Fab';
+import { useTheme } from '@/src/shared/theme';
+import { useTabBarInset } from '@/src/shared/hooks/useTabBarInset';
+import { useResponsive } from '@/src/shared/utils/responsive';
+import { formatCurrency } from '@/src/shared/utils/currency';
+import type { Goal } from '@/src/shared/types';
 
 export default function GoalsScreen() {
   const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const tabBarInset = useTabBarInset();
+  const { stackGap } = useResponsive();
+  const styles = useMemo(() => createStyles(theme, stackGap), [theme, stackGap]);
   const router = useRouter();
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['goals'],
@@ -19,42 +24,43 @@ export default function GoalsScreen() {
   });
 
   if (isLoading) {
-    return <ScreenLoader />;
+    return <ScreenSkeleton rows={3} />;
   }
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer>
       <FlatList
         data={data ?? []}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, { paddingBottom: tabBarInset }]}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />}
-        ListEmptyComponent={<EmptyState title="No goals yet" subtitle="Set a financial goal to stay motivated" />}
+        ListEmptyComponent={<EmptyState title="No goals yet" subtitle="Set a financial goal to stay motivated" icon="goals" />}
         renderItem={({ item }) => {
           const progress = Math.min(100, Math.round((Number(item.currentAmount) / Number(item.targetAmount)) * 100));
-          const symbol = item.currency === 'INR' ? '₹' : item.currency;
 
           return (
             <Card style={styles.goalCard}>
               <Text style={styles.goalName}>{item.name}</Text>
               <Text style={styles.goalType}>{item.type.replace('_', ' ')}</Text>
               <View style={styles.amountRow}>
-                <Text style={styles.current}>
-                  {symbol}{Number(item.currentAmount).toLocaleString()}
-                </Text>
-                <Text style={styles.target}>
-                  / {symbol}{Number(item.targetAmount).toLocaleString()}
-                </Text>
+                <Text style={styles.current}>{formatCurrency(Number(item.currentAmount), item.currency)}</Text>
+                <Text style={styles.target}>/ {formatCurrency(Number(item.targetAmount), item.currency)}</Text>
               </View>
-              <View style={styles.progressBar}>
-                <View style={[styles.progressFill, { width: `${progress}%` }]} />
-              </View>
+              <ProgressBar progress={progress} color={theme.colors.success} />
               <Text style={styles.progressText}>{progress}% complete</Text>
               <View style={styles.goalActions}>
-                <Pressable onPress={() => router.push(appHref(`/goal/${item.id}`))}>
+                <Pressable
+                  onPress={() => router.push(appHref(`/goal/${item.id}`))}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Edit ${item.name}`}
+                >
                   <Text style={styles.editText}>Edit</Text>
                 </Pressable>
-                <Pressable onPress={() => router.push(appHref(`/goal/${item.id}/contribute`))}>
+                <Pressable
+                  onPress={() => router.push(appHref(`/goal/${item.id}/contribute`))}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Contribute to ${item.name}`}
+                >
                   <Text style={styles.contributeText}>+ Contribute</Text>
                 </Pressable>
               </View>
@@ -62,24 +68,21 @@ export default function GoalsScreen() {
           );
         }}
       />
-      <Fab href="/goal/add" />
-    </View>
+      <Fab href="/goal/add" aboveTabBar />
+    </ScreenContainer>
   );
 }
 
-function createStyles(t: ReturnType<typeof useTheme>) {
+function createStyles(t: ReturnType<typeof useTheme>, stackGap: number) {
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: t.colors.background },
-    list: { padding: 16, paddingBottom: 80 },
-    goalCard: { marginBottom: 12 },
-    goalName: { fontSize: 16, fontWeight: '700', color: t.colors.text },
-    goalType: { fontSize: 12, color: t.colors.textSecondary, textTransform: 'capitalize', marginBottom: 8 },
+    list: { paddingTop: t.spacing.lg, gap: stackGap },
+    goalCard: { marginBottom: 0 },
+    goalName: { ...t.typography.titleSm, color: t.colors.text },
+    goalType: { ...t.typography.caption, color: t.colors.textSecondary, textTransform: 'capitalize', marginBottom: 8 },
     amountRow: { flexDirection: 'row', alignItems: 'baseline', marginBottom: 12 },
-    current: { fontSize: 22, fontWeight: '800', color: t.colors.primary },
-    target: { fontSize: 14, color: t.colors.textSecondary, marginLeft: 4 },
-    progressBar: { height: 8, backgroundColor: t.colors.border, borderRadius: 4, overflow: 'hidden' },
-    progressFill: { height: '100%', backgroundColor: t.colors.success, borderRadius: 4 },
-    progressText: { fontSize: 12, color: t.colors.textSecondary, marginTop: 6 },
+    current: { ...t.typography.amount, color: t.colors.primary },
+    target: { ...t.typography.bodyMedium, color: t.colors.textSecondary, marginLeft: 4 },
+    progressText: { ...t.typography.caption, color: t.colors.textSecondary, marginTop: 6 },
     goalActions: { flexDirection: 'row', gap: 16, marginTop: 12 },
     editText: { color: t.colors.textSecondary, fontWeight: '600', fontSize: 14 },
     contributeText: { color: t.colors.primary, fontWeight: '600', fontSize: 14 },

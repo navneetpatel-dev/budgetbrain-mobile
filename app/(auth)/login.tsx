@@ -1,17 +1,13 @@
-import { useState } from 'react';
+import { useMemo } from 'react';
 import { StyleSheet, View, Text, Alert } from 'react-native';
 import { Link } from 'expo-router';
-import { appHref } from '@/src/utils/navigation';
+import { appHref } from '@/src/shared/utils/navigation';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Input } from '@/src/components/ui';
-import { AuthShell } from '@/src/components/AuthShell';
-import { SocialAuthButtons } from '@/src/components/SocialAuthButtons';
-import { apiPost, setTokens, getApiErrorMessage } from '@/src/services/api';
-import { setUser } from '@/src/store/authSlice';
-import { useAppDispatch } from '@/src/store/hooks';
-import { useTheme } from '@/src/theme';
-import { useMemo } from 'react';
-import type { User } from '@/src/types';
+import { Button, Input } from '@/src/shared/components/ui';
+import { AuthShell } from '@/src/features/auth/components/AuthShell';
+import { SocialAuthButtons } from '@/src/features/auth/components/SocialAuthButtons';
+import { useLogin } from '@/src/features/auth/hooks/useLogin';
+import { useTheme } from '@/src/shared/theme';
 
 interface LoginForm {
   email: string;
@@ -19,27 +15,18 @@ interface LoginForm {
 }
 
 export default function LoginScreen() {
-  const dispatch = useAppDispatch();
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const [loading, setLoading] = useState(false);
+  const { login, loading } = useLogin();
   const { control, handleSubmit, formState: { errors } } = useForm<LoginForm>({
     defaultValues: { email: '', password: '' },
   });
 
   const onSubmit = async (data: LoginForm) => {
-    setLoading(true);
     try {
-      const result = await apiPost<{ accessToken: string; refreshToken: string; user: User }>(
-        '/auth/login',
-        data
-      );
-      await setTokens(result.accessToken, result.refreshToken);
-      dispatch(setUser(result.user));
-    } catch (err: unknown) {
-      Alert.alert('Login Failed', getApiErrorMessage(err, 'Invalid credentials'));
-    } finally {
-      setLoading(false);
+      await login(data);
+    } catch (err) {
+      Alert.alert('Login Failed', err instanceof Error ? err.message : 'Invalid credentials');
     }
   };
 
@@ -50,7 +37,16 @@ export default function LoginScreen() {
         name="email"
         rules={{ required: 'Email is required', pattern: { value: /\S+@\S+\.\S+/, message: 'Invalid email' } }}
         render={({ field: { onChange, value } }) => (
-          <Input label="Email" value={value} onChangeText={onChange} keyboardType="email-address" autoCapitalize="none" error={errors.email?.message} />
+          <Input
+            label="Email"
+            value={value}
+            onChangeText={onChange}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            textContentType="emailAddress"
+            autoComplete="email"
+            error={errors.email?.message}
+          />
         )}
       />
 
@@ -59,7 +55,16 @@ export default function LoginScreen() {
         name="password"
         rules={{ required: 'Password is required' }}
         render={({ field: { onChange, value } }) => (
-          <Input label="Password" value={value} onChangeText={onChange} secureTextEntry error={errors.password?.message} />
+          <Input
+            label="Password"
+            value={value}
+            onChangeText={onChange}
+            secureTextEntry
+            secureToggle
+            textContentType="password"
+            autoComplete="password"
+            error={errors.password?.message}
+          />
         )}
       />
 
@@ -75,7 +80,7 @@ export default function LoginScreen() {
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>Don't have an account? </Text>
-        <Link href="/(auth)/register" style={styles.link}>Sign Up</Link>
+        <Link href={appHref('/(auth)/register')} style={styles.link}>Sign Up</Link>
       </View>
     </AuthShell>
   );

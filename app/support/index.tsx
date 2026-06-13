@@ -1,64 +1,20 @@
-import { useState, useEffect, useMemo } from 'react';
-import { StyleSheet, View, ScrollView, Text, Alert } from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
+import { useMemo } from 'react';
+import { StyleSheet, View, ScrollView, Text } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Button, Input, Card } from '@/src/components/ui';
-import { apiPost, apiGet } from '@/src/services/api';
-import { useTheme } from '@/src/theme';
-
-interface TicketForm {
-  subject: string;
-  message: string;
-}
-
-interface SupportTicket {
-  id: string;
-  subject: string;
-  message: string;
-  status: string;
-  createdAt: string;
-}
+import { Controller } from 'react-hook-form';
+import { Button, Input, Card, useScrollContentStyle } from '@/src/shared/components/ui';
+import { useTheme } from '@/src/shared/theme';
+import { useSupportTickets } from '@/src/features/support/hooks/useSupportTickets';
 
 export default function SupportScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [tickets, setTickets] = useState<SupportTicket[]>([]);
-
-  const { control, handleSubmit, reset, formState: { errors } } = useForm<TicketForm>({
-    defaultValues: { subject: '', message: '' },
-  });
-
-  const loadTickets = async () => {
-    try {
-      const data = await apiGet<SupportTicket[]>('/support');
-      setTickets(data);
-    } catch {
-      // ignore on first load
-    }
-  };
-
-  useEffect(() => {
-    loadTickets();
-  }, []);
-
-  const onSubmit = async (data: TicketForm) => {
-    setLoading(true);
-    try {
-      await apiPost('/support', data);
-      reset();
-      await loadTickets();
-      Alert.alert('Submitted', 'Our team will respond within 24–48 hours.');
-    } catch {
-      Alert.alert('Error', 'Could not submit ticket');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { loading, tickets, control, handleSubmit, errors, onSubmit } = useSupportTickets();
+  const contentStyle = useScrollContentStyle();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container} contentContainerStyle={contentStyle}>
       <Text style={styles.title}>Support</Text>
       <Text style={styles.subtitle}>Describe your issue and we will get back to you</Text>
 
@@ -103,7 +59,6 @@ export default function SupportScreen() {
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.colors.background },
-    content: { padding: 16, paddingBottom: 48 },
     title: { fontSize: 24, fontWeight: '800', color: t.colors.text, marginBottom: 4 },
     subtitle: { fontSize: 14, color: t.colors.textSecondary, marginBottom: 24 },
     card: { marginBottom: 24 },

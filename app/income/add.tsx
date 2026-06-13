@@ -1,29 +1,20 @@
 import { useState, useMemo } from 'react';
-import { StyleSheet, View, ScrollView, Alert, Pressable, Text } from 'react-native';
-import { useRouter } from 'expo-router';
+import { StyleSheet, View, ScrollView, Pressable, Text } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Button, Input } from '@/src/components/ui';
-import { apiGet, apiPost } from '@/src/services/api';
-import { INCOME_SOURCE_TYPES } from '@/src/constants/config';
-import { useTheme } from '@/src/theme';
-import type { IncomeSource, Transaction } from '@/src/types';
-
-interface IncomeForm {
-  amount: string;
-  notes: string;
-  date: string;
-  incomeSourceId: string;
-  newSourceName: string;
-  newSourceType: string;
-}
+import { useQuery } from '@tanstack/react-query';
+import { Button, Input, DateInput, useScrollContentStyle } from '@/src/shared/components/ui';
+import { apiGet } from '@/src/shared/services/api';
+import { useCreateIncome, type IncomeForm } from '@/src/features/income/hooks/useCreateIncome';
+import { INCOME_SOURCE_TYPES } from '@/src/shared/constants/config';
+import { useTheme } from '@/src/shared/theme';
+import { useUserCurrency } from '@/src/shared/hooks/useUserCurrency';
+import type { IncomeSource } from '@/src/shared/types';
 
 export default function AddIncomeScreen() {
   const theme = useTheme();
+  const { amountLabel } = useUserCurrency();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  const [loading, setLoading] = useState(false);
+  const { create, loading } = useCreateIncome();
   const [showNewSource, setShowNewSource] = useState(false);
 
   const { data: sources } = useQuery({
@@ -45,45 +36,16 @@ export default function AddIncomeScreen() {
   const selectedSource = watch('incomeSourceId');
   const newSourceType = watch('newSourceType');
 
-  const onSubmit = async (data: IncomeForm) => {
-    setLoading(true);
-    try {
-      let incomeSourceId = data.incomeSourceId;
-
-      if (showNewSource && data.newSourceName) {
-        const source = await apiPost<IncomeSource>('/income/sources', {
-          name: data.newSourceName,
-          type: data.newSourceType,
-        });
-        incomeSourceId = source.id;
-        queryClient.invalidateQueries({ queryKey: ['income-sources'] });
-      }
-
-      await apiPost<Transaction>('/income', {
-        amount: Number(data.amount),
-        notes: data.notes || undefined,
-        date: data.date,
-        incomeSourceId: incomeSourceId || undefined,
-      });
-
-      queryClient.invalidateQueries({ queryKey: ['income'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      router.back();
-    } catch {
-      Alert.alert('Error', 'Could not save income');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const contentStyle = useScrollContentStyle();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container} contentContainerStyle={contentStyle}>
       <Controller
         control={control}
         name="amount"
         rules={{ required: 'Amount is required' }}
         render={({ field: { onChange, value } }) => (
-          <Input label="Amount (₹)" value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} />
+          <Input label={amountLabel('Amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} />
         )}
       />
 
@@ -92,7 +54,7 @@ export default function AddIncomeScreen() {
         name="date"
         rules={{ required: 'Date is required' }}
         render={({ field: { onChange, value } }) => (
-          <Input label="Date (YYYY-MM-DD)" value={value} onChangeText={onChange} error={errors.date?.message} />
+          <DateInput label="Date" value={value} onChange={onChange} error={errors.date?.message} />
         )}
       />
 
@@ -146,7 +108,7 @@ export default function AddIncomeScreen() {
         )}
       />
 
-      <Button title="Save Income" onPress={handleSubmit(onSubmit)} loading={loading} />
+      <Button title="Save Income" onPress={handleSubmit((data) => create(data, showNewSource))} loading={loading} />
     </ScrollView>
   );
 }
@@ -154,7 +116,6 @@ export default function AddIncomeScreen() {
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.colors.background },
-    content: { padding: 16 },
     label: { fontSize: 14, fontWeight: '500', color: t.colors.text, marginBottom: 8 },
     chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
     chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: t.colors.border, backgroundColor: t.colors.surface },

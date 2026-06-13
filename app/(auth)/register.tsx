@@ -1,14 +1,12 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { StyleSheet, View, Text, Alert } from 'react-native';
 import { Link } from 'expo-router';
+import { appHref } from '@/src/shared/utils/navigation';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Input } from '@/src/components/ui';
-import { AuthShell } from '@/src/components/AuthShell';
-import { apiPost, setTokens, getApiErrorMessage } from '@/src/services/api';
-import { setUser } from '@/src/store/authSlice';
-import { useAppDispatch } from '@/src/store/hooks';
-import { useTheme } from '@/src/theme';
-import type { User } from '@/src/types';
+import { Button, Input } from '@/src/shared/components/ui';
+import { AuthShell } from '@/src/features/auth/components/AuthShell';
+import { useRegister } from '@/src/features/auth/hooks/useRegister';
+import { useTheme } from '@/src/shared/theme';
 
 interface RegisterForm {
   name: string;
@@ -17,27 +15,18 @@ interface RegisterForm {
 }
 
 export default function RegisterScreen() {
-  const dispatch = useAppDispatch();
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const [loading, setLoading] = useState(false);
+  const { register, loading } = useRegister();
   const { control, handleSubmit, formState: { errors } } = useForm<RegisterForm>({
     defaultValues: { name: '', email: '', password: '' },
   });
 
   const onSubmit = async (data: RegisterForm) => {
-    setLoading(true);
     try {
-      const result = await apiPost<{ accessToken: string; refreshToken: string; user: User }>(
-        '/auth/register',
-        data
-      );
-      await setTokens(result.accessToken, result.refreshToken);
-      dispatch(setUser(result.user));
-    } catch (err: unknown) {
-      Alert.alert('Registration Failed', getApiErrorMessage(err, 'Could not create account'));
-    } finally {
-      setLoading(false);
+      await register(data);
+    } catch (err) {
+      Alert.alert('Registration Failed', err instanceof Error ? err.message : 'Could not create account');
     }
   };
 
@@ -57,7 +46,16 @@ export default function RegisterScreen() {
         name="email"
         rules={{ required: 'Email is required', pattern: { value: /\S+@\S+\.\S+/, message: 'Invalid email' } }}
         render={({ field: { onChange, value } }) => (
-          <Input label="Email" value={value} onChangeText={onChange} keyboardType="email-address" autoCapitalize="none" error={errors.email?.message} />
+          <Input
+            label="Email"
+            value={value}
+            onChangeText={onChange}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            textContentType="emailAddress"
+            autoComplete="email"
+            error={errors.email?.message}
+          />
         )}
       />
 
@@ -66,7 +64,16 @@ export default function RegisterScreen() {
         name="password"
         rules={{ required: 'Password is required', minLength: { value: 8, message: 'Minimum 8 characters' } }}
         render={({ field: { onChange, value } }) => (
-          <Input label="Password" value={value} onChangeText={onChange} secureTextEntry error={errors.password?.message} />
+          <Input
+            label="Password"
+            value={value}
+            onChangeText={onChange}
+            secureTextEntry
+            secureToggle
+            textContentType="newPassword"
+            autoComplete="password-new"
+            error={errors.password?.message}
+          />
         )}
       />
 
@@ -74,7 +81,7 @@ export default function RegisterScreen() {
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>Already have an account? </Text>
-        <Link href="/(auth)/login" style={styles.link}>Sign In</Link>
+        <Link href={appHref('/(auth)/login')} style={styles.link}>Sign In</Link>
       </View>
     </AuthShell>
   );

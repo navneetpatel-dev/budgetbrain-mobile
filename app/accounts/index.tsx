@@ -1,144 +1,87 @@
-import { useState, useMemo } from 'react';
-import { StyleSheet, View, FlatList, Alert, Pressable, Text } from 'react-native';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useForm, Controller } from 'react-hook-form';
-import { Button, Input, Card, EmptyState, ScreenLoader } from '@/src/components/ui';
-import { apiGet, apiPost, apiPatch } from '@/src/services/api';
-import { useTheme } from '@/src/theme';
-import type { FinancialAccount } from '@/src/types';
-
-interface AccountForm {
-  name: string;
-  type: 'bank' | 'credit_card' | 'cash' | 'wallet';
-  institution: string;
-  balance: string;
-  accountNumberLast4: string;
-}
-
-const ACCOUNT_TYPES = [
-  { value: 'bank', label: 'Bank' },
-  { value: 'credit_card', label: 'Credit Card' },
-  { value: 'cash', label: 'Cash' },
-  { value: 'wallet', label: 'Wallet' },
-] as const;
+import { useMemo } from 'react';
+import { StyleSheet, View, FlatList, Pressable, Text } from 'react-native';
+import { Controller } from 'react-hook-form';
+import { Button, Input, Card, EmptyState, ScreenLoader, ScreenContainer, FormModal } from '@/src/shared/components/ui';
+import { useFabBottom } from '@/src/shared/hooks/useFabBottom';
+import { useTheme } from '@/src/shared/theme';
+import { useUserCurrency } from '@/src/shared/hooks/useUserCurrency';
+import { useAccounts, ACCOUNT_TYPES } from '@/src/features/accounts/hooks/useAccounts';
 
 export default function AccountsScreen() {
   const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
-  const queryClient = useQueryClient();
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['accounts'],
-    queryFn: () => apiGet<FinancialAccount[]>('/accounts'),
-  });
-
-  const { control, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<AccountForm>({
-    defaultValues: { name: '', type: 'bank', institution: '', balance: '', accountNumberLast4: '' },
-  });
-
-  const accountType = watch('type');
-
-  const openCreate = () => {
-    reset({ name: '', type: 'bank', institution: '', balance: '', accountNumberLast4: '' });
-    setEditingId(null);
-    setShowForm(true);
-  };
-
-  const openEdit = (acc: FinancialAccount) => {
-    reset({
-      name: acc.name,
-      type: acc.type,
-      institution: acc.institution ?? '',
-      balance: String(acc.balance),
-      accountNumberLast4: acc.accountNumberLast4 ?? '',
-    });
-    setEditingId(acc.id);
-    setShowForm(true);
-  };
-
-  const onSubmit = async (form: AccountForm) => {
-    setLoading(true);
-    try {
-      const payload = {
-        name: form.name,
-        type: form.type,
-        institution: form.institution || undefined,
-        balance: Number(form.balance),
-        accountNumberLast4: form.accountNumberLast4 || undefined,
-      };
-      if (editingId) {
-        await apiPatch(`/accounts/${editingId}`, { name: payload.name, balance: payload.balance });
-      } else {
-        await apiPost('/accounts', payload);
-      }
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
-      queryClient.invalidateQueries({ queryKey: ['net-worth'] });
-      setShowForm(false);
-    } catch {
-      Alert.alert('Error', 'Could not save account');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { amountLabel, format } = useUserCurrency();
+  const fabBottom = useFabBottom();
+  const styles = useMemo(() => createStyles(theme, fabBottom), [theme, fabBottom]);
+  const {
+    data,
+    isLoading,
+    showForm,
+    setShowForm,
+    editingId,
+    loading,
+    control,
+    handleSubmit,
+    setValue,
+    errors,
+    accountType,
+    openCreate,
+    openEdit,
+    onSubmit,
+  } = useAccounts();
 
   if (isLoading) {
     return <ScreenLoader />;
   }
 
   return (
-    <View style={styles.container}>
-      {showForm && (
-        <Card style={styles.formCard}>
-          <Controller
-            control={control}
-            name="name"
-            rules={{ required: 'Name is required' }}
-            render={({ field: { onChange, value } }) => (
-              <Input label="Account Name" value={value} onChangeText={onChange} error={errors.name?.message} />
-            )}
-          />
-          {!editingId && (
-            <>
-              <Text style={styles.label}>Type</Text>
-              <View style={styles.chipRow}>
-                {ACCOUNT_TYPES.map((t) => (
-                  <Pressable key={t.value} onPress={() => setValue('type', t.value)} style={[styles.chip, accountType === t.value && styles.chipActive]}>
-                    <Text style={[styles.chipText, accountType === t.value && styles.chipTextActive]}>{t.label}</Text>
-                  </Pressable>
-                ))}
-              </View>
-              <Controller
-                control={control}
-                name="institution"
-                render={({ field: { onChange, value } }) => (
-                  <Input label="Institution" value={value} onChangeText={onChange} placeholder="e.g. HDFC Bank" />
-                )}
-              />
-              <Controller
-                control={control}
-                name="accountNumberLast4"
-                render={({ field: { onChange, value } }) => (
-                  <Input label="Last 4 digits" value={value} onChangeText={onChange} keyboardType="number-pad" maxLength={4} />
-                )}
-              />
-            </>
+    <ScreenContainer>
+      <FormModal visible={showForm} title={editingId ? 'Edit Account' : 'New Account'} onClose={() => setShowForm(false)}>
+        <Controller
+          control={control}
+          name="name"
+          rules={{ required: 'Name is required' }}
+          render={({ field: { onChange, value } }) => (
+            <Input label="Account Name" value={value} onChangeText={onChange} error={errors.name?.message} />
           )}
-          <Controller
-            control={control}
-            name="balance"
-            rules={{ required: 'Balance is required' }}
-            render={({ field: { onChange, value } }) => (
-              <Input label="Balance (₹)" value={value} onChangeText={onChange} keyboardType="numeric" error={errors.balance?.message} />
-            )}
-          />
-          <Button title={editingId ? 'Update' : 'Add Account'} onPress={handleSubmit(onSubmit)} loading={loading} />
-          <View style={styles.spacer} />
-          <Button title="Cancel" onPress={() => setShowForm(false)} variant="outline" />
-        </Card>
-      )}
+        />
+        {!editingId && (
+          <>
+            <Text style={styles.label}>Type</Text>
+            <View style={styles.chipRow}>
+              {ACCOUNT_TYPES.map((t) => (
+                <Pressable key={t.value} onPress={() => setValue('type', t.value)} style={[styles.chip, accountType === t.value && styles.chipActive]}>
+                  <Text style={[styles.chipText, accountType === t.value && styles.chipTextActive]}>{t.label}</Text>
+                </Pressable>
+              ))}
+            </View>
+            <Controller
+              control={control}
+              name="institution"
+              render={({ field: { onChange, value } }) => (
+                <Input label="Institution" value={value} onChangeText={onChange} placeholder="e.g. HDFC Bank" />
+              )}
+            />
+            <Controller
+              control={control}
+              name="accountNumberLast4"
+              render={({ field: { onChange, value } }) => (
+                <Input label="Last 4 digits" value={value} onChangeText={onChange} keyboardType="number-pad" maxLength={4} />
+              )}
+            />
+          </>
+        )}
+        <Controller
+          control={control}
+          name="balance"
+          rules={{ required: 'Balance is required' }}
+          render={({ field: { onChange, value } }) => (
+            <Input label={amountLabel('Balance')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.balance?.message} />
+          )}
+        />
+        <Button title={editingId ? 'Update' : 'Add Account'} onPress={handleSubmit(onSubmit)} loading={loading} />
+        <View style={styles.spacer} />
+        <Button title="Cancel" onPress={() => setShowForm(false)} variant="outline" />
+      </FormModal>
 
       <FlatList
         data={data ?? []}
@@ -151,7 +94,7 @@ export default function AccountsScreen() {
               <Text style={styles.itemName}>{item.name}</Text>
               <Text style={styles.itemMeta}>{item.type.replace('_', ' ')} · {item.institution ?? '—'}</Text>
               <Text style={[styles.itemAmount, item.type === 'credit_card' && styles.debt]}>
-                ₹{Number(item.balance).toLocaleString()}
+                {format(Number(item.balance))}
               </Text>
             </Card>
           </Pressable>
@@ -159,19 +102,17 @@ export default function AccountsScreen() {
       />
 
       {!showForm && (
-        <Pressable style={styles.fab} onPress={openCreate}>
+        <Pressable style={styles.fab} onPress={openCreate} accessibilityRole="button" accessibilityLabel="Add account">
           <Text style={styles.fabText}>+</Text>
         </Pressable>
       )}
-    </View>
+    </ScreenContainer>
   );
 }
 
-function createStyles(t: ReturnType<typeof useTheme>) {
+function createStyles(t: ReturnType<typeof useTheme>, fabBottom: number) {
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: t.colors.background },
-    list: { padding: 16, paddingBottom: 80 },
-    formCard: { margin: 16, marginBottom: 0 },
+    list: { paddingTop: t.spacing.lg, paddingBottom: fabBottom + 64 },
     label: { fontSize: 14, fontWeight: '500', color: t.colors.text, marginBottom: 8 },
     chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
     chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: t.colors.border, backgroundColor: t.colors.surface },
@@ -186,7 +127,7 @@ function createStyles(t: ReturnType<typeof useTheme>) {
     spacer: { height: 8 },
     fab: {
       position: 'absolute',
-      bottom: 24,
+      bottom: fabBottom,
       right: 24,
       width: 56,
       height: 56,

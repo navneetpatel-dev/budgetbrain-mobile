@@ -1,31 +1,18 @@
-import { useState, useMemo } from 'react';
-import { StyleSheet, View, Text, ScrollView, Pressable, Alert } from 'react-native';
+import { useMemo } from 'react';
+import { StyleSheet, View, Text, Pressable } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Input } from '@/src/components/ui';
-import { apiPost } from '@/src/services/api';
-import { setUser } from '@/src/store/authSlice';
-import { useAppDispatch } from '@/src/store/hooks';
-import { SUPPORTED_CURRENCIES, FINANCIAL_GOALS, SALARY_RANGES } from '@/src/constants/config';
-import { useTheme } from '@/src/theme';
-import type { User } from '@/src/types';
-
-interface OnboardingForm {
-  name: string;
-  country: string;
-  currency: string;
-  financialGoals: string[];
-  salaryRange: string;
-  monthlySavingsTarget: string;
-}
+import { Button, Input, Screen } from '@/src/shared/components/ui';
+import { useOnboarding, type OnboardingForm } from '@/src/features/onboarding/hooks/useOnboarding';
+import { SUPPORTED_CURRENCIES, FINANCIAL_GOALS, SALARY_RANGES } from '@/src/shared/constants/config';
+import { useTheme } from '@/src/shared/theme';
+import { getCurrencySymbol } from '@/src/shared/utils/currency';
 
 export default function OnboardingScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const dispatch = useAppDispatch();
-  const [loading, setLoading] = useState(false);
-  const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
+  const { loading, selectedGoals, toggleGoal, submit } = useOnboarding();
 
-  const { control, handleSubmit, setValue, formState: { errors } } = useForm<OnboardingForm>({
+  const { control, handleSubmit, watch, formState: { errors } } = useForm<OnboardingForm>({
     defaultValues: {
       name: '',
       country: 'India',
@@ -36,37 +23,10 @@ export default function OnboardingScreen() {
     },
   });
 
-  const toggleGoal = (goal: string) => {
-    const updated = selectedGoals.includes(goal)
-      ? selectedGoals.filter((g) => g !== goal)
-      : [...selectedGoals, goal];
-    setSelectedGoals(updated);
-    setValue('financialGoals', updated);
-  };
-
-  const onSubmit = async (data: OnboardingForm) => {
-    if (selectedGoals.length === 0) {
-      Alert.alert('Select Goals', 'Please select at least one financial goal');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const user = await apiPost<User>('/users/onboarding', {
-        ...data,
-        financialGoals: selectedGoals,
-        monthlySavingsTarget: Number(data.monthlySavingsTarget),
-      });
-      dispatch(setUser(user));
-    } catch {
-      Alert.alert('Error', 'Failed to save onboarding data');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const selectedCurrency = watch('currency');
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <Screen>
       <Text style={styles.title}>Welcome to ExpenseFlow</Text>
       <Text style={styles.subtitle}>Let's personalize your experience</Text>
 
@@ -89,23 +49,23 @@ export default function OnboardingScreen() {
       />
 
       <Text style={styles.sectionLabel}>Currency</Text>
-      <View style={styles.chipRow}>
-        {SUPPORTED_CURRENCIES.map((c) => (
-          <Controller
-            key={c}
-            control={control}
-            name="currency"
-            render={({ field: { onChange, value } }) => (
+      <Controller
+        control={control}
+        name="currency"
+        render={({ field: { onChange, value } }) => (
+          <View style={styles.chipRow}>
+            {SUPPORTED_CURRENCIES.map((c) => (
               <Pressable
+                key={c}
                 onPress={() => onChange(c)}
                 style={[styles.chip, value === c && styles.chipActive]}
               >
                 <Text style={[styles.chipText, value === c && styles.chipTextActive]}>{c}</Text>
               </Pressable>
-            )}
-          />
-        ))}
-      </View>
+            ))}
+          </View>
+        )}
+      />
 
       <Text style={styles.sectionLabel}>Financial Goals</Text>
       <View style={styles.chipRow}>
@@ -121,24 +81,24 @@ export default function OnboardingScreen() {
       </View>
 
       <Text style={styles.sectionLabel}>Salary Range</Text>
-      <View style={styles.chipRow}>
-        {SALARY_RANGES.map((range) => (
-          <Controller
-            key={range}
-            control={control}
-            name="salaryRange"
-            rules={{ required: 'Select salary range' }}
-            render={({ field: { onChange, value } }) => (
+      <Controller
+        control={control}
+        name="salaryRange"
+        rules={{ required: 'Select salary range' }}
+        render={({ field: { onChange, value } }) => (
+          <View style={styles.chipRow}>
+            {SALARY_RANGES.map((range) => (
               <Pressable
+                key={range}
                 onPress={() => onChange(range)}
                 style={[styles.chip, value === range && styles.chipActive]}
               >
                 <Text style={[styles.chipText, value === range && styles.chipTextActive]}>{range}</Text>
               </Pressable>
-            )}
-          />
-        ))}
-      </View>
+            ))}
+          </View>
+        )}
+      />
 
       <Controller
         control={control}
@@ -146,7 +106,7 @@ export default function OnboardingScreen() {
         rules={{ required: 'Savings target is required' }}
         render={({ field: { onChange, value } }) => (
           <Input
-            label="Monthly Savings Target (₹)"
+            label={`Monthly Savings Target (${getCurrencySymbol(selectedCurrency).trim()})`}
             value={value}
             onChangeText={onChange}
             keyboardType="numeric"
@@ -155,17 +115,15 @@ export default function OnboardingScreen() {
         )}
       />
 
-      <Button title="Get Started" onPress={handleSubmit(onSubmit)} loading={loading} />
-    </ScrollView>
+      <Button title="Get Started" onPress={handleSubmit(submit)} loading={loading} />
+    </Screen>
   );
 }
 
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: t.colors.background },
-    content: { padding: 24, paddingBottom: 48 },
-    title: { fontSize: 28, fontWeight: '800', color: t.colors.text },
-    subtitle: { fontSize: 16, color: t.colors.textSecondary, marginBottom: 24 },
+    title: { ...t.typography.display, color: t.colors.text },
+    subtitle: { ...t.typography.bodyMedium, color: t.colors.textSecondary, marginBottom: 24 },
     sectionLabel: { fontSize: 14, fontWeight: '600', color: t.colors.text, marginBottom: 8, marginTop: 8 },
     chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
     chip: {

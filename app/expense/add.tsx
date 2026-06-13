@@ -1,34 +1,22 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { StyleSheet, View, Text, ScrollView, Alert, Pressable, Image } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import * as ImagePicker from 'expo-image-picker';
-import { Button, Input } from '@/src/components/ui';
-import { apiGet, apiPost } from '@/src/services/api';
-import { uploadReceipt } from '@/src/services/receipts';
-import { queueOfflineAction, isOnline } from '@/src/services/offlineSync';
-import { trackEvent } from '@/src/services/analytics';
-import { PAYMENT_METHODS } from '@/src/constants/config';
-import { useTheme } from '@/src/theme';
-import type { Category, Transaction } from '@/src/types';
-
-interface ExpenseForm {
-  amount: string;
-  merchant: string;
-  notes: string;
-  categoryId: string;
-  paymentMethod: string;
-  date: string;
-}
+import { useQuery } from '@tanstack/react-query';
+import { Button, Input, DateInput, DashedBorder, useScrollContentStyle } from '@/src/shared/components/ui';
+import { apiGet } from '@/src/shared/services/api';
+import { useCreateExpense, type ExpenseForm } from '@/src/features/expenses/hooks/useCreateExpense';
+import { useReceiptPicker } from '@/src/features/expenses/hooks/useReceiptPicker';
+import { PAYMENT_METHODS } from '@/src/shared/constants/config';
+import { useTheme } from '@/src/shared/theme';
+import { useUserCurrency } from '@/src/shared/hooks/useUserCurrency';
+import type { Category } from '@/src/shared/types';
 
 export default function AddExpenseScreen() {
   const theme = useTheme();
+  const { amountLabel } = useUserCurrency();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  const [loading, setLoading] = useState(false);
-  const [receipt, setReceipt] = useState<{ uri: string; name: string; type: string } | null>(null);
+  const { create, loading } = useCreateExpense();
+  const { receipt, pick } = useReceiptPicker();
 
   const { data: categories } = useQuery({
     queryKey: ['categories'],
@@ -49,77 +37,31 @@ export default function AddExpenseScreen() {
   const selectedCategory = watch('categoryId');
   const selectedPayment = watch('paymentMethod');
 
-  const pickReceipt = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      quality: 0.8,
-      allowsEditing: true,
-    });
-
-    if (!result.canceled && result.assets[0]) {
-      const asset = result.assets[0];
-      setReceipt({
-        uri: asset.uri,
-        name: asset.fileName ?? 'receipt.jpg',
-        type: asset.mimeType ?? 'image/jpeg',
-      });
-    }
-  };
-
   const onSubmit = async (data: ExpenseForm) => {
-    if (!data.categoryId) {
-      Alert.alert('Category Required', 'Please select a category');
+    const result = await create(data, receipt);
+    if (!result.ok) {
+      if (result.error === 'validation') {
+        Alert.alert('Category Required', 'Please select a category');
+      } else if (result.error === 'offline') {
+        Alert.alert('Saved Offline', 'Could not reach server. Expense queued for sync.');
+      }
       return;
     }
-
-    const payload = {
-      type: 'expense' as const,
-      amount: Number(data.amount),
-      merchant: data.merchant || undefined,
-      notes: data.notes || undefined,
-      categoryId: data.categoryId,
-      paymentMethod: data.paymentMethod,
-      date: data.date,
-    };
-
-    setLoading(true);
-    try {
-      const online = await isOnline();
-
-      if (!online) {
-        queueOfflineAction('create', payload);
-        Alert.alert('Saved Offline', 'Expense will sync when you reconnect.');
-        router.back();
-        return;
-      }
-
-      const transaction = await apiPost<Transaction>('/expenses', payload);
-
-      if (receipt && transaction?.id) {
-        await uploadReceipt(transaction.id, receipt.uri, receipt.name, receipt.type);
-      }
-
-      trackEvent('expense_created', { amount: payload.amount, hasReceipt: !!receipt });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      router.back();
-    } catch {
-      queueOfflineAction('create', payload);
-      Alert.alert('Saved Offline', 'Could not reach server. Expense queued for sync.');
-      router.back();
-    } finally {
-      setLoading(false);
+    if (result.offline) {
+      Alert.alert('Saved Offline', 'Expense will sync when you reconnect.');
     }
   };
 
+  const contentStyle = useScrollContentStyle();
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container} contentContainerStyle={contentStyle}>
       <Controller
         control={control}
         name="amount"
         rules={{ required: 'Amount is required' }}
         render={({ field: { onChange, value } }) => (
-          <Input label="Amount (₹)" value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} />
+          <Input label={amountLabel('Amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} />
         )}
       />
 
@@ -136,7 +78,7 @@ export default function AddExpenseScreen() {
         name="date"
         rules={{ required: 'Date is required' }}
         render={({ field: { onChange, value } }) => (
-          <Input label="Date (YYYY-MM-DD)" value={value} onChangeText={onChange} error={errors.date?.message} />
+          <DateInput label="Date" value={value} onChange={onChange} error={errors.date?.message} />
         )}
       />
 
@@ -173,12 +115,14 @@ export default function AddExpenseScreen() {
       </View>
 
       <Text style={styles.label}>Receipt (optional)</Text>
-      <Pressable onPress={pickReceipt} style={styles.receiptPicker}>
-        {receipt ? (
-          <Image source={{ uri: receipt.uri }} style={styles.receiptPreview} resizeMode="contain" />
-        ) : (
-          <Text style={styles.receiptPlaceholder}>Tap to attach JPG/PNG receipt</Text>
-        )}
+      <Pressable onPress={pick} accessibilityRole="button" accessibilityLabel="Attach receipt">
+        <DashedBorder width="100%" height={120} borderRadius={12} color={theme.colors.border} style={styles.receiptPicker}>
+          {receipt ? (
+            <Image source={{ uri: receipt.uri }} style={styles.receiptPreview} resizeMode="contain" />
+          ) : (
+            <Text style={styles.receiptPlaceholder}>Tap to attach JPG/PNG receipt</Text>
+          )}
+        </DashedBorder>
       </Pressable>
 
       <Controller
@@ -197,20 +141,13 @@ export default function AddExpenseScreen() {
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.colors.background },
-    content: { padding: 16 },
     label: { fontSize: 14, fontWeight: '500', color: t.colors.text, marginBottom: 8 },
     categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
     categoryChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: t.colors.border, backgroundColor: t.colors.surface },
     categoryText: { fontSize: 13, color: t.colors.text },
     categoryTextActive: { color: t.colors.onPrimary, fontWeight: '600' },
     receiptPicker: {
-      height: 120,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: t.colors.border,
-      borderStyle: 'dashed',
       marginBottom: 16,
-      overflow: 'hidden',
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: t.colors.surface,

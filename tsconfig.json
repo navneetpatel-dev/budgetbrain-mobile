@@ -3,9 +3,9 @@
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"],
+      "@/src/features/*": ["./src/features/*"],
+      "@/src/shared/*": ["./src/shared/*"]
     }
   },
   "include": [

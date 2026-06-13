@@ -1,13 +1,13 @@
 import { useState, useMemo } from 'react';
 import { StyleSheet, View, FlatList, Text, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { appHref } from '@/src/utils/navigation';
+import { appHref } from '@/src/shared/utils/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { Input } from '@/src/components/ui';
-import { TransactionItem } from '@/src/components/TransactionItem';
-import { apiGet } from '@/src/services/api';
-import { useTheme } from '@/src/theme';
-import type { Transaction } from '@/src/types';
+import { Input } from '@/src/shared/components/ui';
+import { TransactionItem } from '@/src/features/expenses/components/TransactionItem';
+import { apiGet } from '@/src/shared/services/api';
+import { useTheme } from '@/src/shared/theme';
+import type { Transaction } from '@/src/shared/types';
 
 export default function SearchScreen() {
   const theme = useTheme();

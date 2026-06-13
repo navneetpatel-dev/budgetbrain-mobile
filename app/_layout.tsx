@@ -2,44 +2,31 @@ import { useEffect } from 'react';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
-import { store, persistor } from '@/src/store';
-import { queryClient } from '@/src/services/queryClient';
-import { useAppSelector, useAppDispatch } from '@/src/store/hooks';
-import { getAccessToken, apiGet } from '@/src/services/api';
-import { setUser, setLoading } from '@/src/store/authSlice';
-import { AppLockGate } from '@/src/components/AppLockGate';
-import { initAnalytics, identifyUser, resetAnalytics } from '@/src/services/analytics';
-import { initMonitoring } from '@/src/services/monitoring';
-import { initPurchases } from '@/src/services/purchases';
-import { registerForPushNotifications } from '@/src/services/notifications';
-import { initOfflineSync } from '@/src/services/offlineSync';
-import { ThemeProvider, useTheme } from '@/src/theme';
-import type { User } from '@/src/types';
+import { store, persistor } from '@/src/shared/store';
+import { queryClient } from '@/src/shared/services/queryClient';
+import { useAppSelector } from '@/src/shared/store/hooks';
+import { AppLockGate } from '@/src/features/settings/components/AppLockGate';
+import { initAnalytics, resetAnalytics } from '@/src/shared/services/analytics';
+import { initMonitoring } from '@/src/shared/services/monitoring';
+import { initOfflineSync } from '@/src/shared/services/offlineSync';
+import { ThemeProvider, useTheme } from '@/src/shared/theme';
+import { useFontBootstrap } from '@/src/shared/hooks/useFontBootstrap';
+import { useAuthBootstrap } from '@/src/shared/hooks/useAuthBootstrap';
+import { useAuthNavigation } from '@/src/shared/hooks/useAuthNavigation';
 
 initAnalytics();
 initMonitoring();
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function FontGate({ children }: { children: React.ReactNode }) {
-  const [loaded] = useFonts({
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
-    Inter_800ExtraBold,
-  });
+  const { fontsLoaded } = useFontBootstrap();
 
-  useEffect(() => {
-    if (loaded) SplashScreen.hideAsync().catch(() => {});
-  }, [loaded]);
-
-  if (!loaded) return <ActivityIndicator style={{ flex: 1 }} />;
+  if (!fontsLoaded) return <ActivityIndicator style={{ flex: 1 }} />;
   return <>{children}</>;
 }
 
@@ -58,56 +45,21 @@ function LoadingScreen() {
 }
 
 function AuthGate({ children }: { children: React.ReactNode }) {
-  const dispatch = useAppDispatch();
   const { isAuthenticated, isLoading, user } = useAppSelector((s) => s.auth);
-  const segments = useSegments();
-  const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = initOfflineSync();
     return unsubscribe;
   }, []);
 
-  useEffect(() => {
-    async function bootstrap() {
-      try {
-        const token = await getAccessToken();
-        if (token) {
-          const profile = await apiGet<User>('/users/me');
-          dispatch(setUser(profile));
-          identifyUser(profile.id, { email: profile.email, role: profile.role });
-          await initPurchases(profile.id);
-          registerForPushNotifications().catch(() => {});
-        } else {
-          dispatch(setLoading(false));
-        }
-      } catch {
-        dispatch(setLoading(false));
-      }
-    }
-    bootstrap();
-  }, [dispatch]);
+  useAuthBootstrap();
+  useAuthNavigation(isAuthenticated, isLoading, user);
 
   useEffect(() => {
     if (!isAuthenticated) {
       resetAnalytics();
     }
   }, [isAuthenticated]);
-
-  useEffect(() => {
-    if (isLoading) return;
-
-    const inAuth = segments[0] === '(auth)';
-    const inOnboarding = segments[0] === '(onboarding)';
-
-    if (!isAuthenticated && !inAuth) {
-      router.replace('/(auth)/login');
-    } else if (isAuthenticated && user && !user.onboardingCompleted && !inOnboarding) {
-      router.replace('/(onboarding)');
-    } else if (isAuthenticated && user?.onboardingCompleted && (inAuth || inOnboarding)) {
-      router.replace('/(tabs)');
-    }
-  }, [isAuthenticated, isLoading, user, segments, router]);
 
   if (isLoading) return <LoadingScreen />;
 

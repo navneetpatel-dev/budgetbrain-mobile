@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { useTheme } from '@/src/theme';
+import { useTheme } from '@/src/shared/theme';
 
 export default function AuthLayout() {
   const theme = useTheme();

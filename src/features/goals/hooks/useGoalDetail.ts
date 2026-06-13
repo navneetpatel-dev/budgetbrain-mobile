@@ -1,0 +1,83 @@
+import { useState, useCallback } from 'react';
+import { Alert } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { UseFormReset } from 'react-hook-form';
+import { apiGet, apiPatch, apiDelete } from '@/src/shared/services/api';
+import type { Goal } from '@/src/shared/types';
+
+export interface GoalForm {
+  name: string;
+  targetAmount: string;
+  targetDate: string;
+}
+
+export function useGoalDetail(id: string) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const [loading, setLoading] = useState(false);
+
+  const { data: goal, isLoading } = useQuery({
+    queryKey: ['goal', id],
+    queryFn: async () => {
+      const goals = await apiGet<Goal[]>('/goals');
+      const found = goals.find((g) => g.id === id);
+      if (!found) throw new Error('Goal not found');
+      return found;
+    },
+    enabled: !!id,
+  });
+
+  const populateForm = useCallback(
+    (reset: UseFormReset<GoalForm>) => {
+      if (!goal) return;
+      reset({
+        name: goal.name,
+        targetAmount: String(goal.targetAmount),
+        targetDate: goal.targetDate ?? '',
+      });
+    },
+    [goal],
+  );
+
+  const save = async (data: GoalForm) => {
+    setLoading(true);
+    try {
+      await apiPatch(`/goals/${id}`, {
+        name: data.name,
+        targetAmount: Number(data.targetAmount),
+        targetDate: data.targetDate || undefined,
+      });
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
+      router.back();
+    } catch {
+      Alert.alert('Error', 'Could not update goal');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const confirmDelete = () => {
+    Alert.alert('Delete Goal', 'This cannot be undone.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          setLoading(true);
+          try {
+            await apiDelete(`/goals/${id}`);
+            queryClient.invalidateQueries({ queryKey: ['goals'] });
+            router.back();
+          } catch {
+            Alert.alert('Error', 'Could not delete goal');
+          } finally {
+            setLoading(false);
+          }
+        },
+      },
+    ]);
+  };
+
+  return { goal, isLoading, loading, save, populateForm, confirmDelete };
+}

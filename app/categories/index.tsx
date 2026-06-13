@@ -1,131 +1,65 @@
-import { useState, useMemo } from 'react';
-import { StyleSheet, View, FlatList, Alert, Pressable, Text } from 'react-native';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useForm, Controller } from 'react-hook-form';
-import { Button, Input, Card, EmptyState, ScreenLoader } from '@/src/components/ui';
-import { apiGet, apiPost, apiPatch } from '@/src/services/api';
-import { useTheme } from '@/src/theme';
-import type { Category } from '@/src/types';
-
-interface CategoryForm {
-  name: string;
-  color: string;
-}
-
-const COLORS_PRESET = ['#6366F1', '#10B981', '#EF4444', '#F59E0B', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316'];
+import { useMemo } from 'react';
+import { StyleSheet, View, FlatList, Pressable, Text } from 'react-native';
+import { Controller } from 'react-hook-form';
+import { Button, Input, Card, EmptyState, ScreenLoader, ScreenContainer, FormModal } from '@/src/shared/components/ui';
+import { useFabBottom } from '@/src/shared/hooks/useFabBottom';
+import { useTheme } from '@/src/shared/theme';
+import { useCategories, COLORS_PRESET } from '@/src/features/categories/hooks/useCategories';
 
 export default function CategoriesScreen() {
   const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
-  const queryClient = useQueryClient();
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['categories'],
-    queryFn: () => apiGet<Category[]>('/categories'),
-  });
-
-  const { control, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<CategoryForm>({
-    defaultValues: { name: '', color: COLORS_PRESET[0] },
-  });
-
-  const selectedColor = watch('color');
-
-  const openCreate = () => {
-    reset({ name: '', color: COLORS_PRESET[0] });
-    setEditingId(null);
-    setShowForm(true);
-  };
-
-  const openEdit = (cat: Category) => {
-    reset({ name: cat.name, color: cat.color ?? COLORS_PRESET[0] });
-    setEditingId(cat.id);
-    setShowForm(true);
-  };
-
-  const onSubmit = async (form: CategoryForm) => {
-    setLoading(true);
-    try {
-      if (editingId) {
-        await apiPatch(`/categories/${editingId}`, form);
-      } else {
-        await apiPost('/categories', form);
-      }
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
-      setShowForm(false);
-    } catch {
-      Alert.alert('Error', 'Could not save category');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const archiveCategory = (id: string, name: string) => {
-    Alert.alert('Archive Category', `Archive "${name}"?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Archive',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await apiPost(`/categories/${id}/archive`);
-            queryClient.invalidateQueries({ queryKey: ['categories'] });
-          } catch {
-            Alert.alert('Error', 'Could not archive category');
-          }
-        },
-      },
-    ]);
-  };
-
-  const moveCategory = async (index: number, direction: -1 | 1) => {
-    if (!data) return;
-    const newIndex = index + direction;
-    if (newIndex < 0 || newIndex >= data.length) return;
-    const ordered = [...data];
-    const [item] = ordered.splice(index, 1);
-    ordered.splice(newIndex, 0, item);
-    try {
-      await apiPost('/categories/reorder', { orderedIds: ordered.map((c) => c.id) });
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
-    } catch {
-      Alert.alert('Error', 'Could not reorder categories');
-    }
-  };
+  const fabBottom = useFabBottom();
+  const styles = useMemo(() => createStyles(theme, fabBottom), [theme, fabBottom]);
+  const {
+    data,
+    isLoading,
+    editingId,
+    showForm,
+    setShowForm,
+    loading,
+    control,
+    handleSubmit,
+    setValue,
+    errors,
+    selectedColor,
+    openCreate,
+    openEdit,
+    onSubmit,
+    archiveCategory,
+    moveCategory,
+  } = useCategories();
 
   if (isLoading) {
     return <ScreenLoader />;
   }
 
   return (
-    <View style={styles.container}>
-      {showForm && (
-        <Card style={styles.formCard}>
-          <Controller
-            control={control}
-            name="name"
-            rules={{ required: 'Name is required' }}
-            render={({ field: { onChange, value } }) => (
-              <Input label="Category Name" value={value} onChangeText={onChange} error={errors.name?.message} />
-            )}
-          />
-          <Text style={styles.label}>Color</Text>
-          <View style={styles.colorRow}>
-            {COLORS_PRESET.map((c) => (
-              <Pressable
-                key={c}
-                onPress={() => setValue('color', c)}
-                style={[styles.colorDot, { backgroundColor: c }, selectedColor === c && styles.colorSelected]}
-              />
-            ))}
-          </View>
-          <Button title={editingId ? 'Update' : 'Create'} onPress={handleSubmit(onSubmit)} loading={loading} />
-          <View style={styles.spacer} />
-          <Button title="Cancel" onPress={() => setShowForm(false)} variant="outline" />
-        </Card>
-      )}
+    <ScreenContainer>
+      <FormModal visible={showForm} title={editingId ? 'Edit Category' : 'New Category'} onClose={() => setShowForm(false)}>
+        <Controller
+          control={control}
+          name="name"
+          rules={{ required: 'Name is required' }}
+          render={({ field: { onChange, value } }) => (
+            <Input label="Category Name" value={value} onChangeText={onChange} error={errors.name?.message} />
+          )}
+        />
+        <Text style={styles.label}>Color</Text>
+        <View style={styles.colorRow}>
+          {COLORS_PRESET.map((c) => (
+            <Pressable
+              key={c}
+              onPress={() => setValue('color', c)}
+              style={[styles.colorDot, { backgroundColor: c }, selectedColor === c && styles.colorSelected]}
+              accessibilityRole="button"
+              accessibilityLabel={`Color ${c}`}
+            />
+          ))}
+        </View>
+        <Button title={editingId ? 'Update' : 'Create'} onPress={handleSubmit(onSubmit)} loading={loading} />
+        <View style={styles.spacer} />
+        <Button title="Cancel" onPress={() => setShowForm(false)} variant="outline" />
+      </FormModal>
 
       <FlatList
         data={data ?? []}
@@ -159,19 +93,22 @@ export default function CategoriesScreen() {
       />
 
       {!showForm && (
-        <Pressable style={styles.fab} onPress={openCreate}>
+        <Pressable
+          style={styles.fab}
+          onPress={openCreate}
+          accessibilityRole="button"
+          accessibilityLabel="Add category"
+        >
           <Text style={styles.fabText}>+</Text>
         </Pressable>
       )}
-    </View>
+    </ScreenContainer>
   );
 }
 
-function createStyles(t: ReturnType<typeof useTheme>) {
+function createStyles(t: ReturnType<typeof useTheme>, fabBottom: number) {
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: t.colors.background },
-    list: { padding: 16, paddingBottom: 80 },
-    formCard: { margin: 16, marginBottom: 0 },
+    list: { paddingTop: t.spacing.lg, paddingBottom: fabBottom + 64 },
     label: { fontSize: 14, fontWeight: '500', color: t.colors.text, marginBottom: 8 },
     colorRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
     colorDot: { width: 32, height: 32, borderRadius: 16 },
@@ -186,7 +123,7 @@ function createStyles(t: ReturnType<typeof useTheme>) {
     spacer: { height: 8 },
     fab: {
       position: 'absolute',
-      bottom: 24,
+      bottom: fabBottom,
       right: 24,
       width: 56,
       height: 56,

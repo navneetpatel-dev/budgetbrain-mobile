@@ -1,40 +1,16 @@
-import { useState, useMemo } from 'react';
-import { StyleSheet, View, ScrollView, Text, Alert } from 'react-native';
+import { useMemo } from 'react';
+import { StyleSheet, View, ScrollView, Text } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useForm, Controller } from 'react-hook-form';
-import { Button, Input, Card } from '@/src/components/ui';
-import { apiGet, apiPost } from '@/src/services/api';
-import { useAppSelector } from '@/src/store/hooks';
-import { useTheme } from '@/src/theme';
-import type { FamilyMembership } from '@/src/types';
-
-interface GroupForm {
-  name: string;
-}
-
-interface JoinForm {
-  inviteCode: string;
-}
+import { Controller } from 'react-hook-form';
+import { Button, Input, Card, useScrollContentStyle } from '@/src/shared/components/ui';
+import { useTheme } from '@/src/shared/theme';
+import { useFamilyGroups } from '@/src/features/family/hooks/useFamilyGroups';
 
 export default function FamilyScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
-  const queryClient = useQueryClient();
-  const user = useAppSelector((s) => s.auth.user);
-  const isPremium = ['premium', 'lifetime', 'admin'].includes(user?.role ?? '');
-  const [loading, setLoading] = useState(false);
-
-  const { data: memberships } = useQuery({
-    queryKey: ['family-groups'],
-    queryFn: () => apiGet<FamilyMembership[]>('/family/groups'),
-    enabled: isPremium,
-    retry: false,
-  });
-
-  const groupForm = useForm<GroupForm>({ defaultValues: { name: '' } });
-  const joinForm = useForm<JoinForm>({ defaultValues: { inviteCode: '' } });
+  const { isPremium, memberships, loading, groupForm, joinForm, createGroup, joinGroup } = useFamilyGroups();
 
   if (!isPremium) {
     return (
@@ -46,37 +22,10 @@ export default function FamilyScreen() {
     );
   }
 
-  const createGroup = async (data: GroupForm) => {
-    setLoading(true);
-    try {
-      await apiPost('/family/groups', data);
-      queryClient.invalidateQueries({ queryKey: ['family-groups'] });
-      groupForm.reset();
-      Alert.alert('Created', 'Family group created. Share the invite code with members.');
-    } catch {
-      Alert.alert('Error', 'Could not create group');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const joinGroup = async (data: JoinForm) => {
-    setLoading(true);
-    try {
-      await apiPost('/family/join', data);
-      queryClient.invalidateQueries({ queryKey: ['family-groups'] });
-      joinForm.reset();
-      Alert.alert('Joined', 'You have joined the family group.');
-    } catch (err: unknown) {
-      const message = (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message;
-      Alert.alert('Error', message ?? 'Could not join group');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const contentStyle = useScrollContentStyle();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container} contentContainerStyle={contentStyle}>
       <Text style={styles.title}>Family Groups</Text>
 
       {memberships?.map((m) => (
@@ -121,7 +70,6 @@ export default function FamilyScreen() {
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.colors.background },
-    content: { padding: 16, paddingBottom: 48 },
     gate: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32, backgroundColor: t.colors.background },
     gateTitle: { fontSize: 22, fontWeight: '800', color: t.colors.text, marginBottom: 8 },
     gateSubtitle: { fontSize: 15, color: t.colors.textSecondary, textAlign: 'center', marginBottom: 24 },

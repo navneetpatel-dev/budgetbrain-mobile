@@ -2,17 +2,19 @@ import { useMemo } from 'react';
 import { StyleSheet, View, FlatList, RefreshControl, Text } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { appHref } from '@/src/utils/navigation';
-import { TransactionItem } from '@/src/components/TransactionItem';
-import { Card, EmptyState, ScreenLoader } from '@/src/components/ui';
-import { Fab } from '@/src/components/Fab';
-import { apiGet } from '@/src/services/api';
-import { useTheme } from '@/src/theme';
-import type { IncomeSource, PaginatedTransactions } from '@/src/types';
+import { appHref } from '@/src/shared/utils/navigation';
+import { TransactionItem, TransactionGroup } from '@/src/features/expenses/components/TransactionItem';
+import { Card, EmptyState, ScreenSkeleton, ScreenContainer } from '@/src/shared/components/ui';
+import { Fab } from '@/src/features/navigation/components/Fab';
+import { apiGet } from '@/src/shared/services/api';
+import { useTheme } from '@/src/shared/theme';
+import { useTabBarInset } from '@/src/shared/hooks/useTabBarInset';
+import type { IncomeSource, PaginatedTransactions } from '@/src/shared/types';
 
 export default function IncomeScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const tabBarInset = useTabBarInset();
   const router = useRouter();
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['income'],
@@ -24,16 +26,18 @@ export default function IncomeScreen() {
     queryFn: () => apiGet<IncomeSource[]>('/income/sources'),
   });
 
+  const transactions = data?.transactions ?? [];
+
   if (isLoading) {
-    return <ScreenLoader />;
+    return <ScreenSkeleton rows={4} />;
   }
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer>
       <FlatList
-        data={data?.transactions ?? []}
+        data={transactions}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, { paddingBottom: tabBarInset }]}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
@@ -42,7 +46,7 @@ export default function IncomeScreen() {
           />
         }
         ListHeaderComponent={
-          <View>
+          <View style={styles.headerBlock}>
             <Text style={styles.sectionTitle}>Income Sources</Text>
             {sources?.length ? (
               sources.map((src) => (
@@ -57,28 +61,35 @@ export default function IncomeScreen() {
             <Text style={[styles.sectionTitle, styles.incomeTitle]}>Recent Income</Text>
           </View>
         }
-        renderItem={({ item }) => (
-          <TransactionItem
-            transaction={item}
-            onPress={() => router.push(appHref(`/income/${item.id}`))}
-          />
+        renderItem={({ item, index }) => (
+          <TransactionGroup>
+            <TransactionItem
+              transaction={item}
+              onPress={() => router.push(appHref(`/income/${item.id}`))}
+              showBadge
+              isFirst
+              isLast
+            />
+          </TransactionGroup>
         )}
-        ListEmptyComponent={<EmptyState title="No income yet" subtitle="Tap + to add your first income entry" />}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        ListEmptyComponent={<EmptyState title="No income yet" subtitle="Tap + to add your first income entry" icon="income" />}
       />
-      <Fab href="/income/add" />
-    </View>
+      <Fab href="/income/add" aboveTabBar />
+    </ScreenContainer>
   );
 }
 
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: t.colors.background },
-    list: { padding: 16, paddingBottom: 80 },
-    sectionTitle: { fontSize: 18, fontWeight: '700', color: t.colors.text, marginBottom: 8 },
+    list: { paddingTop: t.spacing.lg },
+    headerBlock: { marginBottom: t.spacing.sm },
+    sectionTitle: { ...t.typography.title, fontSize: 18, color: t.colors.text, marginBottom: 8 },
     incomeTitle: { marginTop: 16, marginBottom: 8 },
     sourceCard: { marginBottom: 8 },
-    sourceName: { fontSize: 15, fontWeight: '600', color: t.colors.text },
-    sourceType: { fontSize: 12, color: t.colors.textSecondary, textTransform: 'capitalize', marginTop: 2 },
-    hint: { fontSize: 13, color: t.colors.textSecondary, marginBottom: 8 },
+    sourceName: { ...t.typography.bodyMedium, color: t.colors.text, fontWeight: '600' },
+    sourceType: { ...t.typography.caption, color: t.colors.textSecondary, textTransform: 'capitalize', marginTop: 2 },
+    hint: { ...t.typography.caption, color: t.colors.textSecondary, marginBottom: 8 },
+    separator: { height: t.spacing.sm },
   });
 }

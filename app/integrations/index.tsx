@@ -1,121 +1,42 @@
-import { useState, useMemo } from 'react';
-import { StyleSheet, View, ScrollView, Text, Alert, Pressable } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
-import { useForm, Controller } from 'react-hook-form';
-import { useRouter } from 'expo-router';
-import { Button, Input, Card } from '@/src/components/ui';
-import { apiPost, apiGet } from '@/src/services/api';
-import { useTheme } from '@/src/theme';
-import type { Category } from '@/src/types';
-
-interface SmsForm { content: string }
-interface EmailForm { subject: string; body: string }
-
-interface ParsedRecord {
-  id: string;
-  parsedAmount: number;
-  parsedMerchant: string | null;
-  confidence: number;
-}
+import { useMemo } from 'react';
+import { StyleSheet, View, ScrollView, Text, Pressable } from 'react-native';
+import { Controller } from 'react-hook-form';
+import { Button, Input, Card, useScrollContentStyle } from '@/src/shared/components/ui';
+import { useTheme } from '@/src/shared/theme';
+import { useUserCurrency } from '@/src/shared/hooks/useUserCurrency';
+import { useTransactionParsing } from '@/src/features/integrations/hooks/useTransactionParsing';
 
 export default function IntegrationsScreen() {
   const theme = useTheme();
+  const { format } = useUserCurrency();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const router = useRouter();
-  const [smsLoading, setSmsLoading] = useState(false);
-  const [emailLoading, setEmailLoading] = useState(false);
-  const [confirmLoading, setConfirmLoading] = useState(false);
-  const [parsed, setParsed] = useState<ParsedRecord | null>(null);
-  const [categoryId, setCategoryId] = useState('');
+  const {
+    smsLoading,
+    emailLoading,
+    confirmLoading,
+    parsed,
+    categoryId,
+    setCategoryId,
+    categories,
+    smsForm,
+    emailForm,
+    parseSms,
+    parseEmail,
+    confirmParsed,
+    rejectParsed,
+  } = useTransactionParsing();
 
-  const { data: categories } = useQuery({
-    queryKey: ['categories'],
-    queryFn: () => apiGet<Category[]>('/categories'),
-  });
-
-  const smsForm = useForm<SmsForm>({ defaultValues: { content: '' } });
-  const emailForm = useForm<EmailForm>({ defaultValues: { subject: '', body: '' } });
-
-  const handleParseResult = (result: { parsed: ParsedRecord; suggestion: { amount: number; merchant: string; confidence: number } }) => {
-    setParsed({
-      id: result.parsed.id,
-      parsedAmount: Number(result.suggestion.amount),
-      parsedMerchant: result.suggestion.merchant,
-      confidence: result.suggestion.confidence,
-    });
-    setCategoryId('');
-  };
-
-  const parseSms = async (data: SmsForm) => {
-    setSmsLoading(true);
-    setParsed(null);
-    try {
-      const result = await apiPost<{ parsed: ParsedRecord; suggestion: { amount: number; merchant: string; confidence: number } }>(
-        '/integrations/sms',
-        data
-      );
-      handleParseResult(result);
-    } catch {
-      Alert.alert('Error', 'Could not parse SMS');
-    } finally {
-      setSmsLoading(false);
-    }
-  };
-
-  const parseEmail = async (data: EmailForm) => {
-    setEmailLoading(true);
-    setParsed(null);
-    try {
-      const result = await apiPost<{ parsed: ParsedRecord; suggestion: { amount: number; merchant: string; confidence: number } }>(
-        '/integrations/email',
-        data
-      );
-      handleParseResult(result);
-    } catch {
-      Alert.alert('Error', 'Could not parse email');
-    } finally {
-      setEmailLoading(false);
-    }
-  };
-
-  const confirmParsed = async () => {
-    if (!parsed || !categoryId) {
-      Alert.alert('Select Category', 'Choose a category before confirming.');
-      return;
-    }
-    setConfirmLoading(true);
-    try {
-      await apiPost(`/integrations/${parsed.id}/confirm`, { categoryId });
-      Alert.alert('Expense Created', 'Transaction added from parsed content.', [
-        { text: 'OK', onPress: () => router.push('/(tabs)/expenses') },
-      ]);
-      setParsed(null);
-    } catch {
-      Alert.alert('Error', 'Could not create expense');
-    } finally {
-      setConfirmLoading(false);
-    }
-  };
-
-  const rejectParsed = async () => {
-    if (!parsed) return;
-    try {
-      await apiPost(`/integrations/${parsed.id}/reject`, {});
-      setParsed(null);
-    } catch {
-      Alert.alert('Error', 'Could not reject parsed transaction');
-    }
-  };
+  const contentStyle = useScrollContentStyle();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container} contentContainerStyle={contentStyle}>
       <Text style={styles.title}>Transaction Parsing</Text>
       <Text style={styles.subtitle}>Paste SMS or email receipts to auto-extract and confirm expenses</Text>
 
       {parsed && (
         <Card style={styles.confirmCard}>
           <Text style={styles.confirmTitle}>Parsed Transaction</Text>
-          <Text style={styles.confirmDetail}>₹{parsed.parsedAmount} · {parsed.parsedMerchant ?? 'Unknown'}</Text>
+          <Text style={styles.confirmDetail}>{format(parsed.parsedAmount)} · {parsed.parsedMerchant ?? 'Unknown'}</Text>
           <Text style={styles.confirmDetail}>Confidence: {Math.round(parsed.confidence * 100)}%</Text>
           <Text style={styles.label}>Category</Text>
           <View style={styles.chipRow}>
@@ -175,7 +96,6 @@ export default function IntegrationsScreen() {
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.colors.background },
-    content: { padding: 16, paddingBottom: 48 },
     title: { fontSize: 24, fontWeight: '800', color: t.colors.text, marginBottom: 4 },
     subtitle: { fontSize: 14, color: t.colors.textSecondary, marginBottom: 24 },
     card: { marginBottom: 16 },

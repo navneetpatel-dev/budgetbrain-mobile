@@ -3,22 +3,24 @@ import { StyleSheet, View, FlatList, RefreshControl, Text, Pressable } from 'rea
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { appHref } from '@/src/utils/navigation';
-import { apiGet } from '@/src/services/api';
-import { TransactionItem, TransactionGroup } from '@/src/components/TransactionItem';
-import { EmptyState, ScreenLoader } from '@/src/components/ui';
-import { AppIcon } from '@/src/components/AppIcon';
-import { useTheme } from '@/src/theme';
-import { useResponsive } from '@/src/utils/responsive';
-import { useTabBarInset } from '@/src/hooks/useTabBarInset';
-import type { Transaction } from '@/src/types';
+import { appHref } from '@/src/shared/utils/navigation';
+import { apiGet } from '@/src/shared/services/api';
+import { TransactionItem, TransactionGroup } from '@/src/features/expenses/components/TransactionItem';
+import { EmptyState, ScreenLoader, useScreenHeaderStyle, useScreenListStyle } from '@/src/shared/components/ui';
+import { AppIcon } from '@/src/features/navigation/components/AppIcon';
+import { useTheme } from '@/src/shared/theme';
+import { useResponsive } from '@/src/shared/utils/responsive';
+import { useTabBarInset } from '@/src/shared/hooks/useTabBarInset';
+import type { Transaction } from '@/src/shared/types';
 
 export default function ExpensesScreen() {
   const router = useRouter();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const { horizontalPadding, contentMaxWidth } = useResponsive();
+  const { isTablet, inlineGap } = useResponsive();
   const tabBarInset = useTabBarInset();
+  const headerStyle = useScreenHeaderStyle(insets.top);
+  const listStyle = useScreenListStyle(tabBarInset);
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['transactions', 'expense'],
@@ -30,17 +32,9 @@ export default function ExpensesScreen() {
     () =>
       StyleSheet.create({
         container: { flex: 1, backgroundColor: theme.colors.background },
-        header: {
-          paddingTop: insets.top + 12,
-          paddingHorizontal: horizontalPadding,
-          paddingBottom: theme.spacing.lg,
-          maxWidth: contentMaxWidth,
-          width: '100%',
-          alignSelf: 'center',
-        },
         title: { ...theme.typography.display, fontSize: 28, color: theme.colors.text },
         subtitle: { ...theme.typography.caption, color: theme.colors.textSecondary, marginTop: 4 },
-        searchRow: { flexDirection: 'row', gap: theme.spacing.sm, marginTop: theme.spacing.lg },
+        searchRow: { flexDirection: 'row', gap: inlineGap, marginTop: theme.spacing.md },
         searchBtn: {
           flex: 1,
           flexDirection: 'row',
@@ -55,22 +49,16 @@ export default function ExpensesScreen() {
         },
         searchText: { ...theme.typography.bodyMedium, color: theme.colors.textTertiary },
         incomeBtn: {
-          width: 48,
-          height: 48,
+          minWidth: isTablet ? 56 : 48,
+          minHeight: isTablet ? 56 : 48,
+          paddingHorizontal: isTablet ? 12 : 0,
           borderRadius: theme.radii.md,
           backgroundColor: theme.colors.primarySoft,
           alignItems: 'center',
           justifyContent: 'center',
         },
-        list: {
-          paddingHorizontal: horizontalPadding,
-          paddingBottom: tabBarInset,
-          maxWidth: contentMaxWidth,
-          width: '100%',
-          alignSelf: 'center',
-        },
       }),
-    [theme, insets, horizontalPadding, contentMaxWidth]
+    [theme, isTablet, inlineGap],
   );
 
   if (isLoading) return <ScreenLoader />;
@@ -79,7 +67,7 @@ export default function ExpensesScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={headerStyle}>
         <Text style={styles.title}>Activity</Text>
         <Text style={styles.subtitle}>
           {data?.total ?? transactions.length} transaction{(data?.total ?? 0) !== 1 ? 's' : ''}
@@ -98,7 +86,7 @@ export default function ExpensesScreen() {
       <FlatList
         data={transactions}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={listStyle}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
         }
@@ -112,14 +100,14 @@ export default function ExpensesScreen() {
           />
         }
         renderItem={({ item }) => (
-          <View style={{ marginBottom: theme.spacing.sm }}>
+          <TransactionGroup>
             <TransactionItem
               transaction={item}
               onPress={() => router.push(appHref(`/expense/${item.id}`))}
               isFirst
               isLast
             />
-          </View>
+          </TransactionGroup>
         )}
       />
     </View>

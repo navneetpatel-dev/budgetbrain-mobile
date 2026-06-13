@@ -1,10 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { StyleSheet, View, Text, Alert } from 'react-native';
 import { Link, useLocalSearchParams } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Input, Screen } from '@/src/components/ui';
-import { apiPost } from '@/src/services/api';
-import { useTheme } from '@/src/theme';
+import { Button, Input, Screen } from '@/src/shared/components/ui';
+import { useResetPassword } from '@/src/features/auth/hooks/useResetPassword';
+import { useTheme } from '@/src/shared/theme';
 
 interface ResetForm {
   password: string;
@@ -15,8 +15,7 @@ export default function ResetPasswordScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { token } = useLocalSearchParams<{ token?: string }>();
-  const [loading, setLoading] = useState(false);
-  const [done, setDone] = useState(false);
+  const { resetPassword, loading, done } = useResetPassword(token);
   const { control, handleSubmit, watch, formState: { errors } } = useForm<ResetForm>({
     defaultValues: { password: '', confirmPassword: '' },
   });
@@ -24,19 +23,10 @@ export default function ResetPasswordScreen() {
   const password = watch('password');
 
   const onSubmit = async (data: ResetForm) => {
-    if (!token) {
-      Alert.alert('Invalid Link', 'Reset token is missing. Open the link from your email.');
-      return;
-    }
-    setLoading(true);
     try {
-      await apiPost('/auth/reset-password', { token, password: data.password });
-      setDone(true);
-    } catch (err: unknown) {
-      const message = (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message;
-      Alert.alert('Error', message ?? 'Could not reset password');
-    } finally {
-      setLoading(false);
+      await resetPassword(data.password);
+    } catch (err) {
+      Alert.alert('Error', err instanceof Error ? err.message : 'Could not reset password');
     }
   };
 

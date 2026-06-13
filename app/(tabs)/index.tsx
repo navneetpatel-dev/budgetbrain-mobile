@@ -1,50 +1,50 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, Text, RefreshControl } from 'react-native';
+import { StyleSheet, View, RefreshControl, Text } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { appHref } from '@/src/utils/navigation';
-import { apiGet } from '@/src/services/api';
+import { appHref } from '@/src/shared/utils/navigation';
+import { apiGet } from '@/src/shared/services/api';
 import {
   SummaryCard,
   Card,
   EmptyState,
   Screen,
   ScreenLoader,
+  ScreenSection,
   SectionHeader,
   ResponsiveGrid,
-} from '@/src/components/ui';
-import { TransactionItem, TransactionGroup } from '@/src/components/TransactionItem';
-import { CategoryChart } from '@/src/components/CategoryChart';
-import { DashboardHero } from '@/src/components/DashboardHero';
-import { useTheme } from '@/src/theme';
-import { useResponsive } from '@/src/utils/responsive';
-import { useAppSelector } from '@/src/store/hooks';
-import type { DashboardData } from '@/src/types';
-
-function formatCurrency(amount: number, currency: string) {
-  const symbol = currency === 'INR' ? '₹' : currency + ' ';
-  return `${symbol}${amount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
-}
+  ProgressBar,
+} from '@/src/shared/components/ui';
+import { TransactionItem, TransactionGroup } from '@/src/features/expenses/components/TransactionItem';
+import { CategoryChart } from '@/src/features/dashboard/components/CategoryChart';
+import { DashboardHero } from '@/src/features/dashboard/components/DashboardHero';
+import { useDashboardWidgets } from '@/src/features/dashboard/hooks/useDashboardWidgets';
+import { useTheme } from '@/src/shared/theme';
+import { useAppSelector } from '@/src/shared/store/hooks';
+import { formatCurrency } from '@/src/shared/utils/currency';
+import type { DashboardData, Transaction } from '@/src/shared/types';
 
 export default function DashboardScreen() {
   const router = useRouter();
   const theme = useTheme();
-  const { horizontalPadding } = useResponsive();
   const user = useAppSelector((s) => s.auth.user);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['dashboard'],
     queryFn: () => apiGet<DashboardData>('/expenses/dashboard'),
   });
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        content: {},
-        section: { marginBottom: theme.spacing.lg, paddingHorizontal: horizontalPadding },
-        txList: { paddingHorizontal: horizontalPadding },
-      }),
-    [theme, horizontalPadding]
+  const { data: expenseData } = useQuery({
+    queryKey: ['transactions', 'expense', 'dashboard'],
+    queryFn: () => apiGet<{ transactions: Transaction[] }>('/expenses', { type: 'expense', limit: 500 }),
+  });
+
+  const expenses = expenseData?.transactions ?? [];
+  const { budgetWidgets, goalWidgets } = useDashboardWidgets(
+    data?.budgets ?? [],
+    data?.goals ?? [],
+    expenses,
   );
 
   if (isLoading) return <ScreenLoader />;
@@ -56,7 +56,6 @@ export default function DashboardScreen() {
   return (
     <Screen
       padded={false}
-      contentContainerStyle={styles.content}
       refreshControl={
         <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
       }
@@ -68,7 +67,7 @@ export default function DashboardScreen() {
         savingsRate={summary?.savingsRate}
       />
 
-      <View style={styles.section}>
+      <ScreenSection>
         <ResponsiveGrid>
           <SummaryCard
             title="Income"
@@ -99,16 +98,64 @@ export default function DashboardScreen() {
             onPress={() => router.push('/(tabs)/net-worth')}
           />
         </ResponsiveGrid>
-      </View>
+      </ScreenSection>
 
-      <View style={styles.section}>
+      <ScreenSection>
         <Card variant="elevated">
           <SectionHeader title="Spending by Category" />
           <CategoryChart data={data?.categoryBreakdown ?? []} currency={currency} />
         </Card>
-      </View>
+      </ScreenSection>
 
-      <View style={styles.txList}>
+      {budgetWidgets.length > 0 && (
+        <ScreenSection style={{ gap: theme.spacing.sm }}>
+          <SectionHeader
+            title="Budget Progress"
+            action="See all"
+            onAction={() => router.push('/(tabs)/budgets')}
+          />
+          <Card variant="elevated">
+            {budgetWidgets.map(({ budget, spent, limit, progress }, i) => (
+              <View key={budget.id} style={[styles.widgetRow, i < budgetWidgets.length - 1 && styles.widgetDivider]}>
+                <View style={styles.widgetHeader}>
+                  <Text style={styles.widgetName} numberOfLines={1}>{budget.name}</Text>
+                  <Text style={styles.widgetPct}>{progress}%</Text>
+                </View>
+                <ProgressBar progress={progress} color={progress >= budget.alertThreshold ? theme.colors.warning : theme.colors.primary} />
+                <Text style={styles.widgetMeta}>
+                  {formatCurrency(spent, budget.currency)} / {formatCurrency(limit, budget.currency)}
+                </Text>
+              </View>
+            ))}
+          </Card>
+        </ScreenSection>
+      )}
+
+      {goalWidgets.length > 0 && (
+        <ScreenSection style={{ gap: theme.spacing.sm }}>
+          <SectionHeader
+            title="Goal Progress"
+            action="See all"
+            onAction={() => router.push('/(tabs)/goals')}
+          />
+          <Card variant="elevated">
+            {goalWidgets.map(({ goal, current, target, progress }, i) => (
+              <View key={goal.id} style={[styles.widgetRow, i < goalWidgets.length - 1 && styles.widgetDivider]}>
+                <View style={styles.widgetHeader}>
+                  <Text style={styles.widgetName} numberOfLines={1}>{goal.name}</Text>
+                  <Text style={styles.widgetPct}>{progress}%</Text>
+                </View>
+                <ProgressBar progress={progress} color={theme.colors.success} />
+                <Text style={styles.widgetMeta}>
+                  {formatCurrency(current, goal.currency)} / {formatCurrency(target, goal.currency)}
+                </Text>
+              </View>
+            ))}
+          </Card>
+        </ScreenSection>
+      )}
+
+      <ScreenSection style={{ gap: theme.spacing.sm }}>
         <SectionHeader
           title="Recent Activity"
           action="See all"
@@ -136,7 +183,21 @@ export default function DashboardScreen() {
             onAction={() => router.push('/expense/add')}
           />
         )}
-      </View>
+      </ScreenSection>
     </Screen>
   );
+}
+
+function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    widgetRow: { paddingVertical: t.spacing.md },
+    widgetDivider: {
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: t.colors.borderSubtle,
+    },
+    widgetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+    widgetName: { ...t.typography.bodyMedium, color: t.colors.text, fontWeight: '600', flex: 1, marginRight: 8 },
+    widgetPct: { ...t.typography.caption, color: t.colors.textSecondary, fontWeight: '600' },
+    widgetMeta: { ...t.typography.caption, color: t.colors.textTertiary, marginTop: 6 },
+  });
 }

@@ -1,31 +1,21 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { StyleSheet, Text, Alert } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Button, Screen } from '@/src/components/ui';
-import { apiPost } from '@/src/services/api';
-import { useTheme } from '@/src/theme';
+import { useLocalSearchParams } from 'expo-router';
+import { Button, Screen } from '@/src/shared/components/ui';
+import { useVerifyEmail } from '@/src/features/auth/hooks/useVerifyEmail';
+import { useTheme } from '@/src/shared/theme';
 
 export default function VerifyEmailScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { token } = useLocalSearchParams<{ token?: string }>();
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [verified, setVerified] = useState(false);
+  const { verify, loading, verified, goToLogin } = useVerifyEmail(token);
 
-  const verify = async () => {
-    if (!token) {
-      Alert.alert('Invalid Link', 'No verification token found.');
-      return;
-    }
-    setLoading(true);
+  const handleVerify = async () => {
     try {
-      await apiPost('/auth/verify-email', { token });
-      setVerified(true);
-    } catch {
-      Alert.alert('Error', 'This verification link is invalid or expired.');
-    } finally {
-      setLoading(false);
+      await verify();
+    } catch (err) {
+      Alert.alert('Error', err instanceof Error ? err.message : 'This verification link is invalid or expired.');
     }
   };
 
@@ -35,12 +25,12 @@ export default function VerifyEmailScreen() {
       {verified ? (
         <>
           <Text style={styles.message}>Your email has been verified successfully.</Text>
-          <Button title="Go to Login" onPress={() => router.replace('/(auth)/login')} />
+          <Button title="Go to Login" onPress={goToLogin} />
         </>
       ) : (
         <>
           <Text style={styles.message}>Tap below to verify your ExpenseFlow account.</Text>
-          <Button title="Verify Email" onPress={verify} loading={loading} />
+          <Button title="Verify Email" onPress={handleVerify} loading={loading} />
         </>
       )}
     </Screen>
