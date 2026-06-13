@@ -5,9 +5,9 @@ export const BREAKPOINTS = {
   largeTablet: 1024,
 } as const;
 
-/** Single source of truth for screen rhythm — 4pt grid, tight professional insets */
+/** Single source of truth for screen rhythm — 4pt grid, aligned with floating tab bar */
 const PHONE = {
-  screenPaddingX: 16,
+  /** Horizontal inset for tab bar AND all screen content */
   tabBarPaddingX: 10,
   sectionGap: 16,
   stackGap: 10,
@@ -18,7 +18,6 @@ const PHONE = {
 } as const;
 
 const TABLET = {
-  screenPaddingX: 20,
   tabBarPaddingX: 14,
   sectionGap: 20,
   stackGap: 12,
@@ -29,7 +28,6 @@ const TABLET = {
 } as const;
 
 const LARGE_TABLET = {
-  screenPaddingX: 24,
   tabBarPaddingX: 16,
   sectionGap: 24,
   stackGap: 14,
@@ -54,8 +52,10 @@ export function useResponsive() {
     contentMaxWidth: isLargeTablet ? 840 : isTablet ? 720 : undefined,
     columns: isLargeTablet ? 3 : isTablet ? 2 : 1,
     ...tokens,
-    /** @deprecated use screenPaddingX */
-    horizontalPadding: tokens.screenPaddingX,
+    /** Same as tabBarPaddingX — use tabBarPaddingX or useScreenInsets() for new code */
+    screenPaddingX: tokens.tabBarPaddingX,
+    /** @deprecated use tabBarPaddingX */
+    horizontalPadding: tokens.tabBarPaddingX,
   };
 }
 

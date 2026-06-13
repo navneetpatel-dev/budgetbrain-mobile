@@ -3,30 +3,45 @@ import { StyleSheet, View, type ViewStyle } from 'react-native';
 import { useTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
 
-/** Horizontal inset wrapper — aligns content with screen padding tokens */
+/** Horizontal insets aligned with the floating tab bar — use for all screen content */
+export function useScreenInsets() {
+  const { tabBarPaddingX, contentMaxWidth, sectionGap, stackGap } = useResponsive();
+
+  return useMemo(
+    () => ({
+      paddingHorizontal: tabBarPaddingX,
+      contentMaxWidth,
+      sectionGap,
+      stackGap,
+      paddingX: {
+        paddingHorizontal: tabBarPaddingX,
+      },
+      frame: {
+        paddingHorizontal: tabBarPaddingX,
+        width: '100%' as const,
+        maxWidth: contentMaxWidth,
+        alignSelf: 'center' as const,
+      },
+    }),
+    [tabBarPaddingX, contentMaxWidth, sectionGap, stackGap],
+  );
+}
+
+/** Section grouping inside a padded screen — does not add horizontal padding by default */
 export function ScreenSection({
   children,
   style,
-  noPadding,
+  padded,
 }: {
   children: React.ReactNode;
   style?: ViewStyle;
-  noPadding?: boolean;
+  /** Only use when the section sits outside a ScreenWrapper / padded scroll body */
+  padded?: boolean;
 }) {
-  const { screenPaddingX, contentMaxWidth } = useResponsive();
+  const { frame } = useScreenInsets();
 
   return (
-    <View
-      style={[
-        !noPadding && {
-          paddingHorizontal: screenPaddingX,
-          width: '100%',
-          maxWidth: contentMaxWidth,
-          alignSelf: 'center' as const,
-        },
-        style,
-      ]}
-    >
+    <View style={[padded ? frame : { width: '100%' }, style]}>
       {children}
     </View>
   );
@@ -35,58 +50,49 @@ export function ScreenSection({
 /** Standard scroll content padding for stack/form screens */
 export function useScrollContentStyle(extra?: ViewStyle): ViewStyle {
   const theme = useTheme();
-  const { screenPaddingX, contentMaxWidth, sectionGap } = useResponsive();
+  const { frame, sectionGap } = useScreenInsets();
 
   return useMemo(
     () =>
       StyleSheet.flatten([
         {
-          paddingHorizontal: screenPaddingX,
+          ...frame,
           paddingTop: theme.spacing.lg,
           paddingBottom: theme.spacing.xxl,
           gap: sectionGap,
-          width: '100%' as const,
-          maxWidth: contentMaxWidth,
-          alignSelf: 'center' as const,
         },
         extra,
       ]) as ViewStyle,
-    [theme, screenPaddingX, contentMaxWidth, sectionGap, extra],
+    [theme, frame, sectionGap, extra],
   );
 }
 
 /** Header block for custom flat-list tab screens (expenses, budgets) */
 export function useScreenHeaderStyle(topInset: number) {
   const theme = useTheme();
-  const { screenPaddingX, contentMaxWidth, stackGap } = useResponsive();
+  const { frame, stackGap } = useScreenInsets();
 
   return useMemo(
     () => ({
+      ...frame,
       paddingTop: topInset + theme.spacing.md,
-      paddingHorizontal: screenPaddingX,
       paddingBottom: stackGap,
-      maxWidth: contentMaxWidth,
-      width: '100%' as const,
-      alignSelf: 'center' as const,
     }),
-    [theme, topInset, screenPaddingX, contentMaxWidth, stackGap],
+    [theme, topInset, frame, stackGap],
   );
 }
 
 /** List content area aligned with screen padding */
 export function useScreenListStyle(bottomInset: number) {
-  const { screenPaddingX, contentMaxWidth, stackGap } = useResponsive();
+  const { frame, stackGap } = useScreenInsets();
 
   return useMemo(
     () => ({
-      paddingHorizontal: screenPaddingX,
+      ...frame,
       paddingTop: stackGap,
       paddingBottom: bottomInset,
       gap: stackGap,
-      maxWidth: contentMaxWidth,
-      width: '100%' as const,
-      alignSelf: 'center' as const,
     }),
-    [screenPaddingX, contentMaxWidth, stackGap, bottomInset],
+    [frame, stackGap, bottomInset],
   );
 }

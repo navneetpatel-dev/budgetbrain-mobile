@@ -16,10 +16,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import type { AppTheme } from '@/shared/theme';
-import { useResponsive } from '@/shared/utils/responsive';
 import { useTabBarInset } from '@/shared/hooks/useTabBarInset';
-import { useScreenListStyle } from '@/shared/hooks/useLayout';
+import { useScreenInsets } from '@/shared/hooks/useLayout';
 import { useFabBottom } from '@/shared/hooks/useFabBottom';
+import { ScreenWrapper } from '@/shared/components/ui/layout';
 
 /* ── Uniform back navigation ── */
 
@@ -92,17 +92,12 @@ export function StackNavHeader({
   const theme = useTheme();
   const stackBack = useStackBack();
   const insets = useSafeAreaInsets();
-  const { tabBarPaddingX } = useResponsive();
+  const { paddingX } = useScreenInsets();
   const styles = useMemo(() => createStackNavStyles(theme), [theme]);
   const handleBack = onBack ?? stackBack;
 
   return (
-    <View
-      style={[
-        styles.wrap,
-        { paddingTop: insets.top + 6, paddingHorizontal: tabBarPaddingX },
-      ]}
-    >
+    <View style={[styles.wrap, { paddingTop: insets.top + 6, ...paddingX }]}>
       <View style={styles.row}>
         {showBack ? (
           <BackButton onPress={handleBack} label="Go back" size="compact" />
@@ -167,9 +162,8 @@ export function FeatureHeader({
   const theme = useTheme();
   const stackBack = useStackBack();
   const insets = useSafeAreaInsets();
-  const { screenPaddingX } = useResponsive();
+  const { paddingX } = useScreenInsets();
   const styles = useMemo(() => createHeaderStyles(theme), [theme]);
-  const padX = screenPaddingX;
 
   const handleBack = onBack ?? stackBack;
 
@@ -192,7 +186,7 @@ export function FeatureHeader({
     <View
       style={[
         styles.wrap,
-        { paddingTop: insets.top + 8, paddingHorizontal: padX },
+        { paddingTop: insets.top + 8, ...paddingX },
       ]}
     >
       <View style={styles.mainRow}>
@@ -468,32 +462,15 @@ export function StackScrollScreen({
   contentContainerStyle?: ViewStyle;
   keyboardShouldPersistTaps?: ScrollViewProps['keyboardShouldPersistTaps'];
 }) {
-  const theme = useTheme();
-  const insets = useSafeAreaInsets();
-  const { tabBarPaddingX, contentMaxWidth, sectionGap } = useResponsive();
-
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      {header}
-      <ScrollView
-        contentContainerStyle={[
-          {
-            paddingHorizontal: tabBarPaddingX,
-            paddingTop: theme.spacing.sm,
-            paddingBottom: insets.bottom + theme.spacing.xxl,
-            gap: sectionGap,
-            width: '100%',
-            maxWidth: contentMaxWidth,
-            alignSelf: 'center',
-          },
-          contentContainerStyle,
-        ]}
-        keyboardShouldPersistTaps={keyboardShouldPersistTaps}
-        showsVerticalScrollIndicator={false}
-      >
-        {children}
-      </ScrollView>
-    </View>
+    <ScreenWrapper
+      header={header}
+      inset="stack"
+      contentContainerStyle={contentContainerStyle}
+      keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+    >
+      {children}
+    </ScreenWrapper>
   );
 }
 
@@ -561,19 +538,15 @@ export function StickyHeaderFlatScreen<T>({
   const safeInsets = useSafeAreaInsets();
   const tabBarInset = useTabBarInset();
   const bottomInset = inset === 'stack' ? safeInsets.bottom + theme.spacing.xxl : tabBarInset;
-  const { tabBarPaddingX, contentMaxWidth, stackGap } = useResponsive();
-  const padX = tabBarPaddingX;
+  const { frame, stackGap } = useScreenInsets();
   const listStyle = useMemo(
     () => ({
-      paddingHorizontal: padX,
+      ...frame,
       paddingTop: stackGap,
       paddingBottom: bottomInset,
       gap: stackGap,
-      maxWidth: contentMaxWidth,
-      width: '100%' as const,
-      alignSelf: 'center' as const,
     }),
-    [padX, contentMaxWidth, stackGap, bottomInset],
+    [frame, stackGap, bottomInset],
   );
 
   return (

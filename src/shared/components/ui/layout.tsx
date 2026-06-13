@@ -11,59 +11,115 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
+import { useScreenInsets } from '@/shared/hooks/useLayout';
 import { useTabBarInset, useFloatingBlockGap } from '@/shared/hooks/useTabBarInset';
+
+export type ScreenInset = 'tab' | 'stack' | 'none';
+
+function useBottomInset(inset: ScreenInset) {
+  const theme = useTheme();
+  const safeInsets = useSafeAreaInsets();
+  const tabBarInset = useTabBarInset();
+
+  if (inset === 'tab') return tabBarInset;
+  if (inset === 'stack') return safeInsets.bottom + theme.spacing.xxl;
+  return safeInsets.bottom + theme.spacing.md;
+}
+
+/**
+ * Single screen shell — consistent horizontal insets (matches floating tab bar),
+ * optional sticky header, scroll or static body, tab-bar-safe bottom padding.
+ */
+export function ScreenWrapper({
+  header,
+  children,
+  inset = 'tab',
+  scroll = true,
+  contentContainerStyle,
+  refreshControl,
+  style,
+  ...scrollProps
+}: {
+  header?: React.ReactNode;
+  children: React.ReactNode;
+  inset?: ScreenInset;
+  scroll?: boolean;
+  contentContainerStyle?: ViewStyle;
+  refreshControl?: React.ReactElement<RefreshControlProps>;
+  style?: ViewStyle;
+} & Omit<ScrollViewProps, 'children' | 'contentContainerStyle' | 'refreshControl' | 'style'>) {
+  const theme = useTheme();
+  const { frame, sectionGap } = useScreenInsets();
+  const blockGap = useFloatingBlockGap();
+  const bottomInset = useBottomInset(inset);
+  const contentGap = inset === 'tab' ? blockGap : sectionGap;
+
+  const bodyStyle = useMemo(
+    () =>
+      StyleSheet.flatten([
+        frame,
+        {
+          paddingTop: theme.spacing.md,
+          paddingBottom: bottomInset,
+          gap: contentGap,
+        },
+        contentContainerStyle,
+      ]),
+    [frame, theme.spacing.md, bottomInset, contentGap, contentContainerStyle],
+  );
+
+  return (
+    <View style={[{ flex: 1, backgroundColor: theme.colors.background }, style]}>
+      {header}
+      {scroll ? (
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={bodyStyle}
+          showsVerticalScrollIndicator={false}
+          refreshControl={refreshControl}
+          keyboardShouldPersistTaps="handled"
+          {...scrollProps}
+        >
+          {children}
+        </ScrollView>
+      ) : (
+        <View style={[{ flex: 1 }, bodyStyle]}>
+          {children}
+        </View>
+      )}
+    </View>
+  );
+}
 
 interface StickyHeaderScreenProps extends Omit<ScrollViewProps, 'children'> {
   header: React.ReactNode;
   children: React.ReactNode;
   contentContainerStyle?: ViewStyle;
   refreshControl?: React.ReactElement<RefreshControlProps>;
-  inset?: 'tab' | 'stack';
+  inset?: ScreenInset;
 }
 
-/** Fixed header + scrollable body with tab-bar-safe bottom padding */
+/** @deprecated Prefer ScreenWrapper — kept for existing imports */
 export function StickyHeaderScreen({
   header,
   children,
   contentContainerStyle,
   refreshControl,
   inset = 'tab',
+  style,
   ...props
 }: StickyHeaderScreenProps) {
-  const theme = useTheme();
-  const insets = useSafeAreaInsets();
-  const tabBarInset = useTabBarInset();
-  const blockGap = useFloatingBlockGap();
-  const bottomInset = inset === 'stack' ? insets.bottom + theme.spacing.xxl : tabBarInset;
-  const { sectionGap, contentMaxWidth, tabBarPaddingX } = useResponsive();
-  const horizontalPadding = tabBarPaddingX;
-  const contentGap = inset === 'tab' ? blockGap : sectionGap;
-
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      {header}
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={[
-          {
-            paddingTop: theme.spacing.md,
-            paddingBottom: bottomInset,
-            paddingHorizontal: horizontalPadding,
-            gap: contentGap,
-            width: '100%',
-            maxWidth: contentMaxWidth,
-            alignSelf: 'center',
-          },
-          contentContainerStyle,
-        ]}
-        showsVerticalScrollIndicator={false}
-        refreshControl={refreshControl}
-        keyboardShouldPersistTaps="handled"
-        {...props}
-      >
-        {children}
-      </ScrollView>
-    </View>
+    <ScreenWrapper
+      header={header}
+      inset={inset}
+      contentContainerStyle={contentContainerStyle}
+      refreshControl={refreshControl}
+      style={style as ViewStyle}
+      {...props}
+    >
+      {children}
+    </ScreenWrapper>
   );
 }
 
@@ -71,6 +127,7 @@ interface ScreenProps extends ScrollViewProps {
   children: React.ReactNode;
   padded?: boolean;
   safeTop?: boolean;
+  inset?: ScreenInset;
 }
 
 export const Screen = forwardRef<ScrollView, ScreenProps>(function Screen(
@@ -78,16 +135,17 @@ export const Screen = forwardRef<ScrollView, ScreenProps>(function Screen(
     children,
     padded = true,
     safeTop = false,
+    inset = 'tab',
     contentContainerStyle,
     refreshControl,
     ...props
   },
-  ref
+  ref,
 ) {
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
-  const tabBarInset = useTabBarInset();
-  const { screenPaddingX, contentMaxWidth, sectionGap } = useResponsive();
+  const safeInsets = useSafeAreaInsets();
+  const { frame, sectionGap } = useScreenInsets();
+  const bottomInset = useBottomInset(inset);
 
   return (
     <ScrollView
@@ -95,12 +153,11 @@ export const Screen = forwardRef<ScrollView, ScreenProps>(function Screen(
       style={{ flex: 1, backgroundColor: theme.colors.background }}
       contentContainerStyle={[
         {
-          paddingBottom: tabBarInset,
-          paddingTop: safeTop ? insets.top : 0,
+          paddingBottom: bottomInset,
+          paddingTop: safeTop ? safeInsets.top : 0,
           gap: sectionGap,
         },
-        padded && { paddingHorizontal: screenPaddingX },
-        contentMaxWidth ? { maxWidth: contentMaxWidth, width: '100%', alignSelf: 'center' } : undefined,
+        padded && frame,
         contentContainerStyle,
       ]}
       showsVerticalScrollIndicator={false}
@@ -122,14 +179,13 @@ export function ScreenContainer({
   padded?: boolean;
 }) {
   const theme = useTheme();
-  const { screenPaddingX, contentMaxWidth } = useResponsive();
+  const { frame } = useScreenInsets();
 
   return (
     <View
       style={[
         { flex: 1, backgroundColor: theme.colors.background },
-        padded && { paddingHorizontal: screenPaddingX },
-        contentMaxWidth ? { maxWidth: contentMaxWidth, width: '100%', alignSelf: 'center' } : undefined,
+        padded && frame,
         style,
       ]}
     >
@@ -149,16 +205,16 @@ export function ResponsiveGrid({
   gap?: number;
   style?: ViewStyle;
 }) {
-  const responsive = useResponsive();
-  const cols = columns ?? responsive.columns;
-  const gridGap = gap ?? responsive.gridGap;
+  const { columns: defaultCols, gridGap } = useResponsive();
+  const cols = columns ?? defaultCols;
+  const gridGapValue = gap ?? gridGap;
   const styles = useMemo(
     () =>
       StyleSheet.create({
         grid: {
           flexDirection: 'row',
           flexWrap: 'wrap',
-          gap: gridGap,
+          gap: gridGapValue,
         },
         item: {
           flexGrow: 1,
@@ -167,7 +223,7 @@ export function ResponsiveGrid({
           minWidth: cols === 1 ? '100%' : cols === 2 ? 160 : 140,
         },
       }),
-    [cols, gridGap]
+    [cols, gridGapValue],
   );
 
   return (
@@ -194,10 +250,10 @@ export function ScreenLoader() {
 
 export function ScreenSkeleton({ rows = 4 }: { rows?: number }) {
   const theme = useTheme();
-  const { screenPaddingX } = useResponsive();
+  const { frame } = useScreenInsets();
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background, paddingHorizontal: screenPaddingX, paddingTop: theme.spacing.lg, gap: theme.spacing.md }}>
+    <View style={[{ flex: 1, backgroundColor: theme.colors.background, paddingTop: theme.spacing.lg, gap: theme.spacing.md }, frame]}>
       {Array.from({ length: rows }).map((_, i) => (
         <View
           key={i}

@@ -51,13 +51,13 @@ export function ProfileHero({
 }) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const { screenPaddingX } = useResponsive();
+  const { tabBarPaddingX } = useResponsive();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const initial = name?.[0]?.toUpperCase() ?? '?';
   const badge = roleColors(role, theme);
 
   return (
-    <View style={[styles.wrap, { paddingTop: insets.top + 10, paddingHorizontal: screenPaddingX }]}>
+    <View style={[styles.wrap, { paddingTop: insets.top + 10, paddingHorizontal: tabBarPaddingX }]}>
       <LinearGradient
         colors={[theme.colors.gradientStart, theme.colors.primary, theme.colors.gradientEnd]}
         start={{ x: 0, y: 0 }}

@@ -24,7 +24,6 @@ import { setTheme, setAccent } from '@/shared/store/settingsSlice';
 import { useAppDispatch, useAppSelector } from '@/shared/store/hooks';
 import { SUBSCRIPTION_PLANS, SUPPORTED_CURRENCIES } from '@/shared/constants/config';
 import { useTheme } from '@/shared/theme';
-import { useResponsive } from '@/shared/utils/responsive';
 import type { AppIconName } from '@/features/navigation/components/AppIcon';
 
 const FEATURE_LINKS: { label: string; href: string; icon: AppIconName }[] = [
@@ -49,7 +48,6 @@ const ACCOUNT_LINKS: { label: string; href: string; icon: AppIconName }[] = [
 
 export default function SettingsScreen() {
   const theme = useTheme();
-  const { screenPaddingX } = useResponsive();
   const dispatch = useAppDispatch();
   const router = useRouter();
   const user = useAppSelector((s) => s.auth.user);
@@ -124,7 +122,6 @@ export default function SettingsScreen() {
           onEditPress={() => setEditingProfile((v) => !v)}
         />
       }
-      contentContainerStyle={{ paddingHorizontal: screenPaddingX }}
     >
         {!isPremium && <PremiumUpsellCard />}
 
