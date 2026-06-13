@@ -1,21 +1,16 @@
 import { useMemo } from 'react';
-import { getBudgetSpent } from '@/features/budgets/components/BudgetCard';
-import type { Budget, Goal, Transaction } from '@/shared/types';
+import type { Budget, Goal } from '@/shared/types';
 
-export function useDashboardWidgets(
-  budgets: Budget[],
-  goals: Goal[],
-  expenses: Transaction[],
-) {
+export function useDashboardWidgets(budgets: Budget[], goals: Goal[]) {
   const budgetWidgets = useMemo(
     () =>
       budgets.slice(0, 3).map((b) => {
-        const spent = getBudgetSpent(b, expenses);
+        const spent = b.spent ?? 0;
         const limit = Number(b.amount);
         const progress = limit > 0 ? Math.min(100, Math.round((spent / limit) * 100)) : 0;
         return { budget: b, spent, limit, progress };
       }),
-    [budgets, expenses],
+    [budgets],
   );
 
   const goalWidgets = useMemo(

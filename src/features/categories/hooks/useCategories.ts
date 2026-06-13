@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { apiGet, apiPost, apiPatch } from '@/shared/services/api';
+import { apiPost, apiPatch } from '@/shared/services/api';
+import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import type { Category } from '@/shared/types';
 
 export interface CategoryForm {
@@ -18,9 +19,10 @@ export function useCategories() {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = usePaginatedList<Category, 'categories'>({
     queryKey: ['categories'],
-    queryFn: () => apiGet<Category[]>('/categories'),
+    url: '/categories',
+    itemsKey: 'categories',
   });
 
   const { control, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<CategoryForm>({

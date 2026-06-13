@@ -19,12 +19,7 @@ export function useBudgetDetail(id: string) {
 
   const { data: budget, isLoading } = useQuery({
     queryKey: ['budget', id],
-    queryFn: async () => {
-      const budgets = await apiGet<Budget[]>('/budgets');
-      const found = budgets.find((b) => b.id === id);
-      if (!found) throw new Error('Budget not found');
-      return found;
-    },
+    queryFn: () => apiGet<Budget>(`/budgets/${id}`),
     enabled: !!id,
   });
 
@@ -49,6 +44,7 @@ export function useBudgetDetail(id: string) {
         alertThreshold: Number(data.alertThreshold),
       });
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      queryClient.invalidateQueries({ queryKey: ['budget', id] });
       router.back();
     } catch {
       Alert.alert('Error', 'Could not update budget');

@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { StyleSheet, Alert, Text } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import {
   Button,
@@ -15,13 +14,12 @@ import {
   FormSection,
   FormActions,
 } from '@/shared/components/ui';
-import { apiGet } from '@/shared/services/api';
+import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
 import { useExpenseDetail, type ExpenseForm } from '@/features/expenses/hooks/useExpenseDetail';
 import { PAYMENT_METHODS } from '@/shared/constants/config';
 import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import { formatCurrency } from '@/shared/utils/currency';
-import type { Category } from '@/shared/types';
 
 export default function ExpenseDetailScreen() {
   const theme = useTheme();
@@ -40,10 +38,7 @@ export default function ExpenseDetailScreen() {
     confirmDelete,
   } = useExpenseDetail(id);
 
-  const { data: categories } = useQuery({
-    queryKey: ['categories'],
-    queryFn: () => apiGet<Category[]>('/categories'),
-  });
+  const { data: categories } = useCategoryOptions();
 
   const { control, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<ExpenseForm>({
     defaultValues: { amount: '', merchant: '', notes: '', categoryId: '', paymentMethod: 'upi', date: '' },

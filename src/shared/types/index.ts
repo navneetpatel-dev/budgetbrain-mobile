@@ -48,6 +48,7 @@ export interface Budget {
   startDate: string;
   endDate: string | null;
   alertThreshold: number;
+  spent?: number;
   category?: Category;
 }
 
@@ -134,10 +135,37 @@ export interface AiChatResponse {
   messages: AiChatMessage[];
 }
 
-export interface PaginatedTransactions {
-  transactions: Transaction[];
-  total: number;
+export interface AiConversationSummary {
+  id: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
 }
+
+export interface AiConversation extends AiConversationSummary {
+  messages: AiChatMessage[];
+}
+
+export interface ParsedTransactionPending {
+  id: string;
+  source: 'sms' | 'email';
+  parsedAmount: number | null;
+  parsedMerchant: string | null;
+  confidence: number;
+  createdAt: string;
+}
+
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface PaginatedTransactions extends PaginationMeta {
+  transactions: Transaction[];
+}
+
+export type PaginatedList<K extends string, T> = PaginationMeta & Record<K, T[]>;
 
 export interface Goal {
   id: string;

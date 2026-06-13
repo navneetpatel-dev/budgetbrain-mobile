@@ -19,12 +19,7 @@ export function useIncomeDetail(id: string) {
 
   const { data: income, isLoading } = useQuery({
     queryKey: ['income', id],
-    queryFn: async () => {
-      const result = await apiGet<{ transactions: Transaction[] }>('/income', { limit: 200 });
-      const found = result.transactions.find((t) => t.id === id);
-      if (!found) throw new Error('Income not found');
-      return found;
-    },
+    queryFn: () => apiGet<Transaction>(`/income/${id}`),
     enabled: !!id,
   });
 

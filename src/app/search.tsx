@@ -2,10 +2,9 @@ import { useState, useMemo } from 'react';
 import { StyleSheet, Text, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { appHref } from '@/shared/utils/navigation';
-import { useQuery } from '@tanstack/react-query';
 import { Input, StackNavHeader, StickyHeaderFlatScreen, EmptyState } from '@/shared/components/ui';
 import { TransactionItem, TransactionGroup } from '@/features/expenses/components/TransactionItem';
-import { apiGet } from '@/shared/services/api';
+import { useInfinitePaginatedList } from '@/shared/hooks/usePaginatedList';
 import { useTheme } from '@/shared/theme';
 import { useFabBottom } from '@/shared/hooks/useFabBottom';
 import type { Transaction } from '@/shared/types';
@@ -17,14 +16,25 @@ export default function SearchScreen() {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [query, setQuery] = useState('');
 
-  const { data, isLoading, isFetching } = useQuery({
+  const enabled = query.length >= 2;
+  const {
+    items: results,
+    total,
+    isLoading,
+    isFetchingNextPage,
+    isRefetching,
+    fetchNextPage,
+    hasNextPage,
+  } = useInfinitePaginatedList<Transaction>({
     queryKey: ['search', query],
-    queryFn: () => apiGet<Transaction[]>('/expenses/search', { q: query }),
-    enabled: query.length >= 2,
+    url: '/expenses/search',
+    itemsKey: 'transactions',
+    params: { q: query },
+    pageSize: 20,
+    enabled,
   });
 
-  const results = data ?? [];
-  const searching = isLoading || isFetching;
+  const searching = isLoading || isRefetching;
 
   return (
     <StickyHeaderFlatScreen
@@ -32,7 +42,7 @@ export default function SearchScreen() {
       header={
         <StackNavHeader
           title="Search"
-          subtitle="Merchant, notes, or category"
+          subtitle={enabled ? `${total} result${total !== 1 ? 's' : ''}` : 'Merchant, notes, or category'}
           footer={
             <Input
               value={query}
@@ -44,9 +54,13 @@ export default function SearchScreen() {
           }
         />
       }
-      data={query.length >= 2 && !searching ? results : []}
+      data={enabled && !searching ? results : []}
       keyExtractor={(item) => item.id}
       contentContainerStyle={{ paddingBottom: fabBottom }}
+      onEndReached={() => {
+        if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+      }}
+      onEndReachedThreshold={0.4}
       ListHeaderComponent={
         searching ? (
           <ActivityIndicator size="large" color={theme.colors.primary} style={styles.loader} />
@@ -54,8 +68,13 @@ export default function SearchScreen() {
           <Text style={styles.hint}>Type at least 2 characters to search</Text>
         ) : null
       }
+      ListFooterComponent={
+        isFetchingNextPage ? (
+          <ActivityIndicator size="small" color={theme.colors.primary} style={styles.loader} />
+        ) : null
+      }
       ListEmptyComponent={
-        query.length >= 2 && !searching ? (
+        enabled && !searching ? (
           <EmptyState icon="search" title="No results" subtitle="Try a different search term" />
         ) : null
       }

@@ -23,7 +23,7 @@ import { useFloatingBlockGap } from '@/shared/hooks/useTabBarInset';
 import { useTheme } from '@/shared/theme';
 import { useAppSelector } from '@/shared/store/hooks';
 import { formatCurrency } from '@/shared/utils/currency';
-import type { DashboardData, Transaction } from '@/shared/types';
+import type { DashboardData } from '@/shared/types';
 
 export default function DashboardScreen() {
   const router = useRouter();
@@ -38,16 +38,9 @@ export default function DashboardScreen() {
     queryFn: () => apiGet<DashboardData>('/expenses/dashboard'),
   });
 
-  const { data: expenseData } = useQuery({
-    queryKey: ['transactions', 'expense', 'dashboard'],
-    queryFn: () => apiGet<{ transactions: Transaction[] }>('/expenses', { type: 'expense', limit: 500 }),
-  });
-
-  const expenses = expenseData?.transactions ?? [];
   const { budgetWidgets, goalWidgets } = useDashboardWidgets(
     data?.budgets ?? [],
     data?.goals ?? [],
-    expenses,
   );
 
   if (isLoading) return <ScreenLoader />;

@@ -6,53 +6,19 @@ import { Card, ProgressBar } from '@/shared/components/ui';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
-import type { Budget, Transaction } from '@/shared/types';
-
-export function getBudgetDateRange(budget: Budget): { startDate: string; endDate: string } {
-  const now = new Date();
-  if (budget.type === 'weekly') {
-    const day = now.getDay();
-    const start = new Date(now);
-    start.setDate(now.getDate() - day);
-    const end = new Date(start);
-    end.setDate(start.getDate() + 6);
-    return {
-      startDate: start.toISOString().split('T')[0],
-      endDate: end.toISOString().split('T')[0],
-    };
-  }
-  const start = new Date(now.getFullYear(), now.getMonth(), 1);
-  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  return {
-    startDate: budget.startDate ?? start.toISOString().split('T')[0],
-    endDate: budget.endDate ?? end.toISOString().split('T')[0],
-  };
-}
-
-export function getBudgetSpent(budget: Budget, expenses: Transaction[]): number {
-  const { startDate, endDate } = getBudgetDateRange(budget);
-  return expenses
-    .filter((e) => {
-      const inRange = e.date >= startDate && e.date <= endDate;
-      const matchesCategory = budget.type !== 'category' || e.categoryId === budget.categoryId;
-      return inRange && matchesCategory;
-    })
-    .reduce((sum, e) => sum + Number(e.amount), 0);
-}
+import type { Budget } from '@/shared/types';
 
 export function BudgetCard({
   budget,
-  expenses,
   onDelete,
 }: {
   budget: Budget;
-  expenses: Transaction[];
   onDelete: () => void;
 }) {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
-  const spent = useMemo(() => getBudgetSpent(budget, expenses), [expenses, budget]);
+  const spent = budget.spent ?? 0;
 
   const progress = Math.min(100, Math.round((spent / Number(budget.amount)) * 100));
   const overBudget = spent > Number(budget.amount);

@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Alert } from 'react-native';
 import { useForm } from 'react-hook-form';
-import { apiPost, apiGet } from '@/shared/services/api';
+import { apiPost } from '@/shared/services/api';
+import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 
 export interface TicketForm {
   subject: string;
@@ -18,31 +19,22 @@ export interface SupportTicket {
 
 export function useSupportTickets() {
   const [loading, setLoading] = useState(false);
-  const [tickets, setTickets] = useState<SupportTicket[]>([]);
+  const { data: tickets, refetch } = usePaginatedList<SupportTicket, 'tickets'>({
+    queryKey: ['support-tickets'],
+    url: '/support',
+    itemsKey: 'tickets',
+  });
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<TicketForm>({
     defaultValues: { subject: '', message: '' },
   });
-
-  const loadTickets = async () => {
-    try {
-      const data = await apiGet<SupportTicket[]>('/support');
-      setTickets(data);
-    } catch {
-      // ignore on first load
-    }
-  };
-
-  useEffect(() => {
-    loadTickets();
-  }, []);
 
   const onSubmit = async (data: TicketForm) => {
     setLoading(true);
     try {
       await apiPost('/support', data);
       reset();
-      await loadTickets();
+      await refetch();
       Alert.alert('Submitted', 'Our team will respond within 24–48 hours.');
     } catch {
       Alert.alert('Error', 'Could not submit ticket');

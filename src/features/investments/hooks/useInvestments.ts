@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { apiGet, apiPost, apiPatch } from '@/shared/services/api';
+import { apiPost, apiPatch } from '@/shared/services/api';
+import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import type { Investment } from '@/shared/types';
 
 export interface InvestmentForm {
@@ -30,9 +31,10 @@ export function useInvestments() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = usePaginatedList<Investment, 'investments'>({
     queryKey: ['investments'],
-    queryFn: () => apiGet<Investment[]>('/investments'),
+    url: '/investments',
+    itemsKey: 'investments',
   });
 
   const { control, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<InvestmentForm>({

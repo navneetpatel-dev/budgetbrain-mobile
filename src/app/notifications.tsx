@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { StyleSheet, Text, RefreshControl } from 'react-native';
+import { StyleSheet, Text, RefreshControl, ActivityIndicator } from 'react-native';
 import { Card, EmptyState, ScreenLoader, StickyHeaderFlatScreen } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
@@ -8,7 +8,15 @@ import { useMarkNotificationRead } from '@/features/notifications/hooks/useMarkN
 export default function NotificationsScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const { data, isLoading, refetch, isRefetching } = useMarkNotificationRead();
+  const {
+    data,
+    isLoading,
+    refetch,
+    isRefetching,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useMarkNotificationRead();
 
   if (isLoading) {
     return <ScreenLoader />;
@@ -30,6 +38,15 @@ export default function NotificationsScreen() {
       keyExtractor={(item) => item.id}
       refreshControl={
         <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
+      }
+      onEndReached={() => {
+        if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+      }}
+      onEndReachedThreshold={0.4}
+      ListFooterComponent={
+        isFetchingNextPage ? (
+          <ActivityIndicator size="small" color={theme.colors.primary} style={{ marginVertical: 16 }} />
+        ) : null
       }
       ListEmptyComponent={
         <EmptyState title="No notifications" subtitle="You're all caught up" icon="bell" />

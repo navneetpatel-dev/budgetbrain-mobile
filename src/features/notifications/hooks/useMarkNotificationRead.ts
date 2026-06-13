@@ -1,25 +1,36 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiGet, apiPatch } from '@/shared/services/api';
+import { apiPatch } from '@/shared/services/api';
+import { useInfinitePaginatedList } from '@/shared/hooks/usePaginatedList';
 import type { NotificationItem } from '@/shared/types';
 
 export function useMarkNotificationRead() {
-  const queryClient = useQueryClient();
-
-  const { data, isLoading, refetch, isRefetching } = useQuery({
+  const {
+    items,
+    isLoading,
+    isRefetching,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfinitePaginatedList<NotificationItem>({
     queryKey: ['notifications'],
-    queryFn: () => apiGet<NotificationItem[]>('/notifications'),
+    url: '/notifications',
+    itemsKey: 'notifications',
+    pageSize: 50,
   });
 
   const markRead = async (id: string) => {
     await apiPatch(`/notifications/${id}/read`);
-    queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    refetch();
   };
 
   return {
-    data,
+    data: items,
     isLoading,
-    refetch,
     isRefetching,
+    refetch,
     markRead,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
   };
 }

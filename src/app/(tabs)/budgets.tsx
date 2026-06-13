@@ -1,7 +1,6 @@
 import { Alert, RefreshControl } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { apiGet } from '@/shared/services/api';
+import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import {
   EmptyState,
   ScreenLoader,
@@ -12,27 +11,20 @@ import { BudgetCard } from '@/features/budgets/components/BudgetCard';
 import { useDeleteBudget } from '@/features/budgets/hooks/useDeleteBudget';
 import { confirmDeleteBudget } from '@/features/budgets/services/confirmations';
 import { useTheme } from '@/shared/theme';
-import type { Budget, Transaction } from '@/shared/types';
+import type { Budget } from '@/shared/types';
 
 export default function BudgetsScreen() {
   const theme = useTheme();
   const router = useRouter();
   const { deleteBudget } = useDeleteBudget();
 
-  const { data, isLoading, refetch, isRefetching } = useQuery({
+  const { data: budgets, total, isLoading, refetch, isRefetching } = usePaginatedList<Budget, 'budgets'>({
     queryKey: ['budgets'],
-    queryFn: () => apiGet<Budget[]>('/budgets'),
-  });
-
-  const { data: expenseData } = useQuery({
-    queryKey: ['transactions', 'expense', 'budgets'],
-    queryFn: () => apiGet<{ transactions: Transaction[] }>('/expenses', { type: 'expense', limit: 500 }),
+    url: '/budgets',
+    itemsKey: 'budgets',
   });
 
   if (isLoading) return <ScreenLoader />;
-
-  const budgets = data ?? [];
-  const count = budgets.length;
 
   return (
     <StickyHeaderFlatScreen
@@ -40,7 +32,7 @@ export default function BudgetsScreen() {
         <FeatureHeader
           eyebrow="PLAN"
           title="Budgets"
-          subtitle={`${count} active`}
+          subtitle={`${total} active`}
           actionIcon="add"
           actionLabel="Create budget"
           onAction={() => router.push('/budget/add')}
@@ -63,7 +55,6 @@ export default function BudgetsScreen() {
       renderItem={({ item }) => (
         <BudgetCard
           budget={item}
-          expenses={expenseData?.transactions ?? []}
           onDelete={() =>
             confirmDeleteBudget(item.name, () =>
               deleteBudget(item.id).catch(() => Alert.alert('Error', 'Could not delete budget')),

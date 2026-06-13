@@ -1,9 +1,7 @@
 import { useMemo } from 'react';
 import { StyleSheet, View, RefreshControl, Text, Pressable } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { appHref } from '@/shared/utils/navigation';
-import { apiGet } from '@/shared/services/api';
 import {
   Card,
   EmptyState,
@@ -13,6 +11,7 @@ import {
 } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { Fab } from '@/features/navigation/components/Fab';
+import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
 import type { Goal } from '@/shared/types';
@@ -21,16 +20,15 @@ export default function GoalsScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
-  const { data, isLoading, refetch, isRefetching } = useQuery({
+  const { data: goals, total, isLoading, refetch, isRefetching } = usePaginatedList<Goal, 'goals'>({
     queryKey: ['goals'],
-    queryFn: () => apiGet<Goal[]>('/goals'),
+    url: '/goals',
+    itemsKey: 'goals',
   });
 
   if (isLoading) {
     return <ScreenSkeleton rows={3} />;
   }
-
-  const goals = data ?? [];
 
   return (
     <View style={styles.root}>
@@ -38,7 +36,7 @@ export default function GoalsScreen() {
         header={
           <ProfileStackHeader
             screen="goals"
-            subtitle={`${goals.length} active goal${goals.length !== 1 ? 's' : ''}`}
+            subtitle={`${total} active goal${total !== 1 ? 's' : ''}`}
             actionIcon="add"
             actionLabel="Create goal"
             onAction={() => router.push('/goal/add')}

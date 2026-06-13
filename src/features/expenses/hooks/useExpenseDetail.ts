@@ -24,12 +24,7 @@ export function useExpenseDetail(expenseId: string) {
 
   const { data: expense, isLoading } = useQuery({
     queryKey: ['expense', expenseId],
-    queryFn: async () => {
-      const result = await apiGet<{ transactions: Transaction[] }>('/expenses', { type: 'expense', limit: 200 });
-      const found = result.transactions.find((t) => t.id === expenseId);
-      if (!found) throw new Error('Expense not found');
-      return found;
-    },
+    queryFn: () => apiGet<Transaction>(`/expenses/${expenseId}`),
     enabled: !!expenseId,
   });
 

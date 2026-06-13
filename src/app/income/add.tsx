@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { useQuery } from '@tanstack/react-query';
 import {
   Input,
   DateInput,
@@ -11,7 +10,7 @@ import {
   FormSection,
   FormActions,
 } from '@/shared/components/ui';
-import { apiGet } from '@/shared/services/api';
+import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import { useCreateIncome, type IncomeForm } from '@/features/income/hooks/useCreateIncome';
 import { INCOME_SOURCE_TYPES } from '@/shared/constants/config';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
@@ -24,9 +23,10 @@ export default function AddIncomeScreen() {
   const { create, loading } = useCreateIncome();
   const [sourceMode, setSourceMode] = useState<SourceMode>('existing');
 
-  const { data: sources } = useQuery({
+  const { data: sources } = usePaginatedList<IncomeSource, 'sources'>({
     queryKey: ['income-sources'],
-    queryFn: () => apiGet<IncomeSource[]>('/income/sources'),
+    url: '/income/sources',
+    itemsKey: 'sources',
   });
 
   const { control, handleSubmit, setValue, watch, formState: { errors } } = useForm<IncomeForm>({

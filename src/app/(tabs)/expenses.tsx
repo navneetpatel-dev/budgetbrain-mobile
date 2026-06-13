@@ -1,8 +1,6 @@
-import { RefreshControl } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
+import { ActivityIndicator, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { appHref } from '@/shared/utils/navigation';
-import { apiGet } from '@/shared/services/api';
 import { TransactionItem, TransactionGroup } from '@/features/expenses/components/TransactionItem';
 import {
   EmptyState,
@@ -12,6 +10,7 @@ import {
   HeaderIconButton,
   StickyHeaderFlatScreen,
 } from '@/shared/components/ui';
+import { useInfinitePaginatedList } from '@/shared/hooks/usePaginatedList';
 import { useTheme } from '@/shared/theme';
 import type { Transaction } from '@/shared/types';
 
@@ -19,16 +18,24 @@ export default function ExpensesScreen() {
   const router = useRouter();
   const theme = useTheme();
 
-  const { data, isLoading, refetch, isRefetching } = useQuery({
+  const {
+    items: transactions,
+    total,
+    isLoading,
+    isRefetching,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfinitePaginatedList<Transaction>({
     queryKey: ['transactions', 'expense'],
-    queryFn: () =>
-      apiGet<{ transactions: Transaction[]; total: number }>('/expenses', { type: 'expense', limit: 50 }),
+    url: '/expenses',
+    itemsKey: 'transactions',
+    params: { type: 'expense' },
+    pageSize: 20,
   });
 
   if (isLoading) return <ScreenLoader />;
-
-  const transactions = data?.transactions ?? [];
-  const total = data?.total ?? transactions.length;
 
   return (
     <StickyHeaderFlatScreen
@@ -56,6 +63,15 @@ export default function ExpensesScreen() {
       keyExtractor={(item) => item.id}
       refreshControl={
         <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
+      }
+      onEndReached={() => {
+        if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+      }}
+      onEndReachedThreshold={0.4}
+      ListFooterComponent={
+        isFetchingNextPage ? (
+          <ActivityIndicator size="small" color={theme.colors.primary} style={{ marginVertical: 16 }} />
+        ) : null
       }
       ListEmptyComponent={
         <EmptyState

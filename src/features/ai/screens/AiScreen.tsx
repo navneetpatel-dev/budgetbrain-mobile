@@ -6,6 +6,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScreenContainer } from '@/shared/components/ui';
@@ -37,7 +38,9 @@ export function AiScreen() {
     setMessage,
     chatLoading,
     messages,
+    historyLoading,
     sendMessage,
+    startNewConversation,
   } = useAiChat();
 
   useEffect(() => {
@@ -48,11 +51,28 @@ export function AiScreen() {
     return <AiPremiumGate />;
   }
 
+  if (historyLoading) {
+    return (
+      <ScreenContainer padded={false} style={styles.root}>
+        <ProfileStackHeader screen="ai" subtitle="Ask about your finances" />
+        <View style={styles.loadingWrap}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+        </View>
+      </ScreenContainer>
+    );
+  }
+
   const isEmpty = messages.length === 0 && !chatLoading;
 
   return (
     <ScreenContainer padded={false} style={styles.root}>
-      <ProfileStackHeader screen="ai" subtitle="Ask about your finances" />
+      <ProfileStackHeader
+        screen="ai"
+        subtitle="Ask about your finances"
+        actionIcon={messages.length > 0 ? 'add' : undefined}
+        actionLabel="New conversation"
+        onAction={messages.length > 0 ? startNewConversation : undefined}
+      />
 
       <KeyboardAvoidingView
         style={styles.flex}
@@ -135,5 +155,6 @@ function createStyles(
       maxWidth: 280,
     },
     messages: { gap: t.spacing.md },
+    loadingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   });
 }

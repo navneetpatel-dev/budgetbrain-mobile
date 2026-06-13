@@ -565,9 +565,12 @@ export function StickyHeaderFlatScreen<T>({
   keyExtractor,
   ListEmptyComponent,
   ListHeaderComponent,
+  ListFooterComponent,
   refreshControl,
   contentContainerStyle,
   ItemSeparatorComponent,
+  onEndReached,
+  onEndReachedThreshold,
   inset = 'tab',
 }: {
   header: React.ReactNode;
@@ -576,9 +579,12 @@ export function StickyHeaderFlatScreen<T>({
   keyExtractor: (item: T, index: number) => string;
   ListEmptyComponent?: FlatListProps<T>['ListEmptyComponent'];
   ListHeaderComponent?: FlatListProps<T>['ListHeaderComponent'];
+  ListFooterComponent?: FlatListProps<T>['ListFooterComponent'];
   refreshControl?: FlatListProps<T>['refreshControl'];
   contentContainerStyle?: ViewStyle;
   ItemSeparatorComponent?: FlatListProps<T>['ItemSeparatorComponent'];
+  onEndReached?: FlatListProps<T>['onEndReached'];
+  onEndReachedThreshold?: FlatListProps<T>['onEndReachedThreshold'];
   inset?: 'tab' | 'stack';
 }) {
   const theme = useTheme();
@@ -607,8 +613,11 @@ export function StickyHeaderFlatScreen<T>({
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={ListEmptyComponent}
         ListHeaderComponent={ListHeaderComponent}
+        ListFooterComponent={ListFooterComponent}
         refreshControl={refreshControl}
         ItemSeparatorComponent={ItemSeparatorComponent}
+        onEndReached={onEndReached}
+        onEndReachedThreshold={onEndReachedThreshold}
       />
     </View>
   );

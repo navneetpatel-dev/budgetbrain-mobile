@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { apiGet, apiPost, apiPatch } from '@/shared/services/api';
+import { apiPost, apiPatch } from '@/shared/services/api';
+import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import type { FinancialAccount } from '@/shared/types';
 
 export interface AccountForm {
@@ -26,9 +27,10 @@ export function useAccounts() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = usePaginatedList<FinancialAccount, 'accounts'>({
     queryKey: ['accounts'],
-    queryFn: () => apiGet<FinancialAccount[]>('/accounts'),
+    url: '/accounts',
+    itemsKey: 'accounts',
   });
 
   const { control, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<AccountForm>({

@@ -1,8 +1,7 @@
 import { useMemo } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, View, Pressable, ScrollView } from 'react-native';
 import { Controller } from 'react-hook-form';
 import {
-  Button,
   Input,
   StackScrollScreen,
   FormFieldLabel,
@@ -24,6 +23,10 @@ export default function IntegrationsScreen() {
     emailLoading,
     confirmLoading,
     parsed,
+    pendingItems,
+    pendingTotal,
+    selectedId,
+    selectPending,
     categoryId,
     setCategoryId,
     categories,
@@ -44,10 +47,37 @@ export default function IntegrationsScreen() {
         />
       }
     >
+      {pendingTotal > 0 ? (
+        <FormSection title="Pending review" subtitle={`${pendingTotal} item${pendingTotal !== 1 ? 's' : ''} awaiting confirmation`}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pendingRow}>
+            {pendingItems.map((item) => {
+              const selected = item.id === selectedId;
+              return (
+                <Pressable
+                  key={item.id}
+                  onPress={() => selectPending(item.id)}
+                  style={[styles.pendingChip, selected && styles.pendingChipSelected]}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                >
+                  <Text style={[styles.pendingChipText, selected && styles.pendingChipTextSelected]}>
+                    {format(item.parsedAmount)} · {item.parsedMerchant ?? item.source.toUpperCase()}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </FormSection>
+      ) : null}
+
       {parsed ? (
         <FormSection title="Parsed transaction" subtitle="Review before saving">
-          <Text style={styles.confirmDetail}>{format(parsed.parsedAmount)} · {parsed.parsedMerchant ?? 'Unknown'}</Text>
-          <Text style={styles.confirmMeta}>Confidence: {Math.round(parsed.confidence * 100)}%</Text>
+          <Text style={styles.confirmDetail}>
+            {format(parsed.parsedAmount)} · {parsed.parsedMerchant ?? 'Unknown'}
+          </Text>
+          <Text style={styles.confirmMeta}>
+            {parsed.source.toUpperCase()} · Confidence: {Math.round(parsed.confidence * 100)}%
+          </Text>
           <FormFieldLabel>Category</FormFieldLabel>
           <OptionChipList
             items={(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined }))}
@@ -116,6 +146,21 @@ export default function IntegrationsScreen() {
 
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
+    pendingRow: { gap: 8, paddingBottom: 4 },
+    pendingChip: {
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderRadius: t.radii.full,
+      borderWidth: 1.5,
+      borderColor: t.colors.borderSubtle,
+      backgroundColor: t.colors.surface,
+    },
+    pendingChipSelected: {
+      borderColor: t.colors.primary,
+      backgroundColor: t.colors.primarySoft,
+    },
+    pendingChipText: { fontSize: 13, fontWeight: '600', color: t.colors.textSecondary },
+    pendingChipTextSelected: { color: t.colors.primary },
     confirmDetail: { fontSize: 18, fontWeight: '700', color: t.colors.text },
     confirmMeta: { fontSize: 13, color: t.colors.textSecondary, marginBottom: t.spacing.sm },
   });

@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, RefreshControl, Text } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
+import { StyleSheet, View, RefreshControl, Text, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { appHref } from '@/shared/utils/navigation';
 import { TransactionItem, TransactionGroup } from '@/features/expenses/components/TransactionItem';
@@ -12,26 +11,36 @@ import {
 } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { Fab } from '@/features/navigation/components/Fab';
-import { apiGet } from '@/shared/services/api';
+import { useInfinitePaginatedList, usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import { useTheme } from '@/shared/theme';
-import type { IncomeSource, PaginatedTransactions } from '@/shared/types';
+import type { IncomeSource, Transaction } from '@/shared/types';
 
 export default function IncomeScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
 
-  const { data, isLoading, refetch, isRefetching } = useQuery({
+  const {
+    items: transactions,
+    total: transactionTotal,
+    isLoading,
+    isRefetching,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfinitePaginatedList<Transaction>({
     queryKey: ['income'],
-    queryFn: () => apiGet<PaginatedTransactions>('/income', { limit: 50 }),
+    url: '/income',
+    itemsKey: 'transactions',
+    pageSize: 20,
   });
 
-  const { data: sources, refetch: refetchSources } = useQuery({
+  const { data: sources, refetch: refetchSources } = usePaginatedList<IncomeSource, 'sources'>({
     queryKey: ['income-sources'],
-    queryFn: () => apiGet<IncomeSource[]>('/income/sources'),
+    url: '/income/sources',
+    itemsKey: 'sources',
   });
-
-  const transactions = data?.transactions ?? [];
 
   if (isLoading) {
     return <ScreenSkeleton rows={4} />;
@@ -45,7 +54,7 @@ export default function IncomeScreen() {
         header={
           <ProfileStackHeader
             screen="income"
-            subtitle={`${sourceCount} source${sourceCount !== 1 ? 's' : ''} · ${transactions.length} entries`}
+            subtitle={`${sourceCount} source${sourceCount !== 1 ? 's' : ''} · ${transactionTotal} entries`}
           />
         }
         data={transactions}
@@ -57,6 +66,10 @@ export default function IncomeScreen() {
             tintColor={theme.colors.primary}
           />
         }
+        onEndReached={() => {
+          if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+        }}
+        onEndReachedThreshold={0.4}
         ListHeaderComponent={
           <View style={styles.sourcesBlock}>
             <Text style={styles.sectionLabel}>INCOME SOURCES</Text>
@@ -72,6 +85,11 @@ export default function IncomeScreen() {
             )}
             <Text style={[styles.sectionLabel, styles.recentLabel]}>RECENT INCOME</Text>
           </View>
+        }
+        ListFooterComponent={
+          isFetchingNextPage ? (
+            <ActivityIndicator size="small" color={theme.colors.primary} style={{ marginVertical: 16 }} />
+          ) : null
         }
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         ListEmptyComponent={

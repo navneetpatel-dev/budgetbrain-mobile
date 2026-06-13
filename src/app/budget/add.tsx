@@ -1,5 +1,4 @@
 import { Controller, useForm } from 'react-hook-form';
-import { useQuery } from '@tanstack/react-query';
 import {
   Input,
   DateInput,
@@ -10,19 +9,15 @@ import {
   FormSection,
   FormActions,
 } from '@/shared/components/ui';
-import { apiGet } from '@/shared/services/api';
+import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
 import { useCreateBudget, type BudgetForm } from '@/features/budgets/hooks/useCreateBudget';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
-import type { Category } from '@/shared/types';
 
 export default function AddBudgetScreen() {
   const { amountLabel } = useUserCurrency();
   const { create, loading } = useCreateBudget();
 
-  const { data: categories } = useQuery({
-    queryKey: ['categories'],
-    queryFn: () => apiGet<Category[]>('/categories'),
-  });
+  const { data: categories } = useCategoryOptions();
 
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];

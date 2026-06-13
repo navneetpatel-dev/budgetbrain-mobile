@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { useQuery } from '@tanstack/react-query';
 import {
   Input,
   DateInput,
@@ -12,12 +11,11 @@ import {
   ImageUploadField,
   FormActions,
 } from '@/shared/components/ui';
-import { apiGet } from '@/shared/services/api';
+import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
 import { useCreateExpense, type ExpenseForm } from '@/features/expenses/hooks/useCreateExpense';
 import { useReceiptPicker } from '@/features/expenses/hooks/useReceiptPicker';
 import { PAYMENT_METHODS } from '@/shared/constants/config';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
-import type { Category } from '@/shared/types';
 
 export default function AddExpenseScreen() {
   const { amountLabel } = useUserCurrency();
@@ -25,10 +23,7 @@ export default function AddExpenseScreen() {
   const { receipt, pick, clear } = useReceiptPicker();
   const [categoryError, setCategoryError] = useState<string>();
 
-  const { data: categories } = useQuery({
-    queryKey: ['categories'],
-    queryFn: () => apiGet<Category[]>('/categories'),
-  });
+  const { data: categories } = useCategoryOptions();
 
   const { control, handleSubmit, setValue, watch, formState: { errors } } = useForm<ExpenseForm>({
     defaultValues: {

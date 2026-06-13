@@ -19,12 +19,7 @@ export function useGoalDetail(id: string) {
 
   const { data: goal, isLoading } = useQuery({
     queryKey: ['goal', id],
-    queryFn: async () => {
-      const goals = await apiGet<Goal[]>('/goals');
-      const found = goals.find((g) => g.id === id);
-      if (!found) throw new Error('Goal not found');
-      return found;
-    },
+    queryFn: () => apiGet<Goal>(`/goals/${id}`),
     enabled: !!id,
   });
 
@@ -49,6 +44,7 @@ export function useGoalDetail(id: string) {
         targetDate: data.targetDate || undefined,
       });
       queryClient.invalidateQueries({ queryKey: ['goals'] });
+      queryClient.invalidateQueries({ queryKey: ['goal', id] });
       router.back();
     } catch {
       Alert.alert('Error', 'Could not update goal');

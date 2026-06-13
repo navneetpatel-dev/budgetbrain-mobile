@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { apiGet, apiPost } from '@/shared/services/api';
+import { apiPost } from '@/shared/services/api';
+import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import { useAppSelector } from '@/shared/store/hooks';
 import type { FamilyMembership } from '@/shared/types';
 
@@ -20,11 +21,11 @@ export function useFamilyGroups() {
   const isPremium = ['premium', 'lifetime', 'admin'].includes(user?.role ?? '');
   const [loading, setLoading] = useState(false);
 
-  const { data: memberships } = useQuery({
+  const { data: memberships } = usePaginatedList<FamilyMembership, 'memberships'>({
     queryKey: ['family-groups'],
-    queryFn: () => apiGet<FamilyMembership[]>('/family/groups'),
+    url: '/family/groups',
+    itemsKey: 'memberships',
     enabled: isPremium,
-    retry: false,
   });
 
   const groupForm = useForm<GroupForm>({ defaultValues: { name: '' } });
