@@ -282,21 +282,54 @@ export function HeaderIconButton({
 
 /* ── Form helpers ── */
 
-export function FormFieldLabel({ children }: { children: string }) {
+export function FormFieldLabel({ children, error }: { children: string; error?: string }) {
   const theme = useTheme();
+  const styles = useMemo(() => createFormLabelStyles(theme), [theme]);
+
   return (
-    <Text
-      style={{
-        fontSize: 11,
-        fontWeight: '700',
-        letterSpacing: 0.8,
-        color: theme.colors.textTertiary,
-        marginBottom: theme.spacing.sm,
-        textTransform: 'uppercase',
-      }}
+    <View style={styles.wrap}>
+      <Text style={styles.label}>{children}</Text>
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+    </View>
+  );
+}
+
+function Chip({
+  label,
+  selected,
+  accent,
+  onPress,
+  styles,
+}: {
+  label: string;
+  selected: boolean;
+  accent: string;
+  onPress: () => void;
+  styles: ReturnType<typeof createChipStyles>;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.chip,
+        selected && {
+          backgroundColor: accent + '22',
+          borderColor: accent,
+        },
+        pressed && { opacity: 0.88, transform: [{ scale: 0.97 }] },
+      ]}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
     >
-      {children}
-    </Text>
+      {selected ? (
+        <View style={[styles.chipDot, { backgroundColor: accent }]}>
+          <AppIcon name="checkmark" size={10} color="#fff" />
+        </View>
+      ) : null}
+      <Text style={[styles.chipText, selected && { color: accent, fontWeight: '700' }]}>
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -306,36 +339,37 @@ export function OptionChips<T extends string>({
   onChange,
   getLabel = (v) => v,
   getColor,
+  error,
 }: {
   options: T[];
   value: T;
   onChange: (v: T) => void;
   getLabel?: (v: T) => string;
   getColor?: (v: T) => string | undefined;
+  error?: string;
 }) {
   const theme = useTheme();
   const styles = useMemo(() => createChipStyles(theme), [theme]);
 
   return (
-    <View style={styles.grid}>
-      {options.map((opt) => {
-        const selected = value === opt;
-        const accent = getColor?.(opt) ?? theme.colors.primary;
-        return (
-          <Pressable
-            key={opt}
-            onPress={() => onChange(opt)}
-            style={[
-              styles.chip,
-              selected && { backgroundColor: accent, borderColor: accent },
-            ]}
-          >
-            <Text style={[styles.chipText, selected && styles.chipTextActive]}>
-              {getLabel(opt)}
-            </Text>
-          </Pressable>
-        );
-      })}
+    <View style={styles.container}>
+      <View style={styles.grid}>
+        {options.map((opt) => {
+          const selected = value === opt;
+          const accent = getColor?.(opt) ?? theme.colors.primary;
+          return (
+            <Chip
+              key={opt}
+              label={getLabel(opt)}
+              selected={selected}
+              accent={accent}
+              onPress={() => onChange(opt)}
+              styles={styles}
+            />
+          );
+        })}
+      </View>
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
   );
 }
@@ -344,34 +378,42 @@ export function OptionChipList({
   items,
   selectedId,
   onSelect,
+  error,
 }: {
   items: { id: string; label: string; color?: string }[];
   selectedId: string;
   onSelect: (id: string) => void;
+  error?: string;
 }) {
   const theme = useTheme();
   const styles = useMemo(() => createChipStyles(theme), [theme]);
+  const useScroll = items.length > 8;
+
+  const content = items.map((item) => {
+    const selected = selectedId === item.id;
+    const accent = item.color ?? theme.colors.primary;
+    return (
+      <Chip
+        key={item.id}
+        label={item.label}
+        selected={selected}
+        accent={accent}
+        onPress={() => onSelect(item.id)}
+        styles={styles}
+      />
+    );
+  });
 
   return (
-    <View style={styles.grid}>
-      {items.map((item) => {
-        const selected = selectedId === item.id;
-        const accent = item.color ?? theme.colors.primary;
-        return (
-          <Pressable
-            key={item.id}
-            onPress={() => onSelect(item.id)}
-            style={[
-              styles.chip,
-              selected && { backgroundColor: accent, borderColor: accent },
-            ]}
-          >
-            <Text style={[styles.chipText, selected && styles.chipTextActive]}>
-              {item.label}
-            </Text>
-          </Pressable>
-        );
-      })}
+    <View style={styles.container}>
+      {useScroll ? (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollRow}>
+          {content}
+        </ScrollView>
+      ) : (
+        <View style={styles.grid}>{content}</View>
+      )}
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
   );
 }
@@ -381,35 +423,36 @@ export function MultiOptionChips({
   selected,
   onToggle,
   getLabel = (v) => v,
+  error,
 }: {
   options: string[];
   selected: string[];
   onToggle: (v: string) => void;
   getLabel?: (v: string) => string;
+  error?: string;
 }) {
   const theme = useTheme();
   const styles = useMemo(() => createChipStyles(theme), [theme]);
 
   return (
-    <View style={styles.grid}>
-      {options.map((opt) => {
-        const isSelected = selected.includes(opt);
-        const accent = theme.colors.primary;
-        return (
-          <Pressable
-            key={opt}
-            onPress={() => onToggle(opt)}
-            style={[
-              styles.chip,
-              isSelected && { backgroundColor: accent, borderColor: accent },
-            ]}
-          >
-            <Text style={[styles.chipText, isSelected && styles.chipTextActive]}>
-              {getLabel(opt)}
-            </Text>
-          </Pressable>
-        );
-      })}
+    <View style={styles.container}>
+      <View style={styles.grid}>
+        {options.map((opt) => {
+          const isSelected = selected.includes(opt);
+          const accent = theme.colors.primary;
+          return (
+            <Chip
+              key={opt}
+              label={getLabel(opt)}
+              selected={isSelected}
+              accent={accent}
+              onPress={() => onToggle(opt)}
+              styles={styles}
+            />
+          );
+        })}
+      </View>
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
   );
 }
@@ -490,6 +533,9 @@ export function FormStackScreen({
   onBack?: () => void;
   children: React.ReactNode;
 }) {
+  const theme = useTheme();
+  const styles = useMemo(() => StyleSheet.create({ body: { gap: 2 } }), []);
+
   return (
     <StackScrollScreen
       header={
@@ -503,8 +549,9 @@ export function FormStackScreen({
           subtitle={subtitle}
         />
       }
+      contentContainerStyle={{ paddingTop: theme.spacing.sm }}
     >
-      {children}
+      <View style={styles.body}>{children}</View>
     </StackScrollScreen>
   );
 }
@@ -721,17 +768,46 @@ function createIconBtnStyles(t: AppTheme, variant: 'soft' | 'solid') {
 
 function createChipStyles(t: AppTheme) {
   return StyleSheet.create({
-    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: t.spacing.lg },
+    container: { marginBottom: t.spacing.lg },
+    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    scrollRow: { flexDirection: 'row', gap: 8, paddingVertical: 2 },
     chip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
       paddingHorizontal: 14,
-      paddingVertical: 8,
+      paddingVertical: 9,
       borderRadius: t.radii.full,
-      borderWidth: 1,
-      borderColor: t.isDark ? 'rgba(255,255,255,0.1)' : t.colors.border,
+      borderWidth: 1.5,
+      borderColor: t.isDark ? 'rgba(255,255,255,0.1)' : t.colors.borderSubtle,
       backgroundColor: t.isDark ? 'rgba(255,255,255,0.04)' : t.colors.surface,
     },
+    chipDot: {
+      width: 16,
+      height: 16,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     chipText: { fontSize: 13, fontWeight: '600', color: t.colors.text, textTransform: 'capitalize' },
-    chipTextActive: { color: t.colors.onPrimary },
+    errorText: { color: t.colors.danger, fontSize: 12, marginTop: t.spacing.xs, fontWeight: '500' },
+  });
+}
+
+function createFormLabelStyles(t: AppTheme) {
+  return StyleSheet.create({
+    wrap: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: t.spacing.sm,
+    },
+    label: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: t.colors.textSecondary,
+    },
+    error: { fontSize: 12, fontWeight: '500', color: t.colors.danger },
   });
 }
 

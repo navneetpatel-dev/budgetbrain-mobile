@@ -1,18 +1,24 @@
-import { useEffect, useMemo } from 'react';
-import { StyleSheet } from 'react-native';
+import { useEffect } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Input, DateInput, ScreenLoader, FormStackScreen } from '@/shared/components/ui';
+import {
+  Button,
+  Input,
+  DateInput,
+  ScreenLoader,
+  FormStackScreen,
+  FormSection,
+  FormActions,
+} from '@/shared/components/ui';
 import { useGoalDetail, type GoalForm } from '@/features/goals/hooks/useGoalDetail';
-import { useTheme } from '@/shared/theme';
+import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 
 export default function GoalEditScreen() {
-  const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const { amountLabel } = useUserCurrency();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { goal, isLoading, loading, save, populateForm, confirmDelete } = useGoalDetail(id);
 
-  const { control, handleSubmit, reset } = useForm<GoalForm>({
+  const { control, handleSubmit, reset, formState: { errors } } = useForm<GoalForm>({
     defaultValues: { name: '', targetAmount: '', targetDate: '' },
   });
 
@@ -26,21 +32,34 @@ export default function GoalEditScreen() {
 
   return (
     <FormStackScreen eyebrow="GOAL" title="Edit Goal" subtitle={goal.name}>
-      <Controller control={control} name="name" rules={{ required: true }} render={({ field: { onChange, value } }) => (
-        <Input label="Name" value={value} onChangeText={onChange} />
-      )} />
-      <Controller control={control} name="targetAmount" rules={{ required: true }} render={({ field: { onChange, value } }) => (
-        <Input label="Target Amount" value={value} onChangeText={onChange} keyboardType="numeric" />
-      )} />
-      <Controller control={control} name="targetDate" render={({ field: { onChange, value } }) => (
-        <DateInput label="Target Date" value={value} onChange={onChange} />
-      )} />
-      <Button title="Save" onPress={handleSubmit(save)} loading={loading} size="lg" />
+      <FormSection title="Goal details">
+        <Controller
+          control={control}
+          name="name"
+          rules={{ required: 'Name is required' }}
+          render={({ field: { onChange, value } }) => (
+            <Input label="Goal name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="goals" />
+          )}
+        />
+        <Controller
+          control={control}
+          name="targetAmount"
+          rules={{ required: 'Target amount is required' }}
+          render={({ field: { onChange, value } }) => (
+            <Input label={amountLabel('Target amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.targetAmount?.message} leftIcon="wallet" />
+          )}
+        />
+        <Controller
+          control={control}
+          name="targetDate"
+          render={({ field: { onChange, value } }) => (
+            <DateInput label="Target date" value={value} onChange={onChange} />
+          )}
+        />
+      </FormSection>
+
+      <FormActions primaryTitle="Save Changes" onPrimary={handleSubmit(save)} primaryLoading={loading} />
       <Button title="Delete Goal" onPress={confirmDelete} variant="danger" loading={loading} />
     </FormStackScreen>
   );
-}
-
-function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({});
 }

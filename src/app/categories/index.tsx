@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { StyleSheet, View, Pressable, Text } from 'react-native';
 import { Controller } from 'react-hook-form';
 import {
-  Button,
   Input,
   Card,
   EmptyState,
@@ -10,7 +9,8 @@ import {
   FormModal,
   StickyHeaderFlatScreen,
   ActionFab,
-  FormFieldLabel,
+  ColorPicker,
+  FormActions,
 } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useFabBottom } from '@/shared/hooks/useFabBottom';
@@ -48,30 +48,35 @@ export default function CategoriesScreen() {
 
   return (
     <View style={styles.root}>
-      <FormModal visible={showForm} title={editingId ? 'Edit Category' : 'New Category'} onClose={() => setShowForm(false)}>
+      <FormModal
+        visible={showForm}
+        title={editingId ? 'Edit Category' : 'New Category'}
+        subtitle="Pick a name and color"
+        onClose={() => setShowForm(false)}
+        footer={
+          <FormActions
+            primaryTitle={editingId ? 'Update' : 'Create'}
+            onPrimary={handleSubmit(onSubmit)}
+            primaryLoading={loading}
+            secondaryTitle="Cancel"
+            onSecondary={() => setShowForm(false)}
+          />
+        }
+      >
         <Controller
           control={control}
           name="name"
           rules={{ required: 'Name is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label="Category Name" value={value} onChangeText={onChange} error={errors.name?.message} />
+            <Input label="Category name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="category" placeholder="e.g. Food, Travel" />
           )}
         />
-        <FormFieldLabel>Color</FormFieldLabel>
-        <View style={styles.colorRow}>
-          {COLORS_PRESET.map((c) => (
-            <Pressable
-              key={c}
-              onPress={() => setValue('color', c)}
-              style={[styles.colorDot, { backgroundColor: c }, selectedColor === c && styles.colorSelected]}
-              accessibilityRole="button"
-              accessibilityLabel={`Color ${c}`}
-            />
-          ))}
-        </View>
-        <Button title={editingId ? 'Update' : 'Create'} onPress={handleSubmit(onSubmit)} loading={loading} />
-        <View style={styles.spacer} />
-        <Button title="Cancel" onPress={() => setShowForm(false)} variant="outline" />
+        <ColorPicker
+          label="Color"
+          colors={COLORS_PRESET}
+          value={selectedColor}
+          onChange={(c) => setValue('color', c)}
+        />
       </FormModal>
 
       <StickyHeaderFlatScreen
@@ -122,9 +127,6 @@ export default function CategoriesScreen() {
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: t.colors.background },
-    colorRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
-    colorDot: { width: 32, height: 32, borderRadius: 16 },
-    colorSelected: { borderWidth: 3, borderColor: t.colors.text },
     catCard: { marginBottom: 0 },
     catRow: { flexDirection: 'row', alignItems: 'center' },
     dot: { width: 12, height: 12, borderRadius: 6, marginRight: 10 },
@@ -132,6 +134,5 @@ function createStyles(t: ReturnType<typeof useTheme>) {
     actions: { flexDirection: 'row', gap: 8, alignItems: 'center' },
     actionBtn: { color: t.colors.primary, fontSize: 13, fontWeight: '600' },
     archive: { color: t.colors.danger },
-    spacer: { height: 8 },
   });
 }

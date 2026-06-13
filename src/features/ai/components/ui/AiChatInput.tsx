@@ -1,8 +1,10 @@
 import { useMemo } from 'react';
 import { StyleSheet, View, Text, Pressable, TextInput, ActivityIndicator, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
+import { useResponsive } from '@/shared/utils/responsive';
 
 const SUGGESTED_PROMPTS = [
   'Where did I overspend this month?',
@@ -26,7 +28,12 @@ export function AiChatInput({
   showSuggestions,
 }: AiChatInputProps) {
   const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const insets = useSafeAreaInsets();
+  const { tabBarPaddingX } = useResponsive();
+  const styles = useMemo(
+    () => createStyles(theme, insets.bottom, tabBarPaddingX),
+    [theme, insets.bottom, tabBarPaddingX],
+  );
   const canSend = !loading && message.trim().length > 0;
 
   return (
@@ -98,12 +105,12 @@ export function AiChatInput({
   );
 }
 
-function createStyles(t: ReturnType<typeof useTheme>) {
+function createStyles(t: ReturnType<typeof useTheme>, bottomInset: number, horizontalPadding: number) {
   return StyleSheet.create({
     wrap: {
-      paddingTop: t.spacing.xs,
-      paddingBottom: t.spacing.xs,
-      paddingHorizontal: t.spacing.lg,
+      paddingTop: t.spacing.sm,
+      paddingBottom: bottomInset + t.spacing.sm,
+      paddingHorizontal: horizontalPadding,
       borderTopWidth: 1,
       borderTopColor: t.isDark ? 'rgba(255,255,255,0.06)' : t.colors.borderSubtle,
       backgroundColor: t.colors.background,

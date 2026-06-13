@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 
 function toIsoDate(date: Date) {
@@ -15,6 +17,7 @@ function parseIsoDate(value: string) {
 function formatDisplayDate(value: string) {
   if (!value) return 'Select date';
   return parseIsoDate(value).toLocaleDateString(undefined, {
+    weekday: 'short',
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -37,8 +40,10 @@ export function DateInput({
   maximumDate?: Date;
 }) {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [showPicker, setShowPicker] = useState(false);
+  const [focused, setFocused] = useState(false);
 
   const handleChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
     if (Platform.OS === 'android') {
@@ -50,32 +55,72 @@ export function DateInput({
     onChange(toIsoDate(selectedDate));
   };
 
+  const openPicker = () => {
+    setFocused(true);
+    setShowPicker(true);
+  };
+
+  const closePicker = () => {
+    setShowPicker(false);
+    setFocused(false);
+  };
+
   return (
     <View style={styles.container}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label ? <Text style={styles.label}>{label}</Text> : null}
       <Pressable
-        onPress={() => setShowPicker(true)}
-        style={[styles.field, error && styles.fieldError]}
+        onPress={openPicker}
+        style={[
+          styles.field,
+          focused && styles.fieldFocused,
+          error && styles.fieldError,
+        ]}
         accessibilityRole="button"
         accessibilityLabel={label ? `${label}, ${formatDisplayDate(value)}` : formatDisplayDate(value)}
       >
-        <Text style={[styles.value, !value && styles.placeholder]}>{formatDisplayDate(value)}</Text>
+        <View style={styles.iconWrap}>
+          <AppIcon name="calendar" size={18} color={theme.colors.primary} />
+        </View>
+        <Text style={[styles.value, !value && styles.placeholder]} numberOfLines={1}>
+          {formatDisplayDate(value)}
+        </Text>
+        <AppIcon name="chevronRight" size={14} color={theme.colors.textTertiary} />
       </Pressable>
-      {error && <Text style={styles.errorText}>{error}</Text>}
-      {showPicker && (
-        <DateTimePicker
-          value={value ? parseIsoDate(value) : new Date()}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={handleChange}
-          minimumDate={minimumDate}
-          maximumDate={maximumDate}
-        />
-      )}
-      {showPicker && Platform.OS === 'ios' && (
-        <Pressable onPress={() => setShowPicker(false)} style={styles.doneBtn}>
-          <Text style={styles.doneText}>Done</Text>
-        </Pressable>
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+      {Platform.OS === 'ios' ? (
+        <Modal visible={showPicker} transparent animationType="slide" onRequestClose={closePicker}>
+          <Pressable style={styles.sheetBackdrop} onPress={closePicker} />
+          <View style={[styles.sheet, { paddingBottom: insets.bottom + 12 }]}>
+            <View style={styles.sheetHandle} />
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>{label ?? 'Select date'}</Text>
+              <Pressable onPress={closePicker} hitSlop={8}>
+                <Text style={styles.sheetDone}>Done</Text>
+              </Pressable>
+            </View>
+            <DateTimePicker
+              value={value ? parseIsoDate(value) : new Date()}
+              mode="date"
+              display="spinner"
+              onChange={handleChange}
+              minimumDate={minimumDate}
+              maximumDate={maximumDate}
+              themeVariant={theme.isDark ? 'dark' : 'light'}
+            />
+          </View>
+        </Modal>
+      ) : (
+        showPicker && (
+          <DateTimePicker
+            value={value ? parseIsoDate(value) : new Date()}
+            mode="date"
+            display="default"
+            onChange={handleChange}
+            minimumDate={minimumDate}
+            maximumDate={maximumDate}
+          />
+        )
       )}
     </View>
   );
@@ -83,21 +128,66 @@ export function DateInput({
 
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    container: { marginBottom: t.spacing.md },
-    label: { ...t.typography.caption, color: t.colors.textSecondary, marginBottom: t.spacing.sm },
+    container: { marginBottom: t.spacing.lg },
+    label: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: t.colors.textSecondary,
+      marginBottom: t.spacing.sm,
+    },
     field: {
-      borderWidth: 1,
-      borderColor: t.colors.border,
-      borderRadius: t.radii.md,
-      backgroundColor: t.colors.inputBg,
-      paddingHorizontal: t.spacing.lg,
-      paddingVertical: 14,
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderWidth: 1.5,
+      borderColor: t.isDark ? 'rgba(255,255,255,0.1)' : t.colors.borderSubtle,
+      borderRadius: t.radii.lg,
+      backgroundColor: t.isDark ? 'rgba(255,255,255,0.04)' : t.colors.inputBg,
+      paddingHorizontal: t.spacing.sm,
+      paddingVertical: 12,
+      gap: t.spacing.sm,
+    },
+    fieldFocused: {
+      borderColor: t.colors.primary + '88',
+      backgroundColor: t.colors.primarySoft,
     },
     fieldError: { borderColor: t.colors.danger },
-    value: { fontSize: 16, color: t.colors.text },
-    placeholder: { color: t.colors.textTertiary },
+    iconWrap: {
+      width: 36,
+      height: 36,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: t.colors.primarySoft,
+    },
+    value: { flex: 1, fontSize: 16, fontWeight: '500', color: t.colors.text },
+    placeholder: { color: t.colors.textTertiary, fontWeight: '400' },
     errorText: { color: t.colors.danger, fontSize: 12, marginTop: t.spacing.xs },
-    doneBtn: { alignSelf: 'flex-end', marginTop: t.spacing.sm, paddingVertical: t.spacing.sm },
-    doneText: { ...t.typography.bodySemibold, color: t.colors.primary },
+    sheetBackdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.45)',
+    },
+    sheet: {
+      backgroundColor: t.colors.surface,
+      borderTopLeftRadius: t.radii.xl,
+      borderTopRightRadius: t.radii.xl,
+      paddingTop: t.spacing.sm,
+    },
+    sheetHandle: {
+      width: 36,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: t.isDark ? 'rgba(255,255,255,0.2)' : t.colors.border,
+      alignSelf: 'center',
+      marginBottom: t.spacing.sm,
+    },
+    sheetHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: t.spacing.lg,
+      paddingBottom: t.spacing.sm,
+    },
+    sheetTitle: { ...t.typography.bodySemibold, color: t.colors.text },
+    sheetDone: { ...t.typography.bodySemibold, color: t.colors.primary, fontSize: 16 },
   });
 }

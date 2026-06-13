@@ -1,16 +1,16 @@
-import { useMemo } from 'react';
-import { StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Input, FormStackScreen } from '@/shared/components/ui';
+import {
+  Input,
+  FormStackScreen,
+  FormSection,
+  FormActions,
+} from '@/shared/components/ui';
 import { useContributeGoal, type ContributeForm } from '@/features/goals/hooks/useContributeGoal';
-import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 
 export default function ContributeGoalScreen() {
-  const theme = useTheme();
   const { amountLabel } = useUserCurrency();
-  const styles = useMemo(() => createStyles(theme), [theme]);
   const { id } = useLocalSearchParams<{ id: string }>();
   const { contribute, loading } = useContributeGoal(id);
 
@@ -20,26 +20,33 @@ export default function ContributeGoalScreen() {
 
   return (
     <FormStackScreen eyebrow="GOAL" title="Contribute" subtitle="Add to your goal">
-      <Controller
-        control={control}
-        name="amount"
-        rules={{ required: 'Amount is required' }}
-        render={({ field: { onChange, value } }) => (
-          <Input label={amountLabel('Contribution Amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} />
-        )}
-      />
-      <Controller
-        control={control}
-        name="notes"
-        render={({ field: { onChange, value } }) => (
-          <Input label="Notes (optional)" value={value} onChangeText={onChange} />
-        )}
-      />
-      <Button title="Add Contribution" onPress={handleSubmit(contribute)} loading={loading} size="lg" />
+      <FormSection title="Contribution" subtitle="How much are you adding?">
+        <Controller
+          control={control}
+          name="amount"
+          rules={{ required: 'Amount is required' }}
+          render={({ field: { onChange, value } }) => (
+            <Input
+              label={amountLabel('Amount')}
+              value={value}
+              onChangeText={onChange}
+              keyboardType="numeric"
+              error={errors.amount?.message}
+              leftIcon="goals"
+              placeholder="0.00"
+            />
+          )}
+        />
+        <Controller
+          control={control}
+          name="notes"
+          render={({ field: { onChange, value } }) => (
+            <Input label="Notes" value={value} onChangeText={onChange} placeholder="Optional note..." multiline />
+          )}
+        />
+      </FormSection>
+
+      <FormActions primaryTitle="Add Contribution" onPrimary={handleSubmit(contribute)} primaryLoading={loading} />
     </FormStackScreen>
   );
-}
-
-function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({});
 }

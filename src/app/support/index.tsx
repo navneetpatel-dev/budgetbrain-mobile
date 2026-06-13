@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { StyleSheet, Text } from 'react-native';
 import { Controller } from 'react-hook-form';
-import { Button, Input, Card, StackScrollScreen, GroupedCard } from '@/shared/components/ui';
+import { Button, Input, Card, StackScrollScreen, GroupedCard, FormSection, FormActions } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
 import { useSupportTickets } from '@/features/support/hooks/useSupportTickets';
@@ -20,13 +20,13 @@ export default function SupportScreen() {
         />
       }
     >
-      <GroupedCard title="New ticket" padded>
+      <FormSection title="New ticket" subtitle="We typically respond within 24 hours">
         <Controller
           control={control}
           name="subject"
           rules={{ required: 'Subject is required', minLength: { value: 3, message: 'At least 3 characters' } }}
           render={({ field: { onChange, value } }) => (
-            <Input label="Subject" value={value} onChangeText={onChange} error={errors.subject?.message} leftIcon="support" />
+            <Input label="Subject" value={value} onChangeText={onChange} error={errors.subject?.message} leftIcon="support" placeholder="Brief summary of your issue" />
           )}
         />
         <Controller
@@ -34,11 +34,19 @@ export default function SupportScreen() {
           name="message"
           rules={{ required: 'Message is required', minLength: { value: 10, message: 'At least 10 characters' } }}
           render={({ field: { onChange, value } }) => (
-            <Input label="Message" value={value} onChangeText={onChange} multiline error={errors.message?.message} />
+            <Input
+              label="Message"
+              value={value}
+              onChangeText={onChange}
+              multiline
+              error={errors.message?.message}
+              placeholder="Describe what happened and how we can help..."
+              helperText="Minimum 10 characters"
+            />
           )}
         />
-        <Button title="Submit Ticket" onPress={handleSubmit(onSubmit)} loading={loading} />
-      </GroupedCard>
+        <FormActions primaryTitle="Submit Ticket" onPrimary={handleSubmit(onSubmit)} primaryLoading={loading} />
+      </FormSection>
 
       {tickets.length > 0 && (
         <GroupedCard title="Your tickets" padded>

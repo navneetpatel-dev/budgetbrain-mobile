@@ -1,7 +1,15 @@
 import { useMemo } from 'react';
 import { StyleSheet, Text } from 'react-native';
 import { Controller } from 'react-hook-form';
-import { Button, Input, Card, StackScrollScreen, GroupedCard, FormFieldLabel, OptionChipList } from '@/shared/components/ui';
+import {
+  Button,
+  Input,
+  StackScrollScreen,
+  FormFieldLabel,
+  OptionChipList,
+  FormSection,
+  FormActions,
+} from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
@@ -36,41 +44,53 @@ export default function IntegrationsScreen() {
         />
       }
     >
-      {parsed && (
-        <Card style={styles.confirmCard}>
-          <Text style={styles.confirmTitle}>Parsed Transaction</Text>
+      {parsed ? (
+        <FormSection title="Parsed transaction" subtitle="Review before saving">
           <Text style={styles.confirmDetail}>{format(parsed.parsedAmount)} · {parsed.parsedMerchant ?? 'Unknown'}</Text>
-          <Text style={styles.confirmDetail}>Confidence: {Math.round(parsed.confidence * 100)}%</Text>
+          <Text style={styles.confirmMeta}>Confidence: {Math.round(parsed.confidence * 100)}%</Text>
           <FormFieldLabel>Category</FormFieldLabel>
           <OptionChipList
             items={(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined }))}
             selectedId={categoryId}
             onSelect={setCategoryId}
           />
-          <Button title="Confirm as Expense" onPress={confirmParsed} loading={confirmLoading} />
-          <Button title="Reject" onPress={rejectParsed} variant="outline" />
-        </Card>
-      )}
+          <FormActions
+            primaryTitle="Confirm as Expense"
+            onPrimary={confirmParsed}
+            primaryLoading={confirmLoading}
+            secondaryTitle="Reject"
+            onSecondary={rejectParsed}
+          />
+        </FormSection>
+      ) : null}
 
-      <GroupedCard title="Parse SMS" padded>
+      <FormSection title="Parse SMS" subtitle="Paste a bank transaction SMS">
         <Controller
           control={smsForm.control}
           name="content"
           rules={{ required: 'SMS content is required', minLength: { value: 10, message: 'At least 10 characters' } }}
           render={({ field: { onChange, value } }) => (
-            <Input label="SMS Content" value={value} onChangeText={onChange} multiline placeholder="Paste bank SMS here..." error={smsForm.formState.errors.content?.message} />
+            <Input
+              label="SMS content"
+              value={value}
+              onChangeText={onChange}
+              multiline
+              placeholder="Paste bank SMS here..."
+              error={smsForm.formState.errors.content?.message}
+              helperText="Include amount and merchant if possible"
+            />
           )}
         />
-        <Button title="Parse SMS" onPress={smsForm.handleSubmit(parseSms)} loading={smsLoading} />
-      </GroupedCard>
+        <FormActions primaryTitle="Parse SMS" onPrimary={smsForm.handleSubmit(parseSms)} primaryLoading={smsLoading} />
+      </FormSection>
 
-      <GroupedCard title="Parse email" padded>
+      <FormSection title="Parse email" subtitle="Paste a receipt or order email">
         <Controller
           control={emailForm.control}
           name="subject"
           rules={{ required: 'Subject is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label="Subject" value={value} onChangeText={onChange} error={emailForm.formState.errors.subject?.message} />
+            <Input label="Subject" value={value} onChangeText={onChange} error={emailForm.formState.errors.subject?.message} leftIcon="mail" />
           )}
         />
         <Controller
@@ -78,19 +98,25 @@ export default function IntegrationsScreen() {
           name="body"
           rules={{ required: 'Body is required', minLength: { value: 10, message: 'At least 10 characters' } }}
           render={({ field: { onChange, value } }) => (
-            <Input label="Email Body" value={value} onChangeText={onChange} multiline placeholder="Paste email body here..." error={emailForm.formState.errors.body?.message} />
+            <Input
+              label="Email body"
+              value={value}
+              onChangeText={onChange}
+              multiline
+              placeholder="Paste email body here..."
+              error={emailForm.formState.errors.body?.message}
+            />
           )}
         />
-        <Button title="Parse Email" onPress={emailForm.handleSubmit(parseEmail)} loading={emailLoading} variant="outline" />
-      </GroupedCard>
+        <FormActions primaryTitle="Parse Email" onPrimary={emailForm.handleSubmit(parseEmail)} primaryLoading={emailLoading} />
+      </FormSection>
     </StackScrollScreen>
   );
 }
 
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    confirmCard: { padding: t.spacing.lg, marginBottom: 0, borderColor: t.colors.primary, borderWidth: 1 },
-    confirmTitle: { fontSize: 16, fontWeight: '700', color: t.colors.text },
-    confirmDetail: { fontSize: 14, color: t.colors.textSecondary },
+    confirmDetail: { fontSize: 18, fontWeight: '700', color: t.colors.text },
+    confirmMeta: { fontSize: 13, color: t.colors.textSecondary, marginBottom: t.spacing.sm },
   });
 }

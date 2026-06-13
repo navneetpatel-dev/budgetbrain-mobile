@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { StyleSheet, View, Text, ActivityIndicator } from 'react-native';
-import { Button, Card, GroupedCard, FormStackScreen } from '@/shared/components/ui';
+import { Button, Card, FormStackScreen, FormSection } from '@/shared/components/ui';
 import { useTheme } from '@/shared/theme';
 import { useSubscription } from '@/features/subscription/hooks/useSubscription';
 
@@ -14,28 +14,30 @@ export default function SubscriptionScreen() {
       {loadingOfferings ? (
         <ActivityIndicator size="large" color={theme.colors.primary} style={styles.loader} />
       ) : packages.length > 0 ? (
-        packages.map((pkg) => (
-          <Card key={pkg.identifier} style={styles.planCard}>
-            <View style={styles.planHeader}>
-              <Text style={styles.planName}>{pkg.title}</Text>
-              <Text style={styles.planPrice}>{pkg.price}</Text>
-            </View>
-            <Button
-              title={loading === pkg.identifier ? 'Processing...' : `Choose ${pkg.title}`}
-              onPress={() => handlePurchase(pkg.identifier)}
-              loading={loading === pkg.identifier}
-              disabled={!!loading}
-            />
-          </Card>
-        ))
+        <FormSection title="Choose a plan" subtitle="Cancel anytime from App Store settings">
+          {packages.map((pkg) => (
+            <Card key={pkg.identifier} style={styles.planCard}>
+              <View style={styles.planHeader}>
+                <Text style={styles.planName}>{pkg.title}</Text>
+                <Text style={styles.planPrice}>{pkg.price}</Text>
+              </View>
+              <Button
+                title={loading === pkg.identifier ? 'Processing...' : `Choose ${pkg.title}`}
+                onPress={() => handlePurchase(pkg.identifier)}
+                loading={loading === pkg.identifier}
+                disabled={!!loading}
+              />
+            </Card>
+          ))}
+        </FormSection>
       ) : (
-        <GroupedCard title="Setup" padded>
+        <FormSection title="Setup required">
           <Text style={styles.fallbackText}>
             {configured
               ? 'No subscription packages available. Configure offerings in RevenueCat dashboard.'
               : 'In-app purchases require RevenueCat API keys (EXPO_PUBLIC_REVENUECAT_IOS_KEY / EXPO_PUBLIC_REVENUECAT_ANDROID_KEY).'}
           </Text>
-        </GroupedCard>
+        </FormSection>
       )}
 
       <Button title="Restore Purchases" onPress={handleRestore} variant="outline" loading={loading === 'restore'} />
@@ -47,7 +49,7 @@ export default function SubscriptionScreen() {
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     loader: { marginVertical: 24 },
-    planCard: { marginBottom: 0 },
+    planCard: { marginBottom: t.spacing.sm },
     planHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
     planName: { fontSize: 18, fontWeight: '700', color: t.colors.text },
     planPrice: { fontSize: 16, fontWeight: '600', color: t.colors.primary },

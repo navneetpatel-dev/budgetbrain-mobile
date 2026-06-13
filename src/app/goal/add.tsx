@@ -1,16 +1,19 @@
-import { useMemo } from 'react';
-import { StyleSheet } from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
-import { Button, Input, DateInput, FormFieldLabel, OptionChips, FormStackScreen } from '@/shared/components/ui';
+import { Controller, useForm } from 'react-hook-form';
+import {
+  Input,
+  DateInput,
+  FormFieldLabel,
+  OptionChips,
+  FormStackScreen,
+  FormSection,
+  FormActions,
+} from '@/shared/components/ui';
 import { useCreateGoal, type GoalForm } from '@/features/goals/hooks/useCreateGoal';
 import { GOAL_TYPES } from '@/shared/constants/config';
-import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 
 export default function AddGoalScreen() {
-  const theme = useTheme();
   const { amountLabel } = useUserCurrency();
-  const styles = useMemo(() => createStyles(theme), [theme]);
   const { create, loading } = useCreateGoal();
 
   const { control, handleSubmit, setValue, watch, formState: { errors } } = useForm<GoalForm>({
@@ -21,45 +24,45 @@ export default function AddGoalScreen() {
 
   return (
     <FormStackScreen eyebrow="GOAL" title="Create Goal" subtitle="Set a savings target">
-      <Controller
-        control={control}
-        name="name"
-        rules={{ required: 'Name is required' }}
-        render={({ field: { onChange, value } }) => (
-          <Input label="Goal Name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="goals" />
-        )}
-      />
+      <FormSection title="Goal details" subtitle="What are you saving for?">
+        <Controller
+          control={control}
+          name="name"
+          rules={{ required: 'Name is required' }}
+          render={({ field: { onChange, value } }) => (
+            <Input label="Goal name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="goals" placeholder="e.g. Emergency fund" />
+          )}
+        />
 
-      <FormFieldLabel>Goal Type</FormFieldLabel>
-      <OptionChips
-        options={GOAL_TYPES.map((t) => t.value)}
-        value={goalType}
-        onChange={(v) => setValue('type', v)}
-        getLabel={(v) => GOAL_TYPES.find((t) => t.value === v)?.label ?? v}
-      />
+        <FormFieldLabel>Goal type</FormFieldLabel>
+        <OptionChips
+          options={GOAL_TYPES.map((t) => t.value)}
+          value={goalType}
+          onChange={(v) => setValue('type', v)}
+          getLabel={(v) => GOAL_TYPES.find((t) => t.value === v)?.label ?? v}
+        />
 
-      <Controller
-        control={control}
-        name="targetAmount"
-        rules={{ required: 'Target amount is required' }}
-        render={({ field: { onChange, value } }) => (
-          <Input label={amountLabel('Target Amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.targetAmount?.message} />
-        )}
-      />
+        <Controller
+          control={control}
+          name="targetAmount"
+          rules={{ required: 'Target amount is required' }}
+          render={({ field: { onChange, value } }) => (
+            <Input label={amountLabel('Target amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.targetAmount?.message} leftIcon="wallet" placeholder="0.00" />
+          )}
+        />
+      </FormSection>
 
-      <Controller
-        control={control}
-        name="targetDate"
-        render={({ field: { onChange, value } }) => (
-          <DateInput label="Target Date (optional)" value={value} onChange={onChange} />
-        )}
-      />
+      <FormSection title="Timeline" subtitle="Optional target date">
+        <Controller
+          control={control}
+          name="targetDate"
+          render={({ field: { onChange, value } }) => (
+            <DateInput label="Target date" value={value} onChange={onChange} />
+          )}
+        />
+      </FormSection>
 
-      <Button title="Create Goal" onPress={handleSubmit(create)} loading={loading} size="lg" />
+      <FormActions primaryTitle="Create Goal" onPrimary={handleSubmit(create)} primaryLoading={loading} />
     </FormStackScreen>
   );
-}
-
-function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({});
 }

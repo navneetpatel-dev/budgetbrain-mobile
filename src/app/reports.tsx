@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { StyleSheet, Text } from 'react-native';
-import { Button, DateInput, StackScrollScreen, GroupedCard } from '@/shared/components/ui';
+import { DateInput, StackScrollScreen, FormSection, FormActions, Button } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
 import { useExportReports } from '@/features/reports/hooks/useExportReports';
@@ -19,22 +19,22 @@ export default function ReportsScreen() {
         />
       }
     >
-      <GroupedCard title="Date range" padded>
-        <DateInput label="Start Date (optional)" value={startDate} onChange={setStartDate} />
-        <DateInput label="End Date (optional)" value={endDate} onChange={setEndDate} />
-      </GroupedCard>
+      <FormSection title="Date range" subtitle="Leave empty to export all transactions">
+        <DateInput label="Start date" value={startDate} onChange={setStartDate} />
+        <DateInput label="End date" value={endDate} onChange={setEndDate} />
+      </FormSection>
 
-      <GroupedCard title="Download" padded>
-        <Button title="Download CSV" onPress={downloadCsv} loading={loading} />
+      <FormSection title="Download">
+        <FormActions primaryTitle="Download CSV" onPrimary={downloadCsv} primaryLoading={loading} />
         <Button title="Download PDF (Premium)" onPress={downloadPdf} variant="outline" loading={loading} />
-        {!isPremium && <Text style={styles.premiumHint}>PDF export requires Premium</Text>}
-      </GroupedCard>
+        {!isPremium ? <Text style={styles.premiumHint}>PDF export requires Premium</Text> : null}
+      </FormSection>
     </StackScrollScreen>
   );
 }
 
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    premiumHint: { ...t.typography.caption, color: t.colors.textSecondary, textAlign: 'center' },
+    premiumHint: { ...t.typography.caption, color: t.colors.textSecondary, textAlign: 'center', marginTop: t.spacing.sm },
   });
 }

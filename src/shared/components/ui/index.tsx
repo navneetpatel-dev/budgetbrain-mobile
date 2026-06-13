@@ -71,55 +71,81 @@ export function Button({
   const isOutline = variant === 'outline';
   const isGhost = variant === 'ghost';
   const isSecondary = variant === 'secondary';
+  const isDisabled = disabled || loading;
+
+  const inner = loading ? (
+    <ActivityIndicator color={isOutline || isGhost ? theme.colors.primary : theme.colors.onPrimary} />
+  ) : (
+    <View style={styles.buttonInner}>
+      {icon != null && (
+        typeof icon === 'string' ? (
+          <AppIcon
+            name={icon as AppIconName}
+            size={18}
+            color={isPrimary || variant === 'danger' ? theme.colors.onPrimary : theme.colors.primary}
+          />
+        ) : (
+          icon
+        )
+      )}
+      <Text
+        style={[
+          styles.text,
+          isPrimary && styles.primaryText,
+          isSecondary && styles.secondaryText,
+          isOutline && styles.outlineText,
+          isGhost && styles.ghostText,
+          variant === 'danger' && styles.primaryText,
+        ]}
+      >
+        {title}
+      </Text>
+    </View>
+  );
+
+  const pressableStyle = ({ pressed }: { pressed: boolean }) => [
+    styles.button,
+    size === 'lg' && styles.buttonLg,
+    !isPrimary && isSecondary && styles.secondary,
+    !isPrimary && isOutline && styles.outline,
+    variant === 'danger' && styles.danger,
+    !isPrimary && isGhost && styles.ghost,
+    isDisabled && styles.disabled,
+    pressed && styles.pressed,
+  ];
+
+  if (isPrimary && !isDisabled) {
+    return (
+      <Pressable
+        onPress={onPress}
+        disabled={isDisabled}
+        accessibilityRole="button"
+        accessibilityLabel={title}
+        accessibilityState={{ disabled: isDisabled }}
+        style={({ pressed }) => [styles.gradientWrap, size === 'lg' && styles.buttonLg, pressed && styles.pressed]}
+      >
+        <LinearGradient
+          colors={[theme.colors.primary, theme.colors.gradientEnd]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.button, styles.primaryGradient, size === 'lg' && styles.buttonLgInner]}
+        >
+          {inner}
+        </LinearGradient>
+      </Pressable>
+    );
+  }
 
   return (
     <Pressable
       onPress={onPress}
-      disabled={disabled || loading}
+      disabled={isDisabled}
       accessibilityRole="button"
       accessibilityLabel={title}
-      accessibilityState={{ disabled: disabled || loading }}
-      style={({ pressed }) => [
-        styles.button,
-        size === 'lg' && styles.buttonLg,
-        isPrimary && styles.primary,
-        isSecondary && styles.secondary,
-        isOutline && styles.outline,
-        variant === 'danger' && styles.danger,
-        isGhost && styles.ghost,
-        (disabled || loading) && styles.disabled,
-        pressed && styles.pressed,
-      ]}
+      accessibilityState={{ disabled: isDisabled }}
+      style={pressableStyle}
     >
-      {loading ? (
-        <ActivityIndicator color={isOutline || isGhost ? theme.colors.primary : theme.colors.onPrimary} />
-      ) : (
-        <View style={styles.buttonInner}>
-          {icon != null && (
-            typeof icon === 'string' ? (
-              <AppIcon
-                name={icon as AppIconName}
-                size={18}
-                color={isPrimary || variant === 'danger' ? theme.colors.onPrimary : theme.colors.primary}
-              />
-            ) : (
-              icon
-            )
-          )}
-          <Text
-            style={[
-              styles.text,
-              isPrimary && styles.primaryText,
-              isSecondary && styles.secondaryText,
-              isOutline && styles.outlineText,
-              isGhost && styles.ghostText,
-              variant === 'danger' && styles.primaryText,
-            ]}
-          >
-            {title}
-          </Text>
-        </View>
-      )}
+      {inner}
     </Pressable>
   );
 }
@@ -127,35 +153,75 @@ export function Button({
 interface InputProps extends TextInputProps {
   label?: string;
   error?: string;
+  helperText?: string;
   secureToggle?: boolean;
   leftIcon?: AppIconName;
   variant?: 'default' | 'soft';
 }
 
-export function Input({ label, error, style, secureTextEntry, secureToggle, leftIcon, variant = 'default', ...props }: InputProps) {
+export function Input({
+  label,
+  error,
+  helperText,
+  style,
+  secureTextEntry,
+  secureToggle,
+  leftIcon,
+  variant = 'default',
+  multiline,
+  onFocus,
+  onBlur,
+  ...props
+}: InputProps) {
   const theme = useTheme();
   const styles = useMemo(() => createInputStyles(theme), [theme]);
   const [hidden, setHidden] = useState(!!secureTextEntry);
+  const [focused, setFocused] = useState(false);
   const isSecure = secureTextEntry && (secureToggle ? hidden : true);
   const isSoft = variant === 'soft';
+  const isMultiline = !!multiline;
 
   return (
     <View style={styles.inputContainer}>
-      {label && <Text style={styles.label}>{label}</Text>}
-      <View style={[styles.inputWrapper, isSoft && styles.inputWrapperSoft, error && styles.inputError]}>
-        {leftIcon && (
-          <View style={styles.leftIcon}>
-            <AppIcon name={leftIcon} size={18} color={theme.colors.textTertiary} />
+      {label ? <Text style={styles.label}>{label}</Text> : null}
+      <View
+        style={[
+          styles.inputWrapper,
+          isSoft && styles.inputWrapperSoft,
+          isMultiline && styles.inputWrapperMultiline,
+          focused && styles.inputFocused,
+          error && styles.inputError,
+        ]}
+      >
+        {leftIcon ? (
+          <View style={[styles.leftIcon, isMultiline && styles.leftIconMultiline]}>
+            <AppIcon name={leftIcon} size={18} color={focused ? theme.colors.primary : theme.colors.textTertiary} />
           </View>
-        )}
+        ) : null}
         <TextInput
           placeholderTextColor={theme.colors.textTertiary}
-          style={[styles.input, leftIcon && styles.inputWithLeftIcon, secureToggle && styles.inputWithToggle, style]}
+          style={[
+            styles.input,
+            leftIcon && styles.inputWithLeftIcon,
+            secureToggle && styles.inputWithToggle,
+            isMultiline && styles.inputMultiline,
+            style,
+          ]}
           secureTextEntry={isSecure}
           accessibilityLabel={label}
+          multiline={multiline}
+          textAlignVertical={isMultiline ? 'top' : 'auto'}
+          onFocus={(e) => {
+            setFocused(true);
+            onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setFocused(false);
+            onBlur?.(e);
+          }}
           {...props}
         />
-        {secureTextEntry && secureToggle && (
+        {secureTextEntry && secureToggle ? (
           <Pressable
             onPress={() => setHidden((v) => !v)}
             style={styles.toggleBtn}
@@ -169,9 +235,13 @@ export function Input({ label, error, style, secureTextEntry, secureToggle, left
               color={theme.colors.textTertiary}
             />
           </Pressable>
-        )}
+        ) : null}
       </View>
-      {error && <Text style={styles.errorText}>{error}</Text>}
+      {error ? (
+        <Text style={styles.errorText}>{error}</Text>
+      ) : helperText ? (
+        <Text style={styles.helperText}>{helperText}</Text>
+      ) : null}
     </View>
   );
 }
@@ -303,6 +373,40 @@ export function SectionHeader({
   );
 }
 
+/** Stacked primary + optional secondary actions for forms */
+export function FormActions({
+  primaryTitle,
+  onPrimary,
+  primaryLoading,
+  secondaryTitle,
+  onSecondary,
+  style,
+}: {
+  primaryTitle: string;
+  onPrimary: () => void;
+  primaryLoading?: boolean;
+  secondaryTitle?: string;
+  onSecondary?: () => void;
+  style?: ViewStyle;
+}) {
+  const theme = useTheme();
+  const styles = useMemo(
+    () => StyleSheet.create({ wrap: { gap: theme.spacing.sm, marginTop: theme.spacing.sm } }),
+    [theme],
+  );
+
+  return (
+    <View style={[styles.wrap, style]}>
+      <Button title={primaryTitle} onPress={onPrimary} loading={primaryLoading} size="lg" />
+      {secondaryTitle && onSecondary ? (
+        <Button title={secondaryTitle} onPress={onSecondary} variant="outline" />
+      ) : null}
+    </View>
+  );
+}
+
+export { FormSection, ImageUploadField, ColorPicker } from './forms';
+
 function createButtonStyles(t: AppTheme) {
   return StyleSheet.create({
     button: {
@@ -313,6 +417,9 @@ function createButtonStyles(t: AppTheme) {
       justifyContent: 'center',
     },
     buttonLg: { paddingVertical: 16, borderRadius: t.radii.lg },
+    buttonLgInner: { width: '100%' },
+    gradientWrap: { borderRadius: t.radii.md, overflow: 'hidden' },
+    primaryGradient: { backgroundColor: 'transparent' },
     buttonInner: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     primary: { backgroundColor: t.colors.primary },
     secondary: { backgroundColor: t.colors.surfaceHover },
@@ -336,35 +443,54 @@ function createButtonStyles(t: AppTheme) {
 function createInputStyles(t: AppTheme) {
   return StyleSheet.create({
     inputContainer: { marginBottom: t.spacing.lg },
-    label: { ...t.typography.caption, color: t.colors.textSecondary, marginBottom: t.spacing.sm },
+    label: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: t.colors.textSecondary,
+      marginBottom: t.spacing.sm,
+    },
     inputWrapper: {
-      borderWidth: 1,
-      borderColor: t.colors.border,
-      borderRadius: t.radii.md,
-      backgroundColor: t.colors.inputBg,
+      borderWidth: 1.5,
+      borderColor: t.isDark ? 'rgba(255,255,255,0.1)' : t.colors.borderSubtle,
+      borderRadius: t.radii.lg,
+      backgroundColor: t.isDark ? 'rgba(255,255,255,0.04)' : t.colors.inputBg,
       flexDirection: 'row',
       alignItems: 'center',
+    },
+    inputWrapperMultiline: {
+      alignItems: 'flex-start',
+      minHeight: 112,
     },
     inputWrapperSoft: {
       borderRadius: t.radii.lg,
       backgroundColor: t.isDark ? 'rgba(255,255,255,0.04)' : t.colors.inputBg,
       borderColor: t.isDark ? 'rgba(255,255,255,0.08)' : t.colors.borderSubtle,
     },
-    inputError: { borderColor: t.colors.danger },
+    inputFocused: {
+      borderColor: t.colors.primary + '88',
+      backgroundColor: t.colors.primarySoft,
+    },
+    inputError: { borderColor: t.colors.danger, backgroundColor: t.colors.dangerSoft },
     input: {
       flex: 1,
-      paddingHorizontal: t.spacing.lg,
+      paddingHorizontal: t.spacing.md,
       paddingVertical: 14,
       fontSize: 16,
       color: t.colors.text,
     },
-    inputWithLeftIcon: { paddingLeft: t.spacing.sm },
+    inputMultiline: {
+      minHeight: 96,
+      paddingTop: 14,
+      lineHeight: 22,
+    },
+    inputWithLeftIcon: { paddingLeft: t.spacing.xs },
     leftIcon: {
       width: 40,
       alignItems: 'center',
       justifyContent: 'center',
       marginLeft: t.spacing.sm,
     },
+    leftIconMultiline: { marginTop: 12 },
     inputWithToggle: { paddingRight: t.spacing.sm },
     toggleBtn: {
       width: 44,
@@ -373,7 +499,8 @@ function createInputStyles(t: AppTheme) {
       justifyContent: 'center',
       marginRight: t.spacing.xs,
     },
-    errorText: { color: t.colors.danger, fontSize: 12, marginTop: t.spacing.xs },
+    errorText: { color: t.colors.danger, fontSize: 12, marginTop: t.spacing.xs, fontWeight: '500' },
+    helperText: { color: t.colors.textTertiary, fontSize: 12, marginTop: t.spacing.xs },
   });
 }
 

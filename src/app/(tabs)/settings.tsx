@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { StyleSheet, View, Text, Switch, Pressable } from 'react-native';
+import { StyleSheet, View, Text, Switch } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { appHref } from '@/shared/utils/navigation';
@@ -10,6 +10,10 @@ import {
   GroupedCard,
   ListRow,
   StickyHeaderScreen,
+  FormSection,
+  FormFieldLabel,
+  OptionChips,
+  FormActions,
 } from '@/shared/components/ui';
 import { ProfileHero } from '@/features/settings/components/ProfileHero';
 import { PremiumUpsellCard } from '@/features/settings/components/PremiumUpsellCard';
@@ -86,19 +90,6 @@ export default function SettingsScreen() {
         },
         switchLabel: { ...theme.typography.bodyMedium, color: theme.colors.text, fontWeight: '600' },
         switchHint: { ...theme.typography.caption, color: theme.colors.textTertiary, marginTop: 2 },
-        currencyRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: theme.spacing.lg, paddingHorizontal: theme.spacing.lg },
-        currencyChip: {
-          paddingHorizontal: 16,
-          paddingVertical: 10,
-          minHeight: 44,
-          justifyContent: 'center',
-          borderRadius: theme.radii.full,
-          borderWidth: 1,
-          borderColor: theme.colors.border,
-        },
-        currencyChipActive: { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
-        currencyText: { ...theme.typography.bodyMedium, fontSize: 14, color: theme.colors.text },
-        currencyTextActive: { color: theme.colors.onPrimary, fontWeight: '600' },
         actions: { gap: theme.spacing.md, marginTop: theme.spacing.lg },
       }),
     [theme],
@@ -195,25 +186,19 @@ export default function SettingsScreen() {
               <ListRow icon="chart" label="Plan" value={subscription?.role ?? user?.role ?? 'free'} isLast />
             </>
           ) : (
-            <View style={{ padding: theme.spacing.lg }}>
+            <FormSection title="Edit profile" style={{ margin: theme.spacing.lg, marginTop: 0 }}>
               <Controller control={control} name="name" render={({ field: { onChange, value } }) => (
-                <Input label="Name" value={value} onChangeText={onChange} />
+                <Input label="Name" value={value} onChangeText={onChange} leftIcon="personFill" />
               )} />
               <Controller control={control} name="country" render={({ field: { onChange, value } }) => (
                 <Input label="Country" value={value} onChangeText={onChange} />
               )} />
-              <Text style={styles.switchHint}>Currency</Text>
-              <View style={styles.currencyRow}>
-                {SUPPORTED_CURRENCIES.map((c) => (
-                  <Controller key={c} control={control} name="currency" render={({ field: { onChange, value } }) => (
-                    <Pressable onPress={() => onChange(c)} style={[styles.currencyChip, value === c && styles.currencyChipActive]}>
-                      <Text style={[styles.currencyText, value === c && styles.currencyTextActive]}>{c}</Text>
-                    </Pressable>
-                  )} />
-                ))}
-              </View>
-              <Button title="Save profile" onPress={handleSubmit(onSaveProfile)} loading={profileLoading} />
-            </View>
+              <FormFieldLabel>Currency</FormFieldLabel>
+              <Controller control={control} name="currency" render={({ field: { onChange, value } }) => (
+                <OptionChips options={[...SUPPORTED_CURRENCIES]} value={value} onChange={onChange} />
+              )} />
+              <FormActions primaryTitle="Save profile" onPrimary={handleSubmit(onSaveProfile)} primaryLoading={profileLoading} secondaryTitle="Cancel" onSecondary={() => setEditingProfile(false)} />
+            </FormSection>
           )}
         </GroupedCard>
 

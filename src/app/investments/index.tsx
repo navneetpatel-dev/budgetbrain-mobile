@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { StyleSheet, View, Pressable, Text } from 'react-native';
 import { Controller } from 'react-hook-form';
 import {
-  Button,
   Input,
   Card,
   EmptyState,
@@ -13,6 +12,7 @@ import {
   ActionFab,
   FormFieldLabel,
   OptionChips,
+  FormActions,
 } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useFabBottom } from '@/shared/hooks/useFabBottom';
@@ -50,7 +50,21 @@ export default function InvestmentsScreen() {
 
   return (
     <View style={styles.root}>
-      <FormModal visible={showForm} title={editingId ? 'Edit Investment' : 'New Investment'} onClose={() => setShowForm(false)}>
+      <FormModal
+        visible={showForm}
+        title={editingId ? 'Edit Investment' : 'New Investment'}
+        subtitle="Track stocks, mutual funds, and more"
+        onClose={() => setShowForm(false)}
+        footer={
+          <FormActions
+            primaryTitle={editingId ? 'Update' : 'Add Investment'}
+            onPrimary={handleSubmit(onSubmit)}
+            primaryLoading={loading}
+            secondaryTitle="Cancel"
+            onSecondary={() => setShowForm(false)}
+          />
+        }
+      >
         {!editingId && (
           <>
             <Controller
@@ -58,10 +72,10 @@ export default function InvestmentsScreen() {
               name="name"
               rules={{ required: 'Name is required' }}
               render={({ field: { onChange, value } }) => (
-                <Input label="Investment Name" value={value} onChangeText={onChange} error={errors.name?.message} />
+                <Input label="Investment name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="chart" />
               )}
             />
-            <FormFieldLabel>Type</FormFieldLabel>
+            <FormFieldLabel>Investment type</FormFieldLabel>
             <OptionChips
               options={INVESTMENT_TYPES.map((t) => t.value)}
               value={invType}
@@ -72,7 +86,7 @@ export default function InvestmentsScreen() {
               control={control}
               name="symbol"
               render={({ field: { onChange, value } }) => (
-                <Input label="Symbol (optional)" value={value} onChangeText={onChange} />
+                <Input label="Symbol" value={value} onChangeText={onChange} placeholder="e.g. AAPL, INFY" helperText="Optional ticker symbol" />
               )}
             />
             <Controller
@@ -80,14 +94,14 @@ export default function InvestmentsScreen() {
               name="purchasePrice"
               rules={{ required: 'Purchase price is required' }}
               render={({ field: { onChange, value } }) => (
-                <Input label="Purchase Price" value={value} onChangeText={onChange} keyboardType="numeric" error={errors.purchasePrice?.message} />
+                <Input label="Purchase price" value={value} onChangeText={onChange} keyboardType="numeric" error={errors.purchasePrice?.message} />
               )}
             />
             <Controller
               control={control}
               name="purchaseDate"
               render={({ field: { onChange, value } }) => (
-                <DateInput label="Purchase Date" value={value} onChange={onChange} />
+                <DateInput label="Purchase date" value={value} onChange={onChange} />
               )}
             />
           </>
@@ -105,12 +119,9 @@ export default function InvestmentsScreen() {
           name="currentPrice"
           rules={{ required: 'Current price is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label="Current Price" value={value} onChangeText={onChange} keyboardType="numeric" error={errors.currentPrice?.message} />
+            <Input label="Current price" value={value} onChangeText={onChange} keyboardType="numeric" error={errors.currentPrice?.message} />
           )}
         />
-        <Button title={editingId ? 'Update' : 'Add Investment'} onPress={handleSubmit(onSubmit)} loading={loading} />
-        <View style={styles.spacer} />
-        <Button title="Cancel" onPress={() => setShowForm(false)} variant="outline" />
       </FormModal>
 
       <StickyHeaderFlatScreen

@@ -2,7 +2,14 @@ import { useMemo } from 'react';
 import { StyleSheet, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Controller } from 'react-hook-form';
-import { Button, Input, Card, StackScrollScreen, GroupedCard, EmptyState } from '@/shared/components/ui';
+import {
+  Input,
+  Card,
+  StackScrollScreen,
+  EmptyState,
+  FormSection,
+  FormActions,
+} from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
 import { useFamilyGroups } from '@/features/family/hooks/useFamilyGroups';
@@ -45,46 +52,50 @@ export default function FamilyScreen() {
         />
       }
     >
-      {groups.map((m) => (
-        <Card key={m.id} style={styles.groupCard}>
-          <Text style={styles.groupName}>{m.group?.name ?? 'Family Group'}</Text>
-          <Text style={styles.groupRole}>Role: {m.role}</Text>
-          {m.group?.inviteCode && (
-            <Text style={styles.inviteCode}>Invite: {m.group.inviteCode}</Text>
-          )}
-        </Card>
-      ))}
+      {groups.length > 0 && (
+        <FormSection title="Your groups" subtitle={`${groups.length} group${groups.length !== 1 ? 's' : ''}`}>
+          {groups.map((m) => (
+            <Card key={m.id} style={styles.groupCard}>
+              <Text style={styles.groupName}>{m.group?.name ?? 'Family Group'}</Text>
+              <Text style={styles.groupRole}>Role: {m.role}</Text>
+              {m.group?.inviteCode ? (
+                <Text style={styles.inviteCode}>Invite: {m.group.inviteCode}</Text>
+              ) : null}
+            </Card>
+          ))}
+        </FormSection>
+      )}
 
-      <GroupedCard title="Create group" padded>
+      <FormSection title="Create group" subtitle="Start a new family group">
         <Controller
           control={groupForm.control}
           name="name"
           rules={{ required: 'Name is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label="Group Name" value={value} onChangeText={onChange} error={groupForm.formState.errors.name?.message} leftIcon="family" />
+            <Input label="Group name" value={value} onChangeText={onChange} error={groupForm.formState.errors.name?.message} leftIcon="family" placeholder="e.g. Smith Family" />
           )}
         />
-        <Button title="Create Group" onPress={groupForm.handleSubmit(createGroup)} loading={loading} />
-      </GroupedCard>
+        <FormActions primaryTitle="Create Group" onPrimary={groupForm.handleSubmit(createGroup)} primaryLoading={loading} />
+      </FormSection>
 
-      <GroupedCard title="Join group" padded>
+      <FormSection title="Join group" subtitle="Enter an invite code from a member">
         <Controller
           control={joinForm.control}
           name="inviteCode"
           rules={{ required: 'Invite code is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label="Invite Code" value={value} onChangeText={onChange} autoCapitalize="characters" error={joinForm.formState.errors.inviteCode?.message} />
+            <Input label="Invite code" value={value} onChangeText={onChange} autoCapitalize="characters" error={joinForm.formState.errors.inviteCode?.message} leftIcon="link" placeholder="ABC123" />
           )}
         />
-        <Button title="Join Group" onPress={joinForm.handleSubmit(joinGroup)} variant="outline" loading={loading} />
-      </GroupedCard>
+        <FormActions primaryTitle="Join Group" onPrimary={joinForm.handleSubmit(joinGroup)} primaryLoading={loading} />
+      </FormSection>
     </StackScrollScreen>
   );
 }
 
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    groupCard: { marginBottom: 0 },
+    groupCard: { marginBottom: t.spacing.sm },
     groupName: { fontSize: 16, fontWeight: '700', color: t.colors.text },
     groupRole: { fontSize: 13, color: t.colors.textSecondary, marginTop: 4, textTransform: 'capitalize' },
     inviteCode: { fontSize: 14, color: t.colors.primary, fontWeight: '600', marginTop: 8 },

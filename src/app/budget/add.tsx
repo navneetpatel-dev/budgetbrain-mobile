@@ -1,26 +1,22 @@
-import { useMemo } from 'react';
-import { StyleSheet } from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
 import {
-  Button,
   Input,
   DateInput,
   FormFieldLabel,
   OptionChips,
   OptionChipList,
   FormStackScreen,
+  FormSection,
+  FormActions,
 } from '@/shared/components/ui';
 import { apiGet } from '@/shared/services/api';
 import { useCreateBudget, type BudgetForm } from '@/features/budgets/hooks/useCreateBudget';
-import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import type { Category } from '@/shared/types';
 
 export default function AddBudgetScreen() {
-  const theme = useTheme();
   const { amountLabel } = useUserCurrency();
-  const styles = useMemo(() => createStyles(theme), [theme]);
   const { create, loading } = useCreateBudget();
 
   const { data: categories } = useQuery({
@@ -47,63 +43,64 @@ export default function AddBudgetScreen() {
 
   return (
     <FormStackScreen eyebrow="BUDGET" title="Create Budget" subtitle="Set a spending limit">
-      <Controller
-        control={control}
-        name="name"
-        rules={{ required: 'Name is required' }}
-        render={({ field: { onChange, value } }) => (
-          <Input label="Budget Name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="budgets" />
+      <FormSection title="Budget details" subtitle="Name, type, and limit">
+        <Controller
+          control={control}
+          name="name"
+          rules={{ required: 'Name is required' }}
+          render={({ field: { onChange, value } }) => (
+            <Input label="Budget name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="budgets" placeholder="e.g. Groceries" />
+          )}
+        />
+
+        <FormFieldLabel>Budget type</FormFieldLabel>
+        <OptionChips
+          options={['monthly', 'weekly', 'category'] as const}
+          value={budgetType}
+          onChange={(v) => setValue('type', v)}
+          getLabel={(v) => (v === 'category' ? 'By category' : v.charAt(0).toUpperCase() + v.slice(1))}
+        />
+
+        <Controller
+          control={control}
+          name="amount"
+          rules={{ required: 'Amount is required' }}
+          render={({ field: { onChange, value } }) => (
+            <Input label={amountLabel('Budget amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} leftIcon="wallet" placeholder="0.00" />
+          )}
+        />
+      </FormSection>
+
+      <FormSection title="Schedule & alerts">
+        <Controller
+          control={control}
+          name="startDate"
+          render={({ field: { onChange, value } }) => (
+            <DateInput label="Start date" value={value} onChange={onChange} />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="alertThreshold"
+          render={({ field: { onChange, value } }) => (
+            <Input label="Alert threshold (%)" value={value} onChangeText={onChange} keyboardType="numeric" helperText="Notify when spending reaches this %" leftIcon="bell" />
+          )}
+        />
+
+        {budgetType === 'category' && (
+          <>
+            <FormFieldLabel>Category</FormFieldLabel>
+            <OptionChipList
+              items={(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined }))}
+              selectedId={selectedCategory}
+              onSelect={(id) => setValue('categoryId', id)}
+            />
+          </>
         )}
-      />
+      </FormSection>
 
-      <FormFieldLabel>Budget Type</FormFieldLabel>
-      <OptionChips
-        options={['monthly', 'weekly', 'category'] as const}
-        value={budgetType}
-        onChange={(v) => setValue('type', v)}
-      />
-
-      <Controller
-        control={control}
-        name="amount"
-        rules={{ required: 'Amount is required' }}
-        render={({ field: { onChange, value } }) => (
-          <Input label={amountLabel('Budget Amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} />
-        )}
-      />
-
-      <Controller
-        control={control}
-        name="startDate"
-        render={({ field: { onChange, value } }) => (
-          <DateInput label="Start Date" value={value} onChange={onChange} />
-        )}
-      />
-
-      <Controller
-        control={control}
-        name="alertThreshold"
-        render={({ field: { onChange, value } }) => (
-          <Input label="Alert Threshold (%)" value={value} onChangeText={onChange} keyboardType="numeric" />
-        )}
-      />
-
-      {budgetType === 'category' && (
-        <>
-          <FormFieldLabel>Category</FormFieldLabel>
-          <OptionChipList
-            items={(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined }))}
-            selectedId={selectedCategory}
-            onSelect={(id) => setValue('categoryId', id)}
-          />
-        </>
-      )}
-
-      <Button title="Create Budget" onPress={handleSubmit(create)} loading={loading} size="lg" />
+      <FormActions primaryTitle="Create Budget" onPrimary={handleSubmit(create)} primaryLoading={loading} />
     </FormStackScreen>
   );
-}
-
-function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({});
 }

@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { StyleSheet, View, Pressable, Text } from 'react-native';
 import { Controller } from 'react-hook-form';
 import {
-  Button,
   Input,
   Card,
   EmptyState,
@@ -12,6 +11,7 @@ import {
   ActionFab,
   FormFieldLabel,
   OptionChips,
+  FormActions,
 } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useFabBottom } from '@/shared/hooks/useFabBottom';
@@ -49,18 +49,32 @@ export default function AccountsScreen() {
 
   return (
     <View style={styles.root}>
-      <FormModal visible={showForm} title={editingId ? 'Edit Account' : 'New Account'} onClose={() => setShowForm(false)}>
+      <FormModal
+        visible={showForm}
+        title={editingId ? 'Edit Account' : 'New Account'}
+        subtitle="Track bank accounts and wallets"
+        onClose={() => setShowForm(false)}
+        footer={
+          <FormActions
+            primaryTitle={editingId ? 'Update' : 'Add Account'}
+            onPrimary={handleSubmit(onSubmit)}
+            primaryLoading={loading}
+            secondaryTitle="Cancel"
+            onSecondary={() => setShowForm(false)}
+          />
+        }
+      >
         <Controller
           control={control}
           name="name"
           rules={{ required: 'Name is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label="Account Name" value={value} onChangeText={onChange} error={errors.name?.message} />
+            <Input label="Account name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="wallet" />
           )}
         />
         {!editingId && (
           <>
-            <FormFieldLabel>Type</FormFieldLabel>
+            <FormFieldLabel>Account type</FormFieldLabel>
             <OptionChips
               options={ACCOUNT_TYPES.map((t) => t.value)}
               value={accountType}
@@ -71,14 +85,14 @@ export default function AccountsScreen() {
               control={control}
               name="institution"
               render={({ field: { onChange, value } }) => (
-                <Input label="Institution" value={value} onChangeText={onChange} placeholder="e.g. HDFC Bank" />
+                <Input label="Institution" value={value} onChangeText={onChange} placeholder="e.g. HDFC Bank" leftIcon="netWorth" />
               )}
             />
             <Controller
               control={control}
               name="accountNumberLast4"
               render={({ field: { onChange, value } }) => (
-                <Input label="Last 4 digits" value={value} onChangeText={onChange} keyboardType="number-pad" maxLength={4} />
+                <Input label="Last 4 digits" value={value} onChangeText={onChange} keyboardType="number-pad" maxLength={4} helperText="Optional — for identification only" />
               )}
             />
           </>
@@ -88,12 +102,9 @@ export default function AccountsScreen() {
           name="balance"
           rules={{ required: 'Balance is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label={amountLabel('Balance')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.balance?.message} />
+            <Input label={amountLabel('Balance')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.balance?.message} leftIcon="wallet" />
           )}
         />
-        <Button title={editingId ? 'Update' : 'Add Account'} onPress={handleSubmit(onSubmit)} loading={loading} />
-        <View style={styles.spacer} />
-        <Button title="Cancel" onPress={() => setShowForm(false)} variant="outline" />
       </FormModal>
 
       <StickyHeaderFlatScreen
