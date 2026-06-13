@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { AppIcon } from '@/src/features/navigation/components/AppIcon';
-import { useTheme } from '@/src/shared/theme';
+import { AppIcon } from '@/features/navigation/components/AppIcon';
+import { useTheme } from '@/shared/theme';
 
 export function AuthHeroHeader({
   title = 'BudgetBrain',

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { apiPost } from '@/src/shared/services/api';
+import { apiPost } from '@/shared/services/api';
 
 export interface ContributeForm {
   amount: string;

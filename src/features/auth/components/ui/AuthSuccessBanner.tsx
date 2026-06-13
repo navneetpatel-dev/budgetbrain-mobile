@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { AppIcon } from '@/src/features/navigation/components/AppIcon';
-import { useTheme } from '@/src/shared/theme';
+import { AppIcon } from '@/features/navigation/components/AppIcon';
+import { useTheme } from '@/shared/theme';
 
 export function AuthSuccessBanner({ message }: { message: string }) {
   const theme = useTheme();

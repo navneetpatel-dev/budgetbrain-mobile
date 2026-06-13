@@ -1,8 +1,8 @@
-import { apiPost, clearTokens, getRefreshToken } from '@/src/shared/services/api';
-import { trackEvent } from '@/src/shared/services/analytics';
-import { queryClient } from '@/src/shared/services/queryClient';
-import { logout } from '@/src/shared/store/authSlice';
-import { useAppDispatch } from '@/src/shared/store/hooks';
+import { apiPost, clearTokens, getRefreshToken } from '@/shared/services/api';
+import { trackEvent } from '@/shared/services/analytics';
+import { queryClient } from '@/shared/services/queryClient';
+import { logout } from '@/shared/store/authSlice';
+import { useAppDispatch } from '@/shared/store/hooks';
 
 export function useLogout() {
   const dispatch = useAppDispatch();

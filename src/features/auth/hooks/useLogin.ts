@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { setUser } from '@/src/shared/store/authSlice';
-import { useAppDispatch } from '@/src/shared/store/hooks';
-import { loginWithPassword, persistAuthSession } from '@/src/features/auth/services/auth.service';
-import type { LoginCredentials } from '@/src/features/auth/types/auth.types';
+import { setUser } from '@/shared/store/authSlice';
+import { useAppDispatch } from '@/shared/store/hooks';
+import { loginWithPassword, persistAuthSession } from '@/features/auth/services/auth.service';
+import type { LoginCredentials } from '@/features/auth/types/auth.types';
 
 export function useLogin() {
   const dispatch = useAppDispatch();

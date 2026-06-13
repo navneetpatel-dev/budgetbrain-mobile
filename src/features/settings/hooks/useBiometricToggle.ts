@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
-import { getBiometricType, isBiometricAvailable } from '@/src/shared/services/biometrics';
-import { setBiometricEnabled } from '@/src/shared/store/settingsSlice';
-import { useAppDispatch, useAppSelector } from '@/src/shared/store/hooks';
+import { getBiometricType, isBiometricAvailable } from '@/shared/services/biometrics';
+import { setBiometricEnabled } from '@/shared/store/settingsSlice';
+import { useAppDispatch, useAppSelector } from '@/shared/store/hooks';
 
 export function useBiometricToggle() {
   const dispatch = useAppDispatch();

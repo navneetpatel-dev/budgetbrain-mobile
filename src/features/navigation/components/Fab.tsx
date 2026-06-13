@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { Pressable, Text, StyleSheet } from 'react-native';
 import { Link, type Href } from 'expo-router';
-import { useTheme } from '@/src/shared/theme';
-import { useFabBottom } from '@/src/shared/hooks/useFabBottom';
+import { useTheme } from '@/shared/theme';
+import { useFabBottom } from '@/shared/hooks/useFabBottom';
 
 export function Fab({ href, label = '+', aboveTabBar = false }: { href: Href; label?: string; aboveTabBar?: boolean }) {
   const theme = useTheme();

@@ -1,8 +1,8 @@
 import { Alert, Keyboard } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Input } from '@/src/shared/components/ui';
-import { AuthShell, AuthFooter } from '@/src/features/auth/components';
-import { useOtpLogin } from '@/src/features/auth/hooks';
+import { Button, Input } from '@/shared/components/ui';
+import { AuthShell, AuthFooter } from '@/features/auth/components';
+import { useOtpLogin } from '@/features/auth/hooks';
 
 interface OtpForm {
   email: string;

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useRouter, useSegments } from 'expo-router';
-import type { User } from '@/src/shared/types';
+import type { User } from '@/shared/types';
 
 export function useAuthNavigation(
   isAuthenticated: boolean,

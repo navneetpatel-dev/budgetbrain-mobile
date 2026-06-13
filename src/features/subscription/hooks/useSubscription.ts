@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { purchasePackage, restorePurchases, isPurchasesConfigured, getOfferings } from '@/src/shared/services/purchases';
-import { apiPost } from '@/src/shared/services/api';
-import { trackEvent } from '@/src/shared/services/analytics';
+import { purchasePackage, restorePurchases, isPurchasesConfigured, getOfferings } from '@/shared/services/purchases';
+import { apiPost } from '@/shared/services/api';
+import { trackEvent } from '@/shared/services/analytics';
 
 export interface PackageInfo {
   identifier: string;

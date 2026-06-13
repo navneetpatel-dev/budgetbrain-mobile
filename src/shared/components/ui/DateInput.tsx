@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { useTheme } from '@/src/shared/theme';
+import { useTheme } from '@/shared/theme';
 
 function toIsoDate(date: Date) {
   return date.toISOString().split('T')[0];

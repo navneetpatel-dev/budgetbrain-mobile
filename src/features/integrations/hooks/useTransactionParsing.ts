@@ -3,8 +3,8 @@ import { Alert } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'expo-router';
-import { apiPost, apiGet } from '@/src/shared/services/api';
-import type { Category } from '@/src/shared/types';
+import { apiPost, apiGet } from '@/shared/services/api';
+import type { Category } from '@/shared/types';
 
 export interface SmsForm {
   content: string;

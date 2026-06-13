@@ -2,17 +2,20 @@
 
 ## Overview
 
+All application code lives under `src/`:
+
 ```
 mobile/
-├── app/                    # Expo Router routes only (thin re-exports)
 └── src/
-    ├── features/           # Domain modules (feature-first)
-    └── shared/             # Cross-cutting infrastructure
+    ├── app/                  # Expo Router routes (thin re-exports)
+    ├── features/             # Domain modules (feature-first)
+    └── shared/               # Cross-cutting infrastructure
 ```
 
 **Import paths**
-- Features: `@/src/features/<domain>/...`
-- Shared: `@/src/shared/...`
+- Features: `@/features/<domain>/...`
+- Shared: `@/shared/...`
+- Routes: `@/app/...` (rare — prefer feature screens)
 
 ---
 
@@ -26,7 +29,7 @@ src/features/<domain>/
 │   ├── layout/             # Shells, page wrappers, structural UI
 │   └── ui/                 # Presentational feature components
 ├── hooks/                  # React hooks — wire services to UI state
-├── screens/                # Screen compositions (used by app/ routes)
+├── screens/                # Screen compositions (used by app routes)
 ├── services/               # Business logic, API calls (no React)
 ├── types/                  # Feature-specific TypeScript types
 └── index.ts                # Public API barrel export
@@ -36,7 +39,7 @@ src/features/<domain>/
 
 | Layer | Responsibility | Must NOT contain |
 |-------|----------------|------------------|
-| `app/` | Route registration | Business logic, forms, API calls |
+| `src/app/` | Route registration | Business logic, forms, API calls |
 | `screens/` | Compose UI + hooks for one route | Direct API calls |
 | `components/` | Render UI, receive props / minimal local UI state | API calls, Redux dispatch |
 | `hooks/` | Loading/error state, call services, dispatch | JSX |
@@ -72,9 +75,9 @@ src/features/auth/
 └── index.ts
 ```
 
-**Route file** (`app/(auth)/login.tsx`):
+**Route file** (`src/app/(auth)/login.tsx`):
 ```tsx
-export { LoginScreen as default } from '@/src/features/auth/screens/LoginScreen';
+export { LoginScreen as default } from '@/features/auth/screens/LoginScreen';
 ```
 
 ---
@@ -115,7 +118,7 @@ Domain-specific services (e.g. social auth) belong in the feature, not `shared/`
 1. Create `src/features/<domain>/` with `components/`, `hooks/`, `services/`, `types/`
 2. Add `screens/` when you have routable UI
 3. Export public API from `index.ts`
-4. Add thin route in `app/` that re-exports the screen
+4. Add thin route in `src/app/` that re-exports the screen
 
 ---
 

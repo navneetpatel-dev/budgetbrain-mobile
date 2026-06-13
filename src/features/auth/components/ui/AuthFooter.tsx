@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { Link } from 'expo-router';
 import { View, Text, StyleSheet } from 'react-native';
-import { useTheme } from '@/src/shared/theme';
-import { appHref } from '@/src/shared/utils/navigation';
+import { useTheme } from '@/shared/theme';
+import { appHref } from '@/shared/utils/navigation';
 
 export function AuthFooter({
   text,

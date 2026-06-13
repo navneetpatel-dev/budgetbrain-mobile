@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { apiDownloadText, apiDownloadBinary } from '@/src/shared/services/api';
-import { saveAndShareFile } from '@/src/shared/utils/downloads';
-import { useAppSelector } from '@/src/shared/store/hooks';
+import { apiDownloadText, apiDownloadBinary } from '@/shared/services/api';
+import { saveAndShareFile } from '@/shared/utils/downloads';
+import { useAppSelector } from '@/shared/store/hooks';
 
 export function useExportReports() {
   const router = useRouter();

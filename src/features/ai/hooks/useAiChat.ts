@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
-import { apiGet, apiPost } from '@/src/shared/services/api';
-import { useAppSelector } from '@/src/shared/store/hooks';
-import type { AiAnomaly, AiChatMessage, AiInsight } from '@/src/shared/types';
+import { apiGet, apiPost } from '@/shared/services/api';
+import { useAppSelector } from '@/shared/store/hooks';
+import type { AiAnomaly, AiChatMessage, AiInsight } from '@/shared/types';
 
 export function useAiChat() {
   const user = useAppSelector((s) => s.auth.user);

@@ -8,9 +8,9 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTheme } from '@/src/shared/theme';
-import { useResponsive } from '@/src/shared/utils/responsive';
-import { useTabBarInset } from '@/src/shared/hooks/useTabBarInset';
+import { useTheme } from '@/shared/theme';
+import { useResponsive } from '@/shared/utils/responsive';
+import { useTabBarInset } from '@/shared/hooks/useTabBarInset';
 
 interface ScreenProps extends ScrollViewProps {
   children: React.ReactNode;

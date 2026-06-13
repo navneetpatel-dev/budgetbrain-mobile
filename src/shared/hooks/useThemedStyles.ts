@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { StyleSheet } from 'react-native';
-import { useTheme, type AppTheme } from '@/src/shared/theme';
+import { useTheme, type AppTheme } from '@/shared/theme';
 
 export function useThemedStyles<T extends StyleSheet.NamedStyles<T>>(
   factory: (theme: AppTheme) => T

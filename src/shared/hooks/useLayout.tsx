@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { StyleSheet, View, type ViewStyle } from 'react-native';
-import { useTheme } from '@/src/shared/theme';
-import { useResponsive } from '@/src/shared/utils/responsive';
+import { useTheme } from '@/shared/theme';
+import { useResponsive } from '@/shared/utils/responsive';
 
 /** Horizontal inset wrapper — aligns content with screen padding tokens */
 export function ScreenSection({

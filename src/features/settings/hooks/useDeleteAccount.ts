@@ -1,6 +1,6 @@
 import { Alert } from 'react-native';
-import { apiDelete } from '@/src/shared/services/api';
-import { useLogout } from '@/src/features/settings/hooks/useLogout';
+import { apiDelete } from '@/shared/services/api';
+import { useLogout } from '@/features/settings/hooks/useLogout';
 
 export function useDeleteAccount() {
   const logout = useLogout();

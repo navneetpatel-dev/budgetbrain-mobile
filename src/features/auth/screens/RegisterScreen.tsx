@@ -1,9 +1,9 @@
 import { Alert } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Input } from '@/src/shared/components/ui';
-import { AuthShell, AuthFooter } from '@/src/features/auth/components';
-import { useRegister } from '@/src/features/auth/hooks';
-import type { RegisterCredentials } from '@/src/features/auth/types';
+import { Button, Input } from '@/shared/components/ui';
+import { AuthShell, AuthFooter } from '@/features/auth/components';
+import { useRegister } from '@/features/auth/hooks';
+import type { RegisterCredentials } from '@/features/auth/types';
 
 export function RegisterScreen() {
   const { register, loading } = useRegister();

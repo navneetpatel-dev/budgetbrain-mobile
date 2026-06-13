@@ -1,4 +1,4 @@
-import { apiPost, setTokens, getApiErrorMessage } from '@/src/shared/services/api';
+import { apiPost, setTokens, getApiErrorMessage } from '@/shared/services/api';
 import type {
   AuthSession,
   ForgotPasswordInput,
@@ -6,7 +6,7 @@ import type {
   OtpVerifyInput,
   RegisterCredentials,
   ResetPasswordInput,
-} from '@/src/features/auth/types/auth.types';
+} from '@/features/auth/types/auth.types';
 
 export async function persistAuthSession(session: AuthSession): Promise<void> {
   await setTokens(session.accessToken, session.refreshToken);

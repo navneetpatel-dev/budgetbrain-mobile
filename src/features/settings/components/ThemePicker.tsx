@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { StyleSheet, View, Text, Pressable } from 'react-native';
-import { useTheme, ACCENT_OPTIONS, type ThemeMode, type AccentPalette } from '@/src/shared/theme';
-import { AppIcon } from '@/src/features/navigation/components/AppIcon';
+import { useTheme, ACCENT_OPTIONS, type ThemeMode, type AccentPalette } from '@/shared/theme';
+import { AppIcon } from '@/features/navigation/components/AppIcon';
 
 export function ThemePicker({
   mode,

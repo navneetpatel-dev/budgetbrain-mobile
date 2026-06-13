@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { Alert } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { apiGet, apiPost } from '@/src/shared/services/api';
-import { useAppSelector } from '@/src/shared/store/hooks';
-import type { FamilyMembership } from '@/src/shared/types';
+import { apiGet, apiPost } from '@/shared/services/api';
+import { useAppSelector } from '@/shared/store/hooks';
+import type { FamilyMembership } from '@/shared/types';
 
 export interface GroupForm {
   name: string;

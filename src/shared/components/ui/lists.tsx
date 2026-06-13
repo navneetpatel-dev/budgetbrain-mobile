@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { StyleSheet, View, Text, Pressable, ViewStyle } from 'react-native';
-import { AppIcon, type AppIconName } from '@/src/features/navigation/components/AppIcon';
-import { useTheme } from '@/src/shared/theme';
-import type { AppTheme } from '@/src/shared/theme';
+import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon';
+import { useTheme } from '@/shared/theme';
+import type { AppTheme } from '@/shared/theme';
 
 export function GroupedCard({
   children,

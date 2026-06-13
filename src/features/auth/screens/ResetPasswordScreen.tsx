@@ -1,9 +1,9 @@
 import { Alert } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Input } from '@/src/shared/components/ui';
-import { AuthShell, AuthFooter, AuthSuccessBanner } from '@/src/features/auth/components';
-import { useResetPassword } from '@/src/features/auth/hooks';
+import { Button, Input } from '@/shared/components/ui';
+import { AuthShell, AuthFooter, AuthSuccessBanner } from '@/features/auth/components';
+import { useResetPassword } from '@/features/auth/hooks';
 
 interface ResetForm {
   password: string;

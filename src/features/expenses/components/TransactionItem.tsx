@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 import { StyleSheet, View, Text, Pressable } from 'react-native';
-import { AppIcon } from '@/src/features/navigation/components/AppIcon';
-import { useTheme } from '@/src/shared/theme';
-import { formatCurrency } from '@/src/shared/utils/currency';
-import type { Transaction } from '@/src/shared/types';
+import { AppIcon } from '@/features/navigation/components/AppIcon';
+import { useTheme } from '@/shared/theme';
+import { formatCurrency } from '@/shared/utils/currency';
+import type { Transaction } from '@/shared/types';
 
 interface Props {
   transaction: Transaction;

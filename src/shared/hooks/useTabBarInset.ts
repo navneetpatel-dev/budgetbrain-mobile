@@ -1,5 +1,5 @@
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useResponsive } from '@/src/shared/utils/responsive';
+import { useResponsive } from '@/shared/utils/responsive';
 
 /** Height of floating tab bar body (excluding safe area) */
 const TAB_BAR_BODY = 84;

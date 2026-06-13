@@ -1,5 +1,5 @@
 import { Alert } from 'react-native';
-import { apiPost } from '@/src/shared/services/api';
+import { apiPost } from '@/shared/services/api';
 
 export function usePushTest() {
   return async () => {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { requestPasswordReset } from '@/src/features/auth/services/auth.service';
-import type { ForgotPasswordInput } from '@/src/features/auth/types/auth.types';
+import { requestPasswordReset } from '@/features/auth/services/auth.service';
+import type { ForgotPasswordInput } from '@/features/auth/types/auth.types';
 
 export function useForgotPassword() {
   const [loading, setLoading] = useState(false);

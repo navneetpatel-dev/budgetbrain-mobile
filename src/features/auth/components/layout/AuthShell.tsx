@@ -11,10 +11,10 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { AppIcon } from '@/src/features/navigation/components/AppIcon';
-import { AuthHeroHeader } from '@/src/features/auth/components/layout/AuthHeroHeader';
-import { useTheme } from '@/src/shared/theme';
-import { appHref } from '@/src/shared/utils/navigation';
+import { AppIcon } from '@/features/navigation/components/AppIcon';
+import { AuthHeroHeader } from '@/features/auth/components/layout/AuthHeroHeader';
+import { useTheme } from '@/shared/theme';
+import { appHref } from '@/shared/utils/navigation';
 
 type AuthShellVariant = 'hero' | 'compact';
 

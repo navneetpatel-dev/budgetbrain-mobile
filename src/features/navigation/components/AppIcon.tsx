@@ -35,6 +35,8 @@ const ICONS = {
   checkmark: { ios: 'checkmark.circle.fill', android: 'check_circle', web: 'check_circle' },
   arrowLeft: { ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' },
   apple: { ios: 'apple.logo', android: 'phone_iphone', web: 'phone_iphone' },
+  eye: { ios: 'eye', android: 'visibility', web: 'visibility' },
+  eyeSlash: { ios: 'eye.slash', android: 'visibility_off', web: 'visibility_off' },
 } as const;
 
 export type AppIconName = keyof typeof ICONS;

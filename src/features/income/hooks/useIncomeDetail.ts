@@ -3,8 +3,8 @@ import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { UseFormReset } from 'react-hook-form';
-import { apiGet, apiPatch, apiDelete } from '@/src/shared/services/api';
-import type { Transaction } from '@/src/shared/types';
+import { apiGet, apiPatch, apiDelete } from '@/shared/services/api';
+import type { Transaction } from '@/shared/types';
 
 export interface IncomeForm {
   amount: string;

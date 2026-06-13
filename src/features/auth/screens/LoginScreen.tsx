@@ -1,14 +1,14 @@
 import { Alert } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Input } from '@/src/shared/components/ui';
+import { Button, Input } from '@/shared/components/ui';
 import {
   AuthShell,
   AuthFooter,
   AuthLink,
   SocialAuthButtons,
-} from '@/src/features/auth/components';
-import { useLogin } from '@/src/features/auth/hooks';
-import type { LoginCredentials } from '@/src/features/auth/types';
+} from '@/features/auth/components';
+import { useLogin } from '@/features/auth/hooks';
+import type { LoginCredentials } from '@/features/auth/types';
 
 export function LoginScreen() {
   const { login, loading } = useLogin();

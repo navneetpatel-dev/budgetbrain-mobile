@@ -1,4 +1,4 @@
-import { api } from '@/src/shared/services/api';
+import { api } from '@/shared/services/api';
 
 export async function uploadReceipt(transactionId: string, uri: string, fileName: string, mimeType: string) {
   const formData = new FormData();

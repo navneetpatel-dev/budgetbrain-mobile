@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { apiDelete } from '@/src/shared/services/api';
+import { apiDelete } from '@/shared/services/api';
 
 export function useDeleteBudget() {
   const queryClient = useQueryClient();

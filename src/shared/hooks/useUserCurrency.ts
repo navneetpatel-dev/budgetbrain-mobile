@@ -1,5 +1,5 @@
-import { useAppSelector } from '@/src/shared/store/hooks';
-import { formatCurrency, getCurrencySymbol } from '@/src/shared/utils/currency';
+import { useAppSelector } from '@/shared/store/hooks';
+import { formatCurrency, getCurrencySymbol } from '@/shared/utils/currency';
 
 export function useUserCurrency() {
   const currency = useAppSelector((s) => s.auth.user?.currency ?? 'INR');

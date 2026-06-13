@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { apiPost } from '@/src/shared/services/api';
-import type { IncomeSource, Transaction } from '@/src/shared/types';
+import { apiPost } from '@/shared/services/api';
+import type { IncomeSource, Transaction } from '@/shared/types';
 
 export interface IncomeForm {
   amount: string;

@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
 import { StyleSheet, View, Text, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import { appHref } from '@/src/shared/utils/navigation';
-import { Card, ProgressBar } from '@/src/shared/components/ui';
-import { AppIcon } from '@/src/features/navigation/components/AppIcon';
-import { useTheme } from '@/src/shared/theme';
-import { formatCurrency } from '@/src/shared/utils/currency';
-import type { Budget, Transaction } from '@/src/shared/types';
+import { appHref } from '@/shared/utils/navigation';
+import { Card, ProgressBar } from '@/shared/components/ui';
+import { AppIcon } from '@/features/navigation/components/AppIcon';
+import { useTheme } from '@/shared/theme';
+import { formatCurrency } from '@/shared/utils/currency';
+import type { Budget, Transaction } from '@/shared/types';
 
 export function getBudgetDateRange(budget: Budget): { startDate: string; endDate: string } {
   const now = new Date();

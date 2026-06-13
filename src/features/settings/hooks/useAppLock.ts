@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
-import { authenticateWithBiometrics } from '@/src/shared/services/biometrics';
+import { authenticateWithBiometrics } from '@/shared/services/biometrics';
 
 export function useAppLock(biometricEnabled: boolean, isAuthenticated: boolean) {
   const [locked, setLocked] = useState(false);

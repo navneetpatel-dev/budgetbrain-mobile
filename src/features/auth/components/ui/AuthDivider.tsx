@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useTheme } from '@/src/shared/theme';
+import { useTheme } from '@/shared/theme';
 
 export function AuthDivider({ label = 'or continue with' }: { label?: string }) {
   const theme = useTheme();

@@ -1,9 +1,9 @@
 import { Alert } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Input } from '@/src/shared/components/ui';
-import { AuthShell, AuthFooter, AuthSuccessBanner } from '@/src/features/auth/components';
-import { useForgotPassword } from '@/src/features/auth/hooks';
-import type { ForgotPasswordInput } from '@/src/features/auth/types';
+import { Button, Input } from '@/shared/components/ui';
+import { AuthShell, AuthFooter, AuthSuccessBanner } from '@/features/auth/components';
+import { useForgotPassword } from '@/features/auth/hooks';
+import type { ForgotPasswordInput } from '@/features/auth/types';
 
 export function ForgotPasswordScreen() {
   const { forgotPassword, loading, sent } = useForgotPassword();

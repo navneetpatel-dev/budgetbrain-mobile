@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
-import { useAppSelector } from '@/src/shared/store/hooks';
-import { useAppLock } from '@/src/features/settings/hooks/useAppLock';
-import { useTheme } from '@/src/shared/theme';
+import { useAppSelector } from '@/shared/store/hooks';
+import { useAppLock } from '@/features/settings/hooks/useAppLock';
+import { useTheme } from '@/shared/theme';
 
 interface Props {
   children: React.ReactNode;

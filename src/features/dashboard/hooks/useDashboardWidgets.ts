@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { getBudgetSpent } from '@/src/features/budgets/components/BudgetCard';
-import type { Budget, Goal, Transaction } from '@/src/shared/types';
+import { getBudgetSpent } from '@/features/budgets/components/BudgetCard';
+import type { Budget, Goal, Transaction } from '@/shared/types';
 
 export function useDashboardWidgets(
   budgets: Budget[],

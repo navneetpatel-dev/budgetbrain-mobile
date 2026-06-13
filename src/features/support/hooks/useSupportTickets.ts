@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { useForm } from 'react-hook-form';
-import { apiPost, apiGet } from '@/src/shared/services/api';
+import { apiPost, apiGet } from '@/shared/services/api';
 
 export interface TicketForm {
   subject: string;

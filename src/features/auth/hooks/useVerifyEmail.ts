@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { verifyEmailToken } from '@/src/features/auth/services/auth.service';
+import { verifyEmailToken } from '@/features/auth/services/auth.service';
 
 export function useVerifyEmail(token: string | undefined) {
   const router = useRouter();

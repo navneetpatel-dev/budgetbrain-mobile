@@ -9,9 +9,9 @@ import {
   TextInputProps,
   ViewStyle,
 } from 'react-native';
-import { useTheme } from '@/src/shared/theme';
-import type { AppTheme } from '@/src/shared/theme';
-import { AppIcon, type AppIconName } from '@/src/features/navigation/components/AppIcon';
+import { useTheme } from '@/shared/theme';
+import type { AppTheme } from '@/shared/theme';
+import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon';
 
 export { Screen, ScreenContainer, ScreenLoader, ScreenSkeleton, ResponsiveGrid } from './layout';
 export {
@@ -19,7 +19,7 @@ export {
   useScrollContentStyle,
   useScreenHeaderStyle,
   useScreenListStyle,
-} from '@/src/shared/hooks/useLayout';
+} from '@/shared/hooks/useLayout';
 export { GroupedCard, ListRow, ProgressBar } from './lists';
 export { DateInput } from './DateInput';
 export { DashedBorder } from './DashedBorder';
@@ -140,8 +140,13 @@ export function Input({ label, error, style, secureTextEntry, secureToggle, left
             style={styles.toggleBtn}
             accessibilityRole="button"
             accessibilityLabel={hidden ? 'Show password' : 'Hide password'}
+            hitSlop={8}
           >
-            <Text style={styles.toggleText}>{hidden ? 'Show' : 'Hide'}</Text>
+            <AppIcon
+              name={hidden ? 'eye' : 'eyeSlash'}
+              size={20}
+              color={theme.colors.textTertiary}
+            />
           </Pressable>
         )}
       </View>
@@ -333,8 +338,13 @@ function createInputStyles(t: AppTheme) {
       marginLeft: t.spacing.sm,
     },
     inputWithToggle: { paddingRight: t.spacing.sm },
-    toggleBtn: { paddingHorizontal: t.spacing.md, paddingVertical: 14 },
-    toggleText: { ...t.typography.caption, color: t.colors.primary, fontWeight: '600' },
+    toggleBtn: {
+      width: 44,
+      height: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: t.spacing.xs,
+    },
     errorText: { color: t.colors.danger, fontSize: 12, marginTop: t.spacing.xs },
   });
 }

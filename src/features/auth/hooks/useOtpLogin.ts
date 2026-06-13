@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { setUser } from '@/src/shared/store/authSlice';
-import { useAppDispatch } from '@/src/shared/store/hooks';
-import { persistAuthSession, requestOtpCode, verifyOtpCode } from '@/src/features/auth/services/auth.service';
+import { setUser } from '@/shared/store/authSlice';
+import { useAppDispatch } from '@/shared/store/hooks';
+import { persistAuthSession, requestOtpCode, verifyOtpCode } from '@/features/auth/services/auth.service';
 
 export function useOtpLogin() {
   const dispatch = useAppDispatch();

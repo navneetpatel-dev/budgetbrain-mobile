@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { setUser } from '@/src/shared/store/authSlice';
-import { useAppDispatch } from '@/src/shared/store/hooks';
-import { persistAuthSession } from '@/src/features/auth/services/auth.service';
-import { signInWithApple, signInWithGoogle } from '@/src/features/auth/services/social-auth.service';
-import type { SocialAuthProvider } from '@/src/features/auth/types/auth.types';
+import { setUser } from '@/shared/store/authSlice';
+import { useAppDispatch } from '@/shared/store/hooks';
+import { persistAuthSession } from '@/features/auth/services/auth.service';
+import { signInWithApple, signInWithGoogle } from '@/features/auth/services/social-auth.service';
+import type { SocialAuthProvider } from '@/features/auth/types/auth.types';
 
 export function useSocialAuth() {
   const dispatch = useAppDispatch();

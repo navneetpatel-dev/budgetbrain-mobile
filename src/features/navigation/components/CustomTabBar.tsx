@@ -2,9 +2,9 @@ import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { AppIcon, type AppIconName } from '@/src/features/navigation/components/AppIcon';
-import { useTheme } from '@/src/shared/theme';
-import { useResponsive } from '@/src/shared/utils/responsive';
+import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon';
+import { useTheme } from '@/shared/theme';
+import { useResponsive } from '@/shared/utils/responsive';
 
 export interface CustomTabBarProps {
   state: { index: number; routes: { key: string; name: string }[] };

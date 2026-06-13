@@ -1,8 +1,8 @@
 import { Alert } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { Button } from '@/src/shared/components/ui';
-import { AuthShell, AuthSuccessBanner, AuthInfoBanner } from '@/src/features/auth/components';
-import { useVerifyEmail } from '@/src/features/auth/hooks';
+import { Button } from '@/shared/components/ui';
+import { AuthShell, AuthSuccessBanner, AuthInfoBanner } from '@/features/auth/components';
+import { useVerifyEmail } from '@/features/auth/hooks';
 
 export function VerifyEmailScreen() {
   const { token } = useLocalSearchParams<{ token?: string }>();

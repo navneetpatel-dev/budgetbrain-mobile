@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiGet, apiPatch } from '@/src/shared/services/api';
-import type { NotificationItem } from '@/src/shared/types';
+import { apiGet, apiPatch } from '@/shared/services/api';
+import type { NotificationItem } from '@/shared/types';
 
 export function useMarkNotificationRead() {
   const queryClient = useQueryClient();

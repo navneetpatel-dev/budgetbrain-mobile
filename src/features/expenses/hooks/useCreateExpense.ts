@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { apiPost } from '@/src/shared/services/api';
-import { uploadReceipt } from '@/src/features/expenses/services/receipts';
-import { queueOfflineAction, isOnline } from '@/src/shared/services/offlineSync';
-import { trackEvent } from '@/src/shared/services/analytics';
-import type { Transaction } from '@/src/shared/types';
-import type { Receipt } from '@/src/features/expenses/hooks/useReceiptPicker';
+import { apiPost } from '@/shared/services/api';
+import { uploadReceipt } from '@/features/expenses/services/receipts';
+import { queueOfflineAction, isOnline } from '@/shared/services/offlineSync';
+import { trackEvent } from '@/shared/services/analytics';
+import type { Transaction } from '@/shared/types';
+import type { Receipt } from '@/features/expenses/hooks/useReceiptPicker';
 
 export interface ExpenseForm {
   amount: string;

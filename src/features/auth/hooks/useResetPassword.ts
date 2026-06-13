@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { resetPassword } from '@/src/features/auth/services/auth.service';
+import { resetPassword } from '@/features/auth/services/auth.service';
 
 export function useResetPassword(token: string | undefined) {
   const [loading, setLoading] = useState(false);

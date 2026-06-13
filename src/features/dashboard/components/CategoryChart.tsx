@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
-import { AppIcon } from '@/src/features/navigation/components/AppIcon';
-import { useTheme } from '@/src/shared/theme';
-import { formatCurrency } from '@/src/shared/utils/currency';
-import type { Category } from '@/src/shared/types';
+import { AppIcon } from '@/features/navigation/components/AppIcon';
+import { useTheme } from '@/shared/theme';
+import { formatCurrency } from '@/shared/utils/currency';
+import type { Category } from '@/shared/types';
 
 interface Props {
   data: Array<{ categoryId: string; total: string; category?: Category }>;

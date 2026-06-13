@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Alert } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { apiGet, apiPost, apiPatch } from '@/src/shared/services/api';
-import type { Investment } from '@/src/shared/types';
+import { apiGet, apiPost, apiPatch } from '@/shared/services/api';
+import type { Investment } from '@/shared/types';
 
 export interface InvestmentForm {
   name: string;

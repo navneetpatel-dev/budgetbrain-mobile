@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
-import { apiPatch } from '@/src/shared/services/api';
-import { setUser } from '@/src/shared/store/authSlice';
-import { useAppDispatch } from '@/src/shared/store/hooks';
-import type { User } from '@/src/shared/types';
+import { apiPatch } from '@/shared/services/api';
+import { setUser } from '@/shared/store/authSlice';
+import { useAppDispatch } from '@/shared/store/hooks';
+import type { User } from '@/shared/types';
 
 export interface ProfileForm {
   name: string;

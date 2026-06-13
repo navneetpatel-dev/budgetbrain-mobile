@@ -3,10 +3,10 @@ import { StyleSheet, View, Text, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppIcon, type AppIconName } from '@/src/features/navigation/components/AppIcon';
-import { useTheme } from '@/src/shared/theme';
-import { useResponsive } from '@/src/shared/utils/responsive';
-import { appHref } from '@/src/shared/utils/navigation';
+import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon';
+import { useTheme } from '@/shared/theme';
+import { useResponsive } from '@/shared/utils/responsive';
+import { appHref } from '@/shared/utils/navigation';
 
 type QuickAction = { label: string; icon: AppIconName; href: string; primary?: boolean };
 

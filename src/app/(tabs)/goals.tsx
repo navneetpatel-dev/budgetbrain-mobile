@@ -1,0 +1,90 @@
+import { useMemo } from 'react';
+import { StyleSheet, View, FlatList, RefreshControl, Text, Pressable } from 'react-native';
+import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
+import { appHref } from '@/shared/utils/navigation';
+import { apiGet } from '@/shared/services/api';
+import { Card, EmptyState, ScreenSkeleton, ScreenContainer, ProgressBar } from '@/shared/components/ui';
+import { Fab } from '@/features/navigation/components/Fab';
+import { useTheme } from '@/shared/theme';
+import { useTabBarInset } from '@/shared/hooks/useTabBarInset';
+import { useResponsive } from '@/shared/utils/responsive';
+import { formatCurrency } from '@/shared/utils/currency';
+import type { Goal } from '@/shared/types';
+
+export default function GoalsScreen() {
+  const theme = useTheme();
+  const tabBarInset = useTabBarInset();
+  const { stackGap } = useResponsive();
+  const styles = useMemo(() => createStyles(theme, stackGap), [theme, stackGap]);
+  const router = useRouter();
+  const { data, isLoading, refetch, isRefetching } = useQuery({
+    queryKey: ['goals'],
+    queryFn: () => apiGet<Goal[]>('/goals'),
+  });
+
+  if (isLoading) {
+    return <ScreenSkeleton rows={3} />;
+  }
+
+  return (
+    <ScreenContainer>
+      <FlatList
+        data={data ?? []}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={[styles.list, { paddingBottom: tabBarInset }]}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />}
+        ListEmptyComponent={<EmptyState title="No goals yet" subtitle="Set a financial goal to stay motivated" icon="goals" />}
+        renderItem={({ item }) => {
+          const progress = Math.min(100, Math.round((Number(item.currentAmount) / Number(item.targetAmount)) * 100));
+
+          return (
+            <Card style={styles.goalCard}>
+              <Text style={styles.goalName}>{item.name}</Text>
+              <Text style={styles.goalType}>{item.type.replace('_', ' ')}</Text>
+              <View style={styles.amountRow}>
+                <Text style={styles.current}>{formatCurrency(Number(item.currentAmount), item.currency)}</Text>
+                <Text style={styles.target}>/ {formatCurrency(Number(item.targetAmount), item.currency)}</Text>
+              </View>
+              <ProgressBar progress={progress} color={theme.colors.success} />
+              <Text style={styles.progressText}>{progress}% complete</Text>
+              <View style={styles.goalActions}>
+                <Pressable
+                  onPress={() => router.push(appHref(`/goal/${item.id}`))}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Edit ${item.name}`}
+                >
+                  <Text style={styles.editText}>Edit</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => router.push(appHref(`/goal/${item.id}/contribute`))}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Contribute to ${item.name}`}
+                >
+                  <Text style={styles.contributeText}>+ Contribute</Text>
+                </Pressable>
+              </View>
+            </Card>
+          );
+        }}
+      />
+      <Fab href="/goal/add" aboveTabBar />
+    </ScreenContainer>
+  );
+}
+
+function createStyles(t: ReturnType<typeof useTheme>, stackGap: number) {
+  return StyleSheet.create({
+    list: { paddingTop: t.spacing.lg, gap: stackGap },
+    goalCard: { marginBottom: 0 },
+    goalName: { ...t.typography.titleSm, color: t.colors.text },
+    goalType: { ...t.typography.caption, color: t.colors.textSecondary, textTransform: 'capitalize', marginBottom: 8 },
+    amountRow: { flexDirection: 'row', alignItems: 'baseline', marginBottom: 12 },
+    current: { ...t.typography.amount, color: t.colors.primary },
+    target: { ...t.typography.bodyMedium, color: t.colors.textSecondary, marginLeft: 4 },
+    progressText: { ...t.typography.caption, color: t.colors.textSecondary, marginTop: 6 },
+    goalActions: { flexDirection: 'row', gap: 16, marginTop: 12 },
+    editText: { color: t.colors.textSecondary, fontWeight: '600', fontSize: 14 },
+    contributeText: { color: t.colors.primary, fontWeight: '600', fontSize: 14 },
+  });
+}

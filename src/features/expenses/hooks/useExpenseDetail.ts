@@ -3,9 +3,9 @@ import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { UseFormReset } from 'react-hook-form';
-import { apiGet, apiPatch, apiDelete, apiPost } from '@/src/shared/services/api';
-import { queueOfflineAction, isOnline } from '@/src/shared/services/offlineSync';
-import type { Transaction } from '@/src/shared/types';
+import { apiGet, apiPatch, apiDelete, apiPost } from '@/shared/services/api';
+import { queueOfflineAction, isOnline } from '@/shared/services/offlineSync';
+import type { Transaction } from '@/shared/types';
 
 export interface ExpenseForm {
   amount: string;

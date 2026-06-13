@@ -10,7 +10,7 @@
   - `theme/` — ThemeContext, palettes, buildTheme
   - `store/` — Redux slices (auth, settings)
   - `types/`, `utils/`, `constants/`
-- **Expo Router convention respected** — `app/` contains only route files. No business logic leaks into routes.
+- **Expo Router convention respected** — `src/app/` contains only route files. No business logic leaks into routes.
 - **No empty shells** — each feature and shared bucket has actual implementation files.
 
 ## ❌ What Needs Fixing

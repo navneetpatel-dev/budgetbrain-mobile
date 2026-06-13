@@ -1,8 +1,8 @@
 import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
-import { apiPost } from '@/src/shared/services/api';
-import type { AuthSession as AuthSessionResult } from '@/src/features/auth/types/auth.types';
+import { apiPost } from '@/shared/services/api';
+import type { AuthSession as AuthSessionResult } from '@/features/auth/types/auth.types';
 
 WebBrowser.maybeCompleteAuthSession();
 

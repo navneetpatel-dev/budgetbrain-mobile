@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { setUser } from '@/src/shared/store/authSlice';
-import { useAppDispatch } from '@/src/shared/store/hooks';
-import { persistAuthSession, registerAccount } from '@/src/features/auth/services/auth.service';
-import type { RegisterCredentials } from '@/src/features/auth/types/auth.types';
+import { setUser } from '@/shared/store/authSlice';
+import { useAppDispatch } from '@/shared/store/hooks';
+import { persistAuthSession, registerAccount } from '@/features/auth/services/auth.service';
+import type { RegisterCredentials } from '@/features/auth/types/auth.types';
 
 export function useRegister() {
   const dispatch = useAppDispatch();

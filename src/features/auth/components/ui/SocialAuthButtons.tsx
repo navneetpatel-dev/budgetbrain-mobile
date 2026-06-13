@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet, Platform, Alert, Pressable, ActivityIndicator } from 'react-native';
-import { AppIcon } from '@/src/features/navigation/components/AppIcon';
-import { useSocialAuth } from '@/src/features/auth/hooks/useSocialAuth';
-import { AuthDivider } from '@/src/features/auth/components/ui/AuthDivider';
-import { useTheme } from '@/src/shared/theme';
+import { AppIcon } from '@/features/navigation/components/AppIcon';
+import { useSocialAuth } from '@/features/auth/hooks/useSocialAuth';
+import { AuthDivider } from '@/features/auth/components/ui/AuthDivider';
+import { useTheme } from '@/shared/theme';
 
 function GoogleMark() {
   return (

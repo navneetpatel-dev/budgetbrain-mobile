@@ -1,4 +1,4 @@
-import type { User } from '@/src/shared/types';
+import type { User } from '@/shared/types';
 
 export interface AuthSession {
   accessToken: string;

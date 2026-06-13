@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Modal, ScrollView, StyleSheet, View, Text, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTheme } from '@/src/shared/theme';
+import { useTheme } from '@/shared/theme';
 
 export function FormModal({
   visible,
