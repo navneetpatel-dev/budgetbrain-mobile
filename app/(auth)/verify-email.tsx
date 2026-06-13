@@ -1,13 +1,12 @@
-import { useMemo } from 'react';
-import { StyleSheet, Text, Alert } from 'react-native';
+import { Alert } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { Button, Screen } from '@/src/shared/components/ui';
+import { Button } from '@/src/shared/components/ui';
+import { AuthShell } from '@/src/features/auth/components/AuthShell';
+import { AuthSuccessBanner } from '@/src/features/auth/components/AuthSuccessBanner';
+import { AuthInfoBanner } from '@/src/features/auth/components/AuthInfoBanner';
 import { useVerifyEmail } from '@/src/features/auth/hooks/useVerifyEmail';
-import { useTheme } from '@/src/shared/theme';
 
 export default function VerifyEmailScreen() {
-  const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
   const { token } = useLocalSearchParams<{ token?: string }>();
   const { verify, loading, verified, goToLogin } = useVerifyEmail(token);
 
@@ -20,27 +19,23 @@ export default function VerifyEmailScreen() {
   };
 
   return (
-    <Screen contentContainerStyle={styles.container} padded={false}>
-      <Text style={styles.title}>Verify Email</Text>
+    <AuthShell
+      variant="compact"
+      title="Verify email"
+      subtitle={verified ? 'Your account is ready to use.' : 'Confirm your email to unlock all features.'}
+      backHref="/(auth)/login"
+    >
       {verified ? (
         <>
-          <Text style={styles.message}>Your email has been verified successfully.</Text>
-          <Button title="Go to Login" onPress={goToLogin} />
+          <AuthSuccessBanner message="Your email has been verified successfully." />
+          <Button title="Continue to Sign In" onPress={goToLogin} size="lg" />
         </>
       ) : (
         <>
-          <Text style={styles.message}>Tap below to verify your ExpenseFlow account.</Text>
-          <Button title="Verify Email" onPress={handleVerify} loading={loading} />
+          <AuthInfoBanner message="Tap the button below to verify your BudgetBrain account." />
+          <Button title="Verify Email" onPress={handleVerify} loading={loading} size="lg" />
         </>
       )}
-    </Screen>
+    </AuthShell>
   );
-}
-
-function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    container: { flexGrow: 1, padding: 24, justifyContent: 'center' },
-    title: { fontSize: 28, fontWeight: '800', color: t.colors.text, marginBottom: 16, textAlign: 'center' },
-    message: { fontSize: 16, color: t.colors.textSecondary, marginBottom: 24, textAlign: 'center', lineHeight: 24 },
-  });
 }

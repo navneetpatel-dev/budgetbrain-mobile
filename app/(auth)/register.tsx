@@ -1,12 +1,9 @@
-import { useMemo } from 'react';
-import { StyleSheet, View, Text, Alert } from 'react-native';
-import { Link } from 'expo-router';
-import { appHref } from '@/src/shared/utils/navigation';
+import { Alert } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { Button, Input } from '@/src/shared/components/ui';
 import { AuthShell } from '@/src/features/auth/components/AuthShell';
+import { AuthFooter } from '@/src/features/auth/components/AuthFooter';
 import { useRegister } from '@/src/features/auth/hooks/useRegister';
-import { useTheme } from '@/src/shared/theme';
 
 interface RegisterForm {
   name: string;
@@ -15,8 +12,6 @@ interface RegisterForm {
 }
 
 export default function RegisterScreen() {
-  const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
   const { register, loading } = useRegister();
   const { control, handleSubmit, formState: { errors } } = useForm<RegisterForm>({
     defaultValues: { name: '', email: '', password: '' },
@@ -31,13 +26,21 @@ export default function RegisterScreen() {
   };
 
   return (
-    <AuthShell title="Create Account" subtitle="Start your financial journey">
+    <AuthShell
+      variant="compact"
+      title="Create account"
+      subtitle="Set up your profile in under a minute."
+      backHref="/(auth)/login"
+      footer={
+        <AuthFooter text="Already have an account?" linkText="Sign In" href="/(auth)/login" />
+      }
+    >
       <Controller
         control={control}
         name="name"
         rules={{ required: 'Name is required' }}
         render={({ field: { onChange, value } }) => (
-          <Input label="Full Name" value={value} onChangeText={onChange} error={errors.name?.message} />
+          <Input label="Full name" value={value} onChangeText={onChange} placeholder="Jane Doe" error={errors.name?.message} />
         )}
       />
 
@@ -54,6 +57,7 @@ export default function RegisterScreen() {
             autoCapitalize="none"
             textContentType="emailAddress"
             autoComplete="email"
+            placeholder="you@example.com"
             error={errors.email?.message}
           />
         )}
@@ -72,25 +76,13 @@ export default function RegisterScreen() {
             secureToggle
             textContentType="newPassword"
             autoComplete="password-new"
+            placeholder="Min. 8 characters"
             error={errors.password?.message}
           />
         )}
       />
 
       <Button title="Create Account" onPress={handleSubmit(onSubmit)} loading={loading} size="lg" />
-
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>Already have an account? </Text>
-        <Link href={appHref('/(auth)/login')} style={styles.link}>Sign In</Link>
-      </View>
     </AuthShell>
   );
-}
-
-function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    footer: { flexDirection: 'row', justifyContent: 'center', marginTop: t.spacing.xl },
-    footerText: { color: t.colors.textSecondary },
-    link: { color: t.colors.primary, fontWeight: '600' },
-  });
 }

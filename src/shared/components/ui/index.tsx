@@ -32,7 +32,7 @@ interface ButtonProps {
   loading?: boolean;
   disabled?: boolean;
   size?: 'md' | 'lg';
-  icon?: AppIconName;
+  icon?: AppIconName | React.ReactNode;
 }
 
 export function Button({
@@ -74,12 +74,16 @@ export function Button({
         <ActivityIndicator color={isOutline || isGhost ? theme.colors.primary : theme.colors.onPrimary} />
       ) : (
         <View style={styles.buttonInner}>
-          {icon && (
-            <AppIcon
-              name={icon}
-              size={18}
-              color={isPrimary || variant === 'danger' ? theme.colors.onPrimary : theme.colors.primary}
-            />
+          {icon != null && (
+            typeof icon === 'string' ? (
+              <AppIcon
+                name={icon as AppIconName}
+                size={18}
+                color={isPrimary || variant === 'danger' ? theme.colors.onPrimary : theme.colors.primary}
+              />
+            ) : (
+              icon
+            )
           )}
           <Text
             style={[
@@ -103,21 +107,29 @@ interface InputProps extends TextInputProps {
   label?: string;
   error?: string;
   secureToggle?: boolean;
+  leftIcon?: AppIconName;
+  variant?: 'default' | 'soft';
 }
 
-export function Input({ label, error, style, secureTextEntry, secureToggle, ...props }: InputProps) {
+export function Input({ label, error, style, secureTextEntry, secureToggle, leftIcon, variant = 'default', ...props }: InputProps) {
   const theme = useTheme();
   const styles = useMemo(() => createInputStyles(theme), [theme]);
   const [hidden, setHidden] = useState(!!secureTextEntry);
   const isSecure = secureTextEntry && (secureToggle ? hidden : true);
+  const isSoft = variant === 'soft';
 
   return (
     <View style={styles.inputContainer}>
       {label && <Text style={styles.label}>{label}</Text>}
-      <View style={[styles.inputWrapper, error && styles.inputError]}>
+      <View style={[styles.inputWrapper, isSoft && styles.inputWrapperSoft, error && styles.inputError]}>
+        {leftIcon && (
+          <View style={styles.leftIcon}>
+            <AppIcon name={leftIcon} size={18} color={theme.colors.textTertiary} />
+          </View>
+        )}
         <TextInput
           placeholderTextColor={theme.colors.textTertiary}
-          style={[styles.input, secureToggle && styles.inputWithToggle, style]}
+          style={[styles.input, leftIcon && styles.inputWithLeftIcon, secureToggle && styles.inputWithToggle, style]}
           secureTextEntry={isSecure}
           accessibilityLabel={label}
           {...props}
@@ -300,6 +312,11 @@ function createInputStyles(t: AppTheme) {
       flexDirection: 'row',
       alignItems: 'center',
     },
+    inputWrapperSoft: {
+      borderRadius: t.radii.lg,
+      backgroundColor: t.isDark ? 'rgba(255,255,255,0.04)' : t.colors.inputBg,
+      borderColor: t.isDark ? 'rgba(255,255,255,0.08)' : t.colors.borderSubtle,
+    },
     inputError: { borderColor: t.colors.danger },
     input: {
       flex: 1,
@@ -307,6 +324,13 @@ function createInputStyles(t: AppTheme) {
       paddingVertical: 14,
       fontSize: 16,
       color: t.colors.text,
+    },
+    inputWithLeftIcon: { paddingLeft: t.spacing.sm },
+    leftIcon: {
+      width: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginLeft: t.spacing.sm,
     },
     inputWithToggle: { paddingRight: t.spacing.sm },
     toggleBtn: { paddingHorizontal: t.spacing.md, paddingVertical: 14 },

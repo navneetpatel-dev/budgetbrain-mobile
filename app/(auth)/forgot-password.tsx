@@ -1,19 +1,16 @@
-import { useMemo } from 'react';
-import { StyleSheet, View, Text, Alert } from 'react-native';
-import { Link } from 'expo-router';
-import { appHref } from '@/src/shared/utils/navigation';
+import { Alert } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Input, Screen } from '@/src/shared/components/ui';
+import { Button, Input } from '@/src/shared/components/ui';
+import { AuthShell } from '@/src/features/auth/components/AuthShell';
+import { AuthFooter } from '@/src/features/auth/components/AuthFooter';
+import { AuthSuccessBanner } from '@/src/features/auth/components/AuthSuccessBanner';
 import { useForgotPassword } from '@/src/features/auth/hooks/useForgotPassword';
-import { useTheme } from '@/src/shared/theme';
 
 interface ForgotForm {
   email: string;
 }
 
 export default function ForgotPasswordScreen() {
-  const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
   const { forgotPassword, loading, sent } = useForgotPassword();
   const { control, handleSubmit, formState: { errors } } = useForm<ForgotForm>({
     defaultValues: { email: '' },
@@ -28,15 +25,16 @@ export default function ForgotPasswordScreen() {
   };
 
   return (
-    <Screen contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" padded={false}>
-      <Text style={styles.title}>Forgot Password</Text>
-      <Text style={styles.subtitle}>
-        {sent
-          ? 'If an account exists for that email, a reset link has been sent.'
-          : 'Enter your email and we will send a reset link.'}
-      </Text>
-
-      {!sent && (
+    <AuthShell
+      variant="compact"
+      title="Reset password"
+      subtitle={sent ? 'Check your inbox for the link.' : 'Enter the email linked to your account.'}
+      backHref="/(auth)/login"
+      footer={<AuthFooter linkText="Back to Sign In" href="/(auth)/login" />}
+    >
+      {sent ? (
+        <AuthSuccessBanner message="If an account exists for that email, a reset link has been sent." />
+      ) : (
         <>
           <Controller
             control={control}
@@ -51,27 +49,14 @@ export default function ForgotPasswordScreen() {
                 autoCapitalize="none"
                 textContentType="emailAddress"
                 autoComplete="email"
+                placeholder="you@example.com"
                 error={errors.email?.message}
               />
             )}
           />
-          <Button title="Send Reset Link" onPress={handleSubmit(onSubmit)} loading={loading} />
+          <Button title="Send Reset Link" onPress={handleSubmit(onSubmit)} loading={loading} size="lg" />
         </>
       )}
-
-      <View style={styles.footer}>
-        <Link href={appHref('/(auth)/login')} style={styles.link}>Back to Sign In</Link>
-      </View>
-    </Screen>
+    </AuthShell>
   );
-}
-
-function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    scroll: { flexGrow: 1, padding: 24, justifyContent: 'center' },
-    title: { ...t.typography.display, color: t.colors.text, marginBottom: 8 },
-    subtitle: { ...t.typography.bodyMedium, color: t.colors.textSecondary, marginBottom: 24 },
-    footer: { alignItems: 'center', marginTop: 24 },
-    link: { color: t.colors.primary, fontWeight: '600' },
-  });
 }

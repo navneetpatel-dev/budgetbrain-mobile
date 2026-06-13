@@ -28,6 +28,13 @@ const ICONS = {
   moon: { ios: 'moon.fill', android: 'dark_mode', web: 'dark_mode' },
   auto: { ios: 'circle.lefthalf.filled', android: 'brightness_auto', web: 'brightness_auto' },
   trash: { ios: 'trash.fill', android: 'delete', web: 'delete' },
+  mail: { ios: 'envelope.fill', android: 'mail', web: 'mail' },
+  lock: { ios: 'lock.fill', android: 'lock', web: 'lock' },
+  key: { ios: 'key.fill', android: 'key', web: 'key' },
+  personFill: { ios: 'person.fill', android: 'person', web: 'person' },
+  checkmark: { ios: 'checkmark.circle.fill', android: 'check_circle', web: 'check_circle' },
+  arrowLeft: { ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' },
+  apple: { ios: 'apple.logo', android: 'phone_iphone', web: 'phone_iphone' },
 } as const;
 
 export type AppIconName = keyof typeof ICONS;
@@ -44,16 +51,23 @@ export function AppIcon({
   style?: StyleProp<ViewStyle>;
 }) {
   return (
-    <SymbolView
-      name={{
-        ios: ICONS[name].ios,
-        android: ICONS[name].android,
-        web: ICONS[name].web,
-      }}
-      tintColor={color}
-      size={size}
-      style={[{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }, style]}
-      {...(Platform.OS === 'ios' ? { weight: 'medium' as const } : {})}
-    />
+    <View
+      style={[
+        { width: size, height: size, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+        style,
+      ]}
+    >
+      <SymbolView
+        name={{
+          ios: ICONS[name].ios,
+          android: ICONS[name].android,
+          web: ICONS[name].web,
+        }}
+        tintColor={color}
+        size={size}
+        style={{ width: size, height: size }}
+        {...(Platform.OS === 'ios' ? { weight: 'medium' as const } : {})}
+      />
+    </View>
   );
 }
