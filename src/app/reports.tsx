@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { StyleSheet, View, ScrollView, Text } from 'react-native';
-import { Button, DateInput, Card, useScrollContentStyle } from '@/shared/components/ui';
+import { Button, DateInput, useScrollContentStyle, ScreenIntro, GroupedCard } from '@/shared/components/ui';
 import { useTheme } from '@/shared/theme';
 import { useExportReports } from '@/features/reports/hooks/useExportReports';
 
@@ -12,17 +12,19 @@ export default function ReportsScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={contentStyle}>
-      <Text style={styles.title}>Export Reports</Text>
-      <Text style={styles.subtitle}>Download your transaction history</Text>
+      <ScreenIntro eyebrow="EXPORT" subtitle="Download your transaction history as CSV or PDF" />
 
-      <Card style={styles.card}>
+      <GroupedCard title="DATE RANGE">
         <DateInput label="Start Date (optional)" value={startDate} onChange={setStartDate} />
         <DateInput label="End Date (optional)" value={endDate} onChange={setEndDate} />
+      </GroupedCard>
+
+      <GroupedCard title="DOWNLOAD">
         <Button title="Download CSV" onPress={downloadCsv} loading={loading} />
         <View style={styles.spacer} />
         <Button title="Download PDF (Premium)" onPress={downloadPdf} variant="outline" loading={loading} />
         {!isPremium && <Text style={styles.premiumHint}>PDF export requires Premium</Text>}
-      </Card>
+      </GroupedCard>
     </ScrollView>
   );
 }
@@ -30,10 +32,7 @@ export default function ReportsScreen() {
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.colors.background },
-    title: { fontSize: 24, fontWeight: '800', color: t.colors.text, marginBottom: 4 },
-    subtitle: { fontSize: 14, color: t.colors.textSecondary, marginBottom: 24 },
-    card: { marginBottom: 16 },
     spacer: { height: 12 },
-    premiumHint: { fontSize: 12, color: t.colors.textSecondary, marginTop: 8, textAlign: 'center' },
+    premiumHint: { ...t.typography.caption, color: t.colors.textSecondary, marginTop: 10, textAlign: 'center' },
   });
 }

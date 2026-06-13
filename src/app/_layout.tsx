@@ -71,8 +71,9 @@ function RootNavigator() {
   const stackOptions = {
     headerStyle: { backgroundColor: theme.colors.background },
     headerTintColor: theme.colors.primary,
-    headerTitleStyle: { fontWeight: '700' as const, color: theme.colors.text },
+    headerTitleStyle: { fontWeight: '600' as const, fontSize: 17, color: theme.colors.text },
     headerShadowVisible: false,
+    headerBackTitleVisible: false,
     contentStyle: { backgroundColor: theme.colors.background },
   };
 
@@ -89,13 +90,13 @@ function RootNavigator() {
           <Stack.Screen name="budget/add" options={{ presentation: 'modal', headerShown: true, title: 'Create Budget', ...stackOptions }} />
           <Stack.Screen name="goal/add" options={{ presentation: 'modal', headerShown: true, title: 'Create Goal', ...stackOptions }} />
           <Stack.Screen name="goal/[id]/contribute" options={{ presentation: 'modal', headerShown: true, title: 'Contribute', ...stackOptions }} />
-          <Stack.Screen name="categories/index" options={{ headerShown: true, title: 'Categories', ...stackOptions }} />
-          <Stack.Screen name="accounts/index" options={{ headerShown: true, title: 'Accounts', ...stackOptions }} />
-          <Stack.Screen name="investments/index" options={{ headerShown: true, title: 'Investments', ...stackOptions }} />
-          <Stack.Screen name="search" options={{ headerShown: true, title: 'Search', ...stackOptions }} />
+          <Stack.Screen name="categories/index" options={{ headerShown: false }} />
+          <Stack.Screen name="accounts/index" options={{ headerShown: false }} />
+          <Stack.Screen name="investments/index" options={{ headerShown: false }} />
+          <Stack.Screen name="search" options={{ headerShown: false }} />
           <Stack.Screen name="reports" options={{ headerShown: true, title: 'Reports', ...stackOptions }} />
           <Stack.Screen name="family/index" options={{ headerShown: true, title: 'Family', ...stackOptions }} />
-          <Stack.Screen name="notifications" options={{ headerShown: true, title: 'Notifications', ...stackOptions }} />
+          <Stack.Screen name="notifications" options={{ headerShown: false }} />
           <Stack.Screen name="integrations/index" options={{ headerShown: true, title: 'Integrations', ...stackOptions }} />
           <Stack.Screen name="legal/privacy" options={{ headerShown: true, title: 'Privacy Policy', ...stackOptions }} />
           <Stack.Screen name="legal/terms" options={{ headerShown: true, title: 'Terms of Service', ...stackOptions }} />

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { StyleSheet, View, Text, ScrollView, ActivityIndicator } from 'react-native';
-import { Button, Card, useScrollContentStyle } from '@/shared/components/ui';
+import { Button, Card, useScrollContentStyle, ScreenIntro, GroupedCard } from '@/shared/components/ui';
 import { useTheme } from '@/shared/theme';
 import { useSubscription } from '@/features/subscription/hooks/useSubscription';
 
@@ -12,8 +12,10 @@ export default function SubscriptionScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={contentStyle}>
-      <Text style={styles.title}>Upgrade to Premium</Text>
-      <Text style={styles.subtitle}>Unlock AI insights, unlimited budgets, family accounts, and more</Text>
+      <ScreenIntro
+        eyebrow="PREMIUM"
+        subtitle="Unlock AI insights, unlimited budgets, family accounts, and more"
+      />
 
       {loadingOfferings ? (
         <ActivityIndicator size="large" color={theme.colors.primary} style={styles.loader} />
@@ -33,17 +35,17 @@ export default function SubscriptionScreen() {
           </Card>
         ))
       ) : (
-        <Card style={styles.planCard}>
+        <GroupedCard title="SETUP">
           <Text style={styles.fallbackText}>
             {configured
               ? 'No subscription packages available. Configure offerings in RevenueCat dashboard.'
               : 'In-app purchases require RevenueCat API keys (EXPO_PUBLIC_REVENUECAT_IOS_KEY / EXPO_PUBLIC_REVENUECAT_ANDROID_KEY).'}
           </Text>
-        </Card>
+        </GroupedCard>
       )}
 
       <Button title="Restore Purchases" onPress={handleRestore} variant="outline" loading={loading === 'restore'} />
-      <Button title="Maybe Later" onPress={goBack} variant="outline" />
+      <Button title="Maybe Later" onPress={goBack} variant="ghost" />
     </ScrollView>
   );
 }
@@ -51,8 +53,6 @@ export default function SubscriptionScreen() {
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.colors.background },
-    title: { fontSize: 26, fontWeight: '800', color: t.colors.text, marginBottom: 8 },
-    subtitle: { fontSize: 15, color: t.colors.textSecondary, marginBottom: 24 },
     loader: { marginVertical: 24 },
     planCard: { marginBottom: 12 },
     planHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },

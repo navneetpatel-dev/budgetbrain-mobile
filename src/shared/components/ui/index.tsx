@@ -9,11 +9,24 @@ import {
   TextInputProps,
   ViewStyle,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/shared/theme';
 import type { AppTheme } from '@/shared/theme';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon';
 
 export { Screen, ScreenContainer, ScreenLoader, ScreenSkeleton, ResponsiveGrid, StickyHeaderScreen } from './layout';
+export {
+  FeatureHeader,
+  SearchField,
+  HeaderIconButton,
+  FormFieldLabel,
+  OptionChips,
+  OptionChipList,
+  MultiOptionChips,
+  ActionFab,
+  ScreenIntro,
+  StickyHeaderFlatScreen,
+} from './feature-screen';
 export {
   ScreenSection,
   useScrollContentStyle,
@@ -244,8 +257,15 @@ export function EmptyState({
       <Text style={styles.emptyTitle}>{title}</Text>
       {subtitle && <Text style={styles.emptySubtitle}>{subtitle}</Text>}
       {action && onAction && (
-        <Pressable onPress={onAction} style={styles.actionBtn}>
-          <Text style={styles.actionText}>{action}</Text>
+        <Pressable onPress={onAction} style={({ pressed }) => [pressed && { opacity: 0.9 }]}>
+          <LinearGradient
+            colors={[theme.colors.primary, theme.colors.gradientEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.actionBtn}
+          >
+            <Text style={styles.actionText}>{action}</Text>
+          </LinearGradient>
         </Pressable>
       )}
     </View>
@@ -396,24 +416,25 @@ function createEmptyStyles(t: AppTheme) {
       alignItems: 'center',
       justifyContent: 'center',
       marginBottom: t.spacing.lg,
+      borderWidth: 1,
+      borderColor: t.colors.primary + '28',
     },
     emptyTitle: { ...t.typography.titleSm, color: t.colors.text, textAlign: 'center' },
     emptySubtitle: {
-      ...t.typography.caption,
+      ...t.typography.bodyMedium,
       color: t.colors.textSecondary,
       marginTop: t.spacing.sm,
       textAlign: 'center',
-      lineHeight: 20,
+      lineHeight: 22,
       maxWidth: 280,
     },
     actionBtn: {
       marginTop: t.spacing.lg,
       paddingHorizontal: t.spacing.xl,
-      paddingVertical: t.spacing.md,
+      paddingVertical: 12,
       borderRadius: t.radii.full,
-      backgroundColor: t.colors.primarySoft,
     },
-    actionText: { ...t.typography.bodySemibold, color: t.colors.primary },
+    actionText: { ...t.typography.bodySemibold, color: t.colors.onPrimary, fontSize: 14 },
   });
 }
 

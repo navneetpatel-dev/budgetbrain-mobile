@@ -1,7 +1,18 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, FlatList, Pressable, Text } from 'react-native';
+import { StyleSheet, View, Pressable, Text } from 'react-native';
 import { Controller } from 'react-hook-form';
-import { Button, Input, Card, EmptyState, ScreenLoader, ScreenContainer, FormModal } from '@/shared/components/ui';
+import {
+  Button,
+  Input,
+  Card,
+  EmptyState,
+  ScreenLoader,
+  FormModal,
+  FeatureHeader,
+  StickyHeaderFlatScreen,
+  ActionFab,
+  FormFieldLabel,
+} from '@/shared/components/ui';
 import { useFabBottom } from '@/shared/hooks/useFabBottom';
 import { useTheme } from '@/shared/theme';
 import { useCategories, COLORS_PRESET } from '@/features/categories/hooks/useCategories';
@@ -9,7 +20,7 @@ import { useCategories, COLORS_PRESET } from '@/features/categories/hooks/useCat
 export default function CategoriesScreen() {
   const theme = useTheme();
   const fabBottom = useFabBottom();
-  const styles = useMemo(() => createStyles(theme, fabBottom), [theme, fabBottom]);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const {
     data,
     isLoading,
@@ -33,8 +44,10 @@ export default function CategoriesScreen() {
     return <ScreenLoader />;
   }
 
+  const items = data ?? [];
+
   return (
-    <ScreenContainer>
+    <View style={styles.root}>
       <FormModal visible={showForm} title={editingId ? 'Edit Category' : 'New Category'} onClose={() => setShowForm(false)}>
         <Controller
           control={control}
@@ -44,7 +57,7 @@ export default function CategoriesScreen() {
             <Input label="Category Name" value={value} onChangeText={onChange} error={errors.name?.message} />
           )}
         />
-        <Text style={styles.label}>Color</Text>
+        <FormFieldLabel>Color</FormFieldLabel>
         <View style={styles.colorRow}>
           {COLORS_PRESET.map((c) => (
             <Pressable
@@ -61,11 +74,21 @@ export default function CategoriesScreen() {
         <Button title="Cancel" onPress={() => setShowForm(false)} variant="outline" />
       </FormModal>
 
-      <FlatList
-        data={data ?? []}
+      <StickyHeaderFlatScreen
+        inset="stack"
+        header={
+          <FeatureHeader
+            eyebrow="ORGANIZE"
+            title="Categories"
+            subtitle={`${items.length} categor${items.length !== 1 ? 'ies' : 'y'}`}
+          />
+        }
+        data={items}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        ListEmptyComponent={<EmptyState title="No categories" subtitle="Create categories to organize expenses" />}
+        contentContainerStyle={{ paddingBottom: fabBottom + 72 }}
+        ListEmptyComponent={
+          <EmptyState icon="category" title="No categories" subtitle="Create categories to organize expenses" action="Add category" onAction={openCreate} />
+        }
         renderItem={({ item, index }) => (
           <Card style={styles.catCard}>
             <View style={styles.catRow}>
@@ -92,28 +115,18 @@ export default function CategoriesScreen() {
         )}
       />
 
-      {!showForm && (
-        <Pressable
-          style={styles.fab}
-          onPress={openCreate}
-          accessibilityRole="button"
-          accessibilityLabel="Add category"
-        >
-          <Text style={styles.fabText}>+</Text>
-        </Pressable>
-      )}
-    </ScreenContainer>
+      {!showForm && <ActionFab onPress={openCreate} label="Add category" />}
+    </View>
   );
 }
 
-function createStyles(t: ReturnType<typeof useTheme>, fabBottom: number) {
+function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    list: { paddingTop: t.spacing.lg, paddingBottom: fabBottom + 64 },
-    label: { fontSize: 14, fontWeight: '500', color: t.colors.text, marginBottom: 8 },
+    root: { flex: 1, backgroundColor: t.colors.background },
     colorRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
     colorDot: { width: 32, height: 32, borderRadius: 16 },
     colorSelected: { borderWidth: 3, borderColor: t.colors.text },
-    catCard: { marginBottom: 8 },
+    catCard: { marginBottom: 0 },
     catRow: { flexDirection: 'row', alignItems: 'center' },
     dot: { width: 12, height: 12, borderRadius: 6, marginRight: 10 },
     catName: { flex: 1, fontSize: 15, fontWeight: '600', color: t.colors.text },
@@ -121,18 +134,5 @@ function createStyles(t: ReturnType<typeof useTheme>, fabBottom: number) {
     actionBtn: { color: t.colors.primary, fontSize: 13, fontWeight: '600' },
     archive: { color: t.colors.danger },
     spacer: { height: 8 },
-    fab: {
-      position: 'absolute',
-      bottom: fabBottom,
-      right: 24,
-      width: 56,
-      height: 56,
-      borderRadius: 28,
-      backgroundColor: t.colors.primary,
-      alignItems: 'center',
-      justifyContent: 'center',
-      ...t.shadows.lg,
-    },
-    fabText: { color: t.colors.onPrimary, fontSize: 28, fontWeight: '300', marginTop: -2 },
   });
 }

@@ -1,8 +1,17 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, Text, ScrollView, Alert, Pressable, Image } from 'react-native';
+import { StyleSheet, View, ScrollView, Alert, Pressable, Image, Text } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Input, DateInput, DashedBorder, useScrollContentStyle } from '@/shared/components/ui';
+import {
+  Button,
+  Input,
+  DateInput,
+  DashedBorder,
+  useScrollContentStyle,
+  FormFieldLabel,
+  OptionChips,
+  OptionChipList,
+} from '@/shared/components/ui';
 import { apiGet } from '@/shared/services/api';
 import { useCreateExpense, type ExpenseForm } from '@/features/expenses/hooks/useCreateExpense';
 import { useReceiptPicker } from '@/features/expenses/hooks/useReceiptPicker';
@@ -55,13 +64,13 @@ export default function AddExpenseScreen() {
   const contentStyle = useScrollContentStyle();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={contentStyle}>
+    <ScrollView style={styles.container} contentContainerStyle={contentStyle} keyboardShouldPersistTaps="handled">
       <Controller
         control={control}
         name="amount"
         rules={{ required: 'Amount is required' }}
         render={({ field: { onChange, value } }) => (
-          <Input label={amountLabel('Amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} />
+          <Input label={amountLabel('Amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} leftIcon="expense" />
         )}
       />
 
@@ -82,45 +91,30 @@ export default function AddExpenseScreen() {
         )}
       />
 
-      <Text style={styles.label}>Payment Method</Text>
-      <View style={styles.categoryGrid}>
-        {PAYMENT_METHODS.map((pm) => (
-          <Pressable
-            key={pm.value}
-            onPress={() => setValue('paymentMethod', pm.value)}
-            style={[
-              styles.categoryChip,
-              selectedPayment === pm.value && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
-            ]}
-          >
-            <Text style={[styles.categoryText, selectedPayment === pm.value && styles.categoryTextActive]}>{pm.label}</Text>
-          </Pressable>
-        ))}
-      </View>
+      <FormFieldLabel>Payment Method</FormFieldLabel>
+      <OptionChips
+        options={PAYMENT_METHODS.map((p) => p.value)}
+        value={selectedPayment}
+        onChange={(v) => setValue('paymentMethod', v)}
+        getLabel={(v) => PAYMENT_METHODS.find((p) => p.value === v)?.label ?? v}
+      />
 
-      <Text style={styles.label}>Category</Text>
-      <View style={styles.categoryGrid}>
-        {categories?.map((cat) => (
-          <Pressable
-            key={cat.id}
-            onPress={() => setValue('categoryId', cat.id)}
-            style={[
-              styles.categoryChip,
-              selectedCategory === cat.id && { backgroundColor: cat.color ?? theme.colors.primary, borderColor: cat.color ?? theme.colors.primary },
-            ]}
-          >
-            <Text style={[styles.categoryText, selectedCategory === cat.id && styles.categoryTextActive]}>{cat.name}</Text>
-          </Pressable>
-        ))}
-      </View>
+      <FormFieldLabel>Category</FormFieldLabel>
+      <OptionChipList
+        items={(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined }))}
+        selectedId={selectedCategory}
+        onSelect={(id) => setValue('categoryId', id)}
+      />
 
-      <Text style={styles.label}>Receipt (optional)</Text>
+      <FormFieldLabel>Receipt (optional)</FormFieldLabel>
       <Pressable onPress={pick} accessibilityRole="button" accessibilityLabel="Attach receipt">
         <DashedBorder width="100%" height={120} borderRadius={12} color={theme.colors.border} style={styles.receiptPicker}>
           {receipt ? (
             <Image source={{ uri: receipt.uri }} style={styles.receiptPreview} resizeMode="contain" />
           ) : (
-            <Text style={styles.receiptPlaceholder}>Tap to attach JPG/PNG receipt</Text>
+            <View style={styles.receiptPlaceholderWrap}>
+              <Text style={styles.receiptPlaceholder}>Tap to attach JPG/PNG receipt</Text>
+            </View>
           )}
         </DashedBorder>
       </Pressable>
@@ -133,7 +127,7 @@ export default function AddExpenseScreen() {
         )}
       />
 
-      <Button title="Save Expense" onPress={handleSubmit(onSubmit)} loading={loading} />
+      <Button title="Save Expense" onPress={handleSubmit(onSubmit)} loading={loading} size="lg" />
     </ScrollView>
   );
 }
@@ -141,22 +135,14 @@ export default function AddExpenseScreen() {
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.colors.background },
-    label: { fontSize: 14, fontWeight: '500', color: t.colors.text, marginBottom: 8 },
-    categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-    categoryChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: t.colors.border, backgroundColor: t.colors.surface },
-    categoryText: { fontSize: 13, color: t.colors.text },
-    categoryTextActive: { color: t.colors.onPrimary, fontWeight: '600' },
     receiptPicker: {
-      marginBottom: 16,
+      marginBottom: t.spacing.lg,
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: t.colors.surface,
+      backgroundColor: t.isDark ? 'rgba(255,255,255,0.03)' : t.colors.surface,
     },
-    receiptPreview: {
-      width: '100%',
-      height: 120,
-      maxHeight: 120,
-    },
-    receiptPlaceholder: { color: t.colors.textSecondary, fontSize: 14 },
+    receiptPreview: { width: '100%', height: 120, maxHeight: 120 },
+    receiptPlaceholderWrap: { padding: t.spacing.lg },
+    receiptPlaceholder: { color: t.colors.textSecondary, fontSize: 14, textAlign: 'center' },
   });
 }

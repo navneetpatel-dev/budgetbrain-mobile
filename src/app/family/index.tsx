@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { StyleSheet, View, ScrollView, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Controller } from 'react-hook-form';
-import { Button, Input, Card, useScrollContentStyle } from '@/shared/components/ui';
+import { Button, Input, Card, useScrollContentStyle, ScreenIntro, GroupedCard, EmptyState } from '@/shared/components/ui';
 import { useTheme } from '@/shared/theme';
 import { useFamilyGroups } from '@/features/family/hooks/useFamilyGroups';
 
@@ -15,20 +15,25 @@ export default function FamilyScreen() {
   if (!isPremium) {
     return (
       <View style={styles.gate}>
-        <Text style={styles.gateTitle}>Family Accounts is Premium</Text>
-        <Text style={styles.gateSubtitle}>Share budgets and track expenses together with family members</Text>
-        <Button title="Upgrade to Premium" onPress={() => router.push('/subscription')} />
+        <EmptyState
+          icon="family"
+          title="Family Accounts is Premium"
+          subtitle="Share budgets and track expenses together with family members"
+          action="Upgrade to Premium"
+          onAction={() => router.push('/subscription')}
+        />
       </View>
     );
   }
 
   const contentStyle = useScrollContentStyle();
+  const groups = memberships ?? [];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={contentStyle}>
-      <Text style={styles.title}>Family Groups</Text>
+    <ScrollView style={styles.container} contentContainerStyle={contentStyle} keyboardShouldPersistTaps="handled">
+      <ScreenIntro eyebrow="SHARED" subtitle="Manage family groups and invite members" />
 
-      {memberships?.map((m) => (
+      {groups.map((m) => (
         <Card key={m.id} style={styles.groupCard}>
           <Text style={styles.groupName}>{m.group?.name ?? 'Family Group'}</Text>
           <Text style={styles.groupRole}>Role: {m.role}</Text>
@@ -38,21 +43,19 @@ export default function FamilyScreen() {
         </Card>
       ))}
 
-      <Card style={styles.formCard}>
-        <Text style={styles.formTitle}>Create Group</Text>
+      <GroupedCard title="CREATE GROUP">
         <Controller
           control={groupForm.control}
           name="name"
           rules={{ required: 'Name is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label="Group Name" value={value} onChangeText={onChange} error={groupForm.formState.errors.name?.message} />
+            <Input label="Group Name" value={value} onChangeText={onChange} error={groupForm.formState.errors.name?.message} leftIcon="family" />
           )}
         />
         <Button title="Create Group" onPress={groupForm.handleSubmit(createGroup)} loading={loading} />
-      </Card>
+      </GroupedCard>
 
-      <Card style={styles.formCard}>
-        <Text style={styles.formTitle}>Join with Invite Code</Text>
+      <GroupedCard title="JOIN GROUP">
         <Controller
           control={joinForm.control}
           name="inviteCode"
@@ -62,7 +65,7 @@ export default function FamilyScreen() {
           )}
         />
         <Button title="Join Group" onPress={joinForm.handleSubmit(joinGroup)} variant="outline" loading={loading} />
-      </Card>
+      </GroupedCard>
     </ScrollView>
   );
 }
@@ -70,15 +73,10 @@ export default function FamilyScreen() {
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.colors.background },
-    gate: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32, backgroundColor: t.colors.background },
-    gateTitle: { fontSize: 22, fontWeight: '800', color: t.colors.text, marginBottom: 8 },
-    gateSubtitle: { fontSize: 15, color: t.colors.textSecondary, textAlign: 'center', marginBottom: 24 },
-    title: { fontSize: 24, fontWeight: '800', color: t.colors.text, marginBottom: 16 },
+    gate: { flex: 1, justifyContent: 'center', padding: 32, backgroundColor: t.colors.background },
     groupCard: { marginBottom: 12 },
     groupName: { fontSize: 16, fontWeight: '700', color: t.colors.text },
     groupRole: { fontSize: 13, color: t.colors.textSecondary, marginTop: 4, textTransform: 'capitalize' },
     inviteCode: { fontSize: 14, color: t.colors.primary, fontWeight: '600', marginTop: 8 },
-    formCard: { marginBottom: 16 },
-    formTitle: { fontSize: 16, fontWeight: '700', color: t.colors.text, marginBottom: 12 },
   });
 }

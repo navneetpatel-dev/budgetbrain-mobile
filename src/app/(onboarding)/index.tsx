@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, Text, Pressable } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Input, Screen } from '@/shared/components/ui';
+import { Button, Input, Screen, FormFieldLabel, OptionChips, MultiOptionChips } from '@/shared/components/ui';
 import { useOnboarding, type OnboardingForm } from '@/features/onboarding/hooks/useOnboarding';
 import { SUPPORTED_CURRENCIES, FINANCIAL_GOALS, SALARY_RANGES } from '@/shared/constants/config';
 import { useTheme } from '@/shared/theme';
@@ -27,15 +27,17 @@ export default function OnboardingScreen() {
 
   return (
     <Screen>
-      <Text style={styles.title}>Welcome to ExpenseFlow</Text>
-      <Text style={styles.subtitle}>Let's personalize your experience</Text>
+      <View style={styles.intro}>
+        <Text style={styles.eyebrow}>WELCOME</Text>
+        <Text style={styles.title}>Let's personalize your experience</Text>
+      </View>
 
       <Controller
         control={control}
         name="name"
         rules={{ required: 'Name is required' }}
         render={({ field: { onChange, value } }) => (
-          <Input label="Your Name" value={value} onChangeText={onChange} error={errors.name?.message} />
+          <Input label="Your Name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="personFill" />
         )}
       />
 
@@ -48,55 +50,25 @@ export default function OnboardingScreen() {
         )}
       />
 
-      <Text style={styles.sectionLabel}>Currency</Text>
+      <FormFieldLabel>Currency</FormFieldLabel>
       <Controller
         control={control}
         name="currency"
         render={({ field: { onChange, value } }) => (
-          <View style={styles.chipRow}>
-            {SUPPORTED_CURRENCIES.map((c) => (
-              <Pressable
-                key={c}
-                onPress={() => onChange(c)}
-                style={[styles.chip, value === c && styles.chipActive]}
-              >
-                <Text style={[styles.chipText, value === c && styles.chipTextActive]}>{c}</Text>
-              </Pressable>
-            ))}
-          </View>
+          <OptionChips options={[...SUPPORTED_CURRENCIES]} value={value} onChange={onChange} />
         )}
       />
 
-      <Text style={styles.sectionLabel}>Financial Goals</Text>
-      <View style={styles.chipRow}>
-        {FINANCIAL_GOALS.map((goal) => (
-          <Pressable
-            key={goal}
-            onPress={() => toggleGoal(goal)}
-            style={[styles.chip, selectedGoals.includes(goal) && styles.chipActive]}
-          >
-            <Text style={[styles.chipText, selectedGoals.includes(goal) && styles.chipTextActive]}>{goal}</Text>
-          </Pressable>
-        ))}
-      </View>
+      <FormFieldLabel>Financial Goals</FormFieldLabel>
+      <MultiOptionChips options={[...FINANCIAL_GOALS]} selected={selectedGoals} onToggle={toggleGoal} />
 
-      <Text style={styles.sectionLabel}>Salary Range</Text>
+      <FormFieldLabel>Salary Range</FormFieldLabel>
       <Controller
         control={control}
         name="salaryRange"
         rules={{ required: 'Select salary range' }}
         render={({ field: { onChange, value } }) => (
-          <View style={styles.chipRow}>
-            {SALARY_RANGES.map((range) => (
-              <Pressable
-                key={range}
-                onPress={() => onChange(range)}
-                style={[styles.chip, value === range && styles.chipActive]}
-              >
-                <Text style={[styles.chipText, value === range && styles.chipTextActive]}>{range}</Text>
-              </Pressable>
-            ))}
-          </View>
+          <OptionChips options={[...SALARY_RANGES]} value={value} onChange={onChange} />
         )}
       />
 
@@ -115,27 +87,27 @@ export default function OnboardingScreen() {
         )}
       />
 
-      <Button title="Get Started" onPress={handleSubmit(submit)} loading={loading} />
+      <Button title="Get Started" onPress={handleSubmit(submit)} loading={loading} size="lg" />
     </Screen>
   );
 }
 
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    title: { ...t.typography.display, color: t.colors.text },
-    subtitle: { ...t.typography.bodyMedium, color: t.colors.textSecondary, marginBottom: 24 },
-    sectionLabel: { fontSize: 14, fontWeight: '600', color: t.colors.text, marginBottom: 8, marginTop: 8 },
-    chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-    chip: {
-      paddingHorizontal: 14,
-      paddingVertical: 8,
-      borderRadius: 20,
-      backgroundColor: t.colors.surface,
-      borderWidth: 1,
-      borderColor: t.colors.border,
+    intro: { marginBottom: t.spacing.lg },
+    eyebrow: {
+      fontSize: 10,
+      fontWeight: '700',
+      letterSpacing: 1.1,
+      color: t.colors.textTertiary,
+      marginBottom: 4,
     },
-    chipActive: { backgroundColor: t.colors.primary, borderColor: t.colors.primary },
-    chipText: { fontSize: 13, color: t.colors.text },
-    chipTextActive: { color: t.colors.onPrimary, fontWeight: '600' },
+    title: {
+      ...t.typography.titleSm,
+      fontSize: 22,
+      fontWeight: '800',
+      color: t.colors.text,
+      letterSpacing: -0.3,
+    },
   });
 }

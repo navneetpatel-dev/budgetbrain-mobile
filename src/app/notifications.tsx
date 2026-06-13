@@ -1,54 +1,54 @@
 import { useMemo } from 'react';
-import { StyleSheet, Text, FlatList, Pressable } from 'react-native';
-import { Card, EmptyState, ScreenLoader, ScreenContainer } from '@/shared/components/ui';
+import { StyleSheet, Text, RefreshControl } from 'react-native';
+import { Card, EmptyState, ScreenLoader, FeatureHeader, StickyHeaderFlatScreen } from '@/shared/components/ui';
 import { useTheme } from '@/shared/theme';
-import { useResponsive } from '@/shared/utils/responsive';
 import { useMarkNotificationRead } from '@/features/notifications/hooks/useMarkNotificationRead';
 
 export default function NotificationsScreen() {
   const theme = useTheme();
-  const { screenPaddingX, stackGap } = useResponsive();
-  const styles = useMemo(() => createStyles(theme, screenPaddingX, stackGap), [theme, screenPaddingX, stackGap]);
-  const { data, isLoading, refetch, isRefetching, markRead } = useMarkNotificationRead();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  const { data, isLoading, refetch, isRefetching } = useMarkNotificationRead();
 
   if (isLoading) {
     return <ScreenLoader />;
   }
 
+  const items = data ?? [];
+  const unread = items.filter((n) => !n.read).length;
+
   return (
-    <ScreenContainer padded={false}>
-      <FlatList
-        style={styles.container}
-        data={data ?? []}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        onRefresh={refetch}
-        refreshing={isRefetching}
-        ListEmptyComponent={<EmptyState title="No notifications" subtitle="You're all caught up" icon="bell" />}
-        renderItem={({ item }) => (
-          <Pressable
-            onPress={() => !item.read && markRead(item.id)}
-            accessibilityRole="button"
-            accessibilityLabel={item.title}
-          >
-            <Card style={{ ...styles.card, ...(!item.read ? styles.unread : {}) }}>
-              <Text style={styles.title}>{item.title}</Text>
-              <Text style={styles.body}>{item.body}</Text>
-              <Text style={styles.date}>{new Date(item.sentAt).toLocaleDateString()}</Text>
-            </Card>
-          </Pressable>
-        )}
-      />
-    </ScreenContainer>
+    <StickyHeaderFlatScreen
+      inset="stack"
+      header={
+        <FeatureHeader
+          eyebrow="INBOX"
+          title="Notifications"
+          subtitle={unread > 0 ? `${unread} unread` : 'All caught up'}
+        />
+      }
+      data={items}
+      keyExtractor={(item) => item.id}
+      refreshControl={
+        <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
+      }
+      ListEmptyComponent={
+        <EmptyState title="No notifications" subtitle="You're all caught up" icon="bell" />
+      }
+      renderItem={({ item }) => (
+        <Card style={item.read ? styles.card : styles.unreadCard}>
+          <Text style={styles.title}>{item.title}</Text>
+          <Text style={styles.body}>{item.body}</Text>
+          <Text style={styles.date}>{new Date(item.sentAt).toLocaleDateString()}</Text>
+        </Card>
+      )}
+    />
   );
 }
 
-function createStyles(t: ReturnType<typeof useTheme>, screenPaddingX: number, stackGap: number) {
+function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: t.colors.background },
-    list: { paddingHorizontal: screenPaddingX, paddingTop: stackGap, paddingBottom: stackGap, gap: stackGap },
-    card: { marginBottom: 10 },
-    unread: { borderLeftWidth: 3, borderLeftColor: t.colors.primary },
+    card: { marginBottom: 0 },
+    unreadCard: { marginBottom: 0, borderLeftWidth: 3, borderLeftColor: t.colors.primary },
     title: { ...t.typography.bodyMedium, fontWeight: '700', color: t.colors.text },
     body: { ...t.typography.bodyMedium, color: t.colors.textSecondary, marginTop: 4 },
     date: { ...t.typography.caption, color: t.colors.textSecondary, marginTop: 8, fontSize: 11 },

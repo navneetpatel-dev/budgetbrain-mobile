@@ -1,8 +1,16 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, ScrollView, Pressable, Text } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Input, DateInput, useScrollContentStyle } from '@/shared/components/ui';
+import {
+  Button,
+  Input,
+  DateInput,
+  useScrollContentStyle,
+  FormFieldLabel,
+  OptionChips,
+  OptionChipList,
+} from '@/shared/components/ui';
 import { apiGet } from '@/shared/services/api';
 import { useCreateBudget, type BudgetForm } from '@/features/budgets/hooks/useCreateBudget';
 import { useTheme } from '@/shared/theme';
@@ -40,28 +48,22 @@ export default function AddBudgetScreen() {
   const contentStyle = useScrollContentStyle();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={contentStyle}>
+    <ScrollView style={styles.container} contentContainerStyle={contentStyle} keyboardShouldPersistTaps="handled">
       <Controller
         control={control}
         name="name"
         rules={{ required: 'Name is required' }}
         render={({ field: { onChange, value } }) => (
-          <Input label="Budget Name" value={value} onChangeText={onChange} error={errors.name?.message} />
+          <Input label="Budget Name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="budgets" />
         )}
       />
 
-      <Text style={styles.label}>Budget Type</Text>
-      <View style={styles.chipRow}>
-        {(['monthly', 'weekly', 'category'] as const).map((t) => (
-          <Pressable
-            key={t}
-            onPress={() => setValue('type', t)}
-            style={[styles.chip, budgetType === t && styles.chipActive]}
-          >
-            <Text style={[styles.chipText, budgetType === t && styles.chipTextActive]}>{t}</Text>
-          </Pressable>
-        ))}
-      </View>
+      <FormFieldLabel>Budget Type</FormFieldLabel>
+      <OptionChips
+        options={['monthly', 'weekly', 'category'] as const}
+        value={budgetType}
+        onChange={(v) => setValue('type', v)}
+      />
 
       <Controller
         control={control}
@@ -90,22 +92,16 @@ export default function AddBudgetScreen() {
 
       {budgetType === 'category' && (
         <>
-          <Text style={styles.label}>Category</Text>
-          <View style={styles.chipRow}>
-            {categories?.map((cat) => (
-              <Pressable
-                key={cat.id}
-                onPress={() => setValue('categoryId', cat.id)}
-                style={[styles.chip, selectedCategory === cat.id && { backgroundColor: cat.color ?? theme.colors.primary, borderColor: cat.color ?? theme.colors.primary }]}
-              >
-                <Text style={[styles.chipText, selectedCategory === cat.id && styles.chipTextActive]}>{cat.name}</Text>
-              </Pressable>
-            ))}
-          </View>
+          <FormFieldLabel>Category</FormFieldLabel>
+          <OptionChipList
+            items={(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined }))}
+            selectedId={selectedCategory}
+            onSelect={(id) => setValue('categoryId', id)}
+          />
         </>
       )}
 
-      <Button title="Create Budget" onPress={handleSubmit(create)} loading={loading} />
+      <Button title="Create Budget" onPress={handleSubmit(create)} loading={loading} size="lg" />
     </ScrollView>
   );
 }
@@ -113,11 +109,5 @@ export default function AddBudgetScreen() {
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.colors.background },
-    label: { fontSize: 14, fontWeight: '500', color: t.colors.text, marginBottom: 8 },
-    chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-    chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: t.colors.border, backgroundColor: t.colors.surface },
-    chipActive: { backgroundColor: t.colors.primary, borderColor: t.colors.primary },
-    chipText: { fontSize: 13, color: t.colors.text, textTransform: 'capitalize' },
-    chipTextActive: { color: t.colors.onPrimary, fontWeight: '600' },
   });
 }

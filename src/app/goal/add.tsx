@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, ScrollView, Pressable, Text } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Input, DateInput, useScrollContentStyle } from '@/shared/components/ui';
+import { Button, Input, DateInput, useScrollContentStyle, FormFieldLabel, OptionChips } from '@/shared/components/ui';
 import { useCreateGoal, type GoalForm } from '@/features/goals/hooks/useCreateGoal';
 import { GOAL_TYPES } from '@/shared/constants/config';
 import { useTheme } from '@/shared/theme';
@@ -18,32 +18,26 @@ export default function AddGoalScreen() {
   });
 
   const goalType = watch('type');
-
   const contentStyle = useScrollContentStyle();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={contentStyle}>
+    <ScrollView style={styles.container} contentContainerStyle={contentStyle} keyboardShouldPersistTaps="handled">
       <Controller
         control={control}
         name="name"
         rules={{ required: 'Name is required' }}
         render={({ field: { onChange, value } }) => (
-          <Input label="Goal Name" value={value} onChangeText={onChange} error={errors.name?.message} />
+          <Input label="Goal Name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="goals" />
         )}
       />
 
-      <Text style={styles.label}>Goal Type</Text>
-      <View style={styles.chipRow}>
-        {GOAL_TYPES.map((t) => (
-          <Pressable
-            key={t.value}
-            onPress={() => setValue('type', t.value)}
-            style={[styles.chip, goalType === t.value && styles.chipActive]}
-          >
-            <Text style={[styles.chipText, goalType === t.value && styles.chipTextActive]}>{t.label}</Text>
-          </Pressable>
-        ))}
-      </View>
+      <FormFieldLabel>Goal Type</FormFieldLabel>
+      <OptionChips
+        options={GOAL_TYPES.map((t) => t.value)}
+        value={goalType}
+        onChange={(v) => setValue('type', v)}
+        getLabel={(v) => GOAL_TYPES.find((t) => t.value === v)?.label ?? v}
+      />
 
       <Controller
         control={control}
@@ -62,7 +56,7 @@ export default function AddGoalScreen() {
         )}
       />
 
-      <Button title="Create Goal" onPress={handleSubmit(create)} loading={loading} />
+      <Button title="Create Goal" onPress={handleSubmit(create)} loading={loading} size="lg" />
     </ScrollView>
   );
 }
@@ -70,11 +64,5 @@ export default function AddGoalScreen() {
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.colors.background },
-    label: { fontSize: 14, fontWeight: '500', color: t.colors.text, marginBottom: 8 },
-    chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-    chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: t.colors.border, backgroundColor: t.colors.surface },
-    chipActive: { backgroundColor: t.colors.primary, borderColor: t.colors.primary },
-    chipText: { fontSize: 13, color: t.colors.text },
-    chipTextActive: { color: t.colors.onPrimary, fontWeight: '600' },
   });
 }

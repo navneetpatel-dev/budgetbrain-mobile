@@ -116,7 +116,10 @@ function createGroupedStyles(t: AppTheme) {
   return StyleSheet.create({
     wrapper: { marginBottom: t.spacing.section },
     groupTitle: {
-      ...t.typography.label,
+      fontSize: 11,
+      fontWeight: '700',
+      letterSpacing: 0.9,
+      textTransform: 'uppercase',
       color: t.colors.textTertiary,
       marginBottom: t.spacing.sm,
       marginLeft: t.spacing.xs,

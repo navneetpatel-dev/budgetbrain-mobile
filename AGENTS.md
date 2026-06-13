@@ -133,3 +133,22 @@ Existing features should adopt this layout incrementally:
 - `navigation/` — `components/` (AppIcon, TabBar, Fab)
 
 When touching a feature, colocate new code in the correct layer rather than mixing logic into components.
+
+---
+
+## Shared UI design system
+
+Use these from `@/shared/components/ui` for consistent screen styling:
+
+| Component | Use for |
+|-----------|---------|
+| `FeatureHeader` | Compact eyebrow + title + subtitle (+ optional action/footer) |
+| `StickyHeaderScreen` | Tab screens: fixed header, scroll body, tab-bar inset |
+| `StickyHeaderFlatScreen` | List tab/stack screens with sticky header (`inset="stack"` off tabs) |
+| `SearchField` / `HeaderIconButton` | Header search row and icon actions |
+| `FormFieldLabel` | Uppercase section labels on forms |
+| `OptionChips` / `OptionChipList` / `MultiOptionChips` | Single/multi-select pill chips |
+| `ActionFab` | Gradient floating add button (stack list screens) |
+| `ScreenIntro` | Eyebrow + subtitle under native stack headers |
+| `GroupedCard` | Sectioned card groups with uppercase titles |
+| `EmptyState` | Empty lists with gradient CTA |

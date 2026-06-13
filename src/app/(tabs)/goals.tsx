@@ -1,22 +1,25 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, FlatList, RefreshControl, Text, Pressable } from 'react-native';
+import { StyleSheet, View, RefreshControl, Text, Pressable } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { appHref } from '@/shared/utils/navigation';
 import { apiGet } from '@/shared/services/api';
-import { Card, EmptyState, ScreenSkeleton, ScreenContainer, ProgressBar } from '@/shared/components/ui';
+import {
+  Card,
+  EmptyState,
+  ScreenSkeleton,
+  FeatureHeader,
+  StickyHeaderFlatScreen,
+  ProgressBar,
+} from '@/shared/components/ui';
 import { Fab } from '@/features/navigation/components/Fab';
 import { useTheme } from '@/shared/theme';
-import { useTabBarInset } from '@/shared/hooks/useTabBarInset';
-import { useResponsive } from '@/shared/utils/responsive';
 import { formatCurrency } from '@/shared/utils/currency';
 import type { Goal } from '@/shared/types';
 
 export default function GoalsScreen() {
   const theme = useTheme();
-  const tabBarInset = useTabBarInset();
-  const { stackGap } = useResponsive();
-  const styles = useMemo(() => createStyles(theme, stackGap), [theme, stackGap]);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['goals'],
@@ -27,14 +30,35 @@ export default function GoalsScreen() {
     return <ScreenSkeleton rows={3} />;
   }
 
+  const goals = data ?? [];
+
   return (
-    <ScreenContainer>
-      <FlatList
-        data={data ?? []}
+    <View style={styles.root}>
+      <StickyHeaderFlatScreen
+        header={
+          <FeatureHeader
+            eyebrow="SAVE"
+            title="Goals"
+            subtitle={`${goals.length} active goal${goals.length !== 1 ? 's' : ''}`}
+            actionIcon="add"
+            actionLabel="Create goal"
+            onAction={() => router.push('/goal/add')}
+          />
+        }
+        data={goals}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={[styles.list, { paddingBottom: tabBarInset }]}
-        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />}
-        ListEmptyComponent={<EmptyState title="No goals yet" subtitle="Set a financial goal to stay motivated" icon="goals" />}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
+        }
+        ListEmptyComponent={
+          <EmptyState
+            title="No goals yet"
+            subtitle="Set a financial goal to stay motivated"
+            icon="goals"
+            action="Create goal"
+            onAction={() => router.push('/goal/add')}
+          />
+        }
         renderItem={({ item }) => {
           const progress = Math.min(100, Math.round((Number(item.currentAmount) / Number(item.targetAmount)) * 100));
 
@@ -69,13 +93,13 @@ export default function GoalsScreen() {
         }}
       />
       <Fab href="/goal/add" aboveTabBar />
-    </ScreenContainer>
+    </View>
   );
 }
 
-function createStyles(t: ReturnType<typeof useTheme>, stackGap: number) {
+function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    list: { paddingTop: t.spacing.lg, gap: stackGap },
+    root: { flex: 1 },
     goalCard: { marginBottom: 0 },
     goalName: { ...t.typography.titleSm, color: t.colors.text },
     goalType: { ...t.typography.caption, color: t.colors.textSecondary, textTransform: 'capitalize', marginBottom: 8 },

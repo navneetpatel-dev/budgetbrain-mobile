@@ -1,8 +1,16 @@
 import { useState, useMemo } from 'react';
-import { StyleSheet, View, ScrollView, Pressable, Text } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Input, DateInput, useScrollContentStyle } from '@/shared/components/ui';
+import {
+  Button,
+  Input,
+  DateInput,
+  useScrollContentStyle,
+  FormFieldLabel,
+  OptionChips,
+  OptionChipList,
+} from '@/shared/components/ui';
 import { apiGet } from '@/shared/services/api';
 import { useCreateIncome, type IncomeForm } from '@/features/income/hooks/useCreateIncome';
 import { INCOME_SOURCE_TYPES } from '@/shared/constants/config';
@@ -35,17 +43,16 @@ export default function AddIncomeScreen() {
 
   const selectedSource = watch('incomeSourceId');
   const newSourceType = watch('newSourceType');
-
   const contentStyle = useScrollContentStyle();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={contentStyle}>
+    <ScrollView style={styles.container} contentContainerStyle={contentStyle} keyboardShouldPersistTaps="handled">
       <Controller
         control={control}
         name="amount"
         rules={{ required: 'Amount is required' }}
         render={({ field: { onChange, value } }) => (
-          <Input label={amountLabel('Amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} />
+          <Input label={amountLabel('Amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} leftIcon="income" />
         )}
       />
 
@@ -58,20 +65,14 @@ export default function AddIncomeScreen() {
         )}
       />
 
-      <Text style={styles.label}>Income Source</Text>
+      <FormFieldLabel>Income Source</FormFieldLabel>
       {!showNewSource ? (
         <>
-          <View style={styles.chipRow}>
-            {sources?.map((src) => (
-              <Pressable
-                key={src.id}
-                onPress={() => setValue('incomeSourceId', src.id)}
-                style={[styles.chip, selectedSource === src.id && styles.chipActive]}
-              >
-                <Text style={[styles.chipText, selectedSource === src.id && styles.chipTextActive]}>{src.name}</Text>
-              </Pressable>
-            ))}
-          </View>
+          <OptionChipList
+            items={(sources ?? []).map((src) => ({ id: src.id, label: src.name }))}
+            selectedId={selectedSource}
+            onSelect={(id) => setValue('incomeSourceId', id)}
+          />
           <Button title="Add New Source" onPress={() => setShowNewSource(true)} variant="outline" />
         </>
       ) : (
@@ -84,18 +85,13 @@ export default function AddIncomeScreen() {
               <Input label="Source Name" value={value} onChangeText={onChange} placeholder="e.g. Salary, Freelance" error={errors.newSourceName?.message} />
             )}
           />
-          <Text style={styles.label}>Source Type</Text>
-          <View style={styles.chipRow}>
-            {INCOME_SOURCE_TYPES.map((t) => (
-              <Pressable
-                key={t.value}
-                onPress={() => setValue('newSourceType', t.value)}
-                style={[styles.chip, newSourceType === t.value && styles.chipActive]}
-              >
-                <Text style={[styles.chipText, newSourceType === t.value && styles.chipTextActive]}>{t.label}</Text>
-              </Pressable>
-            ))}
-          </View>
+          <FormFieldLabel>Source Type</FormFieldLabel>
+          <OptionChips
+            options={INCOME_SOURCE_TYPES.map((t) => t.value)}
+            value={newSourceType}
+            onChange={(v) => setValue('newSourceType', v)}
+            getLabel={(v) => INCOME_SOURCE_TYPES.find((t) => t.value === v)?.label ?? v}
+          />
           <Button title="Use Existing Source" onPress={() => setShowNewSource(false)} variant="outline" />
         </>
       )}
@@ -108,7 +104,7 @@ export default function AddIncomeScreen() {
         )}
       />
 
-      <Button title="Save Income" onPress={handleSubmit((data) => create(data, showNewSource))} loading={loading} />
+      <Button title="Save Income" onPress={handleSubmit((data) => create(data, showNewSource))} loading={loading} size="lg" />
     </ScrollView>
   );
 }
@@ -116,11 +112,5 @@ export default function AddIncomeScreen() {
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.colors.background },
-    label: { fontSize: 14, fontWeight: '500', color: t.colors.text, marginBottom: 8 },
-    chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-    chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: t.colors.border, backgroundColor: t.colors.surface },
-    chipActive: { backgroundColor: t.colors.success, borderColor: t.colors.success },
-    chipText: { fontSize: 13, color: t.colors.text },
-    chipTextActive: { color: t.colors.onPrimary, fontWeight: '600' },
   });
 }

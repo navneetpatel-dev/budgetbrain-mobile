@@ -1,9 +1,20 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, ScrollView, Alert, Pressable, Text } from 'react-native';
+import { StyleSheet, ScrollView, Alert, Text } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Input, Card, DateInput, ScreenLoader, useScrollContentStyle } from '@/shared/components/ui';
+import {
+  Button,
+  Input,
+  Card,
+  DateInput,
+  ScreenLoader,
+  useScrollContentStyle,
+  FormFieldLabel,
+  OptionChips,
+  OptionChipList,
+  GroupedCard,
+} from '@/shared/components/ui';
 import { apiGet } from '@/shared/services/api';
 import { useExpenseDetail, type ExpenseForm } from '@/features/expenses/hooks/useExpenseDetail';
 import { PAYMENT_METHODS } from '@/shared/constants/config';
@@ -62,24 +73,21 @@ export default function ExpenseDetailScreen() {
   }
 
   const symbol = formatCurrency(Number(expense.amount), expense.currency);
-
   const contentStyle = useScrollContentStyle();
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={contentStyle}>
       {!editing ? (
         <>
-          <Card>
+          <GroupedCard title="DETAILS">
             <Text style={styles.amount}>{symbol}</Text>
             <Text style={styles.merchant}>{expense.merchant ?? expense.category?.name ?? 'Expense'}</Text>
             <Text style={styles.meta}>Date: {expense.date}</Text>
             <Text style={styles.meta}>Payment: {expense.paymentMethod?.replace('_', ' ') ?? '—'}</Text>
             {expense.notes && <Text style={styles.notes}>{expense.notes}</Text>}
-          </Card>
+          </GroupedCard>
           <Button title="Edit" onPress={() => startEditing(reset)} />
-          <View style={styles.spacer} />
           <Button title="Duplicate" onPress={handleDuplicate} variant="outline" loading={loading} />
-          <View style={styles.spacer} />
           <Button title="Delete" onPress={confirmDelete} variant="danger" loading={loading} />
         </>
       ) : (
@@ -106,30 +114,19 @@ export default function ExpenseDetailScreen() {
               <DateInput label="Date" value={value} onChange={onChange} />
             )}
           />
-          <Text style={styles.label}>Payment Method</Text>
-          <View style={styles.chipRow}>
-            {PAYMENT_METHODS.map((pm) => (
-              <Pressable
-                key={pm.value}
-                onPress={() => setValue('paymentMethod', pm.value)}
-                style={[styles.chip, selectedPayment === pm.value && styles.chipActive]}
-              >
-                <Text style={[styles.chipText, selectedPayment === pm.value && styles.chipTextActive]}>{pm.label}</Text>
-              </Pressable>
-            ))}
-          </View>
-          <Text style={styles.label}>Category</Text>
-          <View style={styles.chipRow}>
-            {categories?.map((cat) => (
-              <Pressable
-                key={cat.id}
-                onPress={() => setValue('categoryId', cat.id)}
-                style={[styles.chip, selectedCategory === cat.id && { backgroundColor: cat.color ?? theme.colors.primary, borderColor: cat.color ?? theme.colors.primary }]}
-              >
-                <Text style={[styles.chipText, selectedCategory === cat.id && styles.chipTextActive]}>{cat.name}</Text>
-              </Pressable>
-            ))}
-          </View>
+          <FormFieldLabel>Payment Method</FormFieldLabel>
+          <OptionChips
+            options={PAYMENT_METHODS.map((pm) => pm.value)}
+            value={selectedPayment}
+            onChange={(v) => setValue('paymentMethod', v)}
+            getLabel={(v) => PAYMENT_METHODS.find((pm) => pm.value === v)?.label ?? v}
+          />
+          <FormFieldLabel>Category</FormFieldLabel>
+          <OptionChipList
+            items={(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined }))}
+            selectedId={selectedCategory}
+            onSelect={(id) => setValue('categoryId', id)}
+          />
           <Controller
             control={control}
             name="notes"
@@ -137,8 +134,7 @@ export default function ExpenseDetailScreen() {
               <Input label="Notes" value={value} onChangeText={onChange} />
             )}
           />
-          <Button title="Save Changes" onPress={handleSubmit(onSave)} loading={loading} />
-          <View style={styles.spacer} />
+          <Button title="Save Changes" onPress={handleSubmit(onSave)} loading={loading} size="lg" />
           <Button title="Cancel" onPress={() => setEditing(false)} variant="outline" />
         </>
       )}
@@ -153,12 +149,5 @@ function createStyles(t: ReturnType<typeof useTheme>) {
     merchant: { fontSize: 18, fontWeight: '600', color: t.colors.text, marginTop: 8 },
     meta: { fontSize: 14, color: t.colors.textSecondary, marginTop: 4 },
     notes: { fontSize: 14, color: t.colors.text, marginTop: 12 },
-    label: { fontSize: 14, fontWeight: '500', color: t.colors.text, marginBottom: 8 },
-    chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-    chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: t.colors.border, backgroundColor: t.colors.surface },
-    chipActive: { backgroundColor: t.colors.primary, borderColor: t.colors.primary },
-    chipText: { fontSize: 13, color: t.colors.text },
-    chipTextActive: { color: t.colors.onPrimary, fontWeight: '600' },
-    spacer: { height: 12 },
   });
 }
