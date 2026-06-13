@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { StyleSheet, View, FlatList, Alert, Pressable, Text, ActivityIndicator } from 'react-native';
+import { useState, useMemo } from 'react';
+import { StyleSheet, View, FlatList, Alert, Pressable, Text } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Input, Card, EmptyState } from '@/src/components/ui';
+import { Button, Input, Card, EmptyState, ScreenLoader } from '@/src/components/ui';
 import { apiGet, apiPost, apiPatch } from '@/src/services/api';
-import { COLORS } from '@/src/constants/config';
+import { useTheme } from '@/src/theme';
 import type { Investment } from '@/src/types';
 
 interface InvestmentForm {
@@ -27,6 +27,8 @@ const INVESTMENT_TYPES = [
 ] as const;
 
 export default function InvestmentsScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -109,11 +111,7 @@ export default function InvestmentsScreen() {
   };
 
   if (isLoading) {
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
-    );
+    return <ScreenLoader />;
   }
 
   return (
@@ -214,36 +212,37 @@ export default function InvestmentsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  list: { padding: 16, paddingBottom: 80 },
-  formCard: { margin: 16, marginBottom: 0 },
-  label: { fontSize: 14, fontWeight: '500', color: COLORS.text, marginBottom: 8 },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.card },
-  chipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  chipText: { fontSize: 13, color: COLORS.text },
-  chipTextActive: { color: '#fff', fontWeight: '600' },
-  item: { marginBottom: 10 },
-  itemName: { fontSize: 16, fontWeight: '600', color: COLORS.text },
-  itemMeta: { fontSize: 12, color: COLORS.textSecondary, marginTop: 2, textTransform: 'capitalize' },
-  itemAmount: { fontSize: 18, fontWeight: '700', color: COLORS.text, marginTop: 6 },
-  gainLoss: { fontSize: 13, marginTop: 4, fontWeight: '600' },
-  gain: { color: COLORS.success },
-  loss: { color: COLORS.danger },
-  spacer: { height: 8 },
-  fab: {
-    position: 'absolute',
-    bottom: 24,
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 4,
-  },
-  fabText: { color: '#fff', fontSize: 28, fontWeight: '300', marginTop: -2 },
-});
+function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.colors.background },
+    list: { padding: 16, paddingBottom: 80 },
+    formCard: { margin: 16, marginBottom: 0 },
+    label: { fontSize: 14, fontWeight: '500', color: t.colors.text, marginBottom: 8 },
+    chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
+    chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: t.colors.border, backgroundColor: t.colors.surface },
+    chipActive: { backgroundColor: t.colors.primary, borderColor: t.colors.primary },
+    chipText: { fontSize: 13, color: t.colors.text },
+    chipTextActive: { color: t.colors.onPrimary, fontWeight: '600' },
+    item: { marginBottom: 10 },
+    itemName: { fontSize: 16, fontWeight: '600', color: t.colors.text },
+    itemMeta: { fontSize: 12, color: t.colors.textSecondary, marginTop: 2, textTransform: 'capitalize' },
+    itemAmount: { fontSize: 18, fontWeight: '700', color: t.colors.text, marginTop: 6 },
+    gainLoss: { fontSize: 13, marginTop: 4, fontWeight: '600' },
+    gain: { color: t.colors.success },
+    loss: { color: t.colors.danger },
+    spacer: { height: 8 },
+    fab: {
+      position: 'absolute',
+      bottom: 24,
+      right: 24,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: t.colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...t.shadows.lg,
+    },
+    fabText: { color: t.colors.onPrimary, fontSize: 28, fontWeight: '300', marginTop: -2 },
+  });
+}

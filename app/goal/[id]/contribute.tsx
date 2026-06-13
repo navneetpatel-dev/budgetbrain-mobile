@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { StyleSheet, View, ScrollView, Alert } from 'react-native';
+import { useState, useMemo } from 'react';
+import { StyleSheet, ScrollView, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button, Input } from '@/src/components/ui';
 import { apiPost } from '@/src/services/api';
-import { COLORS } from '@/src/constants/config';
+import { useTheme } from '@/src/theme';
 
 interface ContributeForm {
   amount: string;
@@ -13,6 +13,8 @@ interface ContributeForm {
 }
 
 export default function ContributeGoalScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -61,7 +63,9 @@ export default function ContributeGoalScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: 16 },
-});
+function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.colors.background },
+    content: { padding: 16 },
+  });
+}

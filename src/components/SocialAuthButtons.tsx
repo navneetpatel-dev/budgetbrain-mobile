@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, Platform, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button } from './ui';
@@ -6,11 +6,13 @@ import { signInWithGoogle, signInWithApple } from '../services/socialAuth';
 import { setTokens } from '../services/api';
 import { setUser } from '../store/authSlice';
 import { useAppDispatch } from '../store/hooks';
-import { COLORS } from '../constants/config';
+import { useTheme } from '@/src/theme';
 
 export function SocialAuthButtons() {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const [loading, setLoading] = useState<'google' | 'apple' | null>(null);
 
   const handleResult = async (
@@ -78,8 +80,10 @@ export function SocialAuthButtons() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { marginTop: 16 },
-  divider: { textAlign: 'center', color: COLORS.textSecondary, marginBottom: 12, fontSize: 14 },
-  spacer: { marginTop: 8 },
-});
+function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    container: { marginTop: t.spacing.lg },
+    divider: { textAlign: 'center', color: t.colors.textSecondary, marginBottom: t.spacing.md, fontSize: 14 },
+    spacer: { marginTop: t.spacing.sm },
+  });
+}

@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
-import { StyleSheet, View, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { useState, useEffect, useMemo } from 'react';
+import { StyleSheet, View, ScrollView, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Input } from '@/src/components/ui';
+import { Button, Input, ScreenLoader } from '@/src/components/ui';
 import { apiGet, apiPatch, apiDelete } from '@/src/services/api';
-import { COLORS } from '@/src/constants/config';
+import { useTheme } from '@/src/theme';
 import type { Transaction } from '@/src/types';
 
 interface IncomeForm {
@@ -15,6 +15,8 @@ interface IncomeForm {
 }
 
 export default function IncomeEditScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -81,7 +83,7 @@ export default function IncomeEditScreen() {
   };
 
   if (isLoading || !income) {
-    return <View style={styles.loading}><ActivityIndicator size="large" color={COLORS.primary} /></View>;
+    return <ScreenLoader />;
   }
 
   return (
@@ -102,9 +104,10 @@ export default function IncomeEditScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: 16 },
-  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  spacer: { height: 12 },
-});
+function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.colors.background },
+    content: { padding: 16 },
+    spacer: { height: 12 },
+  });
+}

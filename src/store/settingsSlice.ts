@@ -1,9 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
-type ThemeMode = 'light' | 'dark' | 'system';
+import { REHYDRATE } from 'redux-persist';
+import type { AccentPalette, ThemeMode } from '../theme/types';
+import { resolveAccent, resolveThemeMode } from '../theme/palettes';
 
 interface SettingsState {
   theme: ThemeMode;
+  accent: AccentPalette;
   currency: string;
   biometricEnabled: boolean;
   appLockPin: string | null;
@@ -12,6 +14,7 @@ interface SettingsState {
 
 const initialState: SettingsState = {
   theme: 'system',
+  accent: 'indigo',
   currency: 'INR',
   biometricEnabled: false,
   appLockPin: null,
@@ -24,6 +27,9 @@ const settingsSlice = createSlice({
   reducers: {
     setTheme(state, action: PayloadAction<ThemeMode>) {
       state.theme = action.payload;
+    },
+    setAccent(state, action: PayloadAction<AccentPalette>) {
+      state.accent = action.payload;
     },
     setCurrency(state, action: PayloadAction<string>) {
       state.currency = action.payload;
@@ -44,10 +50,24 @@ const settingsSlice = createSlice({
       state.offlineQueue = [];
     },
   },
+  extraReducers: (builder) => {
+    builder.addCase(REHYDRATE, (_state, action) => {
+      const incoming = (action as { payload?: { settings?: Partial<SettingsState> } }).payload?.settings;
+      if (!incoming) return initialState;
+      return {
+        ...initialState,
+        ...incoming,
+        theme: resolveThemeMode(incoming.theme),
+        accent: resolveAccent(incoming.accent),
+        offlineQueue: incoming.offlineQueue ?? [],
+      };
+    });
+  },
 });
 
 export const {
   setTheme,
+  setAccent,
   setCurrency,
   setBiometricEnabled,
   setAppLockPin,

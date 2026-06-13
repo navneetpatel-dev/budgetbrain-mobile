@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { StyleSheet, View, ScrollView, Alert, Image, Pressable } from 'react-native';
+import { useState, useMemo } from 'react';
+import { StyleSheet, View, Text, ScrollView, Alert, Pressable, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -9,9 +9,9 @@ import { apiGet, apiPost } from '@/src/services/api';
 import { uploadReceipt } from '@/src/services/receipts';
 import { queueOfflineAction, isOnline } from '@/src/services/offlineSync';
 import { trackEvent } from '@/src/services/analytics';
-import { COLORS, PAYMENT_METHODS } from '@/src/constants/config';
+import { PAYMENT_METHODS } from '@/src/constants/config';
+import { useTheme } from '@/src/theme';
 import type { Category, Transaction } from '@/src/types';
-import { Text } from 'react-native';
 
 interface ExpenseForm {
   amount: string;
@@ -23,6 +23,8 @@ interface ExpenseForm {
 }
 
 export default function AddExpenseScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
@@ -146,7 +148,7 @@ export default function AddExpenseScreen() {
             onPress={() => setValue('paymentMethod', pm.value)}
             style={[
               styles.categoryChip,
-              selectedPayment === pm.value && { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+              selectedPayment === pm.value && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
             ]}
           >
             <Text style={[styles.categoryText, selectedPayment === pm.value && styles.categoryTextActive]}>{pm.label}</Text>
@@ -162,7 +164,7 @@ export default function AddExpenseScreen() {
             onPress={() => setValue('categoryId', cat.id)}
             style={[
               styles.categoryChip,
-              selectedCategory === cat.id && { backgroundColor: cat.color ?? COLORS.primary, borderColor: cat.color ?? COLORS.primary },
+              selectedCategory === cat.id && { backgroundColor: cat.color ?? theme.colors.primary, borderColor: cat.color ?? theme.colors.primary },
             ]}
           >
             <Text style={[styles.categoryText, selectedCategory === cat.id && styles.categoryTextActive]}>{cat.name}</Text>
@@ -173,7 +175,7 @@ export default function AddExpenseScreen() {
       <Text style={styles.label}>Receipt (optional)</Text>
       <Pressable onPress={pickReceipt} style={styles.receiptPicker}>
         {receipt ? (
-          <Image source={{ uri: receipt.uri }} style={styles.receiptPreview} />
+          <Image source={{ uri: receipt.uri }} style={styles.receiptPreview} resizeMode="contain" />
         ) : (
           <Text style={styles.receiptPlaceholder}>Tap to attach JPG/PNG receipt</Text>
         )}
@@ -192,15 +194,32 @@ export default function AddExpenseScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: 16 },
-  label: { fontSize: 14, fontWeight: '500', color: COLORS.text, marginBottom: 8 },
-  categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-  categoryChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.card },
-  categoryText: { fontSize: 13, color: COLORS.text },
-  categoryTextActive: { color: '#fff', fontWeight: '600' },
-  receiptPicker: { height: 120, borderRadius: 12, borderWidth: 1, borderColor: COLORS.border, borderStyle: 'dashed', marginBottom: 16, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.card },
-  receiptPreview: { width: '100%', height: '100%' },
-  receiptPlaceholder: { color: COLORS.textSecondary, fontSize: 14 },
-});
+function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.colors.background },
+    content: { padding: 16 },
+    label: { fontSize: 14, fontWeight: '500', color: t.colors.text, marginBottom: 8 },
+    categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
+    categoryChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: t.colors.border, backgroundColor: t.colors.surface },
+    categoryText: { fontSize: 13, color: t.colors.text },
+    categoryTextActive: { color: t.colors.onPrimary, fontWeight: '600' },
+    receiptPicker: {
+      height: 120,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: t.colors.border,
+      borderStyle: 'dashed',
+      marginBottom: 16,
+      overflow: 'hidden',
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: t.colors.surface,
+    },
+    receiptPreview: {
+      width: '100%',
+      height: 120,
+      maxHeight: 120,
+    },
+    receiptPlaceholder: { color: t.colors.textSecondary, fontSize: 14 },
+  });
+}

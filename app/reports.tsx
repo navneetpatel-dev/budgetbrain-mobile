@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { StyleSheet, View, ScrollView, Text, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button, Input, Card } from '@/src/components/ui';
 import { apiDownloadText, apiDownloadBinary } from '@/src/services/api';
 import { saveAndShareFile } from '@/src/utils/downloads';
 import { useAppSelector } from '@/src/store/hooks';
-import { COLORS } from '@/src/constants/config';
+import { useTheme } from '@/src/theme';
 
 export default function ReportsScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
   const user = useAppSelector((s) => s.auth.user);
   const isPremium = ['premium', 'lifetime', 'admin'].includes(user?.role ?? '');
@@ -70,12 +72,14 @@ export default function ReportsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: 16, paddingBottom: 48 },
-  title: { fontSize: 24, fontWeight: '800', color: COLORS.text, marginBottom: 4 },
-  subtitle: { fontSize: 14, color: COLORS.textSecondary, marginBottom: 24 },
-  card: { marginBottom: 16 },
-  spacer: { height: 12 },
-  premiumHint: { fontSize: 12, color: COLORS.textSecondary, marginTop: 8, textAlign: 'center' },
-});
+function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.colors.background },
+    content: { padding: 16, paddingBottom: 48 },
+    title: { fontSize: 24, fontWeight: '800', color: t.colors.text, marginBottom: 4 },
+    subtitle: { fontSize: 14, color: t.colors.textSecondary, marginBottom: 24 },
+    card: { marginBottom: 16 },
+    spacer: { height: 12 },
+    premiumHint: { fontSize: 12, color: t.colors.textSecondary, marginTop: 8, textAlign: 'center' },
+  });
+}

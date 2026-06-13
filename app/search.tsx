@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { StyleSheet, View, FlatList, Text, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { appHref } from '@/src/utils/navigation';
@@ -6,10 +6,12 @@ import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/src/components/ui';
 import { TransactionItem } from '@/src/components/TransactionItem';
 import { apiGet } from '@/src/services/api';
-import { COLORS } from '@/src/constants/config';
+import { useTheme } from '@/src/theme';
 import type { Transaction } from '@/src/types';
 
 export default function SearchScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
   const [query, setQuery] = useState('');
 
@@ -30,7 +32,7 @@ export default function SearchScreen() {
       />
 
       {isLoading || isFetching ? (
-        <ActivityIndicator size="large" color={COLORS.primary} style={styles.loader} />
+        <ActivityIndicator size="large" color={theme.colors.primary} style={styles.loader} />
       ) : query.length < 2 ? (
         <Text style={styles.hint}>Type at least 2 characters to search</Text>
       ) : (
@@ -51,9 +53,11 @@ export default function SearchScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background, padding: 16 },
-  loader: { marginTop: 32 },
-  hint: { textAlign: 'center', color: COLORS.textSecondary, marginTop: 32, fontSize: 14 },
-  list: { paddingTop: 8 },
-});
+function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.colors.background, padding: 16 },
+    loader: { marginTop: 32 },
+    hint: { textAlign: 'center', color: t.colors.textSecondary, marginTop: 32, fontSize: 14 },
+    list: { paddingTop: 8 },
+  });
+}

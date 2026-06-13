@@ -1,13 +1,17 @@
-import { StyleSheet, View, FlatList, RefreshControl, ActivityIndicator, Text, Pressable } from 'react-native';
+import { useMemo } from 'react';
+import { StyleSheet, View, FlatList, RefreshControl, Text, Pressable } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { appHref } from '@/src/utils/navigation';
 import { apiGet } from '@/src/services/api';
-import { Card, EmptyState } from '@/src/components/ui';
-import { COLORS } from '@/src/constants/config';
+import { Card, EmptyState, ScreenLoader } from '@/src/components/ui';
+import { Fab } from '@/src/components/Fab';
+import { useTheme } from '@/src/theme';
 import type { Goal } from '@/src/types';
 
 export default function GoalsScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['goals'],
@@ -15,11 +19,7 @@ export default function GoalsScreen() {
   });
 
   if (isLoading) {
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
-    );
+    return <ScreenLoader />;
   }
 
   return (
@@ -28,7 +28,7 @@ export default function GoalsScreen() {
         data={data ?? []}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={COLORS.primary} />}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />}
         ListEmptyComponent={<EmptyState title="No goals yet" subtitle="Set a financial goal to stay motivated" />}
         renderItem={({ item }) => {
           const progress = Math.min(100, Math.round((Number(item.currentAmount) / Number(item.targetAmount)) * 100));
@@ -62,42 +62,26 @@ export default function GoalsScreen() {
           );
         }}
       />
-      <Link href={appHref('/goal/add')} asChild>
-        <Pressable style={styles.fab}>
-          <Text style={styles.fabText}>+</Text>
-        </Pressable>
-      </Link>
+      <Fab href="/goal/add" />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  list: { padding: 16, paddingBottom: 80 },
-  goalCard: { marginBottom: 12 },
-  goalName: { fontSize: 16, fontWeight: '700', color: COLORS.text },
-  goalType: { fontSize: 12, color: COLORS.textSecondary, textTransform: 'capitalize', marginBottom: 8 },
-  amountRow: { flexDirection: 'row', alignItems: 'baseline', marginBottom: 12 },
-  current: { fontSize: 22, fontWeight: '800', color: COLORS.primary },
-  target: { fontSize: 14, color: COLORS.textSecondary, marginLeft: 4 },
-  progressBar: { height: 8, backgroundColor: COLORS.border, borderRadius: 4, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: COLORS.success, borderRadius: 4 },
-  progressText: { fontSize: 12, color: COLORS.textSecondary, marginTop: 6 },
-  goalActions: { flexDirection: 'row', gap: 16, marginTop: 12 },
-  editText: { color: COLORS.textSecondary, fontWeight: '600', fontSize: 14 },
-  contributeText: { color: COLORS.primary, fontWeight: '600', fontSize: 14 },
-  fab: {
-    position: 'absolute',
-    bottom: 24,
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 4,
-  },
-  fabText: { color: '#fff', fontSize: 28, fontWeight: '300', marginTop: -2 },
-});
+function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.colors.background },
+    list: { padding: 16, paddingBottom: 80 },
+    goalCard: { marginBottom: 12 },
+    goalName: { fontSize: 16, fontWeight: '700', color: t.colors.text },
+    goalType: { fontSize: 12, color: t.colors.textSecondary, textTransform: 'capitalize', marginBottom: 8 },
+    amountRow: { flexDirection: 'row', alignItems: 'baseline', marginBottom: 12 },
+    current: { fontSize: 22, fontWeight: '800', color: t.colors.primary },
+    target: { fontSize: 14, color: t.colors.textSecondary, marginLeft: 4 },
+    progressBar: { height: 8, backgroundColor: t.colors.border, borderRadius: 4, overflow: 'hidden' },
+    progressFill: { height: '100%', backgroundColor: t.colors.success, borderRadius: 4 },
+    progressText: { fontSize: 12, color: t.colors.textSecondary, marginTop: 6 },
+    goalActions: { flexDirection: 'row', gap: 16, marginTop: 12 },
+    editText: { color: t.colors.textSecondary, fontWeight: '600', fontSize: 14 },
+    contributeText: { color: t.colors.primary, fontWeight: '600', fontSize: 14 },
+  });
+}

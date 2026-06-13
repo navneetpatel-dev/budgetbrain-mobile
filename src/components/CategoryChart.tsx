@@ -1,5 +1,7 @@
+import { useMemo } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
-import { COLORS } from '@/src/constants/config';
+import { AppIcon } from '@/src/components/AppIcon';
+import { useTheme } from '@/src/theme';
 import type { Category } from '@/src/types';
 
 interface Props {
@@ -10,10 +12,17 @@ interface Props {
 const FALLBACK_COLORS = ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
 export function CategoryChart({ data, currency }: Props) {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+
   if (!data.length) {
     return (
       <View style={styles.empty}>
+        <View style={styles.emptyIcon}>
+          <AppIcon name="chart" size={24} color={theme.colors.primary} />
+        </View>
         <Text style={styles.emptyText}>No spending data yet</Text>
+        <Text style={styles.emptyHint}>Add expenses to see your breakdown</Text>
       </View>
     );
   }
@@ -29,38 +38,74 @@ export function CategoryChart({ data, currency }: Props) {
     .slice(0, 6);
 
   const max = Math.max(...sorted.map((d) => d.total), 1);
+  const total = sorted.reduce((s, d) => s + d.total, 0);
 
   return (
     <View style={styles.container}>
-      {sorted.map((item) => (
-        <View key={item.name} style={styles.row}>
-          <View style={styles.labelRow}>
-            <View style={[styles.dot, { backgroundColor: item.color }]} />
-            <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
-            <Text style={styles.amount}>
-              {symbol}{item.total.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-            </Text>
+      {sorted.map((item) => {
+        const pct = total > 0 ? Math.round((item.total / total) * 100) : 0;
+        return (
+          <View key={item.name} style={styles.row}>
+            <View style={styles.labelRow}>
+              <View style={[styles.dot, { backgroundColor: item.color }]} />
+              <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
+              <Text style={styles.pct}>{pct}%</Text>
+            </View>
+            <View style={styles.barRow}>
+              <View style={styles.barTrack}>
+                <View
+                  style={[
+                    styles.barFill,
+                    { width: `${(item.total / max) * 100}%`, backgroundColor: item.color },
+                  ]}
+                />
+              </View>
+              <Text style={styles.amount}>
+                {symbol}{item.total.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+              </Text>
+            </View>
           </View>
-          <View style={styles.barTrack}>
-            <View
-              style={[styles.barFill, { width: `${(item.total / max) * 100}%`, backgroundColor: item.color }]}
-            />
-          </View>
-        </View>
-      ))}
+        );
+      })}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { paddingVertical: 8, gap: 12 },
-  empty: { padding: 24, alignItems: 'center' },
-  emptyText: { color: COLORS.textSecondary, fontSize: 14 },
-  row: { gap: 6 },
-  labelRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  dot: { width: 10, height: 10, borderRadius: 5 },
-  name: { flex: 1, fontSize: 14, color: COLORS.text, fontWeight: '500' },
-  amount: { fontSize: 13, color: COLORS.textSecondary, fontWeight: '600' },
-  barTrack: { height: 8, backgroundColor: COLORS.border, borderRadius: 4, overflow: 'hidden' },
-  barFill: { height: '100%', borderRadius: 4 },
-});
+function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    container: { gap: t.spacing.md },
+    empty: { paddingVertical: t.spacing.xl, alignItems: 'center' },
+    emptyIcon: {
+      width: 52,
+      height: 52,
+      borderRadius: 26,
+      backgroundColor: t.colors.primarySoft,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: t.spacing.md,
+    },
+    emptyText: { ...t.typography.bodySemibold, color: t.colors.text },
+    emptyHint: { ...t.typography.caption, color: t.colors.textTertiary, marginTop: 4 },
+    row: { gap: 8 },
+    labelRow: { flexDirection: 'row', alignItems: 'center', gap: t.spacing.sm },
+    dot: { width: 8, height: 8, borderRadius: 4 },
+    name: { flex: 1, ...t.typography.bodyMedium, color: t.colors.text, fontWeight: '600' },
+    pct: { ...t.typography.caption, color: t.colors.textTertiary, fontWeight: '600' },
+    barRow: { flexDirection: 'row', alignItems: 'center', gap: t.spacing.md },
+    barTrack: {
+      flex: 1,
+      height: 8,
+      backgroundColor: t.colors.borderSubtle,
+      borderRadius: t.radii.full,
+      overflow: 'hidden',
+    },
+    barFill: { height: '100%', borderRadius: t.radii.full },
+    amount: {
+      ...t.typography.caption,
+      color: t.colors.textSecondary,
+      fontWeight: '600',
+      minWidth: 64,
+      textAlign: 'right',
+    },
+  });
+}

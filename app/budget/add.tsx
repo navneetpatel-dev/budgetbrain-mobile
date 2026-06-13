@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { StyleSheet, View, ScrollView, Alert, Pressable, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, Input } from '@/src/components/ui';
 import { apiGet, apiPost } from '@/src/services/api';
-import { COLORS } from '@/src/constants/config';
+import { useTheme } from '@/src/theme';
 import type { Budget, Category } from '@/src/types';
 
 interface BudgetForm {
@@ -18,6 +18,8 @@ interface BudgetForm {
 }
 
 export default function AddBudgetScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
@@ -126,7 +128,7 @@ export default function AddBudgetScreen() {
               <Pressable
                 key={cat.id}
                 onPress={() => setValue('categoryId', cat.id)}
-                style={[styles.chip, selectedCategory === cat.id && { backgroundColor: cat.color ?? COLORS.primary, borderColor: cat.color ?? COLORS.primary }]}
+                style={[styles.chip, selectedCategory === cat.id && { backgroundColor: cat.color ?? theme.colors.primary, borderColor: cat.color ?? theme.colors.primary }]}
               >
                 <Text style={[styles.chipText, selectedCategory === cat.id && styles.chipTextActive]}>{cat.name}</Text>
               </Pressable>
@@ -140,13 +142,15 @@ export default function AddBudgetScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: 16 },
-  label: { fontSize: 14, fontWeight: '500', color: COLORS.text, marginBottom: 8 },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.card, textTransform: 'capitalize' },
-  chipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  chipText: { fontSize: 13, color: COLORS.text, textTransform: 'capitalize' },
-  chipTextActive: { color: '#fff', fontWeight: '600' },
-});
+function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.colors.background },
+    content: { padding: 16 },
+    label: { fontSize: 14, fontWeight: '500', color: t.colors.text, marginBottom: 8 },
+    chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
+    chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: t.colors.border, backgroundColor: t.colors.surface, textTransform: 'capitalize' },
+    chipActive: { backgroundColor: t.colors.primary, borderColor: t.colors.primary },
+    chipText: { fontSize: 13, color: t.colors.text, textTransform: 'capitalize' },
+    chipTextActive: { color: t.colors.onPrimary, fontWeight: '600' },
+  });
+}

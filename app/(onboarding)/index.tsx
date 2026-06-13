@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { StyleSheet, View, Text, ScrollView, Pressable, Alert } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { Button, Input } from '@/src/components/ui';
 import { apiPost } from '@/src/services/api';
 import { setUser } from '@/src/store/authSlice';
 import { useAppDispatch } from '@/src/store/hooks';
-import { COLORS, SUPPORTED_CURRENCIES, FINANCIAL_GOALS, SALARY_RANGES } from '@/src/constants/config';
+import { SUPPORTED_CURRENCIES, FINANCIAL_GOALS, SALARY_RANGES } from '@/src/constants/config';
+import { useTheme } from '@/src/theme';
 import type { User } from '@/src/types';
 
 interface OnboardingForm {
@@ -18,6 +19,8 @@ interface OnboardingForm {
 }
 
 export default function OnboardingScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
@@ -157,22 +160,24 @@ export default function OnboardingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: 24, paddingBottom: 48 },
-  title: { fontSize: 28, fontWeight: '800', color: COLORS.text },
-  subtitle: { fontSize: 16, color: COLORS.textSecondary, marginBottom: 24 },
-  sectionLabel: { fontSize: 14, fontWeight: '600', color: COLORS.text, marginBottom: 8, marginTop: 8 },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-  chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  chipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  chipText: { fontSize: 13, color: COLORS.text },
-  chipTextActive: { color: '#fff', fontWeight: '600' },
-});
+function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.colors.background },
+    content: { padding: 24, paddingBottom: 48 },
+    title: { fontSize: 28, fontWeight: '800', color: t.colors.text },
+    subtitle: { fontSize: 16, color: t.colors.textSecondary, marginBottom: 24 },
+    sectionLabel: { fontSize: 14, fontWeight: '600', color: t.colors.text, marginBottom: 8, marginTop: 8 },
+    chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
+    chip: {
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 20,
+      backgroundColor: t.colors.surface,
+      borderWidth: 1,
+      borderColor: t.colors.border,
+    },
+    chipActive: { backgroundColor: t.colors.primary, borderColor: t.colors.primary },
+    chipText: { fontSize: 13, color: t.colors.text },
+    chipTextActive: { color: t.colors.onPrimary, fontWeight: '600' },
+  });
+}

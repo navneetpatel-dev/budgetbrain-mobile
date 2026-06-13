@@ -1,11 +1,13 @@
-import { useState } from 'react';
-import { StyleSheet, View, Text, Alert } from 'react-native';
+import { useState, useMemo } from 'react';
+import { StyleSheet, Text, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Button } from '@/src/components/ui';
+import { Button, Screen } from '@/src/components/ui';
 import { apiPost } from '@/src/services/api';
-import { COLORS } from '@/src/constants/config';
+import { useTheme } from '@/src/theme';
 
 export default function VerifyEmailScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const { token } = useLocalSearchParams<{ token?: string }>();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -28,7 +30,7 @@ export default function VerifyEmailScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <Screen contentContainerStyle={styles.container} padded={false}>
       <Text style={styles.title}>Verify Email</Text>
       {verified ? (
         <>
@@ -41,12 +43,14 @@ export default function VerifyEmailScreen() {
           <Button title="Verify Email" onPress={verify} loading={loading} />
         </>
       )}
-    </View>
+    </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, justifyContent: 'center', backgroundColor: COLORS.background },
-  title: { fontSize: 28, fontWeight: '800', color: COLORS.text, marginBottom: 16, textAlign: 'center' },
-  message: { fontSize: 16, color: COLORS.textSecondary, marginBottom: 24, textAlign: 'center', lineHeight: 24 },
-});
+function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    container: { flexGrow: 1, padding: 24, justifyContent: 'center' },
+    title: { fontSize: 28, fontWeight: '800', color: t.colors.text, marginBottom: 16, textAlign: 'center' },
+    message: { fontSize: 16, color: t.colors.textSecondary, marginBottom: 24, textAlign: 'center', lineHeight: 24 },
+  });
+}

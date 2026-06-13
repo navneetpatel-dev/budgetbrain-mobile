@@ -1,12 +1,23 @@
-import { StyleSheet, View, Text, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
+import { useMemo } from 'react';
+import { StyleSheet, View, Text, RefreshControl } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { appHref } from '@/src/utils/navigation';
 import { apiGet } from '@/src/services/api';
-import { SummaryCard, Card, EmptyState } from '@/src/components/ui';
-import { TransactionItem } from '@/src/components/TransactionItem';
+import {
+  SummaryCard,
+  Card,
+  EmptyState,
+  Screen,
+  ScreenLoader,
+  SectionHeader,
+  ResponsiveGrid,
+} from '@/src/components/ui';
+import { TransactionItem, TransactionGroup } from '@/src/components/TransactionItem';
 import { CategoryChart } from '@/src/components/CategoryChart';
-import { COLORS } from '@/src/constants/config';
+import { DashboardHero } from '@/src/components/DashboardHero';
+import { useTheme } from '@/src/theme';
+import { useResponsive } from '@/src/utils/responsive';
 import { useAppSelector } from '@/src/store/hooks';
 import type { DashboardData } from '@/src/types';
 
@@ -17,6 +28,8 @@ function formatCurrency(amount: number, currency: string) {
 
 export default function DashboardScreen() {
   const router = useRouter();
+  const theme = useTheme();
+  const { horizontalPadding } = useResponsive();
   const user = useAppSelector((s) => s.auth.user);
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
@@ -24,73 +37,106 @@ export default function DashboardScreen() {
     queryFn: () => apiGet<DashboardData>('/expenses/dashboard'),
   });
 
-  if (isLoading) {
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
-    );
-  }
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        content: {},
+        section: { marginBottom: theme.spacing.lg, paddingHorizontal: horizontalPadding },
+        txList: { paddingHorizontal: horizontalPadding },
+      }),
+    [theme, horizontalPadding]
+  );
+
+  if (isLoading) return <ScreenLoader />;
 
   const summary = data?.summary;
   const currency = summary?.currency ?? user?.currency ?? 'INR';
+  const transactions = data?.recentTransactions ?? [];
 
   return (
-    <ScrollView
-      style={styles.container}
+    <Screen
+      padded={false}
       contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={COLORS.primary} />}
+      refreshControl={
+        <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
+      }
     >
-      <Text style={styles.greeting}>Hello, {user?.name?.split(' ')[0] ?? 'there'} 👋</Text>
+      <DashboardHero
+        name={user?.name?.split(' ')[0] ?? 'there'}
+        netSavings={formatCurrency(summary?.netSavings ?? 0, currency)}
+        currency={currency}
+        savingsRate={summary?.savingsRate}
+      />
 
-      <View style={styles.summaryGrid}>
-        <SummaryCard title="Income" amount={formatCurrency(summary?.totalIncome ?? 0, currency)} color={COLORS.success} />
-        <SummaryCard title="Expenses" amount={formatCurrency(summary?.totalExpenses ?? 0, currency)} color={COLORS.danger} />
-        <SummaryCard title="Net Savings" amount={formatCurrency(summary?.netSavings ?? 0, currency)} color={COLORS.primary} />
-        <SummaryCard title="Savings Rate" amount={`${summary?.savingsRate ?? 0}%`} subtitle="This period" />
+      <View style={styles.section}>
+        <ResponsiveGrid>
+          <SummaryCard
+            title="Income"
+            amount={formatCurrency(summary?.totalIncome ?? 0, currency)}
+            color={theme.colors.success}
+            icon="income"
+          />
+          <SummaryCard
+            title="Expenses"
+            amount={formatCurrency(summary?.totalExpenses ?? 0, currency)}
+            color={theme.colors.danger}
+            icon="expense"
+          />
+          <SummaryCard
+            title="Goals"
+            amount="Track"
+            subtitle="Savings targets"
+            icon="goals"
+            color={theme.colors.primary}
+            onPress={() => router.push('/(tabs)/goals')}
+          />
+          <SummaryCard
+            title="Net Worth"
+            amount="Overview"
+            subtitle="Assets & liabilities"
+            icon="netWorth"
+            color={theme.colors.primary}
+            onPress={() => router.push('/(tabs)/net-worth')}
+          />
+        </ResponsiveGrid>
       </View>
 
-      <Card style={styles.section}>
-        <Text style={styles.sectionTitle}>Spending by Category</Text>
-        <CategoryChart data={data?.categoryBreakdown ?? []} currency={currency} />
-      </Card>
-
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Recent Transactions</Text>
-        <Link href="/(tabs)/expenses" style={styles.seeAll}>See all</Link>
+      <View style={styles.section}>
+        <Card variant="elevated">
+          <SectionHeader title="Spending by Category" />
+          <CategoryChart data={data?.categoryBreakdown ?? []} currency={currency} />
+        </Card>
       </View>
 
-      {data?.recentTransactions?.length ? (
-        data.recentTransactions.map((tx) => (
-          <TransactionItem key={tx.id} transaction={tx} onPress={() => router.push(appHref(`/expense/${tx.id}`))} />
-        ))
-      ) : (
-        <EmptyState title="No transactions yet" subtitle="Add your first expense to get started" />
-      )}
+      <View style={styles.txList}>
+        <SectionHeader
+          title="Recent Activity"
+          action="See all"
+          onAction={() => router.push('/(tabs)/expenses')}
+        />
 
-      <Link href="/expense/add" style={styles.fab}>
-        <Text style={styles.fabText}>+ Add Expense</Text>
-      </Link>
-    </ScrollView>
+        {transactions.length ? (
+          <TransactionGroup>
+            {transactions.map((tx, i) => (
+              <TransactionItem
+                key={tx.id}
+                transaction={tx}
+                onPress={() => router.push(appHref(`/expense/${tx.id}`))}
+                isFirst={i === 0}
+                isLast={i === transactions.length - 1}
+              />
+            ))}
+          </TransactionGroup>
+        ) : (
+          <EmptyState
+            icon="activity"
+            title="No transactions yet"
+            subtitle="Tap + on the tab bar to log your first expense"
+            action="Add expense"
+            onAction={() => router.push('/expense/add')}
+          />
+        )}
+      </View>
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: 16, paddingBottom: 32 },
-  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  greeting: { fontSize: 24, fontWeight: '700', color: COLORS.text, marginBottom: 16 },
-  summaryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 16 },
-  section: { marginBottom: 16 },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text },
-  seeAll: { color: COLORS.primary, fontWeight: '600', fontSize: 14 },
-  fab: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 14,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  fabText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-});

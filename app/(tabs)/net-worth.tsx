@@ -1,8 +1,9 @@
-import { StyleSheet, View, Text, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
+import { useMemo } from 'react';
+import { StyleSheet, View, Text, ScrollView, RefreshControl } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { apiGet } from '@/src/services/api';
-import { Card, SummaryCard } from '@/src/components/ui';
-import { COLORS } from '@/src/constants/config';
+import { Card, SummaryCard, ScreenLoader } from '@/src/components/ui';
+import { useTheme } from '@/src/theme';
 
 interface NetWorthData {
   summary: {
@@ -24,17 +25,15 @@ function format(amount: number, currency: string) {
 }
 
 export default function NetWorthScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['net-worth'],
     queryFn: () => apiGet<NetWorthData>('/net-worth'),
   });
 
   if (isLoading) {
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
-    );
+    return <ScreenLoader />;
   }
 
   const s = data?.summary;
@@ -44,7 +43,7 @@ export default function NetWorthScreen() {
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={COLORS.primary} />}
+      refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />}
     >
       <Card style={styles.hero}>
         <Text style={styles.heroLabel}>Net Worth</Text>
@@ -52,10 +51,10 @@ export default function NetWorthScreen() {
       </Card>
 
       <View style={styles.grid}>
-        <SummaryCard title="Assets" amount={format(s?.totalAssets ?? 0, currency)} color={COLORS.success} />
-        <SummaryCard title="Liabilities" amount={format(s?.totalLiabilities ?? 0, currency)} color={COLORS.danger} />
+        <SummaryCard title="Assets" amount={format(s?.totalAssets ?? 0, currency)} color={theme.colors.success} />
+        <SummaryCard title="Liabilities" amount={format(s?.totalLiabilities ?? 0, currency)} color={theme.colors.danger} />
         <SummaryCard title="Bank Balance" amount={format(s?.bankBalance ?? 0, currency)} />
-        <SummaryCard title="Investments" amount={format(s?.investmentValue ?? 0, currency)} color={COLORS.primary} />
+        <SummaryCard title="Investments" amount={format(s?.investmentValue ?? 0, currency)} color={theme.colors.primary} />
       </View>
 
       <Text style={styles.sectionTitle}>Accounts</Text>
@@ -92,22 +91,23 @@ export default function NetWorthScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: 16, paddingBottom: 32 },
-  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  hero: { alignItems: 'center', marginBottom: 16, paddingVertical: 24 },
-  heroLabel: { fontSize: 14, color: COLORS.textSecondary },
-  heroValue: { fontSize: 36, fontWeight: '800', color: COLORS.primary, marginTop: 4 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 16 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text, marginBottom: 12, marginTop: 8 },
-  item: { marginBottom: 10 },
-  itemName: { fontSize: 16, fontWeight: '600', color: COLORS.text },
-  itemMeta: { fontSize: 12, color: COLORS.textSecondary, marginTop: 2, textTransform: 'capitalize' },
-  itemAmount: { fontSize: 18, fontWeight: '700', color: COLORS.text, marginTop: 6 },
-  debt: { color: COLORS.danger },
-  gainLoss: { fontSize: 13, marginTop: 4, fontWeight: '600' },
-  gain: { color: COLORS.success },
-  loss: { color: COLORS.danger },
-  empty: { color: COLORS.textSecondary, fontSize: 14, marginBottom: 16 },
-});
+function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.colors.background },
+    content: { padding: 16, paddingBottom: 32 },
+    hero: { alignItems: 'center', marginBottom: 16, paddingVertical: 24 },
+    heroLabel: { fontSize: 14, color: t.colors.textSecondary },
+    heroValue: { fontSize: 36, fontWeight: '800', color: t.colors.primary, marginTop: 4 },
+    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 16 },
+    sectionTitle: { fontSize: 18, fontWeight: '700', color: t.colors.text, marginBottom: 12, marginTop: 8 },
+    item: { marginBottom: 10 },
+    itemName: { fontSize: 16, fontWeight: '600', color: t.colors.text },
+    itemMeta: { fontSize: 12, color: t.colors.textSecondary, marginTop: 2, textTransform: 'capitalize' },
+    itemAmount: { fontSize: 18, fontWeight: '700', color: t.colors.text, marginTop: 6 },
+    debt: { color: t.colors.danger },
+    gainLoss: { fontSize: 13, marginTop: 4, fontWeight: '600' },
+    gain: { color: t.colors.success },
+    loss: { color: t.colors.danger },
+    empty: { color: t.colors.textSecondary, fontSize: 14, marginBottom: 16 },
+  });
+}

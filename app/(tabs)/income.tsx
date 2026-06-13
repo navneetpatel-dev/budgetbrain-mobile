@@ -1,14 +1,18 @@
-import { StyleSheet, View, FlatList, RefreshControl, ActivityIndicator, Pressable, Text } from 'react-native';
+import { useMemo } from 'react';
+import { StyleSheet, View, FlatList, RefreshControl, Text } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { appHref } from '@/src/utils/navigation';
 import { TransactionItem } from '@/src/components/TransactionItem';
-import { Card, EmptyState } from '@/src/components/ui';
+import { Card, EmptyState, ScreenLoader } from '@/src/components/ui';
+import { Fab } from '@/src/components/Fab';
 import { apiGet } from '@/src/services/api';
-import { COLORS } from '@/src/constants/config';
+import { useTheme } from '@/src/theme';
 import type { IncomeSource, PaginatedTransactions } from '@/src/types';
 
 export default function IncomeScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['income'],
@@ -21,11 +25,7 @@ export default function IncomeScreen() {
   });
 
   if (isLoading) {
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
-    );
+    return <ScreenLoader />;
   }
 
   return (
@@ -38,7 +38,7 @@ export default function IncomeScreen() {
           <RefreshControl
             refreshing={isRefetching}
             onRefresh={() => { refetch(); refetchSources(); }}
-            tintColor={COLORS.primary}
+            tintColor={theme.colors.primary}
           />
         }
         ListHeaderComponent={
@@ -65,40 +65,20 @@ export default function IncomeScreen() {
         )}
         ListEmptyComponent={<EmptyState title="No income yet" subtitle="Tap + to add your first income entry" />}
       />
-      <Link href={appHref('/income/add')} asChild>
-        <Pressable style={styles.fab}>
-          <Text style={styles.fabText}>+</Text>
-        </Pressable>
-      </Link>
+      <Fab href="/income/add" />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  list: { padding: 16, paddingBottom: 80 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text, marginBottom: 8 },
-  incomeTitle: { marginTop: 16, marginBottom: 8 },
-  sourceCard: { marginBottom: 8 },
-  sourceName: { fontSize: 15, fontWeight: '600', color: COLORS.text },
-  sourceType: { fontSize: 12, color: COLORS.textSecondary, textTransform: 'capitalize', marginTop: 2 },
-  hint: { fontSize: 13, color: COLORS.textSecondary, marginBottom: 8 },
-  fab: {
-    position: 'absolute',
-    bottom: 24,
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.success,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  fabText: { color: '#fff', fontSize: 28, fontWeight: '300', marginTop: -2 },
-});
+function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.colors.background },
+    list: { padding: 16, paddingBottom: 80 },
+    sectionTitle: { fontSize: 18, fontWeight: '700', color: t.colors.text, marginBottom: 8 },
+    incomeTitle: { marginTop: 16, marginBottom: 8 },
+    sourceCard: { marginBottom: 8 },
+    sourceName: { fontSize: 15, fontWeight: '600', color: t.colors.text },
+    sourceType: { fontSize: 12, color: t.colors.textSecondary, textTransform: 'capitalize', marginTop: 2 },
+    hint: { fontSize: 13, color: t.colors.textSecondary, marginBottom: 8 },
+  });
+}

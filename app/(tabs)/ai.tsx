@@ -1,14 +1,16 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { StyleSheet, View, ScrollView, Text, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { Button, Card, Input } from '@/src/components/ui';
 import { apiGet, apiPost } from '@/src/services/api';
 import { useAppSelector } from '@/src/store/hooks';
-import { COLORS } from '@/src/constants/config';
+import { useTheme } from '@/src/theme';
 import type { AiAnomaly, AiChatMessage, AiInsight } from '@/src/types';
 
 export default function AiScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
   const user = useAppSelector((s) => s.auth.user);
   const isPremium = ['premium', 'lifetime', 'admin'].includes(user?.role ?? '');
@@ -65,7 +67,7 @@ export default function AiScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.sectionTitle}>Spending Insights</Text>
       {insightsLoading ? (
-        <ActivityIndicator color={COLORS.primary} />
+        <ActivityIndicator color={theme.colors.primary} />
       ) : (
         insights?.insights.map((insight, i) => (
           <Card key={i} style={styles.insightCard}>
@@ -76,7 +78,7 @@ export default function AiScreen() {
 
       <Text style={[styles.sectionTitle, styles.sectionGap]}>Anomalies</Text>
       {anomaliesLoading ? (
-        <ActivityIndicator color={COLORS.primary} />
+        <ActivityIndicator color={theme.colors.primary} />
       ) : anomalies?.anomalies?.length ? (
         anomalies.anomalies.map((a, i) => (
           <Card key={i} style={styles.insightCard}>
@@ -107,22 +109,24 @@ export default function AiScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: 16, paddingBottom: 48 },
-  gate: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32, backgroundColor: COLORS.background },
-  gateTitle: { fontSize: 22, fontWeight: '800', color: COLORS.text, marginBottom: 8 },
-  gateSubtitle: { fontSize: 15, color: COLORS.textSecondary, textAlign: 'center', marginBottom: 24 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text, marginBottom: 12 },
-  sectionGap: { marginTop: 24 },
-  insightCard: { marginBottom: 8 },
-  insightText: { fontSize: 14, color: COLORS.text, lineHeight: 20 },
-  anomalyReason: { fontSize: 14, fontWeight: '600', color: COLORS.warning },
-  anomalyMeta: { fontSize: 12, color: COLORS.textSecondary, marginTop: 4 },
-  empty: { color: COLORS.textSecondary, fontSize: 14 },
-  bubble: { padding: 12, borderRadius: 12, marginBottom: 8, maxWidth: '85%' },
-  userBubble: { backgroundColor: COLORS.primary, alignSelf: 'flex-end' },
-  assistantBubble: { backgroundColor: COLORS.card, alignSelf: 'flex-start', borderWidth: 1, borderColor: COLORS.border },
-  userText: { color: '#fff', fontSize: 14 },
-  assistantText: { color: COLORS.text, fontSize: 14 },
-});
+function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.colors.background },
+    content: { padding: 16, paddingBottom: 48 },
+    gate: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32, backgroundColor: t.colors.background },
+    gateTitle: { fontSize: 22, fontWeight: '800', color: t.colors.text, marginBottom: 8 },
+    gateSubtitle: { fontSize: 15, color: t.colors.textSecondary, textAlign: 'center', marginBottom: 24 },
+    sectionTitle: { fontSize: 18, fontWeight: '700', color: t.colors.text, marginBottom: 12 },
+    sectionGap: { marginTop: 24 },
+    insightCard: { marginBottom: 8 },
+    insightText: { fontSize: 14, color: t.colors.text, lineHeight: 20 },
+    anomalyReason: { fontSize: 14, fontWeight: '600', color: t.colors.warning },
+    anomalyMeta: { fontSize: 12, color: t.colors.textSecondary, marginTop: 4 },
+    empty: { color: t.colors.textSecondary, fontSize: 14 },
+    bubble: { padding: 12, borderRadius: 12, marginBottom: 8, maxWidth: '85%' },
+    userBubble: { backgroundColor: t.colors.primary, alignSelf: 'flex-end' },
+    assistantBubble: { backgroundColor: t.colors.surface, alignSelf: 'flex-start', borderWidth: 1, borderColor: t.colors.border },
+    userText: { color: t.colors.onPrimary, fontSize: 14 },
+    assistantText: { color: t.colors.text, fontSize: 14 },
+  });
+}

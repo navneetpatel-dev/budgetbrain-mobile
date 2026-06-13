@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { StyleSheet, View, Text, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button, Card } from '@/src/components/ui';
-import { COLORS } from '@/src/constants/config';
 import { purchasePackage, restorePurchases, isPurchasesConfigured, getOfferings } from '@/src/services/purchases';
 import { apiPost } from '@/src/services/api';
 import { trackEvent } from '@/src/services/analytics';
 import { useQueryClient } from '@tanstack/react-query';
+import { useTheme } from '@/src/theme';
 
 interface PackageInfo {
   identifier: string;
@@ -15,6 +15,8 @@ interface PackageInfo {
 }
 
 export default function SubscriptionScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState<string | null>(null);
@@ -100,7 +102,7 @@ export default function SubscriptionScreen() {
       <Text style={styles.subtitle}>Unlock AI insights, unlimited budgets, family accounts, and more</Text>
 
       {loadingOfferings ? (
-        <ActivityIndicator size="large" color={COLORS.primary} style={styles.loader} />
+        <ActivityIndicator size="large" color={theme.colors.primary} style={styles.loader} />
       ) : packages.length > 0 ? (
         packages.map((pkg) => (
           <Card key={pkg.identifier} style={styles.planCard}>
@@ -132,15 +134,17 @@ export default function SubscriptionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: 16, paddingBottom: 48 },
-  title: { fontSize: 26, fontWeight: '800', color: COLORS.text, marginBottom: 8 },
-  subtitle: { fontSize: 15, color: COLORS.textSecondary, marginBottom: 24 },
-  loader: { marginVertical: 24 },
-  planCard: { marginBottom: 12 },
-  planHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
-  planName: { fontSize: 18, fontWeight: '700', color: COLORS.text },
-  planPrice: { fontSize: 16, fontWeight: '600', color: COLORS.primary },
-  fallbackText: { fontSize: 14, color: COLORS.textSecondary, lineHeight: 20 },
-});
+function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.colors.background },
+    content: { padding: 16, paddingBottom: 48 },
+    title: { fontSize: 26, fontWeight: '800', color: t.colors.text, marginBottom: 8 },
+    subtitle: { fontSize: 15, color: t.colors.textSecondary, marginBottom: 24 },
+    loader: { marginVertical: 24 },
+    planCard: { marginBottom: 12 },
+    planHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
+    planName: { fontSize: 18, fontWeight: '700', color: t.colors.text },
+    planPrice: { fontSize: 16, fontWeight: '600', color: t.colors.primary },
+    fallbackText: { fontSize: 14, color: t.colors.textSecondary, lineHeight: 20 },
+  });
+}

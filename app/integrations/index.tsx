@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { StyleSheet, View, ScrollView, Text, Alert, Pressable } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import { useRouter } from 'expo-router';
 import { Button, Input, Card } from '@/src/components/ui';
 import { apiPost, apiGet } from '@/src/services/api';
-import { COLORS } from '@/src/constants/config';
+import { useTheme } from '@/src/theme';
 import type { Category } from '@/src/types';
 
 interface SmsForm { content: string }
@@ -19,6 +19,8 @@ interface ParsedRecord {
 }
 
 export default function IntegrationsScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
   const [smsLoading, setSmsLoading] = useState(false);
   const [emailLoading, setEmailLoading] = useState(false);
@@ -121,7 +123,7 @@ export default function IntegrationsScreen() {
               <Pressable
                 key={cat.id}
                 onPress={() => setCategoryId(cat.id)}
-                style={[styles.chip, categoryId === cat.id && { backgroundColor: cat.color ?? COLORS.primary }]}
+                style={[styles.chip, categoryId === cat.id && { backgroundColor: cat.color ?? theme.colors.primary }]}
               >
                 <Text style={[styles.chipText, categoryId === cat.id && styles.chipTextActive]}>{cat.name}</Text>
               </Pressable>
@@ -170,20 +172,22 @@ export default function IntegrationsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: 16, paddingBottom: 48 },
-  title: { fontSize: 24, fontWeight: '800', color: COLORS.text, marginBottom: 4 },
-  subtitle: { fontSize: 14, color: COLORS.textSecondary, marginBottom: 24 },
-  card: { marginBottom: 16 },
-  confirmCard: { marginBottom: 16, borderColor: COLORS.primary, borderWidth: 1 },
-  cardTitle: { fontSize: 16, fontWeight: '700', color: COLORS.text, marginBottom: 12 },
-  confirmTitle: { fontSize: 16, fontWeight: '700', color: COLORS.text, marginBottom: 8 },
-  confirmDetail: { fontSize: 14, color: COLORS.textSecondary, marginBottom: 4 },
-  label: { fontSize: 14, fontWeight: '500', color: COLORS.text, marginTop: 12, marginBottom: 8 },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
-  chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: COLORS.border },
-  chipText: { fontSize: 13, color: COLORS.text },
-  chipTextActive: { color: '#fff', fontWeight: '600' },
-  spacer: { height: 8 },
-});
+function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.colors.background },
+    content: { padding: 16, paddingBottom: 48 },
+    title: { fontSize: 24, fontWeight: '800', color: t.colors.text, marginBottom: 4 },
+    subtitle: { fontSize: 14, color: t.colors.textSecondary, marginBottom: 24 },
+    card: { marginBottom: 16 },
+    confirmCard: { marginBottom: 16, borderColor: t.colors.primary, borderWidth: 1 },
+    cardTitle: { fontSize: 16, fontWeight: '700', color: t.colors.text, marginBottom: 12 },
+    confirmTitle: { fontSize: 16, fontWeight: '700', color: t.colors.text, marginBottom: 8 },
+    confirmDetail: { fontSize: 14, color: t.colors.textSecondary, marginBottom: 4 },
+    label: { fontSize: 14, fontWeight: '500', color: t.colors.text, marginTop: 12, marginBottom: 8 },
+    chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
+    chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: t.colors.border },
+    chipText: { fontSize: 13, color: t.colors.text },
+    chipTextActive: { color: t.colors.onPrimary, fontWeight: '600' },
+    spacer: { height: 8 },
+  });
+}

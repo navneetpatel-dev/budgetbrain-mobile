@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { StyleSheet, View, ScrollView, Alert, Pressable, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button, Input } from '@/src/components/ui';
 import { apiPost } from '@/src/services/api';
-import { COLORS, GOAL_TYPES } from '@/src/constants/config';
+import { GOAL_TYPES } from '@/src/constants/config';
+import { useTheme } from '@/src/theme';
 import type { Goal } from '@/src/types';
 
 interface GoalForm {
@@ -16,6 +17,8 @@ interface GoalForm {
 }
 
 export default function AddGoalScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
@@ -91,13 +94,15 @@ export default function AddGoalScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: 16 },
-  label: { fontSize: 14, fontWeight: '500', color: COLORS.text, marginBottom: 8 },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.card },
-  chipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  chipText: { fontSize: 13, color: COLORS.text },
-  chipTextActive: { color: '#fff', fontWeight: '600' },
-});
+function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.colors.background },
+    content: { padding: 16 },
+    label: { fontSize: 14, fontWeight: '500', color: t.colors.text, marginBottom: 8 },
+    chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
+    chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: t.colors.border, backgroundColor: t.colors.surface },
+    chipActive: { backgroundColor: t.colors.primary, borderColor: t.colors.primary },
+    chipText: { fontSize: 13, color: t.colors.text },
+    chipTextActive: { color: t.colors.onPrimary, fontWeight: '600' },
+  });
+}

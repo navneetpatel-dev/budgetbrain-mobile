@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { StyleSheet, View, FlatList, Alert, Pressable, Text, ActivityIndicator } from 'react-native';
+import { useState, useMemo } from 'react';
+import { StyleSheet, View, FlatList, Alert, Pressable, Text } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Input, Card, EmptyState } from '@/src/components/ui';
+import { Button, Input, Card, EmptyState, ScreenLoader } from '@/src/components/ui';
 import { apiGet, apiPost, apiPatch } from '@/src/services/api';
-import { COLORS } from '@/src/constants/config';
+import { useTheme } from '@/src/theme';
 import type { Category } from '@/src/types';
 
 interface CategoryForm {
@@ -15,12 +15,14 @@ interface CategoryForm {
 const COLORS_PRESET = ['#6366F1', '#10B981', '#EF4444', '#F59E0B', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316'];
 
 export default function CategoriesScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['categories'],
     queryFn: () => apiGet<Category[]>('/categories'),
   });
@@ -94,11 +96,7 @@ export default function CategoriesScreen() {
   };
 
   if (isLoading) {
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
-    );
+    return <ScreenLoader />;
   }
 
   return (
@@ -137,7 +135,7 @@ export default function CategoriesScreen() {
         renderItem={({ item, index }) => (
           <Card style={styles.catCard}>
             <View style={styles.catRow}>
-              <View style={[styles.dot, { backgroundColor: item.color ?? COLORS.primary }]} />
+              <View style={[styles.dot, { backgroundColor: item.color ?? theme.colors.primary }]} />
               <Text style={styles.catName}>{item.name}</Text>
               <View style={styles.actions}>
                 <Pressable onPress={() => moveCategory(index, -1)}>
@@ -169,34 +167,35 @@ export default function CategoriesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  list: { padding: 16, paddingBottom: 80 },
-  formCard: { margin: 16, marginBottom: 0 },
-  label: { fontSize: 14, fontWeight: '500', color: COLORS.text, marginBottom: 8 },
-  colorRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
-  colorDot: { width: 32, height: 32, borderRadius: 16 },
-  colorSelected: { borderWidth: 3, borderColor: COLORS.text },
-  catCard: { marginBottom: 8 },
-  catRow: { flexDirection: 'row', alignItems: 'center' },
-  dot: { width: 12, height: 12, borderRadius: 6, marginRight: 10 },
-  catName: { flex: 1, fontSize: 15, fontWeight: '600', color: COLORS.text },
-  actions: { flexDirection: 'row', gap: 8, alignItems: 'center' },
-  actionBtn: { color: COLORS.primary, fontSize: 13, fontWeight: '600' },
-  archive: { color: COLORS.danger },
-  spacer: { height: 8 },
-  fab: {
-    position: 'absolute',
-    bottom: 24,
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 4,
-  },
-  fabText: { color: '#fff', fontSize: 28, fontWeight: '300', marginTop: -2 },
-});
+function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.colors.background },
+    list: { padding: 16, paddingBottom: 80 },
+    formCard: { margin: 16, marginBottom: 0 },
+    label: { fontSize: 14, fontWeight: '500', color: t.colors.text, marginBottom: 8 },
+    colorRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
+    colorDot: { width: 32, height: 32, borderRadius: 16 },
+    colorSelected: { borderWidth: 3, borderColor: t.colors.text },
+    catCard: { marginBottom: 8 },
+    catRow: { flexDirection: 'row', alignItems: 'center' },
+    dot: { width: 12, height: 12, borderRadius: 6, marginRight: 10 },
+    catName: { flex: 1, fontSize: 15, fontWeight: '600', color: t.colors.text },
+    actions: { flexDirection: 'row', gap: 8, alignItems: 'center' },
+    actionBtn: { color: t.colors.primary, fontSize: 13, fontWeight: '600' },
+    archive: { color: t.colors.danger },
+    spacer: { height: 8 },
+    fab: {
+      position: 'absolute',
+      bottom: 24,
+      right: 24,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: t.colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...t.shadows.lg,
+    },
+    fabText: { color: t.colors.onPrimary, fontSize: 28, fontWeight: '300', marginTop: -2 },
+  });
+}

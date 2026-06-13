@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { StyleSheet, View, ScrollView, Text, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -6,7 +6,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { Button, Input, Card } from '@/src/components/ui';
 import { apiGet, apiPost } from '@/src/services/api';
 import { useAppSelector } from '@/src/store/hooks';
-import { COLORS } from '@/src/constants/config';
+import { useTheme } from '@/src/theme';
 import type { FamilyMembership } from '@/src/types';
 
 interface GroupForm {
@@ -18,6 +18,8 @@ interface JoinForm {
 }
 
 export default function FamilyScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
   const queryClient = useQueryClient();
   const user = useAppSelector((s) => s.auth.user);
@@ -116,17 +118,19 @@ export default function FamilyScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: 16, paddingBottom: 48 },
-  gate: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32, backgroundColor: COLORS.background },
-  gateTitle: { fontSize: 22, fontWeight: '800', color: COLORS.text, marginBottom: 8 },
-  gateSubtitle: { fontSize: 15, color: COLORS.textSecondary, textAlign: 'center', marginBottom: 24 },
-  title: { fontSize: 24, fontWeight: '800', color: COLORS.text, marginBottom: 16 },
-  groupCard: { marginBottom: 12 },
-  groupName: { fontSize: 16, fontWeight: '700', color: COLORS.text },
-  groupRole: { fontSize: 13, color: COLORS.textSecondary, marginTop: 4, textTransform: 'capitalize' },
-  inviteCode: { fontSize: 14, color: COLORS.primary, fontWeight: '600', marginTop: 8 },
-  formCard: { marginBottom: 16 },
-  formTitle: { fontSize: 16, fontWeight: '700', color: COLORS.text, marginBottom: 12 },
-});
+function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.colors.background },
+    content: { padding: 16, paddingBottom: 48 },
+    gate: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32, backgroundColor: t.colors.background },
+    gateTitle: { fontSize: 22, fontWeight: '800', color: t.colors.text, marginBottom: 8 },
+    gateSubtitle: { fontSize: 15, color: t.colors.textSecondary, textAlign: 'center', marginBottom: 24 },
+    title: { fontSize: 24, fontWeight: '800', color: t.colors.text, marginBottom: 16 },
+    groupCard: { marginBottom: 12 },
+    groupName: { fontSize: 16, fontWeight: '700', color: t.colors.text },
+    groupRole: { fontSize: 13, color: t.colors.textSecondary, marginTop: 4, textTransform: 'capitalize' },
+    inviteCode: { fontSize: 14, color: t.colors.primary, fontWeight: '600', marginTop: 8 },
+    formCard: { marginBottom: 16 },
+    formTitle: { fontSize: 16, fontWeight: '700', color: t.colors.text, marginBottom: 12 },
+  });
+}

@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { StyleSheet, View, ScrollView, Text, Alert } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { useRouter } from 'expo-router';
 import { Button, Input, Card } from '@/src/components/ui';
 import { apiPost, apiGet } from '@/src/services/api';
-import { COLORS } from '@/src/constants/config';
+import { useTheme } from '@/src/theme';
 
 interface TicketForm {
   subject: string;
@@ -20,6 +20,8 @@ interface SupportTicket {
 }
 
 export default function SupportScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
@@ -98,15 +100,17 @@ export default function SupportScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: 16, paddingBottom: 48 },
-  title: { fontSize: 24, fontWeight: '800', color: COLORS.text, marginBottom: 4 },
-  subtitle: { fontSize: 14, color: COLORS.textSecondary, marginBottom: 24 },
-  card: { marginBottom: 24 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text, marginBottom: 12 },
-  ticketCard: { marginBottom: 8 },
-  ticketSubject: { fontSize: 16, fontWeight: '600', color: COLORS.text },
-  ticketStatus: { fontSize: 13, color: COLORS.primary, marginTop: 4, textTransform: 'capitalize' },
-  ticketDate: { fontSize: 12, color: COLORS.textSecondary, marginTop: 4 },
-});
+function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.colors.background },
+    content: { padding: 16, paddingBottom: 48 },
+    title: { fontSize: 24, fontWeight: '800', color: t.colors.text, marginBottom: 4 },
+    subtitle: { fontSize: 14, color: t.colors.textSecondary, marginBottom: 24 },
+    card: { marginBottom: 24 },
+    sectionTitle: { fontSize: 18, fontWeight: '700', color: t.colors.text, marginBottom: 12 },
+    ticketCard: { marginBottom: 8 },
+    ticketSubject: { fontSize: 16, fontWeight: '600', color: t.colors.text },
+    ticketStatus: { fontSize: 13, color: t.colors.primary, marginTop: 4, textTransform: 'capitalize' },
+    ticketDate: { fontSize: 12, color: t.colors.textSecondary, marginTop: 4 },
+  });
+}

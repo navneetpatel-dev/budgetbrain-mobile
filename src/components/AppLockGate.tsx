@@ -1,14 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { StyleSheet, View, Text, AppState, AppStateStatus } from 'react-native';
 import { useAppSelector } from '../store/hooks';
 import { authenticateWithBiometrics } from '../services/biometrics';
-import { COLORS } from '../constants/config';
+import { useTheme } from '@/src/theme';
 
 interface Props {
   children: React.ReactNode;
 }
 
 export function AppLockGate({ children }: Props) {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const biometricEnabled = useAppSelector((s) => s.settings.biometricEnabled);
   const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
   const [locked, setLocked] = useState(false);
@@ -50,7 +52,7 @@ export function AppLockGate({ children }: Props) {
   if (biometricEnabled && isAuthenticated && locked) {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>ExpenseFlow Locked</Text>
+        <Text style={styles.title}>BudgetBrain Locked</Text>
         <Text style={styles.subtitle}>Authenticate to continue</Text>
       </View>
     );
@@ -67,13 +69,15 @@ export function AppLockGate({ children }: Props) {
   return <>{children}</>;
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
-  },
-  title: { fontSize: 22, fontWeight: '700', color: COLORS.text },
-  subtitle: { fontSize: 15, color: COLORS.textSecondary, marginTop: 8 },
-});
+function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: t.colors.background,
+    },
+    title: { ...t.typography.title, color: t.colors.text },
+    subtitle: { ...t.typography.bodyMedium, color: t.colors.textSecondary, marginTop: t.spacing.sm },
+  });
+}
