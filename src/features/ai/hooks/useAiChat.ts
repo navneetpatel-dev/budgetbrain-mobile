@@ -28,10 +28,11 @@ export function useAiChat() {
     retry: false,
   });
 
-  const sendMessage = async () => {
-    if (!message.trim()) return;
+  const sendMessage = async (text?: string) => {
+    const content = (text ?? message).trim();
+    if (!content) return;
     setChatLoading(true);
-    const userMsg: AiChatMessage = { role: 'user', content: message, timestamp: new Date().toISOString() };
+    const userMsg: AiChatMessage = { role: 'user', content, timestamp: new Date().toISOString() };
     setMessages((prev) => [...prev, userMsg]);
     setMessage('');
     try {

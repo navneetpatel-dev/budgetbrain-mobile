@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
+import type { AppTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
 import { appHref } from '@/shared/utils/navigation';
 
@@ -31,43 +32,67 @@ export function DashboardHero({
   const theme = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { isTablet, screenPaddingX, inlineGap, stackGap } = useResponsive();
-  const styles = useMemo(
-    () => createStyles(theme, isTablet, stackGap, inlineGap),
-    [theme, isTablet, stackGap, inlineGap],
-  );
+  const { screenPaddingX, inlineGap } = useResponsive();
+  const styles = useMemo(() => createStyles(theme, inlineGap), [theme, inlineGap]);
+  const initial = name[0]?.toUpperCase() ?? '?';
 
   return (
-    <LinearGradient
-      colors={[theme.colors.gradientStart, theme.colors.gradientEnd]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={[styles.hero, { paddingTop: insets.top + 12, paddingHorizontal: screenPaddingX }]}
-    >
+    <View style={[styles.wrap, { paddingTop: insets.top + 8, paddingHorizontal: screenPaddingX }]}>
+      <LinearGradient
+        colors={[theme.colors.gradientStart, theme.colors.primary, theme.colors.gradientEnd]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      <LinearGradient
+        colors={['rgba(255,255,255,0.12)', 'transparent']}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 0.65 }}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
+      <View style={[styles.orb, styles.orbRight]} pointerEvents="none" />
+      <View style={[styles.orb, styles.orbLeft]} pointerEvents="none" />
+
       <View style={styles.topRow}>
-        <View>
-          <Text style={styles.greeting}>Good {getGreeting()}</Text>
-          <Text style={styles.name}>{name}</Text>
+        <View style={styles.greetingBlock}>
+          <Text style={styles.eyebrow}>GOOD {getGreeting().toUpperCase()}</Text>
+          <Text style={styles.name} numberOfLines={1}>
+            {name}
+          </Text>
         </View>
         <Pressable
           onPress={() => router.push('/(tabs)/settings')}
-          style={({ pressed }) => [styles.avatarBtn, pressed && { opacity: 0.9 }]}
+          style={({ pressed }) => [styles.avatarRing, pressed && { opacity: 0.85 }]}
+          accessibilityRole="button"
+          accessibilityLabel="Open profile"
         >
-          <Text style={styles.avatarText}>{name[0]?.toUpperCase() ?? '?'}</Text>
+          <LinearGradient
+            colors={['rgba(255,255,255,0.45)', 'rgba(255,255,255,0.1)']}
+            style={styles.avatarRingGradient}
+          >
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initial}</Text>
+            </View>
+          </LinearGradient>
         </Pressable>
       </View>
 
       <View style={styles.balanceCard}>
-        <Text style={styles.balanceLabel}>Net savings · this period</Text>
-        <Text style={styles.balanceAmount}>{netSavings}</Text>
-        <View style={styles.metaRow}>
-          <Text style={styles.balanceCurrency}>{currency}</Text>
+        <View style={styles.balanceTop}>
+          <Text style={styles.balanceLabel}>Net savings</Text>
           {savingsRate !== undefined && (
             <View style={styles.ratePill}>
-              <AppIcon name="chart" size={12} color="rgba(255,255,255,0.9)" />
+              <AppIcon name="chart" size={10} color="rgba(255,255,255,0.9)" />
               <Text style={styles.rateText}>{savingsRate}% saved</Text>
             </View>
           )}
+        </View>
+        <View style={styles.balanceRow}>
+          <Text style={styles.balanceAmount} numberOfLines={1}>
+            {netSavings}
+          </Text>
+          <Text style={styles.balanceCurrency}>{currency}</Text>
         </View>
       </View>
 
@@ -79,21 +104,21 @@ export function DashboardHero({
             style={({ pressed }) => [
               styles.actionBtn,
               action.primary && styles.actionPrimary,
-              pressed && { opacity: 0.92, transform: [{ scale: 0.97 }] },
+              pressed && { opacity: 0.9, transform: [{ scale: 0.97 }] },
             ]}
           >
             <AppIcon
               name={action.icon}
-              size={18}
+              size={15}
               color={action.primary ? theme.colors.primary : 'rgba(255,255,255,0.95)'}
             />
-            <Text style={[styles.actionLabel, action.primary && styles.actionLabelPrimary]}>
+            <Text style={[styles.actionLabel, action.primary && styles.actionLabelPrimary]} numberOfLines={1}>
               {action.label}
             </Text>
           </Pressable>
         ))}
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -104,73 +129,123 @@ function getGreeting() {
   return 'evening';
 }
 
-function createStyles(t: ReturnType<typeof useTheme>, isTablet: boolean, stackGap: number, inlineGap: number) {
+function createStyles(t: AppTheme, inlineGap: number) {
   return StyleSheet.create({
-    hero: {
-      paddingBottom: isTablet ? 24 : 20,
+    wrap: {
+      paddingBottom: t.spacing.md,
+      overflow: 'hidden',
       borderBottomLeftRadius: t.radii.xl,
       borderBottomRightRadius: t.radii.xl,
     },
+    orb: {
+      position: 'absolute',
+      borderRadius: 999,
+      backgroundColor: 'rgba(255,255,255,0.06)',
+    },
+    orbRight: { width: 130, height: 130, top: -35, right: -45 },
+    orbLeft: { width: 80, height: 80, bottom: 20, left: -25 },
     topRow: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: stackGap,
+      justifyContent: 'space-between',
+      marginBottom: t.spacing.sm,
     },
-    greeting: { color: 'rgba(255,255,255,0.75)', fontSize: 14, fontWeight: '500' },
-    name: { color: '#fff', fontSize: isTablet ? 30 : 26, fontWeight: '800', letterSpacing: -0.5, marginTop: 2 },
-    avatarBtn: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      backgroundColor: 'rgba(255,255,255,0.2)',
-      borderWidth: 2,
-      borderColor: 'rgba(255,255,255,0.35)',
+    greetingBlock: { flex: 1, minWidth: 0, paddingRight: t.spacing.sm },
+    eyebrow: {
+      fontSize: 10,
+      fontWeight: '700',
+      letterSpacing: 1.2,
+      color: 'rgba(255,255,255,0.65)',
+    },
+    name: {
+      color: '#fff',
+      fontSize: 22,
+      fontWeight: '800',
+      letterSpacing: -0.4,
+      marginTop: 2,
+    },
+    avatarRing: { borderRadius: 999, padding: 2 },
+    avatarRingGradient: { borderRadius: 999, padding: 2 },
+    avatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'rgba(255,255,255,0.16)',
       alignItems: 'center',
       justifyContent: 'center',
     },
-    avatarText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+    avatarText: { color: '#fff', fontSize: 16, fontWeight: '800' },
     balanceCard: {
-      backgroundColor: 'rgba(255,255,255,0.12)',
+      backgroundColor: 'rgba(255,255,255,0.1)',
       borderRadius: t.radii.lg,
-      padding: t.spacing.lg,
+      paddingHorizontal: t.spacing.md,
+      paddingVertical: t.spacing.sm + 2,
       borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.18)',
-      marginBottom: stackGap,
+      borderColor: 'rgba(255,255,255,0.14)',
+      marginBottom: t.spacing.sm,
     },
-    balanceLabel: { color: 'rgba(255,255,255,0.75)', fontSize: 13, fontWeight: '500' },
+    balanceTop: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 2,
+    },
+    balanceLabel: {
+      color: 'rgba(255,255,255,0.72)',
+      fontSize: 11,
+      fontWeight: '600',
+      letterSpacing: 0.2,
+    },
+    balanceRow: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      gap: t.spacing.sm,
+    },
     balanceAmount: {
       color: '#fff',
-      fontSize: isTablet ? 40 : 34,
+      fontSize: 28,
       fontWeight: '800',
-      letterSpacing: -1,
-      marginTop: 4,
+      letterSpacing: -0.8,
+      flexShrink: 1,
     },
-    metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 },
-    balanceCurrency: { color: 'rgba(255,255,255,0.65)', fontSize: 12, fontWeight: '600' },
+    balanceCurrency: {
+      color: 'rgba(255,255,255,0.55)',
+      fontSize: 12,
+      fontWeight: '700',
+    },
     ratePill: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: inlineGap,
-      backgroundColor: 'rgba(255,255,255,0.15)',
-      paddingHorizontal: 10,
-      paddingVertical: 4,
+      gap: 4,
+      backgroundColor: 'rgba(255,255,255,0.12)',
+      paddingHorizontal: 8,
+      paddingVertical: 3,
       borderRadius: t.radii.full,
     },
-    rateText: { color: 'rgba(255,255,255,0.9)', fontSize: 11, fontWeight: '600' },
+    rateText: { color: 'rgba(255,255,255,0.88)', fontSize: 10, fontWeight: '700' },
     actions: { flexDirection: 'row', gap: inlineGap },
     actionBtn: {
       flex: 1,
+      flexDirection: 'row',
       alignItems: 'center',
-      gap: inlineGap,
-      paddingVertical: t.spacing.md,
+      justifyContent: 'center',
+      gap: 5,
+      paddingVertical: 9,
+      paddingHorizontal: 4,
       borderRadius: t.radii.md,
-      backgroundColor: 'rgba(255,255,255,0.1)',
+      backgroundColor: 'rgba(255,255,255,0.08)',
       borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.12)',
+      borderColor: 'rgba(255,255,255,0.1)',
     },
-    actionPrimary: { backgroundColor: '#fff' },
-    actionLabel: { color: 'rgba(255,255,255,0.9)', fontSize: 11, fontWeight: '600' },
+    actionPrimary: {
+      backgroundColor: '#fff',
+      borderColor: 'rgba(255,255,255,0.95)',
+    },
+    actionLabel: {
+      color: 'rgba(255,255,255,0.92)',
+      fontSize: 10,
+      fontWeight: '700',
+    },
     actionLabelPrimary: { color: t.colors.primary },
   });
 }

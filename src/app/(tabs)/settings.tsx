@@ -1,7 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import { StyleSheet, View, Text, Switch, Pressable } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { appHref } from '@/shared/utils/navigation';
@@ -9,10 +7,12 @@ import { useForm, Controller } from 'react-hook-form';
 import {
   Button,
   Input,
-  Screen,
   GroupedCard,
   ListRow,
+  StickyHeaderScreen,
 } from '@/shared/components/ui';
+import { ProfileHero } from '@/features/settings/components/ProfileHero';
+import { PremiumUpsellCard } from '@/features/settings/components/PremiumUpsellCard';
 import { ThemePicker } from '@/features/settings/components/ThemePicker';
 import { useBiometricToggle } from '@/features/settings/hooks/useBiometricToggle';
 import { useDeleteAccount } from '@/features/settings/hooks/useDeleteAccount';
@@ -49,7 +49,6 @@ const ACCOUNT_LINKS: { label: string; href: string; icon: AppIconName }[] = [
 
 export default function SettingsScreen() {
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
   const { screenPaddingX } = useResponsive();
   const dispatch = useAppDispatch();
   const router = useRouter();
@@ -80,48 +79,6 @@ export default function SettingsScreen() {
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        hero: {
-          paddingTop: insets.top + 16,
-          paddingHorizontal: screenPaddingX,
-          paddingBottom: 24,
-          marginBottom: theme.spacing.md,
-          borderBottomLeftRadius: theme.radii.xl,
-          borderBottomRightRadius: theme.radii.xl,
-        },
-        avatar: {
-          width: 72,
-          height: 72,
-          borderRadius: 36,
-          backgroundColor: 'rgba(255,255,255,0.2)',
-          borderWidth: 3,
-          borderColor: 'rgba(255,255,255,0.4)',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: theme.spacing.md,
-        },
-        avatarText: { color: '#fff', fontSize: 28, fontWeight: '800' },
-        name: { color: '#fff', fontSize: 24, fontWeight: '800', letterSpacing: -0.3 },
-        email: { color: 'rgba(255,255,255,0.8)', fontSize: 14, marginTop: 4 },
-        badge: {
-          alignSelf: 'flex-start',
-          marginTop: theme.spacing.md,
-          backgroundColor: 'rgba(255,255,255,0.2)',
-          paddingHorizontal: 12,
-          paddingVertical: 4,
-          borderRadius: theme.radii.full,
-        },
-        badgeText: { color: '#fff', fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
-        body: { paddingHorizontal: screenPaddingX },
-        premium: {
-          marginBottom: theme.spacing.lg,
-          padding: theme.spacing.lg,
-          borderRadius: theme.radii.lg,
-          backgroundColor: theme.colors.primarySoft,
-          borderWidth: 1,
-          borderColor: theme.colors.primary + '33',
-        },
-        premiumTitle: { ...theme.typography.titleSm, color: theme.colors.text },
-        premiumSub: { ...theme.typography.caption, color: theme.colors.textSecondary, marginVertical: 8 },
         switchRow: {
           flexDirection: 'row',
           alignItems: 'center',
@@ -144,12 +101,12 @@ export default function SettingsScreen() {
         currencyChipActive: { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
         currencyText: { ...theme.typography.bodyMedium, fontSize: 14, color: theme.colors.text },
         currencyTextActive: { color: theme.colors.onPrimary, fontWeight: '600' },
-        actions: { gap: theme.spacing.md, marginTop: theme.spacing.lg, marginBottom: theme.spacing.xxl },
+        actions: { gap: theme.spacing.md, marginTop: theme.spacing.lg },
       }),
-    [theme, insets, screenPaddingX]
+    [theme],
   );
 
-  const isPremium = ['premium', 'lifetime'].includes(user?.role ?? '');
+  const isPremium = ['premium', 'lifetime', 'admin'].includes(user?.role ?? '');
 
   const onSaveProfile = async (data: ProfileForm) => {
     const ok = await saveProfile(data);
@@ -157,31 +114,19 @@ export default function SettingsScreen() {
   };
 
   return (
-    <Screen padded={false}>
-      <LinearGradient
-        colors={[theme.colors.gradientStart, theme.colors.gradientEnd]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.hero}
-      >
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{user?.name?.[0]?.toUpperCase() ?? '?'}</Text>
-        </View>
-        <Text style={styles.name}>{user?.name ?? 'User'}</Text>
-        <Text style={styles.email}>{user?.email}</Text>
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{(user?.role ?? 'free').toUpperCase()}</Text>
-        </View>
-      </LinearGradient>
-
-      <View style={styles.body}>
-        {!isPremium && (
-          <View style={styles.premium}>
-            <Text style={styles.premiumTitle}>Upgrade to Premium</Text>
-            <Text style={styles.premiumSub}>AI insights, unlimited budgets, and advanced reports</Text>
-            <Button title="View plans" onPress={() => router.push('/subscription')} variant="primary" size="md" />
-          </View>
-        )}
+    <StickyHeaderScreen
+      header={
+        <ProfileHero
+          name={user?.name ?? 'User'}
+          email={user?.email}
+          role={user?.role}
+          currency={user?.currency}
+          onEditPress={() => setEditingProfile((v) => !v)}
+        />
+      }
+      contentContainerStyle={{ paddingHorizontal: screenPaddingX }}
+    >
+        {!isPremium && <PremiumUpsellCard />}
 
         <GroupedCard title="Features">
           {FEATURE_LINKS.map((link, i) => (
@@ -279,7 +224,6 @@ export default function SettingsScreen() {
           <Button title="Sign out" onPress={logout} variant="outline" />
           <Button title="Delete account" onPress={deleteAccount} variant="danger" />
         </View>
-      </View>
-    </Screen>
+    </StickyHeaderScreen>
   );
 }

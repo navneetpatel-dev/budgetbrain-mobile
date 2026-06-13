@@ -6,11 +6,55 @@ import {
   ScrollViewProps,
   ViewStyle,
   RefreshControl,
+  type RefreshControlProps,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
 import { useTabBarInset } from '@/shared/hooks/useTabBarInset';
+
+interface StickyHeaderScreenProps extends Omit<ScrollViewProps, 'children'> {
+  header: React.ReactNode;
+  children: React.ReactNode;
+  contentContainerStyle?: ViewStyle;
+  refreshControl?: React.ReactElement<RefreshControlProps>;
+}
+
+/** Fixed header + scrollable body with tab-bar-safe bottom padding */
+export function StickyHeaderScreen({
+  header,
+  children,
+  contentContainerStyle,
+  refreshControl,
+  ...props
+}: StickyHeaderScreenProps) {
+  const theme = useTheme();
+  const tabBarInset = useTabBarInset();
+  const { sectionGap } = useResponsive();
+
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      {header}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={[
+          {
+            paddingTop: theme.spacing.md,
+            paddingBottom: tabBarInset,
+            gap: sectionGap,
+          },
+          contentContainerStyle,
+        ]}
+        showsVerticalScrollIndicator={false}
+        refreshControl={refreshControl}
+        keyboardShouldPersistTaps="handled"
+        {...props}
+      >
+        {children}
+      </ScrollView>
+    </View>
+  );
+}
 
 interface ScreenProps extends ScrollViewProps {
   children: React.ReactNode;

@@ -1,9 +1,11 @@
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View, Platform } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
+import type { AppTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
 
 export interface CustomTabBarProps {
@@ -27,6 +29,9 @@ const TABS: TabConfig[] = [
   { route: 'settings', label: 'Profile', icon: 'profile' },
 ];
 
+/** Full-screen tab routes that hide the floating bottom bar */
+const HIDDEN_TAB_BAR_ROUTES = new Set(['ai']);
+
 function TabButton({
   config,
   isFocused,
@@ -38,7 +43,7 @@ function TabButton({
   isFocused: boolean;
   onPress: () => void;
   styles: ReturnType<typeof createStyles>;
-  theme: ReturnType<typeof useTheme>;
+  theme: AppTheme;
 }) {
   return (
     <Pressable
@@ -47,16 +52,37 @@ function TabButton({
       accessibilityRole="button"
       accessibilityState={isFocused ? { selected: true } : {}}
     >
-      <View style={[styles.iconPill, isFocused && { backgroundColor: theme.colors.primarySoft }]}>
-        <AppIcon
-          name={config.icon}
-          size={isFocused ? 22 : 20}
-          color={isFocused ? theme.colors.primary : theme.colors.textTertiary}
-        />
-      </View>
+      {isFocused ? (
+        <LinearGradient
+          colors={[theme.colors.primary + '38', theme.colors.gradientEnd + '22']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.activeCapsule}
+        >
+          <View style={styles.activeIconRing}>
+            <AppIcon name={config.icon} size={21} color={theme.colors.primary} />
+          </View>
+        </LinearGradient>
+      ) : (
+        <View style={styles.iconIdle}>
+          <AppIcon name={config.icon} size={20} color={theme.colors.textTertiary} />
+        </View>
+      )}
+
       <Text style={[styles.label, isFocused && styles.labelActive]} numberOfLines={1}>
         {config.label}
       </Text>
+
+      {isFocused ? (
+        <LinearGradient
+          colors={[theme.colors.primary, theme.colors.gradientEnd]}
+          start={{ x: 0, y: 0.5 }}
+          end={{ x: 1, y: 0.5 }}
+          style={styles.activeIndicator}
+        />
+      ) : (
+        <View style={styles.inactiveIndicator} />
+      )}
     </Pressable>
   );
 }
@@ -70,6 +96,11 @@ export function CustomTabBar({ state, navigation }: CustomTabBarProps) {
 
   const leftTabs = TABS.slice(0, 2);
   const rightTabs = TABS.slice(2);
+  const currentRoute = state.routes[state.index]?.name;
+
+  if (currentRoute && HIDDEN_TAB_BAR_ROUTES.has(currentRoute)) {
+    return null;
+  }
 
   const navigate = (routeName: string) => {
     const route = state.routes.find((r) => r.name === routeName);
@@ -103,7 +134,14 @@ export function CustomTabBar({ state, navigation }: CustomTabBarProps) {
           accessibilityRole="button"
           accessibilityLabel="Add expense"
         >
-          <AppIcon name="add" size={28} color={theme.colors.onPrimary} />
+          <LinearGradient
+            colors={[theme.colors.primary, theme.colors.gradientEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.fabGradient}
+          >
+            <AppIcon name="add" size={28} color={theme.colors.onPrimary} />
+          </LinearGradient>
         </Pressable>
 
         <View style={styles.side}>
@@ -123,7 +161,7 @@ export function CustomTabBar({ state, navigation }: CustomTabBarProps) {
   );
 }
 
-function createStyles(t: ReturnType<typeof useTheme>, tabBarPaddingX: number) {
+function createStyles(t: AppTheme, tabBarPaddingX: number) {
   return StyleSheet.create({
     outer: {
       position: 'absolute',
@@ -137,10 +175,10 @@ function createStyles(t: ReturnType<typeof useTheme>, tabBarPaddingX: number) {
       flexDirection: 'row',
       alignItems: 'flex-end',
       justifyContent: 'space-between',
-      backgroundColor: t.colors.surface,
+      backgroundColor: t.isDark ? 'rgba(22, 29, 50, 0.92)' : t.colors.surface,
       borderRadius: 28,
       borderWidth: 1,
-      borderColor: t.colors.borderSubtle,
+      borderColor: t.isDark ? 'rgba(255,255,255,0.08)' : t.colors.borderSubtle,
       paddingHorizontal: t.spacing.sm,
       paddingTop: t.spacing.sm,
       paddingBottom: t.spacing.sm,
@@ -156,14 +194,25 @@ function createStyles(t: ReturnType<typeof useTheme>, tabBarPaddingX: number) {
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: t.spacing.xs,
-      gap: 2,
+      paddingVertical: 2,
+      gap: 3,
+      minHeight: 52,
     },
-    tabPressed: { opacity: 0.85 },
-    iconPill: {
-      width: 40,
-      height: 32,
-      borderRadius: 16,
+    tabPressed: { opacity: 0.88, transform: [{ scale: 0.97 }] },
+    activeCapsule: {
+      paddingHorizontal: 14,
+      paddingVertical: 7,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: t.colors.primary + '44',
+    },
+    activeIconRing: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    iconIdle: {
+      width: 36,
+      height: 36,
       alignItems: 'center',
       justifyContent: 'center',
     },
@@ -171,20 +220,38 @@ function createStyles(t: ReturnType<typeof useTheme>, tabBarPaddingX: number) {
       fontSize: 10,
       fontWeight: '600',
       color: t.colors.textTertiary,
+      letterSpacing: 0.2,
     },
-    labelActive: { color: t.colors.primary },
+    labelActive: {
+      color: t.colors.primary,
+      fontWeight: '700',
+    },
+    activeIndicator: {
+      width: 18,
+      height: 3,
+      borderRadius: 2,
+      marginTop: 1,
+    },
+    inactiveIndicator: {
+      width: 18,
+      height: 3,
+      marginTop: 1,
+      opacity: 0,
+    },
     fab: {
-      width: 56,
-      height: 56,
-      borderRadius: 28,
-      backgroundColor: t.colors.primary,
-      alignItems: 'center',
-      justifyContent: 'center',
       marginTop: -28,
       marginHorizontal: t.spacing.xs,
+      borderRadius: 28,
       ...t.shadows.lg,
       borderWidth: 4,
       borderColor: t.colors.background,
+    },
+    fabGradient: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
   });
 }

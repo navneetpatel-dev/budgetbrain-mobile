@@ -32,7 +32,7 @@ export default function TabLayout() {
       <Tabs.Screen name="settings" options={{ title: 'Profile', headerShown: false }} />
       <Tabs.Screen name="goals" options={{ href: null }} />
       <Tabs.Screen name="income" options={{ href: null }} />
-      <Tabs.Screen name="ai" options={{ href: null }} />
+      <Tabs.Screen name="ai" options={{ href: null, headerShown: false }} />
       <Tabs.Screen name="net-worth" options={{ href: null }} />
     </Tabs>
   );

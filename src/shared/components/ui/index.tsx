@@ -13,7 +13,7 @@ import { useTheme } from '@/shared/theme';
 import type { AppTheme } from '@/shared/theme';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon';
 
-export { Screen, ScreenContainer, ScreenLoader, ScreenSkeleton, ResponsiveGrid } from './layout';
+export { Screen, ScreenContainer, ScreenLoader, ScreenSkeleton, ResponsiveGrid, StickyHeaderScreen } from './layout';
 export {
   ScreenSection,
   useScrollContentStyle,

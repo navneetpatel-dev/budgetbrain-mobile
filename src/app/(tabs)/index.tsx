@@ -8,12 +8,12 @@ import {
   SummaryCard,
   Card,
   EmptyState,
-  Screen,
   ScreenLoader,
   ScreenSection,
   SectionHeader,
   ResponsiveGrid,
   ProgressBar,
+  StickyHeaderScreen,
 } from '@/shared/components/ui';
 import { TransactionItem, TransactionGroup } from '@/features/expenses/components/TransactionItem';
 import { CategoryChart } from '@/features/dashboard/components/CategoryChart';
@@ -54,19 +54,19 @@ export default function DashboardScreen() {
   const transactions = data?.recentTransactions ?? [];
 
   return (
-    <Screen
-      padded={false}
+    <StickyHeaderScreen
+      header={
+        <DashboardHero
+          name={user?.name?.split(' ')[0] ?? 'there'}
+          netSavings={formatCurrency(summary?.netSavings ?? 0, currency)}
+          currency={currency}
+          savingsRate={summary?.savingsRate}
+        />
+      }
       refreshControl={
         <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
       }
     >
-      <DashboardHero
-        name={user?.name?.split(' ')[0] ?? 'there'}
-        netSavings={formatCurrency(summary?.netSavings ?? 0, currency)}
-        currency={currency}
-        savingsRate={summary?.savingsRate}
-      />
-
       <ScreenSection>
         <ResponsiveGrid>
           <SummaryCard
@@ -184,7 +184,7 @@ export default function DashboardScreen() {
           />
         )}
       </ScreenSection>
-    </Screen>
+    </StickyHeaderScreen>
   );
 }
 

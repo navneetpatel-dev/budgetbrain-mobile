@@ -13,3 +13,10 @@ export function useTabBarInset() {
   const { tabBarBottomInset } = useResponsive();
   return insets.bottom + tabBarBottomInset + TAB_BAR_BODY + FAB_OVERFLOW + TAB_BAR_EXTRA;
 }
+
+/** Bottom inset for fixed footers (input bars) sitting just above the tab bar */
+export function useTabBarFooterInset(extra = 8) {
+  const insets = useSafeAreaInsets();
+  const { tabBarBottomInset } = useResponsive();
+  return insets.bottom + tabBarBottomInset + TAB_BAR_BODY + extra;
+}
