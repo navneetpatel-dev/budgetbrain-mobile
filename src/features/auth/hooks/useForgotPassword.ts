@@ -1,21 +1,16 @@
 import { useState } from 'react';
-import { apiPost, getApiErrorMessage } from '@/src/shared/services/api';
-
-interface ForgotPasswordData {
-  email: string;
-}
+import { requestPasswordReset } from '@/src/features/auth/services/auth.service';
+import type { ForgotPasswordInput } from '@/src/features/auth/types/auth.types';
 
 export function useForgotPassword() {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
-  const forgotPassword = async (data: ForgotPasswordData) => {
+  const forgotPassword = async (input: ForgotPasswordInput) => {
     setLoading(true);
     try {
-      await apiPost('/auth/forgot-password', data);
+      await requestPasswordReset(input);
       setSent(true);
-    } catch (err: unknown) {
-      throw new Error(getApiErrorMessage(err, 'Could not send reset email'));
     } finally {
       setLoading(false);
     }

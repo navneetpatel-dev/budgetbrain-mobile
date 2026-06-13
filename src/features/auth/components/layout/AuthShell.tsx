@@ -12,7 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { AppIcon } from '@/src/features/navigation/components/AppIcon';
-import { AuthHeroHeader } from '@/src/features/auth/components/AuthHeroHeader';
+import { AuthHeroHeader } from '@/src/features/auth/components/layout/AuthHeroHeader';
 import { useTheme } from '@/src/shared/theme';
 import { appHref } from '@/src/shared/utils/navigation';
 

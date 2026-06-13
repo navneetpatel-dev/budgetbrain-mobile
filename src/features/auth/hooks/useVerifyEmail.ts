@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { apiPost } from '@/src/shared/services/api';
+import { verifyEmailToken } from '@/src/features/auth/services/auth.service';
 
 export function useVerifyEmail(token: string | undefined) {
   const router = useRouter();
@@ -8,15 +8,10 @@ export function useVerifyEmail(token: string | undefined) {
   const [verified, setVerified] = useState(false);
 
   const verify = async () => {
-    if (!token) {
-      throw new Error('No verification token found.');
-    }
     setLoading(true);
     try {
-      await apiPost('/auth/verify-email', { token });
+      await verifyEmailToken(token ?? '');
       setVerified(true);
-    } catch {
-      throw new Error('This verification link is invalid or expired.');
     } finally {
       setLoading(false);
     }

@@ -1,24 +1,19 @@
 import { useState } from 'react';
-import { apiPost, getApiErrorMessage } from '@/src/shared/services/api';
+import { resetPassword } from '@/src/features/auth/services/auth.service';
 
 export function useResetPassword(token: string | undefined) {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
 
-  const resetPassword = async (password: string) => {
-    if (!token) {
-      throw new Error('Reset token is missing. Open the link from your email.');
-    }
+  const reset = async (password: string) => {
     setLoading(true);
     try {
-      await apiPost('/auth/reset-password', { token, password });
+      await resetPassword({ token: token ?? '', password });
       setDone(true);
-    } catch (err: unknown) {
-      throw new Error(getApiErrorMessage(err, 'Could not reset password'));
     } finally {
       setLoading(false);
     }
   };
 
-  return { resetPassword, loading, done };
+  return { resetPassword: reset, loading, done };
 }

@@ -1,32 +1,31 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { signInWithGoogle, signInWithApple } from '@/src/shared/services/socialAuth';
-import { setTokens } from '@/src/shared/services/api';
 import { setUser } from '@/src/shared/store/authSlice';
 import { useAppDispatch } from '@/src/shared/store/hooks';
+import { persistAuthSession } from '@/src/features/auth/services/auth.service';
+import { signInWithApple, signInWithGoogle } from '@/src/features/auth/services/social-auth.service';
+import type { SocialAuthProvider } from '@/src/features/auth/types/auth.types';
 
 export function useSocialAuth() {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const [loading, setLoading] = useState<'google' | 'apple' | null>(null);
+  const [loading, setLoading] = useState<SocialAuthProvider | null>(null);
 
   const authenticate = async (
-    provider: 'google' | 'apple',
-    signInFn: () => Promise<Awaited<ReturnType<typeof signInWithGoogle>> | null>
+    provider: SocialAuthProvider,
+    signInFn: () => Promise<Awaited<ReturnType<typeof signInWithGoogle>> | null>,
   ) => {
     setLoading(provider);
     try {
-      const result = await signInFn();
-      if (!result) return;
-      await setTokens(result.accessToken, result.refreshToken);
-      dispatch(setUser(result.user));
-      if (!result.user.onboardingCompleted) {
+      const session = await signInFn();
+      if (!session) return;
+      await persistAuthSession(session);
+      dispatch(setUser(session.user));
+      if (!session.user.onboardingCompleted) {
         router.replace('/(onboarding)');
       } else {
         router.replace('/(tabs)');
       }
-    } catch (err) {
-      throw err;
     } finally {
       setLoading(null);
     }

@@ -1,14 +1,14 @@
 import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
-import { apiPost } from './api';
-import type { User } from '../types';
+import { apiPost } from '@/src/shared/services/api';
+import type { AuthSession as AuthSessionResult } from '@/src/features/auth/types/auth.types';
 
 WebBrowser.maybeCompleteAuthSession();
 
 const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
 
-export async function signInWithGoogle(): Promise<{ accessToken: string; refreshToken: string; user: User } | null> {
+export async function signInWithGoogle(): Promise<AuthSessionResult | null> {
   if (!GOOGLE_CLIENT_ID) {
     throw new Error('Set EXPO_PUBLIC_GOOGLE_CLIENT_ID to enable Google sign-in');
   }
@@ -32,13 +32,13 @@ export async function signInWithGoogle(): Promise<{ accessToken: string; refresh
     return null;
   }
 
-  return apiPost<{ accessToken: string; refreshToken: string; user: User }>('/auth/google', {
+  return apiPost<AuthSessionResult>('/auth/google', {
     idToken: result.params.id_token,
     name: result.params.name as string | undefined,
   });
 }
 
-export async function signInWithApple(): Promise<{ accessToken: string; refreshToken: string; user: User } | null> {
+export async function signInWithApple(): Promise<AuthSessionResult | null> {
   if (Platform.OS !== 'ios') {
     throw new Error('Apple Sign-In is only available on iOS');
   }
@@ -59,7 +59,7 @@ export async function signInWithApple(): Promise<{ accessToken: string; refreshT
     ? [credential.fullName.givenName, credential.fullName.familyName].filter(Boolean).join(' ')
     : undefined;
 
-  return apiPost<{ accessToken: string; refreshToken: string; user: User }>('/auth/apple', {
+  return apiPost<AuthSessionResult>('/auth/apple', {
     idToken: credential.identityToken,
     name,
   });
