@@ -9,11 +9,11 @@ import {
   Card,
   DateInput,
   ScreenLoader,
-  useScrollContentStyle,
   FormFieldLabel,
   OptionChips,
   OptionChipList,
   GroupedCard,
+  FormStackScreen,
 } from '@/shared/components/ui';
 import { apiGet } from '@/shared/services/api';
 import { useExpenseDetail, type ExpenseForm } from '@/features/expenses/hooks/useExpenseDetail';
@@ -73,13 +73,16 @@ export default function ExpenseDetailScreen() {
   }
 
   const symbol = formatCurrency(Number(expense.amount), expense.currency);
-  const contentStyle = useScrollContentStyle();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={contentStyle}>
+    <FormStackScreen
+      eyebrow="EXPENSE"
+      title={editing ? 'Edit Expense' : 'Expense Details'}
+      subtitle={expense.merchant ?? expense.category?.name ?? 'Transaction'}
+    >
       {!editing ? (
         <>
-          <GroupedCard title="DETAILS">
+          <GroupedCard title="Details" padded>
             <Text style={styles.amount}>{symbol}</Text>
             <Text style={styles.merchant}>{expense.merchant ?? expense.category?.name ?? 'Expense'}</Text>
             <Text style={styles.meta}>Date: {expense.date}</Text>
@@ -138,13 +141,12 @@ export default function ExpenseDetailScreen() {
           <Button title="Cancel" onPress={() => setEditing(false)} variant="outline" />
         </>
       )}
-    </ScrollView>
+    </FormStackScreen>
   );
 }
 
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: t.colors.background },
     amount: { fontSize: 32, fontWeight: '800', color: t.colors.danger },
     merchant: { fontSize: 18, fontWeight: '600', color: t.colors.text, marginTop: 8 },
     meta: { fontSize: 14, color: t.colors.textSecondary, marginTop: 4 },

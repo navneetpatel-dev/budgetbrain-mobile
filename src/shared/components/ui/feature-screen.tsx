@@ -1,14 +1,17 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import {
   FlatList,
   FlatListProps,
   Pressable,
+  ScrollView,
+  ScrollViewProps,
   StyleSheet,
   Text,
   View,
   ViewStyle,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter, type Href } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
@@ -18,12 +21,60 @@ import { useTabBarInset } from '@/shared/hooks/useTabBarInset';
 import { useScreenListStyle } from '@/shared/hooks/useLayout';
 import { useFabBottom } from '@/shared/hooks/useFabBottom';
 
-/* ── Compact screen header (sticky) ── */
+/* ── Uniform back navigation ── */
 
-export function FeatureHeader({
+export function useStackBack(fallback: Href = '/') {
+  const router = useRouter();
+  return useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+    router.replace(fallback);
+  }, [router, fallback]);
+}
+
+/** Back to Profile tab when opened from settings links */
+export function useProfileBack() {
+  return useStackBack('/(tabs)/settings' as Href);
+}
+
+export function BackButton({
+  onPress,
+  label = 'Go back',
+  size = 'default',
+}: {
+  onPress?: () => void;
+  label?: string;
+  size?: 'default' | 'compact';
+}) {
+  const theme = useTheme();
+  const stackBack = useStackBack();
+  const styles = useMemo(() => createHeaderStyles(theme), [theme]);
+  const compact = size === 'compact';
+
+  return (
+    <Pressable
+      onPress={onPress ?? stackBack}
+      style={({ pressed }) => [
+        styles.backBtn,
+        compact && styles.backBtnCompact,
+        pressed && { opacity: 0.85 },
+      ]}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
+      <AppIcon name="arrowLeft" size={compact ? 18 : 20} color={theme.colors.primary} />
+    </Pressable>
+  );
+}
+
+/** Compact single-row nav header for stack / profile sub-screens */
+export function StackNavHeader({
   title,
   subtitle,
-  eyebrow,
+  showBack = true,
+  onBack,
   actionIcon,
   onAction,
   actionLabel,
@@ -31,20 +82,131 @@ export function FeatureHeader({
 }: {
   title: string;
   subtitle?: string;
-  eyebrow?: string;
+  showBack?: boolean;
+  onBack?: () => void;
   actionIcon?: AppIconName;
   onAction?: () => void;
   actionLabel?: string;
   footer?: React.ReactNode;
 }) {
   const theme = useTheme();
+  const stackBack = useStackBack();
+  const insets = useSafeAreaInsets();
+  const { tabBarPaddingX } = useResponsive();
+  const styles = useMemo(() => createStackNavStyles(theme), [theme]);
+  const handleBack = onBack ?? stackBack;
+
+  return (
+    <View
+      style={[
+        styles.wrap,
+        { paddingTop: insets.top + 6, paddingHorizontal: tabBarPaddingX },
+      ]}
+    >
+      <View style={styles.row}>
+        {showBack ? (
+          <BackButton onPress={handleBack} label="Go back" size="compact" />
+        ) : null}
+
+        <View style={styles.textCol}>
+          <Text style={styles.title} numberOfLines={1}>
+            {title}
+          </Text>
+          {subtitle ? (
+            <Text style={styles.subtitle} numberOfLines={1}>
+              {subtitle}
+            </Text>
+          ) : null}
+        </View>
+
+        {onAction && actionIcon ? (
+          <Pressable
+            onPress={onAction}
+            style={({ pressed }) => [styles.actionBtn, pressed && { opacity: 0.85 }]}
+            accessibilityRole="button"
+            accessibilityLabel={actionLabel ?? 'Action'}
+          >
+            <AppIcon name={actionIcon} size={18} color={theme.colors.primary} />
+          </Pressable>
+        ) : null}
+      </View>
+
+      {footer ? <View style={styles.footer}>{footer}</View> : null}
+    </View>
+  );
+}
+
+/* ── Compact screen header (sticky) ── */
+
+export function FeatureHeader({
+  title,
+  subtitle,
+  eyebrow,
+  icon,
+  actionIcon,
+  onAction,
+  actionLabel,
+  footer,
+  showBack,
+  onBack,
+  variant = 'tab',
+}: {
+  title: string;
+  subtitle?: string;
+  eyebrow?: string;
+  icon?: AppIconName;
+  actionIcon?: AppIconName;
+  onAction?: () => void;
+  actionLabel?: string;
+  footer?: React.ReactNode;
+  showBack?: boolean;
+  onBack?: () => void;
+  /** `stack` = profile sub-screens & modals; `tab` = main tab roots */
+  variant?: 'tab' | 'stack';
+}) {
+  const theme = useTheme();
+  const stackBack = useStackBack();
   const insets = useSafeAreaInsets();
   const { screenPaddingX } = useResponsive();
   const styles = useMemo(() => createHeaderStyles(theme), [theme]);
+  const padX = screenPaddingX;
+
+  const handleBack = onBack ?? stackBack;
+
+  if (variant === 'stack') {
+    return (
+      <StackNavHeader
+        title={title}
+        subtitle={subtitle}
+        showBack={showBack}
+        onBack={handleBack}
+        actionIcon={actionIcon}
+        onAction={onAction}
+        actionLabel={actionLabel}
+        footer={footer}
+      />
+    );
+  }
 
   return (
-    <View style={[styles.wrap, { paddingTop: insets.top + 8, paddingHorizontal: screenPaddingX }]}>
-      <View style={styles.row}>
+    <View
+      style={[
+        styles.wrap,
+        { paddingTop: insets.top + 8, paddingHorizontal: padX },
+      ]}
+    >
+      <View style={styles.mainRow}>
+        {icon ? (
+          <LinearGradient
+            colors={[theme.colors.primary + '38', theme.colors.gradientEnd + '22']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.headerIconRing}
+          >
+            <AppIcon name={icon} size={20} color={theme.colors.primary} />
+          </LinearGradient>
+        ) : null}
+
         <View style={styles.textCol}>
           {eyebrow ? <Text style={styles.eyebrow}>{eyebrow}</Text> : null}
           <Text style={styles.title} numberOfLines={1}>
@@ -52,6 +214,7 @@ export function FeatureHeader({
           </Text>
           {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
         </View>
+
         {onAction && actionIcon ? (
           <Pressable
             onPress={onAction}
@@ -68,6 +231,7 @@ export function FeatureHeader({
           </Pressable>
         ) : null}
       </View>
+
       {footer ? <View style={styles.footer}>{footer}</View> : null}
     </View>
   );
@@ -292,6 +456,82 @@ export function ScreenIntro({ eyebrow, subtitle }: { eyebrow?: string; subtitle?
   );
 }
 
+/** Stack screen: sticky header + scroll body (Profile sub-screens, forms) */
+export function StackScrollScreen({
+  header,
+  children,
+  contentContainerStyle,
+  keyboardShouldPersistTaps = 'handled',
+}: {
+  header: React.ReactNode;
+  children: React.ReactNode;
+  contentContainerStyle?: ViewStyle;
+  keyboardShouldPersistTaps?: ScrollViewProps['keyboardShouldPersistTaps'];
+}) {
+  const theme = useTheme();
+  const insets = useSafeAreaInsets();
+  const { tabBarPaddingX, contentMaxWidth, sectionGap } = useResponsive();
+
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      {header}
+      <ScrollView
+        contentContainerStyle={[
+          {
+            paddingHorizontal: tabBarPaddingX,
+            paddingTop: theme.spacing.sm,
+            paddingBottom: insets.bottom + theme.spacing.xxl,
+            gap: sectionGap,
+            width: '100%',
+            maxWidth: contentMaxWidth,
+            alignSelf: 'center',
+          },
+          contentContainerStyle,
+        ]}
+        keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+        showsVerticalScrollIndicator={false}
+      >
+        {children}
+      </ScrollView>
+    </View>
+  );
+}
+
+/** Form / detail stack screen with uniform header + back button */
+export function FormStackScreen({
+  eyebrow,
+  title,
+  subtitle,
+  icon,
+  onBack,
+  children,
+}: {
+  eyebrow?: string;
+  title: string;
+  subtitle?: string;
+  icon?: AppIconName;
+  onBack?: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <StackScrollScreen
+      header={
+        <FeatureHeader
+          variant="stack"
+          showBack
+          onBack={onBack}
+          icon={icon}
+          eyebrow={eyebrow}
+          title={title}
+          subtitle={subtitle}
+        />
+      }
+    >
+      {children}
+    </StackScrollScreen>
+  );
+}
+
 /* ── Sticky header + FlatList ── */
 
 export function StickyHeaderFlatScreen<T>({
@@ -321,7 +561,20 @@ export function StickyHeaderFlatScreen<T>({
   const safeInsets = useSafeAreaInsets();
   const tabBarInset = useTabBarInset();
   const bottomInset = inset === 'stack' ? safeInsets.bottom + theme.spacing.xxl : tabBarInset;
-  const listStyle = useScreenListStyle(bottomInset);
+  const { tabBarPaddingX, contentMaxWidth, stackGap } = useResponsive();
+  const padX = tabBarPaddingX;
+  const listStyle = useMemo(
+    () => ({
+      paddingHorizontal: padX,
+      paddingTop: stackGap,
+      paddingBottom: bottomInset,
+      gap: stackGap,
+      maxWidth: contentMaxWidth,
+      width: '100%' as const,
+      alignSelf: 'center' as const,
+    }),
+    [padX, contentMaxWidth, stackGap, bottomInset],
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -349,10 +602,34 @@ function createHeaderStyles(t: AppTheme) {
       borderBottomColor: t.isDark ? 'rgba(255,255,255,0.06)' : t.colors.borderSubtle,
       backgroundColor: t.colors.background,
     },
-    row: {
+    mainRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: t.spacing.sm,
+      gap: t.spacing.md,
+    },
+    headerIconRing: {
+      width: 44,
+      height: 44,
+      borderRadius: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: t.colors.primary + '33',
+    },
+    backBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: t.isDark ? 'rgba(255,255,255,0.06)' : t.colors.surface,
+      borderWidth: 1,
+      borderColor: t.isDark ? 'rgba(255,255,255,0.1)' : t.colors.borderSubtle,
+    },
+    backBtnCompact: {
+      width: 36,
+      height: 36,
+      borderRadius: 10,
     },
     textCol: { flex: 1, minWidth: 0 },
     eyebrow: {
@@ -360,7 +637,7 @@ function createHeaderStyles(t: AppTheme) {
       fontWeight: '700',
       letterSpacing: 1.1,
       color: t.colors.textTertiary,
-      marginBottom: 2,
+      marginBottom: 3,
     },
     title: {
       ...t.typography.titleSm,
@@ -372,7 +649,8 @@ function createHeaderStyles(t: AppTheme) {
     subtitle: {
       ...t.typography.caption,
       color: t.colors.textSecondary,
-      marginTop: 2,
+      marginTop: 3,
+      lineHeight: 18,
     },
     actionBtn: { borderRadius: 14, overflow: 'hidden' },
     actionGradient: {
@@ -383,6 +661,52 @@ function createHeaderStyles(t: AppTheme) {
       justifyContent: 'center',
       borderWidth: 1,
       borderColor: t.colors.primary + '33',
+    },
+    footer: { marginTop: t.spacing.sm },
+  });
+}
+
+function createStackNavStyles(t: AppTheme) {
+  return StyleSheet.create({
+    wrap: {
+      paddingBottom: 10,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: t.isDark ? 'rgba(255,255,255,0.08)' : t.colors.borderSubtle,
+      backgroundColor: t.colors.background,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      minHeight: 36,
+    },
+    textCol: {
+      flex: 1,
+      minWidth: 0,
+      justifyContent: 'center',
+    },
+    title: {
+      fontSize: 17,
+      fontWeight: '700',
+      color: t.colors.text,
+      letterSpacing: -0.2,
+    },
+    subtitle: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: t.colors.textSecondary,
+      marginTop: 1,
+      lineHeight: 16,
+    },
+    actionBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: t.isDark ? 'rgba(255,255,255,0.06)' : t.colors.surface,
+      borderWidth: 1,
+      borderColor: t.isDark ? 'rgba(255,255,255,0.1)' : t.colors.borderSubtle,
     },
     footer: { marginTop: t.spacing.sm },
   });

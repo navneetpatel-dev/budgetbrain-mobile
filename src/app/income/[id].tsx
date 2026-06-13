@@ -1,8 +1,8 @@
 import { useEffect, useMemo } from 'react';
-import { StyleSheet, View, ScrollView } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Input, DateInput, ScreenLoader, useScrollContentStyle } from '@/shared/components/ui';
+import { Button, Input, DateInput, ScreenLoader, FormStackScreen } from '@/shared/components/ui';
 import { useIncomeDetail, type IncomeForm } from '@/features/income/hooks/useIncomeDetail';
 import { useTheme } from '@/shared/theme';
 
@@ -24,10 +24,8 @@ export default function IncomeEditScreen() {
     return <ScreenLoader />;
   }
 
-  const contentStyle = useScrollContentStyle();
-
   return (
-    <ScrollView style={styles.container} contentContainerStyle={contentStyle}>
+    <FormStackScreen eyebrow="INCOME" title="Edit Income" subtitle="Update income entry">
       <Controller control={control} name="amount" rules={{ required: true }} render={({ field: { onChange, value } }) => (
         <Input label="Amount" value={value} onChangeText={onChange} keyboardType="numeric" />
       )} />
@@ -37,16 +35,12 @@ export default function IncomeEditScreen() {
       <Controller control={control} name="notes" render={({ field: { onChange, value } }) => (
         <Input label="Notes" value={value} onChangeText={onChange} />
       )} />
-      <Button title="Save" onPress={handleSubmit(save)} loading={loading} />
-      <View style={styles.spacer} />
+      <Button title="Save" onPress={handleSubmit(save)} loading={loading} size="lg" />
       <Button title="Delete" onPress={confirmDelete} variant="danger" loading={loading} />
-    </ScrollView>
+    </FormStackScreen>
   );
 }
 
 function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    container: { flex: 1, backgroundColor: t.colors.background },
-    spacer: { height: 12 },
-  });
+  return StyleSheet.create({});
 }

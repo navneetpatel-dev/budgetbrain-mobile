@@ -1,15 +1,15 @@
 import { useMemo } from 'react';
-import { StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
 import {
   Button,
   Input,
   DateInput,
-  useScrollContentStyle,
   FormFieldLabel,
   OptionChips,
   OptionChipList,
+  FormStackScreen,
 } from '@/shared/components/ui';
 import { apiGet } from '@/shared/services/api';
 import { useCreateBudget, type BudgetForm } from '@/features/budgets/hooks/useCreateBudget';
@@ -45,10 +45,8 @@ export default function AddBudgetScreen() {
   const budgetType = watch('type');
   const selectedCategory = watch('categoryId');
 
-  const contentStyle = useScrollContentStyle();
-
   return (
-    <ScrollView style={styles.container} contentContainerStyle={contentStyle} keyboardShouldPersistTaps="handled">
+    <FormStackScreen eyebrow="BUDGET" title="Create Budget" subtitle="Set a spending limit">
       <Controller
         control={control}
         name="name"
@@ -102,12 +100,10 @@ export default function AddBudgetScreen() {
       )}
 
       <Button title="Create Budget" onPress={handleSubmit(create)} loading={loading} size="lg" />
-    </ScrollView>
+    </FormStackScreen>
   );
 }
 
 function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    container: { flex: 1, backgroundColor: t.colors.background },
-  });
+  return StyleSheet.create({});
 }

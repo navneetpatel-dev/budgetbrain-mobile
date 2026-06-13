@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, ScrollView, Text } from 'react-native';
-import { Button, DateInput, useScrollContentStyle, ScreenIntro, GroupedCard } from '@/shared/components/ui';
+import { StyleSheet, Text } from 'react-native';
+import { Button, DateInput, StackScrollScreen, GroupedCard } from '@/shared/components/ui';
+import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
 import { useExportReports } from '@/features/reports/hooks/useExportReports';
 
@@ -8,31 +9,32 @@ export default function ReportsScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { isPremium, startDate, setStartDate, endDate, setEndDate, loading, downloadCsv, downloadPdf } = useExportReports();
-  const contentStyle = useScrollContentStyle();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={contentStyle}>
-      <ScreenIntro eyebrow="EXPORT" subtitle="Download your transaction history as CSV or PDF" />
-
-      <GroupedCard title="DATE RANGE">
+    <StackScrollScreen
+      header={
+        <ProfileStackHeader
+          screen="reports"
+          subtitle="Download your transaction history as CSV or PDF"
+        />
+      }
+    >
+      <GroupedCard title="Date range" padded>
         <DateInput label="Start Date (optional)" value={startDate} onChange={setStartDate} />
         <DateInput label="End Date (optional)" value={endDate} onChange={setEndDate} />
       </GroupedCard>
 
-      <GroupedCard title="DOWNLOAD">
+      <GroupedCard title="Download" padded>
         <Button title="Download CSV" onPress={downloadCsv} loading={loading} />
-        <View style={styles.spacer} />
         <Button title="Download PDF (Premium)" onPress={downloadPdf} variant="outline" loading={loading} />
         {!isPremium && <Text style={styles.premiumHint}>PDF export requires Premium</Text>}
       </GroupedCard>
-    </ScrollView>
+    </StackScrollScreen>
   );
 }
 
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: t.colors.background },
-    spacer: { height: 12 },
-    premiumHint: { ...t.typography.caption, color: t.colors.textSecondary, marginTop: 10, textAlign: 'center' },
+    premiumHint: { ...t.typography.caption, color: t.colors.textSecondary, textAlign: 'center' },
   });
 }

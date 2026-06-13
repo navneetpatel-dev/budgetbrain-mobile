@@ -30,10 +30,9 @@ export default function TabLayout() {
       <Tabs.Screen name="expenses" options={{ title: 'Activity', headerShown: false }} />
       <Tabs.Screen name="budgets" options={{ title: 'Budgets', headerShown: false }} />
       <Tabs.Screen name="settings" options={{ title: 'Profile', headerShown: false }} />
-      <Tabs.Screen name="goals" options={{ href: null }} />
-      <Tabs.Screen name="income" options={{ href: null }} />
+      <Tabs.Screen name="goals" options={{ href: null, headerShown: false }} />
+      <Tabs.Screen name="income" options={{ href: null, headerShown: false }} />
       <Tabs.Screen name="ai" options={{ href: null, headerShown: false }} />
-      <Tabs.Screen name="net-worth" options={{ href: null }} />
     </Tabs>
   );
 }

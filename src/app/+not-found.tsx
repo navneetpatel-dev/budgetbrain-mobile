@@ -1,6 +1,6 @@
-import { Link, Stack } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
-
+import { Link } from 'expo-router';
+import { StyleSheet, Text } from 'react-native';
+import { FeatureHeader, StackScrollScreen } from '@/shared/components/ui';
 import { useThemedStyles } from '@/shared/hooks/useThemedStyles';
 import type { AppTheme } from '@/shared/theme';
 
@@ -8,39 +8,24 @@ export default function NotFoundScreen() {
   const styles = useThemedStyles(createStyles);
 
   return (
-    <>
-      <Stack.Screen options={{ title: 'Oops!' }} />
-      <View style={styles.container}>
-        <Text style={styles.title}>This screen doesn't exist.</Text>
-
-        <Link href="/" style={styles.link}>
-          <Text style={styles.linkText}>Go to home screen!</Text>
-        </Link>
-      </View>
-    </>
+    <StackScrollScreen
+      header={
+        <FeatureHeader variant="stack" showBack eyebrow="ERROR" title="Not Found" subtitle="This screen doesn't exist" />
+      }
+    >
+      <Link href="/" style={styles.link}>
+        <Text style={styles.linkText}>Go to home screen</Text>
+      </Link>
+    </StackScrollScreen>
   );
 }
 
 const createStyles = (theme: AppTheme) =>
   StyleSheet.create({
-    container: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: theme.spacing.lg,
-      backgroundColor: theme.colors.background,
-    },
-    title: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: theme.colors.text,
-    },
-    link: {
-      marginTop: theme.spacing.md,
-      paddingVertical: theme.spacing.md,
-    },
+    link: { paddingVertical: theme.spacing.md },
     linkText: {
-      fontSize: 14,
+      fontSize: 15,
+      fontWeight: '600',
       color: theme.colors.primary,
     },
   });

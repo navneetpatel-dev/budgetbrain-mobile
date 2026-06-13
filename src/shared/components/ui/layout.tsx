@@ -11,13 +11,14 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
-import { useTabBarInset } from '@/shared/hooks/useTabBarInset';
+import { useTabBarInset, useFloatingBlockGap } from '@/shared/hooks/useTabBarInset';
 
 interface StickyHeaderScreenProps extends Omit<ScrollViewProps, 'children'> {
   header: React.ReactNode;
   children: React.ReactNode;
   contentContainerStyle?: ViewStyle;
   refreshControl?: React.ReactElement<RefreshControlProps>;
+  inset?: 'tab' | 'stack';
 }
 
 /** Fixed header + scrollable body with tab-bar-safe bottom padding */
@@ -26,11 +27,17 @@ export function StickyHeaderScreen({
   children,
   contentContainerStyle,
   refreshControl,
+  inset = 'tab',
   ...props
 }: StickyHeaderScreenProps) {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const tabBarInset = useTabBarInset();
-  const { sectionGap } = useResponsive();
+  const blockGap = useFloatingBlockGap();
+  const bottomInset = inset === 'stack' ? insets.bottom + theme.spacing.xxl : tabBarInset;
+  const { sectionGap, contentMaxWidth, tabBarPaddingX } = useResponsive();
+  const horizontalPadding = tabBarPaddingX;
+  const contentGap = inset === 'tab' ? blockGap : sectionGap;
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -40,8 +47,12 @@ export function StickyHeaderScreen({
         contentContainerStyle={[
           {
             paddingTop: theme.spacing.md,
-            paddingBottom: tabBarInset,
-            gap: sectionGap,
+            paddingBottom: bottomInset,
+            paddingHorizontal: horizontalPadding,
+            gap: contentGap,
+            width: '100%',
+            maxWidth: contentMaxWidth,
+            alignSelf: 'center',
           },
           contentContainerStyle,
         ]}

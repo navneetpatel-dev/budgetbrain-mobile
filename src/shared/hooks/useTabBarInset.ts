@@ -14,6 +14,13 @@ export function useTabBarInset() {
   return insets.bottom + tabBarBottomInset + TAB_BAR_BODY + FAB_OVERFLOW + TAB_BAR_EXTRA;
 }
 
+/** Matches the tab bar's bottom margin from the device edge (same float rhythm) */
+export function useFloatingBlockGap() {
+  const insets = useSafeAreaInsets();
+  const { tabBarBottomInset } = useResponsive();
+  return Math.max(insets.bottom, tabBarBottomInset);
+}
+
 /** Bottom inset for fixed footers (input bars) sitting just above the tab bar */
 export function useTabBarFooterInset(extra = 8) {
   const insets = useSafeAreaInsets();

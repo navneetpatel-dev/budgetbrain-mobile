@@ -1,15 +1,15 @@
 import { useState, useMemo } from 'react';
-import { StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
 import {
   Button,
   Input,
   DateInput,
-  useScrollContentStyle,
   FormFieldLabel,
   OptionChips,
   OptionChipList,
+  FormStackScreen,
 } from '@/shared/components/ui';
 import { apiGet } from '@/shared/services/api';
 import { useCreateIncome, type IncomeForm } from '@/features/income/hooks/useCreateIncome';
@@ -43,10 +43,9 @@ export default function AddIncomeScreen() {
 
   const selectedSource = watch('incomeSourceId');
   const newSourceType = watch('newSourceType');
-  const contentStyle = useScrollContentStyle();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={contentStyle} keyboardShouldPersistTaps="handled">
+    <FormStackScreen eyebrow="INCOME" title="Add Income" subtitle="Record a new income entry">
       <Controller
         control={control}
         name="amount"
@@ -105,12 +104,10 @@ export default function AddIncomeScreen() {
       />
 
       <Button title="Save Income" onPress={handleSubmit((data) => create(data, showNewSource))} loading={loading} size="lg" />
-    </ScrollView>
+    </FormStackScreen>
   );
 }
 
 function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    container: { flex: 1, backgroundColor: t.colors.background },
-  });
+  return StyleSheet.create({});
 }

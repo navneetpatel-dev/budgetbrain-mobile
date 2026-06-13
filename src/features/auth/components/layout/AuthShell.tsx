@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { AppIcon } from '@/features/navigation/components/AppIcon';
+import { BackButton } from '@/shared/components/ui';
 import { AuthHeroHeader } from '@/features/auth/components/layout/AuthHeroHeader';
 import { useTheme } from '@/shared/theme';
 import { appHref } from '@/shared/utils/navigation';
@@ -71,14 +71,9 @@ export function AuthShell({
               },
             ]}
           >
-            <Pressable
-              onPress={handleBack}
-              style={({ pressed }) => [styles.compactBack, pressed && { opacity: 0.7 }]}
-              accessibilityRole="button"
-              accessibilityLabel="Go back"
-            >
-              <AppIcon name="arrowLeft" size={20} color={theme.colors.text} />
-            </Pressable>
+            <View style={styles.backWrap}>
+              <BackButton onPress={handleBack} />
+            </View>
 
             <Text style={styles.compactTitle}>{title}</Text>
             <Text style={styles.compactSubtitle}>{subtitle}</Text>
@@ -139,15 +134,7 @@ function createStyles(t: ReturnType<typeof useTheme>) {
     compactScroll: {
       paddingHorizontal: t.spacing.xl,
     },
-    compactBack: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: t.colors.surface,
-      borderWidth: 1,
-      borderColor: t.colors.borderSubtle,
-      alignItems: 'center',
-      justifyContent: 'center',
+    backWrap: {
       marginBottom: t.spacing.lg,
     },
     compactTitle: {

@@ -31,7 +31,7 @@ const FEATURE_LINKS: { label: string; href: string; icon: AppIconName }[] = [
   { label: 'Goals', href: '/(tabs)/goals', icon: 'goals' },
   { label: 'Income', href: '/(tabs)/income', icon: 'income' },
   { label: 'AI Insights', href: '/(tabs)/ai', icon: 'ai' },
-  { label: 'Net Worth', href: '/(tabs)/net-worth', icon: 'netWorth' },
+  { label: 'Net Worth', href: '/net-worth', icon: 'netWorth' },
   { label: 'Reports', href: '/reports', icon: 'chart' },
   { label: 'Categories', href: '/categories', icon: 'category' },
 ];

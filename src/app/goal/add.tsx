@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Input, DateInput, useScrollContentStyle, FormFieldLabel, OptionChips } from '@/shared/components/ui';
+import { Button, Input, DateInput, FormFieldLabel, OptionChips, FormStackScreen } from '@/shared/components/ui';
 import { useCreateGoal, type GoalForm } from '@/features/goals/hooks/useCreateGoal';
 import { GOAL_TYPES } from '@/shared/constants/config';
 import { useTheme } from '@/shared/theme';
@@ -18,10 +18,9 @@ export default function AddGoalScreen() {
   });
 
   const goalType = watch('type');
-  const contentStyle = useScrollContentStyle();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={contentStyle} keyboardShouldPersistTaps="handled">
+    <FormStackScreen eyebrow="GOAL" title="Create Goal" subtitle="Set a savings target">
       <Controller
         control={control}
         name="name"
@@ -57,12 +56,10 @@ export default function AddGoalScreen() {
       />
 
       <Button title="Create Goal" onPress={handleSubmit(create)} loading={loading} size="lg" />
-    </ScrollView>
+    </FormStackScreen>
   );
 }
 
 function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    container: { flex: 1, backgroundColor: t.colors.background },
-  });
+  return StyleSheet.create({});
 }

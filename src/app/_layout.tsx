@@ -67,16 +67,6 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 }
 
 function RootNavigator() {
-  const theme = useTheme();
-  const stackOptions = {
-    headerStyle: { backgroundColor: theme.colors.background },
-    headerTintColor: theme.colors.primary,
-    headerTitleStyle: { fontWeight: '600' as const, fontSize: 17, color: theme.colors.text },
-    headerShadowVisible: false,
-    headerBackTitleVisible: false,
-    contentStyle: { backgroundColor: theme.colors.background },
-  };
-
   return (
     <AuthGate>
       <AppLockGate>
@@ -84,27 +74,28 @@ function RootNavigator() {
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="(onboarding)" />
           <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="expense/add" options={{ presentation: 'modal', headerShown: true, title: 'Add Expense', ...stackOptions }} />
-          <Stack.Screen name="expense/[id]" options={{ headerShown: true, title: 'Expense', ...stackOptions }} />
-          <Stack.Screen name="income/add" options={{ presentation: 'modal', headerShown: true, title: 'Add Income', ...stackOptions }} />
-          <Stack.Screen name="budget/add" options={{ presentation: 'modal', headerShown: true, title: 'Create Budget', ...stackOptions }} />
-          <Stack.Screen name="goal/add" options={{ presentation: 'modal', headerShown: true, title: 'Create Goal', ...stackOptions }} />
-          <Stack.Screen name="goal/[id]/contribute" options={{ presentation: 'modal', headerShown: true, title: 'Contribute', ...stackOptions }} />
-          <Stack.Screen name="categories/index" options={{ headerShown: false }} />
-          <Stack.Screen name="accounts/index" options={{ headerShown: false }} />
-          <Stack.Screen name="investments/index" options={{ headerShown: false }} />
-          <Stack.Screen name="search" options={{ headerShown: false }} />
-          <Stack.Screen name="reports" options={{ headerShown: true, title: 'Reports', ...stackOptions }} />
-          <Stack.Screen name="family/index" options={{ headerShown: true, title: 'Family', ...stackOptions }} />
-          <Stack.Screen name="notifications" options={{ headerShown: false }} />
-          <Stack.Screen name="integrations/index" options={{ headerShown: true, title: 'Integrations', ...stackOptions }} />
-          <Stack.Screen name="legal/privacy" options={{ headerShown: true, title: 'Privacy Policy', ...stackOptions }} />
-          <Stack.Screen name="legal/terms" options={{ headerShown: true, title: 'Terms of Service', ...stackOptions }} />
-          <Stack.Screen name="support/index" options={{ headerShown: true, title: 'Support', ...stackOptions }} />
-          <Stack.Screen name="income/[id]" options={{ headerShown: true, title: 'Edit Income', ...stackOptions }} />
-          <Stack.Screen name="budget/[id]" options={{ headerShown: true, title: 'Edit Budget', ...stackOptions }} />
-          <Stack.Screen name="goal/[id]/index" options={{ headerShown: true, title: 'Edit Goal', ...stackOptions }} />
-          <Stack.Screen name="subscription" options={{ presentation: 'modal', headerShown: true, title: 'Upgrade', ...stackOptions }} />
+          <Stack.Screen name="expense/add" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="expense/[id]" />
+          <Stack.Screen name="income/add" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="budget/add" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="goal/add" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="goal/[id]/contribute" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="net-worth" />
+          <Stack.Screen name="categories/index" />
+          <Stack.Screen name="accounts/index" />
+          <Stack.Screen name="investments/index" />
+          <Stack.Screen name="search" />
+          <Stack.Screen name="reports" />
+          <Stack.Screen name="family/index" />
+          <Stack.Screen name="notifications" />
+          <Stack.Screen name="integrations/index" />
+          <Stack.Screen name="legal/privacy" />
+          <Stack.Screen name="legal/terms" />
+          <Stack.Screen name="support/index" />
+          <Stack.Screen name="income/[id]" />
+          <Stack.Screen name="budget/[id]" />
+          <Stack.Screen name="goal/[id]/index" />
+          <Stack.Screen name="subscription" options={{ presentation: 'modal' }} />
         </Stack>
         <ThemedStatusBar />
       </AppLockGate>

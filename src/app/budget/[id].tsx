@@ -1,8 +1,8 @@
 import { useEffect, useMemo } from 'react';
-import { StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Input, ScreenLoader, useScrollContentStyle } from '@/shared/components/ui';
+import { Button, Input, ScreenLoader, FormStackScreen } from '@/shared/components/ui';
 import { useBudgetDetail, type BudgetForm } from '@/features/budgets/hooks/useBudgetDetail';
 import { useTheme } from '@/shared/theme';
 
@@ -24,10 +24,8 @@ export default function BudgetEditScreen() {
     return <ScreenLoader />;
   }
 
-  const contentStyle = useScrollContentStyle();
-
   return (
-    <ScrollView style={styles.container} contentContainerStyle={contentStyle}>
+    <FormStackScreen eyebrow="BUDGET" title="Edit Budget" subtitle={budget.name}>
       <Controller control={control} name="name" rules={{ required: true }} render={({ field: { onChange, value } }) => (
         <Input label="Name" value={value} onChangeText={onChange} />
       )} />
@@ -37,13 +35,11 @@ export default function BudgetEditScreen() {
       <Controller control={control} name="alertThreshold" render={({ field: { onChange, value } }) => (
         <Input label="Alert Threshold (%)" value={value} onChangeText={onChange} keyboardType="numeric" />
       )} />
-      <Button title="Save" onPress={handleSubmit(save)} loading={loading} />
-    </ScrollView>
+      <Button title="Save" onPress={handleSubmit(save)} loading={loading} size="lg" />
+    </FormStackScreen>
   );
 }
 
 function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    container: { flex: 1, backgroundColor: t.colors.background },
-  });
+  return StyleSheet.create({});
 }

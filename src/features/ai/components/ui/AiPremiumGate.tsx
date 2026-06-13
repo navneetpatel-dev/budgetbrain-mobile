@@ -2,7 +2,8 @@ import { useMemo } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Button } from '@/shared/components/ui';
+import { Button, ScreenContainer } from '@/shared/components/ui';
+import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 
@@ -12,33 +13,36 @@ export function AiPremiumGate() {
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   return (
-    <View style={styles.wrap}>
-      <LinearGradient
-        colors={[theme.colors.gradientStart, theme.colors.primary, theme.colors.gradientEnd]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.glow}
-      />
-      <View style={styles.iconRing}>
-        <AppIcon name="ai" size={36} color={theme.colors.primary} />
+    <ScreenContainer padded={false} style={styles.root}>
+      <ProfileStackHeader screen="ai" subtitle="Premium feature" />
+      <View style={styles.body}>
+        <LinearGradient
+          colors={[theme.colors.gradientStart, theme.colors.primary, theme.colors.gradientEnd]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.glow}
+        />
+        <View style={styles.iconRing}>
+          <AppIcon name="ai" size={36} color={theme.colors.primary} />
+        </View>
+        <Text style={styles.title}>Unlock AI Coach</Text>
+        <Text style={styles.subtitle}>
+          Get spending insights, anomaly detection, and a personal finance coach powered by your data.
+        </Text>
+        <Button title="Upgrade to Premium" onPress={() => router.push('/subscription')} size="lg" />
       </View>
-      <Text style={styles.title}>Unlock AI Coach</Text>
-      <Text style={styles.subtitle}>
-        Get spending insights, anomaly detection, and a personal finance coach powered by your data.
-      </Text>
-      <Button title="Upgrade to Premium" onPress={() => router.push('/subscription')} size="lg" />
-    </View>
+    </ScreenContainer>
   );
 }
 
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    wrap: {
+    root: { flex: 1 },
+    body: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
       padding: 32,
-      backgroundColor: t.colors.background,
       overflow: 'hidden',
     },
     glow: {

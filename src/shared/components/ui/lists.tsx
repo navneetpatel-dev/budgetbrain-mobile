@@ -8,18 +8,21 @@ export function GroupedCard({
   children,
   title,
   style,
+  padded = false,
 }: {
   children: React.ReactNode;
   title?: string;
   style?: ViewStyle;
+  /** Adds inner padding for form fields / buttons */
+  padded?: boolean;
 }) {
   const theme = useTheme();
   const styles = useMemo(() => createGroupedStyles(theme), [theme]);
 
   return (
     <View style={[styles.wrapper, style]}>
-      {title && <Text style={styles.groupTitle}>{title}</Text>}
-      <View style={styles.card}>{children}</View>
+      {title ? <Text style={styles.groupTitle}>{title}</Text> : null}
+      <View style={[styles.card, padded && styles.cardPadded]}>{children}</View>
     </View>
   );
 }
@@ -131,6 +134,10 @@ function createGroupedStyles(t: AppTheme) {
       borderColor: t.colors.borderSubtle,
       overflow: 'hidden',
       ...t.shadows.sm,
+    },
+    cardPadded: {
+      padding: t.spacing.lg,
+      gap: t.spacing.md,
     },
   });
 }

@@ -1,19 +1,17 @@
 import { useMemo } from 'react';
-import { StyleSheet, ScrollView, Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
+import { StackScrollScreen } from '@/shared/components/ui';
+import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
-import { useScrollContentStyle } from '@/shared/components/ui';
 
 export default function TermsScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
-  const contentStyle = useScrollContentStyle();
-
   return (
-    <ScrollView style={styles.container} contentContainerStyle={contentStyle}>
-      <Text style={styles.title}>Terms of Service</Text>
-      <Text style={styles.updated}>Last updated: June 2026</Text>
-
+    <StackScrollScreen
+      header={<ProfileStackHeader screen="terms" subtitle="Last updated: June 2026" />}
+    >
       <Text style={styles.section}>1. Acceptance of Terms</Text>
       <Text style={styles.body}>
         By using ExpenseFlow, you agree to these Terms of Service. If you do not agree, please do not use the app.
@@ -53,16 +51,13 @@ export default function TermsScreen() {
       <Text style={styles.body}>
         For questions about these terms, contact us at support@expenseflow.app
       </Text>
-    </ScrollView>
+    </StackScrollScreen>
   );
 }
 
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: t.colors.background },
-    title: { fontSize: 24, fontWeight: '800', color: t.colors.text, marginBottom: 4 },
-    updated: { fontSize: 13, color: t.colors.textSecondary, marginBottom: 24 },
-    section: { fontSize: 16, fontWeight: '700', color: t.colors.text, marginTop: 16, marginBottom: 8 },
+    section: { fontSize: 16, fontWeight: '700', color: t.colors.text, marginTop: 8, marginBottom: 8 },
     body: { fontSize: 14, color: t.colors.textSecondary, lineHeight: 22 },
   });
 }

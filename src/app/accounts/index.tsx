@@ -8,12 +8,12 @@ import {
   EmptyState,
   ScreenLoader,
   FormModal,
-  FeatureHeader,
   StickyHeaderFlatScreen,
   ActionFab,
   FormFieldLabel,
   OptionChips,
 } from '@/shared/components/ui';
+import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useFabBottom } from '@/shared/hooks/useFabBottom';
 import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
@@ -99,9 +99,8 @@ export default function AccountsScreen() {
       <StickyHeaderFlatScreen
         inset="stack"
         header={
-          <FeatureHeader
-            eyebrow="NET WORTH"
-            title="Accounts"
+          <ProfileStackHeader
+            screen="accounts"
             subtitle={`${items.length} account${items.length !== 1 ? 's' : ''}`}
           />
         }

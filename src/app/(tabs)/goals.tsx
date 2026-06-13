@@ -8,10 +8,10 @@ import {
   Card,
   EmptyState,
   ScreenSkeleton,
-  FeatureHeader,
   StickyHeaderFlatScreen,
   ProgressBar,
 } from '@/shared/components/ui';
+import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { Fab } from '@/features/navigation/components/Fab';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
@@ -36,9 +36,8 @@ export default function GoalsScreen() {
     <View style={styles.root}>
       <StickyHeaderFlatScreen
         header={
-          <FeatureHeader
-            eyebrow="SAVE"
-            title="Goals"
+          <ProfileStackHeader
+            screen="goals"
             subtitle={`${goals.length} active goal${goals.length !== 1 ? 's' : ''}`}
             actionIcon="add"
             actionLabel="Create goal"

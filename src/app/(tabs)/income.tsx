@@ -8,9 +8,9 @@ import {
   Card,
   EmptyState,
   ScreenSkeleton,
-  FeatureHeader,
   StickyHeaderFlatScreen,
 } from '@/shared/components/ui';
+import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { Fab } from '@/features/navigation/components/Fab';
 import { apiGet } from '@/shared/services/api';
 import { useTheme } from '@/shared/theme';
@@ -43,9 +43,8 @@ export default function IncomeScreen() {
     <View style={styles.root}>
       <StickyHeaderFlatScreen
         header={
-          <FeatureHeader
-            eyebrow="EARN"
-            title="Income"
+          <ProfileStackHeader
+            screen="income"
             subtitle={`${sourceCount} source${sourceCount !== 1 ? 's' : ''} · ${transactions.length} entries`}
           />
         }

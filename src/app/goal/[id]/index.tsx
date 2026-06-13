@@ -1,8 +1,8 @@
 import { useEffect, useMemo } from 'react';
-import { StyleSheet, View, ScrollView } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Input, DateInput, ScreenLoader, useScrollContentStyle } from '@/shared/components/ui';
+import { Button, Input, DateInput, ScreenLoader, FormStackScreen } from '@/shared/components/ui';
 import { useGoalDetail, type GoalForm } from '@/features/goals/hooks/useGoalDetail';
 import { useTheme } from '@/shared/theme';
 
@@ -24,10 +24,8 @@ export default function GoalEditScreen() {
     return <ScreenLoader />;
   }
 
-  const contentStyle = useScrollContentStyle();
-
   return (
-    <ScrollView style={styles.container} contentContainerStyle={contentStyle}>
+    <FormStackScreen eyebrow="GOAL" title="Edit Goal" subtitle={goal.name}>
       <Controller control={control} name="name" rules={{ required: true }} render={({ field: { onChange, value } }) => (
         <Input label="Name" value={value} onChangeText={onChange} />
       )} />
@@ -37,16 +35,12 @@ export default function GoalEditScreen() {
       <Controller control={control} name="targetDate" render={({ field: { onChange, value } }) => (
         <DateInput label="Target Date" value={value} onChange={onChange} />
       )} />
-      <Button title="Save" onPress={handleSubmit(save)} loading={loading} />
-      <View style={styles.spacer} />
+      <Button title="Save" onPress={handleSubmit(save)} loading={loading} size="lg" />
       <Button title="Delete Goal" onPress={confirmDelete} variant="danger" loading={loading} />
-    </ScrollView>
+    </FormStackScreen>
   );
 }
 
 function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    container: { flex: 1, backgroundColor: t.colors.background },
-    spacer: { height: 12 },
-  });
+  return StyleSheet.create({});
 }

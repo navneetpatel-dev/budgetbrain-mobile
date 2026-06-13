@@ -1,23 +1,26 @@
 import { useMemo } from 'react';
-import { StyleSheet, ScrollView, Text } from 'react-native';
-import { useRouter } from 'expo-router';
+import { StyleSheet, Text } from 'react-native';
 import { Controller } from 'react-hook-form';
-import { Button, Input, Card, useScrollContentStyle, ScreenIntro, GroupedCard } from '@/shared/components/ui';
+import { Button, Input, Card, StackScrollScreen, GroupedCard } from '@/shared/components/ui';
+import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
 import { useSupportTickets } from '@/features/support/hooks/useSupportTickets';
 
 export default function SupportScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const router = useRouter();
   const { loading, tickets, control, handleSubmit, errors, onSubmit } = useSupportTickets();
-  const contentStyle = useScrollContentStyle();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={contentStyle} keyboardShouldPersistTaps="handled">
-      <ScreenIntro eyebrow="HELP" subtitle="Describe your issue and we will get back to you" />
-
-      <GroupedCard title="NEW TICKET">
+    <StackScrollScreen
+      header={
+        <ProfileStackHeader
+          screen="support"
+          subtitle="Describe your issue and we will get back to you"
+        />
+      }
+    >
+      <GroupedCard title="New ticket" padded>
         <Controller
           control={control}
           name="subject"
@@ -38,7 +41,7 @@ export default function SupportScreen() {
       </GroupedCard>
 
       {tickets.length > 0 && (
-        <GroupedCard title="YOUR TICKETS">
+        <GroupedCard title="Your tickets" padded>
           {tickets.map((t) => (
             <Card key={t.id} style={styles.ticketCard}>
               <Text style={styles.ticketSubject}>{t.subject}</Text>
@@ -48,16 +51,13 @@ export default function SupportScreen() {
           ))}
         </GroupedCard>
       )}
-
-      <Button title="Back" onPress={() => router.back()} variant="outline" />
-    </ScrollView>
+    </StackScrollScreen>
   );
 }
 
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: t.colors.background },
-    ticketCard: { marginBottom: 8 },
+    ticketCard: { marginBottom: 0 },
     ticketSubject: { fontSize: 16, fontWeight: '600', color: t.colors.text },
     ticketStatus: { fontSize: 13, color: t.colors.primary, marginTop: 4, textTransform: 'capitalize' },
     ticketDate: { fontSize: 12, color: t.colors.textSecondary, marginTop: 4 },

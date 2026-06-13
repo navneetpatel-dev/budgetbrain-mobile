@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
-import { StyleSheet, ScrollView, Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { Controller } from 'react-hook-form';
-import { Button, Input, Card, useScrollContentStyle, ScreenIntro, GroupedCard, FormFieldLabel, OptionChipList } from '@/shared/components/ui';
+import { Button, Input, Card, StackScrollScreen, GroupedCard, FormFieldLabel, OptionChipList } from '@/shared/components/ui';
+import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import { useTransactionParsing } from '@/features/integrations/hooks/useTransactionParsing';
@@ -26,12 +27,15 @@ export default function IntegrationsScreen() {
     rejectParsed,
   } = useTransactionParsing();
 
-  const contentStyle = useScrollContentStyle();
-
   return (
-    <ScrollView style={styles.container} contentContainerStyle={contentStyle} keyboardShouldPersistTaps="handled">
-      <ScreenIntro eyebrow="AUTO-IMPORT" subtitle="Paste SMS or email receipts to auto-extract and confirm expenses" />
-
+    <StackScrollScreen
+      header={
+        <ProfileStackHeader
+          screen="integrations"
+          subtitle="Paste SMS or email receipts to auto-extract expenses"
+        />
+      }
+    >
       {parsed && (
         <Card style={styles.confirmCard}>
           <Text style={styles.confirmTitle}>Parsed Transaction</Text>
@@ -48,7 +52,7 @@ export default function IntegrationsScreen() {
         </Card>
       )}
 
-      <GroupedCard title="PARSE SMS">
+      <GroupedCard title="Parse SMS" padded>
         <Controller
           control={smsForm.control}
           name="content"
@@ -60,7 +64,7 @@ export default function IntegrationsScreen() {
         <Button title="Parse SMS" onPress={smsForm.handleSubmit(parseSms)} loading={smsLoading} />
       </GroupedCard>
 
-      <GroupedCard title="PARSE EMAIL">
+      <GroupedCard title="Parse email" padded>
         <Controller
           control={emailForm.control}
           name="subject"
@@ -79,15 +83,14 @@ export default function IntegrationsScreen() {
         />
         <Button title="Parse Email" onPress={emailForm.handleSubmit(parseEmail)} loading={emailLoading} variant="outline" />
       </GroupedCard>
-    </ScrollView>
+    </StackScrollScreen>
   );
 }
 
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: t.colors.background },
-    confirmCard: { marginBottom: 16, borderColor: t.colors.primary, borderWidth: 1 },
-    confirmTitle: { fontSize: 16, fontWeight: '700', color: t.colors.text, marginBottom: 8 },
-    confirmDetail: { fontSize: 14, color: t.colors.textSecondary, marginBottom: 4 },
+    confirmCard: { padding: t.spacing.lg, marginBottom: 0, borderColor: t.colors.primary, borderWidth: 1 },
+    confirmTitle: { fontSize: 16, fontWeight: '700', color: t.colors.text },
+    confirmDetail: { fontSize: 14, color: t.colors.textSecondary },
   });
 }

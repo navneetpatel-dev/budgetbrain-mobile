@@ -8,11 +8,11 @@ import {
   EmptyState,
   ScreenLoader,
   FormModal,
-  FeatureHeader,
   StickyHeaderFlatScreen,
   ActionFab,
   FormFieldLabel,
 } from '@/shared/components/ui';
+import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useFabBottom } from '@/shared/hooks/useFabBottom';
 import { useTheme } from '@/shared/theme';
 import { useCategories, COLORS_PRESET } from '@/features/categories/hooks/useCategories';
@@ -77,9 +77,8 @@ export default function CategoriesScreen() {
       <StickyHeaderFlatScreen
         inset="stack"
         header={
-          <FeatureHeader
-            eyebrow="ORGANIZE"
-            title="Categories"
+          <ProfileStackHeader
+            screen="categories"
             subtitle={`${items.length} categor${items.length !== 1 ? 'ies' : 'y'}`}
           />
         }

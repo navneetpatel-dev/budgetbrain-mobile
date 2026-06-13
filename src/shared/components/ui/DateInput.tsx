@@ -83,7 +83,7 @@ export function DateInput({
 
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    container: { marginBottom: t.spacing.lg },
+    container: { marginBottom: t.spacing.md },
     label: { ...t.typography.caption, color: t.colors.textSecondary, marginBottom: t.spacing.sm },
     field: {
       borderWidth: 1,

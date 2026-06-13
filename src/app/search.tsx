@@ -3,7 +3,7 @@ import { StyleSheet, Text, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { appHref } from '@/shared/utils/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { Input, FeatureHeader, StickyHeaderFlatScreen, EmptyState } from '@/shared/components/ui';
+import { Input, StackNavHeader, StickyHeaderFlatScreen, EmptyState } from '@/shared/components/ui';
 import { TransactionItem, TransactionGroup } from '@/features/expenses/components/TransactionItem';
 import { apiGet } from '@/shared/services/api';
 import { useTheme } from '@/shared/theme';
@@ -30,8 +30,7 @@ export default function SearchScreen() {
     <StickyHeaderFlatScreen
       inset="stack"
       header={
-        <FeatureHeader
-          eyebrow="FIND"
+        <StackNavHeader
           title="Search"
           subtitle="Merchant, notes, or category"
           footer={

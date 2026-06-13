@@ -19,6 +19,7 @@ import { TransactionItem, TransactionGroup } from '@/features/expenses/component
 import { CategoryChart } from '@/features/dashboard/components/CategoryChart';
 import { DashboardHero } from '@/features/dashboard/components/DashboardHero';
 import { useDashboardWidgets } from '@/features/dashboard/hooks/useDashboardWidgets';
+import { useFloatingBlockGap } from '@/shared/hooks/useTabBarInset';
 import { useTheme } from '@/shared/theme';
 import { useAppSelector } from '@/shared/store/hooks';
 import { formatCurrency } from '@/shared/utils/currency';
@@ -29,6 +30,8 @@ export default function DashboardScreen() {
   const theme = useTheme();
   const user = useAppSelector((s) => s.auth.user);
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const blockGap = useFloatingBlockGap();
+  const sectionStyle = useMemo(() => ({ gap: blockGap }), [blockGap]);
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['dashboard'],
@@ -68,7 +71,7 @@ export default function DashboardScreen() {
       }
     >
       <ScreenSection>
-        <ResponsiveGrid>
+        <ResponsiveGrid gap={blockGap}>
           <SummaryCard
             title="Income"
             amount={formatCurrency(summary?.totalIncome ?? 0, currency)}
@@ -95,7 +98,7 @@ export default function DashboardScreen() {
             subtitle="Assets & liabilities"
             icon="netWorth"
             color={theme.colors.primary}
-            onPress={() => router.push('/(tabs)/net-worth')}
+            onPress={() => router.push('/net-worth')}
           />
         </ResponsiveGrid>
       </ScreenSection>
@@ -108,7 +111,7 @@ export default function DashboardScreen() {
       </ScreenSection>
 
       {budgetWidgets.length > 0 && (
-        <ScreenSection style={{ gap: theme.spacing.sm }}>
+        <ScreenSection style={sectionStyle}>
           <SectionHeader
             title="Budget Progress"
             action="See all"
@@ -132,7 +135,7 @@ export default function DashboardScreen() {
       )}
 
       {goalWidgets.length > 0 && (
-        <ScreenSection style={{ gap: theme.spacing.sm }}>
+        <ScreenSection style={sectionStyle}>
           <SectionHeader
             title="Goal Progress"
             action="See all"
@@ -155,7 +158,7 @@ export default function DashboardScreen() {
         </ScreenSection>
       )}
 
-      <ScreenSection style={{ gap: theme.spacing.sm }}>
+      <ScreenSection style={sectionStyle}>
         <SectionHeader
           title="Recent Activity"
           action="See all"

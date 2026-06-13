@@ -32,12 +32,12 @@ export function DashboardHero({
   const theme = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { screenPaddingX, inlineGap } = useResponsive();
+  const { tabBarPaddingX, inlineGap } = useResponsive();
   const styles = useMemo(() => createStyles(theme, inlineGap), [theme, inlineGap]);
   const initial = name[0]?.toUpperCase() ?? '?';
 
   return (
-    <View style={[styles.wrap, { paddingTop: insets.top + 8, paddingHorizontal: screenPaddingX }]}>
+    <View style={[styles.wrap, { paddingTop: insets.top + 8, paddingHorizontal: tabBarPaddingX }]}>
       <LinearGradient
         colors={[theme.colors.gradientStart, theme.colors.primary, theme.colors.gradientEnd]}
         start={{ x: 0, y: 0 }}

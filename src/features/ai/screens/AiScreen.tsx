@@ -9,12 +9,12 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScreenContainer } from '@/shared/components/ui';
+import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
 import { useAiChat } from '@/features/ai/hooks/useAiChat';
 import {
-  AiHeroHeader,
   AiChatBubble,
   AiTypingIndicator,
   AiChatInput,
@@ -24,11 +24,11 @@ import {
 export function AiScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const { screenPaddingX } = useResponsive();
+  const { tabBarPaddingX } = useResponsive();
   const footerBottom = insets.bottom + theme.spacing.sm;
   const styles = useMemo(
-    () => createStyles(theme, screenPaddingX, footerBottom),
-    [theme, screenPaddingX, footerBottom],
+    () => createStyles(theme, tabBarPaddingX, footerBottom),
+    [theme, tabBarPaddingX, footerBottom],
   );
   const scrollRef = useRef<ScrollView>(null);
   const {
@@ -52,7 +52,7 @@ export function AiScreen() {
 
   return (
     <ScreenContainer padded={false} style={styles.root}>
-      <AiHeroHeader />
+      <ProfileStackHeader screen="ai" subtitle="Ask about your finances" />
 
       <KeyboardAvoidingView
         style={styles.flex}
@@ -85,15 +85,13 @@ export function AiScreen() {
           )}
         </ScrollView>
 
-        <View style={styles.footer}>
-          <AiChatInput
-            message={message}
-            onChangeMessage={setMessage}
-            onSend={sendMessage}
-            loading={chatLoading}
-            showSuggestions={isEmpty}
-          />
-        </View>
+        <AiChatInput
+          message={message}
+          onChangeMessage={setMessage}
+          onSend={sendMessage}
+          loading={chatLoading}
+          showSuggestions={isEmpty}
+        />
       </KeyboardAvoidingView>
     </ScreenContainer>
   );
@@ -101,7 +99,7 @@ export function AiScreen() {
 
 function createStyles(
   t: ReturnType<typeof useTheme>,
-  screenPaddingX: number,
+  horizontalPadding: number,
   footerBottom: number,
 ) {
   return StyleSheet.create({
@@ -109,16 +107,16 @@ function createStyles(
     flex: { flex: 1 },
     scrollContent: {
       flexGrow: 1,
-      paddingHorizontal: screenPaddingX,
-      paddingTop: t.spacing.lg,
-      paddingBottom: t.spacing.md,
+      paddingHorizontal: horizontalPadding,
+      paddingTop: t.spacing.md,
+      paddingBottom: footerBottom + 72,
     },
     emptyState: {
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingHorizontal: t.spacing.lg,
-      minHeight: 200,
+      paddingVertical: 48,
+      gap: t.spacing.md,
     },
     emptyIcon: {
       width: 64,
@@ -127,27 +125,15 @@ function createStyles(
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: t.colors.primarySoft,
-      marginBottom: t.spacing.md,
     },
-    emptyTitle: {
-      ...t.typography.titleSm,
-      color: t.colors.text,
-      textAlign: 'center',
-    },
+    emptyTitle: { ...t.typography.titleSm, color: t.colors.text, fontWeight: '700' },
     emptySubtitle: {
       ...t.typography.bodyMedium,
       color: t.colors.textSecondary,
       textAlign: 'center',
-      marginTop: t.spacing.sm,
       lineHeight: 22,
-      maxWidth: 300,
+      maxWidth: 280,
     },
-    messages: {
-      gap: t.spacing.xs,
-    },
-    footer: {
-      marginBottom: footerBottom,
-      backgroundColor: t.colors.background,
-    },
+    messages: { gap: t.spacing.md },
   });
 }

@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
-import { StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Input, useScrollContentStyle } from '@/shared/components/ui';
+import { Button, Input, FormStackScreen } from '@/shared/components/ui';
 import { useContributeGoal, type ContributeForm } from '@/features/goals/hooks/useContributeGoal';
 import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
@@ -18,10 +18,8 @@ export default function ContributeGoalScreen() {
     defaultValues: { amount: '', notes: '' },
   });
 
-  const contentStyle = useScrollContentStyle();
-
   return (
-    <ScrollView style={styles.container} contentContainerStyle={contentStyle}>
+    <FormStackScreen eyebrow="GOAL" title="Contribute" subtitle="Add to your goal">
       <Controller
         control={control}
         name="amount"
@@ -37,13 +35,11 @@ export default function ContributeGoalScreen() {
           <Input label="Notes (optional)" value={value} onChangeText={onChange} />
         )}
       />
-      <Button title="Add Contribution" onPress={handleSubmit(contribute)} loading={loading} />
-    </ScrollView>
+      <Button title="Add Contribution" onPress={handleSubmit(contribute)} loading={loading} size="lg" />
+    </FormStackScreen>
   );
 }
 
 function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    container: { flex: 1, backgroundColor: t.colors.background },
-  });
+  return StyleSheet.create({});
 }

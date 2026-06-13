@@ -9,12 +9,12 @@ import {
   ScreenLoader,
   FormModal,
   DateInput,
-  FeatureHeader,
   StickyHeaderFlatScreen,
   ActionFab,
   FormFieldLabel,
   OptionChips,
 } from '@/shared/components/ui';
+import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useFabBottom } from '@/shared/hooks/useFabBottom';
 import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
@@ -116,9 +116,8 @@ export default function InvestmentsScreen() {
       <StickyHeaderFlatScreen
         inset="stack"
         header={
-          <FeatureHeader
-            eyebrow="PORTFOLIO"
-            title="Investments"
+          <ProfileStackHeader
+            screen="investments"
             subtitle={`${items.length} holding${items.length !== 1 ? 's' : ''}`}
           />
         }

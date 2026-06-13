@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, ScrollView, Alert, Pressable, Image, Text } from 'react-native';
+import { StyleSheet, View, Alert, Pressable, Image, Text } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -7,10 +7,10 @@ import {
   Input,
   DateInput,
   DashedBorder,
-  useScrollContentStyle,
   FormFieldLabel,
   OptionChips,
   OptionChipList,
+  FormStackScreen,
 } from '@/shared/components/ui';
 import { apiGet } from '@/shared/services/api';
 import { useCreateExpense, type ExpenseForm } from '@/features/expenses/hooks/useCreateExpense';
@@ -61,10 +61,8 @@ export default function AddExpenseScreen() {
     }
   };
 
-  const contentStyle = useScrollContentStyle();
-
   return (
-    <ScrollView style={styles.container} contentContainerStyle={contentStyle} keyboardShouldPersistTaps="handled">
+    <FormStackScreen eyebrow="EXPENSE" title="Add Expense" subtitle="Log a new transaction">
       <Controller
         control={control}
         name="amount"
@@ -128,13 +126,12 @@ export default function AddExpenseScreen() {
       />
 
       <Button title="Save Expense" onPress={handleSubmit(onSubmit)} loading={loading} size="lg" />
-    </ScrollView>
+    </FormStackScreen>
   );
 }
 
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: t.colors.background },
     receiptPicker: {
       marginBottom: t.spacing.lg,
       justifyContent: 'center',

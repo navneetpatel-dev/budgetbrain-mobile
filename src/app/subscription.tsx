@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, Text, ScrollView, ActivityIndicator } from 'react-native';
-import { Button, Card, useScrollContentStyle, ScreenIntro, GroupedCard } from '@/shared/components/ui';
+import { StyleSheet, View, Text, ActivityIndicator } from 'react-native';
+import { Button, Card, GroupedCard, FormStackScreen } from '@/shared/components/ui';
 import { useTheme } from '@/shared/theme';
 import { useSubscription } from '@/features/subscription/hooks/useSubscription';
 
@@ -8,15 +8,9 @@ export default function SubscriptionScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { loading, packages, loadingOfferings, configured, handlePurchase, handleRestore, goBack } = useSubscription();
-  const contentStyle = useScrollContentStyle();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={contentStyle}>
-      <ScreenIntro
-        eyebrow="PREMIUM"
-        subtitle="Unlock AI insights, unlimited budgets, family accounts, and more"
-      />
-
+    <FormStackScreen eyebrow="PREMIUM" title="Upgrade" subtitle="Unlock AI, family accounts, and more" onBack={goBack}>
       {loadingOfferings ? (
         <ActivityIndicator size="large" color={theme.colors.primary} style={styles.loader} />
       ) : packages.length > 0 ? (
@@ -35,7 +29,7 @@ export default function SubscriptionScreen() {
           </Card>
         ))
       ) : (
-        <GroupedCard title="SETUP">
+        <GroupedCard title="Setup" padded>
           <Text style={styles.fallbackText}>
             {configured
               ? 'No subscription packages available. Configure offerings in RevenueCat dashboard.'
@@ -46,15 +40,14 @@ export default function SubscriptionScreen() {
 
       <Button title="Restore Purchases" onPress={handleRestore} variant="outline" loading={loading === 'restore'} />
       <Button title="Maybe Later" onPress={goBack} variant="ghost" />
-    </ScrollView>
+    </FormStackScreen>
   );
 }
 
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: t.colors.background },
     loader: { marginVertical: 24 },
-    planCard: { marginBottom: 12 },
+    planCard: { marginBottom: 0 },
     planHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
     planName: { fontSize: 18, fontWeight: '700', color: t.colors.text },
     planPrice: { fontSize: 16, fontWeight: '600', color: t.colors.primary },
