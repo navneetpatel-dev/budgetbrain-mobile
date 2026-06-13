@@ -26,6 +26,31 @@ export const SUBSCRIPTION_PLANS = {
   lifetime: { price: 3999, label: 'Lifetime', period: ' one-time' },
 } as const;
 
+export const PAYMENT_METHODS = [
+  { value: 'upi', label: 'UPI' },
+  { value: 'card', label: 'Card' },
+  { value: 'cash', label: 'Cash' },
+  { value: 'bank_transfer', label: 'Bank Transfer' },
+  { value: 'other', label: 'Other' },
+] as const;
+
+export const GOAL_TYPES = [
+  { value: 'emergency_fund', label: 'Emergency Fund' },
+  { value: 'vacation', label: 'Vacation' },
+  { value: 'car', label: 'Car' },
+  { value: 'home', label: 'Home' },
+  { value: 'investments', label: 'Investments' },
+  { value: 'other', label: 'Other' },
+] as const;
+
+export const INCOME_SOURCE_TYPES = [
+  { value: 'salary', label: 'Salary' },
+  { value: 'freelancing', label: 'Freelancing' },
+  { value: 'investments', label: 'Investments' },
+  { value: 'rental', label: 'Rental' },
+  { value: 'other', label: 'Other' },
+] as const;
+
 export const COLORS = {
   primary: '#6366F1',
   primaryDark: '#4F46E5',

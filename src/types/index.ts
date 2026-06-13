@@ -44,8 +44,99 @@ export interface Budget {
   type: 'monthly' | 'weekly' | 'category';
   amount: number;
   currency: string;
+  categoryId: string | null;
+  startDate: string;
+  endDate: string | null;
   alertThreshold: number;
   category?: Category;
+}
+
+export interface IncomeSource {
+  id: string;
+  name: string;
+  type: 'salary' | 'freelancing' | 'investments' | 'rental' | 'other';
+  isRecurring: boolean;
+  recurringRule: string | null;
+}
+
+export interface FinancialAccount {
+  id: string;
+  name: string;
+  type: 'bank' | 'credit_card' | 'cash' | 'wallet';
+  institution: string | null;
+  accountNumberLast4: string | null;
+  balance: number;
+  creditLimit: number | null;
+  currency: string;
+  isActive: boolean;
+}
+
+export interface Investment {
+  id: string;
+  name: string;
+  type: 'stocks' | 'mutual_fund' | 'fd' | 'crypto' | 'gold' | 'other';
+  symbol: string | null;
+  quantity: number;
+  purchasePrice: number;
+  currentPrice: number;
+  currency: string;
+  purchaseDate: string;
+  currentValue?: number;
+  gainLoss?: number;
+}
+
+export interface NotificationItem {
+  id: string;
+  title: string;
+  body: string;
+  type: string;
+  read: boolean;
+  sentAt: string;
+}
+
+export interface FamilyGroup {
+  id: string;
+  name: string;
+  inviteCode: string;
+  ownerId: string;
+}
+
+export interface FamilyMembership {
+  id: string;
+  groupId: string;
+  userId: string;
+  role: string;
+  group?: FamilyGroup;
+}
+
+export interface AiInsight {
+  insights: string[];
+  summary: { current: number; previous: number; changePercent: number };
+}
+
+export interface AiAnomaly {
+  id: string;
+  amount: number;
+  merchant: string | null;
+  date: string;
+  reason: string;
+}
+
+export interface AiChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+}
+
+export interface AiChatResponse {
+  conversationId: string;
+  message: AiChatMessage;
+  messages: AiChatMessage[];
+}
+
+export interface PaginatedTransactions {
+  transactions: Transaction[];
+  total: number;
 }
 
 export interface Goal {

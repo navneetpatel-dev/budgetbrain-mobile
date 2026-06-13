@@ -36,6 +36,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="income"
+        options={{
+          title: 'Income',
+          tabBarIcon: ({ color }) => (
+            <SymbolView name={{ ios: 'arrow.down.circle.fill', android: 'trending_up', web: 'trending_up' }} tintColor={color} size={24} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="budgets"
         options={{
           title: 'Budgets',
@@ -50,6 +59,15 @@ export default function TabLayout() {
           title: 'Goals',
           tabBarIcon: ({ color }) => (
             <SymbolView name={{ ios: 'target', android: 'flag', web: 'flag' }} tintColor={color} size={24} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="ai"
+        options={{
+          title: 'AI',
+          tabBarIcon: ({ color }) => (
+            <SymbolView name={{ ios: 'sparkles', android: 'auto_awesome', web: 'auto_awesome' }} tintColor={color} size={24} />
           ),
         }}
       />

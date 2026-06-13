@@ -9,7 +9,7 @@ import { apiGet, apiPost } from '@/src/services/api';
 import { uploadReceipt } from '@/src/services/receipts';
 import { queueOfflineAction, isOnline } from '@/src/services/offlineSync';
 import { trackEvent } from '@/src/services/analytics';
-import { COLORS } from '@/src/constants/config';
+import { COLORS, PAYMENT_METHODS } from '@/src/constants/config';
 import type { Category, Transaction } from '@/src/types';
 import { Text } from 'react-native';
 
@@ -19,6 +19,7 @@ interface ExpenseForm {
   notes: string;
   categoryId: string;
   paymentMethod: string;
+  date: string;
 }
 
 export default function AddExpenseScreen() {
@@ -33,10 +34,18 @@ export default function AddExpenseScreen() {
   });
 
   const { control, handleSubmit, setValue, watch, formState: { errors } } = useForm<ExpenseForm>({
-    defaultValues: { amount: '', merchant: '', notes: '', categoryId: '', paymentMethod: 'upi' },
+    defaultValues: {
+      amount: '',
+      merchant: '',
+      notes: '',
+      categoryId: '',
+      paymentMethod: 'upi',
+      date: new Date().toISOString().split('T')[0],
+    },
   });
 
   const selectedCategory = watch('categoryId');
+  const selectedPayment = watch('paymentMethod');
 
   const pickReceipt = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -68,7 +77,7 @@ export default function AddExpenseScreen() {
       notes: data.notes || undefined,
       categoryId: data.categoryId,
       paymentMethod: data.paymentMethod,
-      date: new Date().toISOString().split('T')[0],
+      date: data.date,
     };
 
     setLoading(true);
@@ -119,6 +128,31 @@ export default function AddExpenseScreen() {
           <Input label="Merchant" value={value} onChangeText={onChange} placeholder="e.g. Swiggy, Amazon" />
         )}
       />
+
+      <Controller
+        control={control}
+        name="date"
+        rules={{ required: 'Date is required' }}
+        render={({ field: { onChange, value } }) => (
+          <Input label="Date (YYYY-MM-DD)" value={value} onChangeText={onChange} error={errors.date?.message} />
+        )}
+      />
+
+      <Text style={styles.label}>Payment Method</Text>
+      <View style={styles.categoryGrid}>
+        {PAYMENT_METHODS.map((pm) => (
+          <Pressable
+            key={pm.value}
+            onPress={() => setValue('paymentMethod', pm.value)}
+            style={[
+              styles.categoryChip,
+              selectedPayment === pm.value && { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+            ]}
+          >
+            <Text style={[styles.categoryText, selectedPayment === pm.value && styles.categoryTextActive]}>{pm.label}</Text>
+          </Pressable>
+        ))}
+      </View>
 
       <Text style={styles.label}>Category</Text>
       <View style={styles.categoryGrid}>

@@ -1,6 +1,7 @@
 import { StyleSheet, View, Text, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
+import { appHref } from '@/src/utils/navigation';
 import { apiGet } from '@/src/services/api';
 import { SummaryCard, Card, EmptyState } from '@/src/components/ui';
 import { TransactionItem } from '@/src/components/TransactionItem';
@@ -15,6 +16,7 @@ function formatCurrency(amount: number, currency: string) {
 }
 
 export default function DashboardScreen() {
+  const router = useRouter();
   const user = useAppSelector((s) => s.auth.user);
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
@@ -59,7 +61,9 @@ export default function DashboardScreen() {
       </View>
 
       {data?.recentTransactions?.length ? (
-        data.recentTransactions.map((tx) => <TransactionItem key={tx.id} transaction={tx} />)
+        data.recentTransactions.map((tx) => (
+          <TransactionItem key={tx.id} transaction={tx} onPress={() => router.push(appHref(`/expense/${tx.id}`))} />
+        ))
       ) : (
         <EmptyState title="No transactions yet" subtitle="Add your first expense to get started" />
       )}

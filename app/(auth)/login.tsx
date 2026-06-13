@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { StyleSheet, View, Text, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
 import { Link } from 'expo-router';
+import { appHref } from '@/src/utils/navigation';
 import { useForm, Controller } from 'react-hook-form';
 import { Button, Input } from '@/src/components/ui';
-import { apiPost, setTokens } from '@/src/services/api';
+import { SocialAuthButtons } from '@/src/components/SocialAuthButtons';
+import { apiPost, setTokens, getApiErrorMessage } from '@/src/services/api';
 import { setUser } from '@/src/store/authSlice';
 import { useAppDispatch } from '@/src/store/hooks';
 import { COLORS } from '@/src/constants/config';
@@ -31,8 +33,7 @@ export default function LoginScreen() {
       await setTokens(result.accessToken, result.refreshToken);
       dispatch(setUser(result.user));
     } catch (err: unknown) {
-      const message = (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message;
-      Alert.alert('Login Failed', message ?? 'Invalid credentials');
+      Alert.alert('Login Failed', getApiErrorMessage(err, 'Invalid credentials'));
     } finally {
       setLoading(false);
     }
@@ -64,7 +65,15 @@ export default function LoginScreen() {
           )}
         />
 
+        <Link href={appHref('/(auth)/forgot-password')} style={styles.forgotLink}>Forgot password?</Link>
+
         <Button title="Sign In" onPress={handleSubmit(onSubmit)} loading={loading} />
+
+        <SocialAuthButtons />
+
+        <View style={styles.altAuth}>
+          <Link href={appHref('/(auth)/otp-login')} style={styles.link}>Sign in with OTP</Link>
+        </View>
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>Don't have an account? </Text>
@@ -81,6 +90,8 @@ const styles = StyleSheet.create({
   header: { marginBottom: 32, alignItems: 'center' },
   logo: { fontSize: 32, fontWeight: '800', color: COLORS.primary },
   subtitle: { fontSize: 16, color: COLORS.textSecondary, marginTop: 8 },
+  forgotLink: { alignSelf: 'flex-end', color: COLORS.primary, fontWeight: '600', marginBottom: 16 },
+  altAuth: { alignItems: 'center', marginTop: 16 },
   footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 24 },
   footerText: { color: COLORS.textSecondary },
   link: { color: COLORS.primary, fontWeight: '600' },

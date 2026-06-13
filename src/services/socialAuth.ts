@@ -1,0 +1,66 @@
+import { Platform } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import * as AuthSession from 'expo-auth-session';
+import { apiPost } from './api';
+import type { User } from '../types';
+
+WebBrowser.maybeCompleteAuthSession();
+
+const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
+
+export async function signInWithGoogle(): Promise<{ accessToken: string; refreshToken: string; user: User } | null> {
+  if (!GOOGLE_CLIENT_ID) {
+    throw new Error('Set EXPO_PUBLIC_GOOGLE_CLIENT_ID to enable Google sign-in');
+  }
+
+  const redirectUri = AuthSession.makeRedirectUri({ scheme: 'expenseflow' });
+  const discovery = {
+    authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
+    tokenEndpoint: 'https://oauth2.googleapis.com/token',
+  };
+
+  const authRequest = new AuthSession.AuthRequest({
+    clientId: GOOGLE_CLIENT_ID,
+    redirectUri,
+    scopes: ['openid', 'profile', 'email'],
+    responseType: AuthSession.ResponseType.IdToken,
+    usePKCE: false,
+  });
+
+  const result = await authRequest.promptAsync(discovery);
+  if (result.type !== 'success' || !result.params.id_token) {
+    return null;
+  }
+
+  return apiPost<{ accessToken: string; refreshToken: string; user: User }>('/auth/google', {
+    idToken: result.params.id_token,
+    name: result.params.name as string | undefined,
+  });
+}
+
+export async function signInWithApple(): Promise<{ accessToken: string; refreshToken: string; user: User } | null> {
+  if (Platform.OS !== 'ios') {
+    throw new Error('Apple Sign-In is only available on iOS');
+  }
+
+  const AppleAuthentication = await import('expo-apple-authentication');
+  const credential = await AppleAuthentication.signInAsync({
+    requestedScopes: [
+      AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+      AppleAuthentication.AppleAuthenticationScope.EMAIL,
+    ],
+  });
+
+  if (!credential.identityToken) {
+    return null;
+  }
+
+  const name = credential.fullName
+    ? [credential.fullName.givenName, credential.fullName.familyName].filter(Boolean).join(' ')
+    : undefined;
+
+  return apiPost<{ accessToken: string; refreshToken: string; user: User }>('/auth/apple', {
+    idToken: credential.identityToken,
+    name,
+  });
+}

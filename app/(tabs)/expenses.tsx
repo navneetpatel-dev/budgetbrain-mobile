@@ -1,6 +1,7 @@
 import { StyleSheet, View, FlatList, RefreshControl, ActivityIndicator, Pressable } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
+import { appHref } from '@/src/utils/navigation';
 import { apiGet } from '@/src/services/api';
 import { TransactionItem } from '@/src/components/TransactionItem';
 import { EmptyState } from '@/src/components/ui';
@@ -9,6 +10,7 @@ import type { Transaction } from '@/src/types';
 import { Text } from 'react-native';
 
 export default function ExpensesScreen() {
+  const router = useRouter();
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['transactions', 'expense'],
     queryFn: () =>
@@ -28,7 +30,9 @@ export default function ExpensesScreen() {
       <FlatList
         data={data?.transactions ?? []}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <TransactionItem transaction={item} />}
+        renderItem={({ item }) => (
+          <TransactionItem transaction={item} onPress={() => router.push(appHref(`/expense/${item.id}`))} />
+        )}
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={COLORS.primary} />}
         ListEmptyComponent={<EmptyState title="No expenses yet" subtitle="Tap + to add your first expense" />}

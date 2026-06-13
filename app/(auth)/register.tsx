@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, KeyboardAvoidingView, Platform, ScrollView, Ale
 import { Link } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { Button, Input } from '@/src/components/ui';
-import { apiPost, setTokens } from '@/src/services/api';
+import { apiPost, setTokens, getApiErrorMessage } from '@/src/services/api';
 import { setUser } from '@/src/store/authSlice';
 import { useAppDispatch } from '@/src/store/hooks';
 import { COLORS } from '@/src/constants/config';
@@ -32,8 +32,7 @@ export default function RegisterScreen() {
       await setTokens(result.accessToken, result.refreshToken);
       dispatch(setUser(result.user));
     } catch (err: unknown) {
-      const message = (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message;
-      Alert.alert('Registration Failed', message ?? 'Could not create account');
+      Alert.alert('Registration Failed', getApiErrorMessage(err, 'Could not create account'));
     } finally {
       setLoading(false);
     }

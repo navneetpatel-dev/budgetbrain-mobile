@@ -106,3 +106,41 @@ export async function apiDelete<T>(url: string): Promise<T> {
   const { data } = await api.delete<ApiResponse<T>>(url);
   return data.data;
 }
+
+/** Extract a user-facing message from axios / API errors */
+export function getApiErrorMessage(err: unknown, fallback = 'Something went wrong'): string {
+  if (axios.isAxiosError(err)) {
+    const apiMessage = (err.response?.data as ApiResponse<unknown> | undefined)?.error?.message;
+    if (apiMessage) return apiMessage;
+    if (err.code === 'ECONNABORTED') return 'Request timed out. Check your connection.';
+    if (!err.response) {
+      return `Cannot reach the API at ${API_BASE_URL}. On a physical device, set EXPO_PUBLIC_API_URL to your computer's LAN IP (e.g. http://192.168.1.x:3000/api/v1) in mobile/.env and restart Expo.`;
+    }
+    return `Request failed (${err.response.status})`;
+  }
+  if (err instanceof Error) return err.message;
+  return fallback;
+}
+
+export async function apiDownloadText(url: string, params?: Record<string, string>): Promise<string> {
+  const token = await getAccessToken();
+  const search = params ? `?${new URLSearchParams(params).toString()}` : '';
+  const response = await fetch(`${API_BASE_URL}${url}${search}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!response.ok) throw new Error('Download failed');
+  return response.text();
+}
+
+export async function apiDownloadBinary(
+  url: string,
+  params?: Record<string, string>
+): Promise<ArrayBuffer> {
+  const token = await getAccessToken();
+  const search = params ? `?${new URLSearchParams(params).toString()}` : '';
+  const response = await fetch(`${API_BASE_URL}${url}${search}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!response.ok) throw new Error('Download failed');
+  return response.arrayBuffer();
+}

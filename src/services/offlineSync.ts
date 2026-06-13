@@ -9,6 +9,8 @@ function generateId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
+export type OfflineAction = 'create' | 'update' | 'delete';
+
 export function initOfflineSync() {
   return NetInfo.addEventListener((state) => {
     if (state.isConnected && state.isInternetReachable !== false) {
@@ -17,7 +19,10 @@ export function initOfflineSync() {
   });
 }
 
-export function queueOfflineAction(action: string, payload: unknown) {
+export function queueOfflineAction(
+  action: OfflineAction,
+  payload: Record<string, unknown>
+) {
   store.dispatch(
     addToOfflineQueue({
       id: generateId(),
@@ -37,7 +42,7 @@ export async function processOfflineQueue(): Promise<void> {
   try {
     const items = queue.map((item) => ({
       id: item.id,
-      action: item.action as 'create' | 'update' | 'delete',
+      action: item.action as OfflineAction,
       resource: 'transaction',
       payload: item.payload as Record<string, unknown>,
       timestamp: item.timestamp,
