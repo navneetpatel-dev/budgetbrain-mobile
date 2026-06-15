@@ -1,21 +1,15 @@
-import { Alert } from 'react-native';
 import { apiDelete } from '@/shared/services/api';
-import { useLogout } from '@/features/settings/hooks/useLogout';
+import { CONFIRM } from '@/shared/constants/confirmations';
+import { showConfirmation } from '@/shared/utils/confirmations';
+import { useLogoutAction } from '@/features/settings/hooks/useLogout';
 
 export function useDeleteAccount() {
-  const logout = useLogout();
+  const logout = useLogoutAction();
 
   return () => {
-    Alert.alert('Delete Account', 'This action is permanent and cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          await apiDelete('/users/me');
-          await logout();
-        },
-      },
-    ]);
+    showConfirmation(CONFIRM.deleteAccount, async () => {
+      await apiDelete('/users/me');
+      await logout();
+    });
   };
 }

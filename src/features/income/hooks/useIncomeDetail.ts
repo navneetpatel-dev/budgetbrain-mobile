@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react';
-import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { UseFormReset } from 'react-hook-form';
 import { apiGet, apiPatch, apiDelete, getApiErrorMessage } from '@/shared/services/api';
+import { CONFIRM } from '@/shared/constants/confirmations';
+import { showConfirmation } from '@/shared/utils/confirmations';
 import type { Transaction } from '@/shared/types';
 
 export interface IncomeForm {
@@ -52,26 +53,19 @@ export function useIncomeDetail(id: string) {
   };
 
   const confirmDelete = () => {
-    Alert.alert('Delete Income', 'This cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          setLoading(true);
-          setSubmitError(null);
-          try {
-            await apiDelete(`/income/${id}`);
-            queryClient.invalidateQueries({ queryKey: ['income'] });
-            router.back();
-          } catch (err) {
-            setSubmitError(getApiErrorMessage(err, 'Could not delete income'));
-          } finally {
-            setLoading(false);
-          }
-        },
-      },
-    ]);
+    showConfirmation(CONFIRM.deleteIncome, async () => {
+      setLoading(true);
+      setSubmitError(null);
+      try {
+        await apiDelete(`/income/${id}`);
+        queryClient.invalidateQueries({ queryKey: ['income'] });
+        router.back();
+      } catch (err) {
+        setSubmitError(getApiErrorMessage(err, 'Could not delete income'));
+      } finally {
+        setLoading(false);
+      }
+    });
   };
 
   return { income, isLoading, loading, save, populateForm, confirmDelete, submitError, clearSubmitError };

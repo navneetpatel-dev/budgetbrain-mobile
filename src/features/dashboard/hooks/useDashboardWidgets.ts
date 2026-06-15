@@ -1,25 +1,24 @@
 import { useMemo } from 'react';
+import { toSafePercent } from '@/shared/utils/number';
 import type { Budget, Goal } from '@/shared/types';
 
-export function useDashboardWidgets(budgets: Budget[], goals: Goal[]) {
+export function useDashboardWidgets(budgets: Budget[] | undefined, goals: Goal[] | undefined) {
   const budgetWidgets = useMemo(
     () =>
-      budgets.slice(0, 3).map((b) => {
-        const spent = b.spent ?? 0;
-        const limit = Number(b.amount);
-        const progress = limit > 0 ? Math.min(100, Math.round((spent / limit) * 100)) : 0;
-        return { budget: b, spent, limit, progress };
+      (budgets ?? []).slice(0, 3).map((budget) => {
+        const spent = budget.spent ?? 0;
+        const limit = budget.amount;
+        return { budget, spent, limit, progress: toSafePercent(spent, limit) };
       }),
     [budgets],
   );
 
   const goalWidgets = useMemo(
     () =>
-      goals.slice(0, 3).map((g) => {
-        const current = Number(g.currentAmount);
-        const target = Number(g.targetAmount);
-        const progress = target > 0 ? Math.min(100, Math.round((current / target) * 100)) : 0;
-        return { goal: g, current, target, progress };
+      (goals ?? []).slice(0, 2).map((goal) => {
+        const current = goal.currentAmount;
+        const target = goal.targetAmount;
+        return { goal, current, target, progress: toSafePercent(current, target) };
       }),
     [goals],
   );

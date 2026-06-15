@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react';
-import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { UseFormReset } from 'react-hook-form';
 import { apiGet, apiPatch, apiDelete, getApiErrorMessage } from '@/shared/services/api';
+import { CONFIRM } from '@/shared/constants/confirmations';
+import { showConfirmation } from '@/shared/utils/confirmations';
 import type { Goal } from '@/shared/types';
 
 export interface GoalForm {
@@ -57,26 +58,19 @@ export function useGoalDetail(id: string) {
   };
 
   const confirmDelete = () => {
-    Alert.alert('Delete Goal', 'This cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          setLoading(true);
-          setSubmitError(null);
-          try {
-            await apiDelete(`/goals/${id}`);
-            queryClient.invalidateQueries({ queryKey: ['goals'] });
-            router.back();
-          } catch (err) {
-            setSubmitError(getApiErrorMessage(err, 'Could not delete goal'));
-          } finally {
-            setLoading(false);
-          }
-        },
-      },
-    ]);
+    showConfirmation(CONFIRM.deleteGoal, async () => {
+      setLoading(true);
+      setSubmitError(null);
+      try {
+        await apiDelete(`/goals/${id}`);
+        queryClient.invalidateQueries({ queryKey: ['goals'] });
+        router.back();
+      } catch (err) {
+        setSubmitError(getApiErrorMessage(err, 'Could not delete goal'));
+      } finally {
+        setLoading(false);
+      }
+    });
   };
 
   return { goal, isLoading, loading, save, populateForm, confirmDelete, submitError, clearSubmitError };

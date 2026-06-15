@@ -1,8 +1,6 @@
-import { Alert } from 'react-native';
+import { CONFIRM } from '@/shared/constants/confirmations';
+import { showConfirmation } from '@/shared/utils/confirmations';
 
 export function confirmDeleteBudget(name: string, onConfirm: () => void) {
-  Alert.alert('Delete Budget', `Remove "${name}"?`, [
-    { text: 'Cancel', style: 'cancel' },
-    { text: 'Delete', style: 'destructive', onPress: onConfirm },
-  ]);
+  showConfirmation(CONFIRM.deleteBudget(name), onConfirm);
 }

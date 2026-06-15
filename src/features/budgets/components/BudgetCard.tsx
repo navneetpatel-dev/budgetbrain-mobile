@@ -6,6 +6,7 @@ import { Card, ProgressBar } from '@/shared/components/ui';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
+import { toSafePercent, toSafeNumber } from '@/shared/utils/number';
 import type { Budget } from '@/shared/types';
 
 export function BudgetCard({
@@ -19,9 +20,8 @@ export function BudgetCard({
   const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
   const spent = budget.spent ?? 0;
-
-  const progress = Math.min(100, Math.round((spent / Number(budget.amount)) * 100));
-  const overBudget = spent > Number(budget.amount);
+  const progress = toSafePercent(spent, budget.amount);
+  const overBudget = toSafeNumber(spent) > toSafeNumber(budget.amount);
   const fillColor = overBudget
     ? theme.colors.danger
     : progress >= budget.alertThreshold

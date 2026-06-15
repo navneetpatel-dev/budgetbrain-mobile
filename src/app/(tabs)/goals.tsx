@@ -14,6 +14,7 @@ import { Fab } from '@/features/navigation/components/Fab';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
+import { toSafePercent } from '@/shared/utils/number';
 import type { Goal } from '@/shared/types';
 
 export default function GoalsScreen() {
@@ -57,7 +58,7 @@ export default function GoalsScreen() {
           />
         }
         renderItem={({ item }) => {
-          const progress = Math.min(100, Math.round((Number(item.currentAmount) / Number(item.targetAmount)) * 100));
+          const progress = toSafePercent(item.currentAmount, item.targetAmount);
 
           return (
             <Card style={styles.goalCard}>

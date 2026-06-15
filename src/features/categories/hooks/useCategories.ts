@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
-import { Alert } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { apiPost, apiPatch, getApiErrorMessage } from '@/shared/services/api';
+import { CONFIRM } from '@/shared/constants/confirmations';
+import { showConfirmation } from '@/shared/utils/confirmations';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import type { Category } from '@/shared/types';
 
@@ -68,22 +69,15 @@ export function useCategories() {
   };
 
   const archiveCategory = (id: string, name: string) => {
-    Alert.alert('Archive Category', `Archive "${name}"?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Archive',
-        style: 'destructive',
-        onPress: async () => {
-          setListError(null);
-          try {
-            await apiPost(`/categories/${id}/archive`);
-            queryClient.invalidateQueries({ queryKey: ['categories'] });
-          } catch (err) {
-            setListError(getApiErrorMessage(err, 'Could not archive category'));
-          }
-        },
-      },
-    ]);
+    showConfirmation(CONFIRM.archiveCategory(name), async () => {
+      setListError(null);
+      try {
+        await apiPost(`/categories/${id}/archive`);
+        queryClient.invalidateQueries({ queryKey: ['categories'] });
+      } catch (err) {
+        setListError(getApiErrorMessage(err, 'Could not archive category'));
+      }
+    });
   };
 
   const moveCategory = async (index: number, direction: -1 | 1) => {

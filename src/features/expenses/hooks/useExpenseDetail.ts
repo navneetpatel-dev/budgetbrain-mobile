@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { Alert } from 'react-native';
+import { CONFIRM } from '@/shared/constants/confirmations';
+import { showConfirmation } from '@/shared/utils/confirmations';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { UseFormReset } from 'react-hook-form';
@@ -117,14 +118,7 @@ export function useExpenseDetail(expenseId: string) {
   };
 
   const confirmDelete = () => {
-    Alert.alert('Delete Expense', 'This cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: remove,
-      },
-    ]);
+    showConfirmation(CONFIRM.deleteExpense, remove);
   };
 
   return {
