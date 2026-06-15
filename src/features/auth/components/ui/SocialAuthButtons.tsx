@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { View, Text, StyleSheet, Platform, Alert, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Platform, Pressable, ActivityIndicator } from 'react-native';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useSocialAuth } from '@/features/auth/hooks/useSocialAuth';
 import { AuthDivider } from '@/features/auth/components/ui/AuthDivider';
@@ -25,26 +25,38 @@ const markStyles = StyleSheet.create({
   g: { fontSize: 13, fontWeight: '700', color: '#4285F4' },
 });
 
+function SocialAuthError({ message }: { message: string }) {
+  const theme = useTheme();
+  return (
+    <Text
+      accessibilityRole="alert"
+      style={{
+        color: theme.colors.danger,
+        fontSize: 13,
+        fontWeight: '500',
+        lineHeight: 18,
+        marginTop: theme.spacing.sm,
+        textAlign: 'center',
+      }}
+    >
+      {message}
+    </Text>
+  );
+}
+
 export function SocialAuthButtons() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const { loading, signInGoogle, signInApple } = useSocialAuth();
+  const { loading, error, clearError, signInGoogle, signInApple } = useSocialAuth();
 
-  const onGoogle = async () => {
-    try {
-      await signInGoogle();
-    } catch (err) {
-      Alert.alert('Google Sign-In Failed', err instanceof Error ? err.message : 'Could not sign in');
-    }
+  const onGoogle = () => {
+    clearError();
+    void signInGoogle();
   };
 
-  const onApple = async () => {
-    try {
-      await signInApple();
-    } catch (err) {
-      if (err instanceof Error && err.message.includes('ERR_REQUEST_CANCELED')) return;
-      Alert.alert('Apple Sign-In Failed', err instanceof Error ? err.message : 'Could not sign in');
-    }
+  const onApple = () => {
+    clearError();
+    void signInApple();
   };
 
   return (
@@ -68,6 +80,7 @@ export function SocialAuthButtons() {
           />
         )}
       </View>
+      {error ? <SocialAuthError message={error} /> : null}
     </View>
   );
 }

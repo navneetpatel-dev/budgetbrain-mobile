@@ -10,7 +10,7 @@ const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
 
 export async function signInWithGoogle(): Promise<AuthSessionResult | null> {
   if (!GOOGLE_CLIENT_ID) {
-    throw new Error('Set EXPO_PUBLIC_GOOGLE_CLIENT_ID to enable Google sign-in');
+    throw new Error('EXPO_PUBLIC_GOOGLE_CLIENT_ID is not configured');
   }
 
   const redirectUri = AuthSession.makeRedirectUri({ scheme: 'expenseflow' });
@@ -28,8 +28,11 @@ export async function signInWithGoogle(): Promise<AuthSessionResult | null> {
   });
 
   const result = await authRequest.promptAsync(discovery);
-  if (result.type !== 'success' || !result.params.id_token) {
+  if (result.type === 'cancel' || result.type === 'dismiss') {
     return null;
+  }
+  if (result.type !== 'success' || !result.params.id_token) {
+    throw new Error('Google sign-in could not be completed');
   }
 
   return apiPost<AuthSessionResult>('/auth/google', {
