@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { AppIcon } from '@/features/navigation/components/AppIcon';
+import { BrandLogoBadge } from '@/shared/components/brand/BrandLogoBadge';
 import { AuthFeatureTickerRail } from '@/features/auth/components/ui/AuthFeatureTicker';
 import { useTheme } from '@/shared/theme';
 
@@ -55,11 +55,7 @@ export function AuthHeroHeader({
         {branded ? (
           <>
             <View style={styles.brandCluster}>
-              <View style={styles.logoRing}>
-                <View style={styles.logoBadge}>
-                  <AppIcon name="wallet" size={compact ? 20 : 26} color="#fff" />
-                </View>
-              </View>
+              <BrandLogoBadge compact={compact} branded={branded} />
 
               <Text style={styles.title}>
                 Budget<Text style={styles.titleAccent}>Brain</Text>
@@ -74,11 +70,7 @@ export function AuthHeroHeader({
           </>
         ) : (
           <>
-            <View style={styles.logoRing}>
-              <View style={styles.logoBadge}>
-                <AppIcon name="wallet" size={compact ? 22 : 28} color="#fff" />
-              </View>
-            </View>
+            <BrandLogoBadge compact={compact} branded={branded} />
             <Text style={styles.title}>
               Budget<Text style={styles.titleAccent}>Brain</Text>
             </Text>
@@ -94,9 +86,6 @@ function createStyles(
   compact: boolean,
   branded: boolean,
 ) {
-  const logoSize = branded ? (compact ? 40 : 52) : 44;
-  const logoRadius = branded ? (compact ? 12 : 15) : 14;
-
   return StyleSheet.create({
     wrap: {
       overflow: 'hidden',
@@ -119,20 +108,6 @@ function createStyles(
       width: '100%',
       maxWidth: branded && !compact ? 320 : undefined,
       gap: compact ? 6 : 8,
-    },
-    logoRing: {
-      padding: 2,
-      borderRadius: branded ? (compact ? 16 : 20) : 18,
-      borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.22)',
-    },
-    logoBadge: {
-      width: logoSize,
-      height: logoSize,
-      borderRadius: logoRadius,
-      backgroundColor: 'rgba(255,255,255,0.16)',
-      alignItems: 'center',
-      justifyContent: 'center',
     },
     title: {
       fontSize: branded ? (compact ? 22 : 28) : 26,
