@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { apiGet } from '../services/api';
+import { ensureArray } from '../utils/listData';
 import type { PaginationMeta } from '../types';
 
 export type PaginatedResponse<T, K extends string> = PaginationMeta & Record<K, T[]>;
@@ -20,18 +21,18 @@ export async function fetchAllPages<T, K extends string>(
   pageSize = 100
 ): Promise<{ items: T[]; total: number }> {
   const first = await fetchPaginatedPage<T, K>(url, key, { ...params, page: 1, limit: pageSize });
-  const items = [...first[key]];
+  const items = [...ensureArray<T>(first[key])];
   const totalPages = Math.ceil(first.total / pageSize);
   for (let page = 2; page <= totalPages; page++) {
     const next = await fetchPaginatedPage<T, K>(url, key, { ...params, page, limit: pageSize });
-    items.push(...next[key]);
+    items.push(...ensureArray<T>(next[key]));
   }
   return { items, total: first.total };
 }
 
 export function flattenInfinitePages<T>(pages: Record<string, unknown>[] | undefined, itemsKey: string): T[] {
   if (!pages?.length) return [];
-  return pages.flatMap((page) => (page[itemsKey] as T[]) ?? []);
+  return pages.flatMap((page) => ensureArray<T>(page[itemsKey]));
 }
 
 /** Infinite scroll for high-volume lists (expenses, income, search, notifications). */

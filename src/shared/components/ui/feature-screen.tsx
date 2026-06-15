@@ -18,6 +18,7 @@ import { useTheme } from '@/shared/theme';
 import type { AppTheme } from '@/shared/theme';
 import { useTabBarInset } from '@/shared/hooks/useTabBarInset';
 import { useScreenInsets } from '@/shared/hooks/useLayout';
+import { ensureArray } from '@/shared/utils/listData';
 import { useFabBottom } from '@/shared/hooks/useFabBottom';
 import { ScreenWrapper } from '@/shared/components/ui/layout';
 
@@ -397,8 +398,9 @@ export function OptionChipList({
   const theme = useTheme();
   const styles = useMemo(() => createChipStyles(theme), [theme]);
   const useScroll = items.length > 8;
+  const safeItems = ensureArray<{ id: string; label: string; color?: string }>(items);
 
-  const content = items.map((item) => {
+  const content = safeItems.map((item) => {
     const selected = selectedId === item.id;
     const accent = item.color ?? theme.colors.primary;
     return (
