@@ -256,22 +256,17 @@ export function SummaryMetricsGrid({
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        grid: {
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          justifyContent: 'space-between',
-          rowGap: gridGapValue,
-        },
-        full: { width: '100%' },
-        pair: { width: '48%' },
-        quad: { flex: 1, minWidth: '22%' },
+        stack: { gap: gridGapValue },
+        row: { flexDirection: 'row', gap: gridGapValue },
+        cell: { flex: 1, minWidth: 0 },
+        quad: { flex: 1, minWidth: 0 },
       }),
     [gridGapValue],
   );
 
   if (isLargeTablet) {
     return (
-      <View style={[styles.grid, { columnGap: gridGapValue }, style]}>
+      <View style={[styles.row, style]}>
         {items.map((child, i) => (
           <View key={i} style={styles.quad}>
             {child}
@@ -282,12 +277,15 @@ export function SummaryMetricsGrid({
   }
 
   return (
-    <View style={[styles.grid, style]}>
-      {items.map((child, i) => (
-        <View key={i} style={i < 2 ? styles.full : styles.pair}>
-          {child}
+    <View style={[styles.stack, style]}>
+      {items[0] ? <View style={styles.cell}>{items[0]}</View> : null}
+      {items[1] ? <View style={styles.cell}>{items[1]}</View> : null}
+      {items[2] || items[3] ? (
+        <View style={styles.row}>
+          {items[2] ? <View style={styles.cell}>{items[2]}</View> : null}
+          {items[3] ? <View style={styles.cell}>{items[3]}</View> : null}
         </View>
-      ))}
+      ) : null}
     </View>
   );
 }

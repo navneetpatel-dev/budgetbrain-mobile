@@ -66,7 +66,7 @@ export default function DashboardScreen() {
       }
     >
       <ScreenSection>
-        <SummaryMetricsGrid gap={blockGap}>
+        <SummaryMetricsGrid>
           <SummaryCard
             title="Income"
             amount={formatCurrency(summary?.totalIncome ?? 0, currency)}
