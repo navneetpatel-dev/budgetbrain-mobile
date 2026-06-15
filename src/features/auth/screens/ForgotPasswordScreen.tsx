@@ -42,6 +42,7 @@ export function ForgotPasswordScreen() {
                 autoComplete="email"
                 placeholder="you@example.com"
                 error={errors.email?.message}
+                disabled={loading}
               />
             )}
           />

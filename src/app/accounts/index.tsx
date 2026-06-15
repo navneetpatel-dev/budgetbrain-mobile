@@ -73,7 +73,7 @@ export default function AccountsScreen() {
           name="name"
           rules={{ required: 'Name is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label="Account name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="wallet" />
+            <Input label="Account name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="wallet" disabled={loading} />
           )}
         />
         {!editingId && (
@@ -84,19 +84,20 @@ export default function AccountsScreen() {
               value={accountType}
               onChange={(v) => setValue('type', v)}
               getLabel={(v) => ACCOUNT_TYPES.find((t) => t.value === v)?.label ?? v}
+              disabled={loading}
             />
             <Controller
               control={control}
               name="institution"
               render={({ field: { onChange, value } }) => (
-                <Input label="Institution" value={value} onChangeText={onChange} placeholder="e.g. HDFC Bank" leftIcon="netWorth" />
+                <Input label="Institution" value={value} onChangeText={onChange} placeholder="e.g. HDFC Bank" leftIcon="netWorth" disabled={loading} />
               )}
             />
             <Controller
               control={control}
               name="accountNumberLast4"
               render={({ field: { onChange, value } }) => (
-                <Input label="Last 4 digits" value={value} onChangeText={onChange} keyboardType="number-pad" maxLength={4} helperText="Optional — for identification only" />
+                <Input label="Last 4 digits" value={value} onChangeText={onChange} keyboardType="number-pad" maxLength={4} helperText="Optional — for identification only" disabled={loading} />
               )}
             />
           </>
@@ -106,7 +107,7 @@ export default function AccountsScreen() {
           name="balance"
           rules={{ required: 'Balance is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label={amountLabel('Balance')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.balance?.message} leftIcon="wallet" />
+            <Input label={amountLabel('Balance')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.balance?.message} leftIcon="wallet" disabled={loading} />
           )}
         />
       </FormModal>

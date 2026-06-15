@@ -12,6 +12,7 @@ import {
   ScreenSection,
   SectionHeader,
   ResponsiveGrid,
+  SummaryMetricsGrid,
   ProgressBar,
   StickyHeaderScreen,
   DashboardSkeleton,
@@ -65,7 +66,7 @@ export default function DashboardScreen() {
       }
     >
       <ScreenSection>
-        <ResponsiveGrid gap={blockGap}>
+        <SummaryMetricsGrid gap={blockGap}>
           <SummaryCard
             title="Income"
             amount={formatCurrency(summary?.totalIncome ?? 0, currency)}
@@ -94,7 +95,7 @@ export default function DashboardScreen() {
             color={theme.colors.primary}
             onPress={() => router.push('/net-worth')}
           />
-        </ResponsiveGrid>
+        </SummaryMetricsGrid>
       </ScreenSection>
 
       <ScreenSection>

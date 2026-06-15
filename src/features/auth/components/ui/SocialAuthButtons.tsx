@@ -4,6 +4,7 @@ import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useSocialAuth } from '@/features/auth/hooks/useSocialAuth';
 import { AuthDivider } from '@/features/auth/components/ui/AuthDivider';
 import { AuthErrorBanner } from '@/features/auth/components/ui/AuthErrorBanner';
+import { getLoadingLabel } from '@/shared/utils/buttonLoadingLabel';
 import { useTheme } from '@/shared/theme';
 
 function GoogleMark() {
@@ -27,10 +28,11 @@ const markStyles = StyleSheet.create({
 });
 
 
-export function SocialAuthButtons() {
+export function SocialAuthButtons({ disabled: formDisabled }: { disabled?: boolean }) {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { loading, error, clearError, signInGoogle, signInApple } = useSocialAuth();
+  const isBusy = formDisabled || !!loading;
 
   const onGoogle = () => {
     clearError();
@@ -50,7 +52,7 @@ export function SocialAuthButtons() {
           label="Google"
           onPress={onGoogle}
           loading={loading === 'google'}
-          disabled={!!loading}
+          disabled={isBusy}
           icon={<GoogleMark />}
         />
         {Platform.OS === 'ios' && (
@@ -58,7 +60,7 @@ export function SocialAuthButtons() {
             label="Apple"
             onPress={onApple}
             loading={loading === 'apple'}
-            disabled={!!loading}
+            disabled={isBusy}
             icon={<AppIcon name="apple" size={20} color={theme.colors.text} />}
           />
         )}
@@ -95,7 +97,10 @@ function SocialButton({
       ]}
     >
       {loading ? (
-        <ActivityIndicator size="small" color={theme.colors.primary} />
+        <>
+          <ActivityIndicator size="small" color={theme.colors.primary} />
+          <Text style={styles.label}>{getLoadingLabel(label)}</Text>
+        </>
       ) : (
         <>
           {icon}

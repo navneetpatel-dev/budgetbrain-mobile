@@ -30,7 +30,7 @@ export function RegisterScreen() {
         name="name"
         rules={authFieldRules.name}
         render={({ field: { onChange, value } }) => (
-          <Input label="Full name" value={value} onChangeText={onChange} placeholder="Jane Doe" error={errors.name?.message} />
+          <Input label="Full name" value={value} onChangeText={onChange} placeholder="Jane Doe" error={errors.name?.message} disabled={loading} />
         )}
       />
 
@@ -49,6 +49,7 @@ export function RegisterScreen() {
             autoComplete="email"
             placeholder="you@example.com"
             error={errors.email?.message}
+            disabled={loading}
           />
         )}
       />
@@ -68,6 +69,7 @@ export function RegisterScreen() {
             autoComplete="password-new"
             placeholder="Min. 8 characters"
             error={errors.password?.message}
+            disabled={loading}
           />
         )}
       />

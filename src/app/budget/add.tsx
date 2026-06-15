@@ -46,7 +46,7 @@ export default function AddBudgetScreen() {
           name="name"
           rules={{ required: 'Name is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label="Budget name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="budgets" placeholder="e.g. Groceries" />
+            <Input label="Budget name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="budgets" placeholder="e.g. Groceries" disabled={loading} />
           )}
         />
 
@@ -56,6 +56,7 @@ export default function AddBudgetScreen() {
           value={budgetType}
           onChange={(v) => setValue('type', v)}
           getLabel={(v) => (v === 'category' ? 'By category' : v.charAt(0).toUpperCase() + v.slice(1))}
+          disabled={loading}
         />
 
         <Controller
@@ -63,7 +64,7 @@ export default function AddBudgetScreen() {
           name="amount"
           rules={{ required: 'Amount is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label={amountLabel('Budget amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} leftIcon="wallet" placeholder="0.00" />
+            <Input label={amountLabel('Budget amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} leftIcon="wallet" placeholder="0.00" disabled={loading} />
           )}
         />
       </FormSection>
@@ -73,7 +74,7 @@ export default function AddBudgetScreen() {
           control={control}
           name="startDate"
           render={({ field: { onChange, value } }) => (
-            <DateInput label="Start date" value={value} onChange={onChange} />
+            <DateInput label="Start date" value={value} onChange={onChange} disabled={loading} />
           )}
         />
 
@@ -81,7 +82,7 @@ export default function AddBudgetScreen() {
           control={control}
           name="alertThreshold"
           render={({ field: { onChange, value } }) => (
-            <Input label="Alert threshold (%)" value={value} onChangeText={onChange} keyboardType="numeric" helperText="Notify when spending reaches this %" leftIcon="bell" />
+            <Input label="Alert threshold (%)" value={value} onChangeText={onChange} keyboardType="numeric" helperText="Notify when spending reaches this %" leftIcon="bell" disabled={loading} />
           )}
         />
 
@@ -92,6 +93,7 @@ export default function AddBudgetScreen() {
               items={(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined }))}
               selectedId={selectedCategory}
               onSelect={(id) => setValue('categoryId', id)}
+              disabled={loading}
             />
           </>
         )}

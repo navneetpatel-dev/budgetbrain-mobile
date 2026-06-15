@@ -40,7 +40,7 @@ export default function GoalEditScreen() {
           name="name"
           rules={{ required: 'Name is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label="Goal name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="goals" />
+            <Input label="Goal name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="goals" disabled={loading} />
           )}
         />
         <Controller
@@ -48,14 +48,14 @@ export default function GoalEditScreen() {
           name="targetAmount"
           rules={{ required: 'Target amount is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label={amountLabel('Target amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.targetAmount?.message} leftIcon="wallet" />
+            <Input label={amountLabel('Target amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.targetAmount?.message} leftIcon="wallet" disabled={loading} />
           )}
         />
         <Controller
           control={control}
           name="targetDate"
           render={({ field: { onChange, value } }) => (
-            <DateInput label="Target date" value={value} onChange={onChange} />
+            <DateInput label="Target date" value={value} onChange={onChange} disabled={loading} />
           )}
         />
       </FormSection>

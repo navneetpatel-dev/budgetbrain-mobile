@@ -38,7 +38,7 @@ export default function BudgetEditScreen() {
           name="name"
           rules={{ required: 'Name is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label="Budget name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="budgets" />
+            <Input label="Budget name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="budgets" disabled={loading} />
           )}
         />
         <Controller
@@ -46,14 +46,14 @@ export default function BudgetEditScreen() {
           name="amount"
           rules={{ required: 'Amount is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label={amountLabel('Amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} leftIcon="wallet" />
+            <Input label={amountLabel('Amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} leftIcon="wallet" disabled={loading} />
           )}
         />
         <Controller
           control={control}
           name="alertThreshold"
           render={({ field: { onChange, value } }) => (
-            <Input label="Alert threshold (%)" value={value} onChangeText={onChange} keyboardType="numeric" helperText="Notify when spending reaches this %" leftIcon="bell" />
+            <Input label="Alert threshold (%)" value={value} onChangeText={onChange} keyboardType="numeric" helperText="Notify when spending reaches this %" leftIcon="bell" disabled={loading} />
           )}
         />
       </FormSection>

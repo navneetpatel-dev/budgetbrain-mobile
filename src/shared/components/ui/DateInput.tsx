@@ -31,6 +31,7 @@ export function DateInput({
   error,
   minimumDate,
   maximumDate,
+  disabled,
 }: {
   label?: string;
   value: string;
@@ -38,6 +39,7 @@ export function DateInput({
   error?: string;
   minimumDate?: Date;
   maximumDate?: Date;
+  disabled?: boolean;
 }) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -56,6 +58,7 @@ export function DateInput({
   };
 
   const openPicker = () => {
+    if (disabled) return;
     setFocused(true);
     setShowPicker(true);
   };
@@ -70,10 +73,12 @@ export function DateInput({
       {label ? <Text style={styles.label}>{label}</Text> : null}
       <Pressable
         onPress={openPicker}
+        disabled={disabled}
         style={[
           styles.field,
-          focused && styles.fieldFocused,
+          focused && !disabled && styles.fieldFocused,
           error && styles.fieldError,
+          disabled && styles.fieldDisabled,
         ]}
         accessibilityRole="button"
         accessibilityLabel={label ? `${label}, ${formatDisplayDate(value)}` : formatDisplayDate(value)}
@@ -151,6 +156,7 @@ function createStyles(t: ReturnType<typeof useTheme>) {
       backgroundColor: t.colors.primarySoft,
     },
     fieldError: { borderColor: t.colors.danger },
+    fieldDisabled: { opacity: 0.55 },
     iconWrap: {
       width: 36,
       height: 36,

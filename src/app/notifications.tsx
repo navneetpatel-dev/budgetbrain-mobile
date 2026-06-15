@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { StyleSheet, Text, RefreshControl, ActivityIndicator } from 'react-native';
-import { Card, EmptyState, ScreenLoader, StickyHeaderFlatScreen } from '@/shared/components/ui';
+import { Card, EmptyState, ScreenLoader, ListSkeleton, StickyHeaderFlatScreen } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
 import { useMarkNotificationRead } from '@/features/notifications/hooks/useMarkNotificationRead';

@@ -13,8 +13,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/shared/theme';
 import type { AppTheme } from '@/shared/theme';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon';
+import { getLoadingLabel } from '@/shared/utils/buttonLoadingLabel';
 
-export { Screen, ScreenContainer, ScreenLoader, ScreenSkeleton, ResponsiveGrid, StickyHeaderScreen, ScreenWrapper } from './layout';
+export { Screen, ScreenContainer, ScreenLoader, ScreenSkeleton, ResponsiveGrid, SummaryMetricsGrid, StickyHeaderScreen, ScreenWrapper } from './layout';
 export {
   SkeletonBlock, SkeletonLine, SkeletonCircle, SkeletonCard,
   DashboardSkeleton, ListSkeleton, DetailSkeleton, SettingsSkeleton,
@@ -59,6 +60,7 @@ interface ButtonProps {
   onPress: () => void;
   variant?: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost';
   loading?: boolean;
+  loadingTitle?: string;
   disabled?: boolean;
   size?: 'md' | 'lg';
   icon?: AppIconName | React.ReactNode;
@@ -69,6 +71,7 @@ export function Button({
   onPress,
   variant = 'primary',
   loading,
+  loadingTitle,
   disabled,
   size = 'md',
   icon,
@@ -80,12 +83,15 @@ export function Button({
   const isGhost = variant === 'ghost';
   const isSecondary = variant === 'secondary';
   const isDisabled = disabled || loading;
+  const busyLabel = loading ? (loadingTitle ?? getLoadingLabel(title)) : title;
 
-  const inner = loading ? (
-    <ActivityIndicator color={isOutline || isGhost ? theme.colors.primary : theme.colors.onPrimary} />
-  ) : (
+  const spinnerColor =
+    isOutline || isGhost ? theme.colors.primary : theme.colors.onPrimary;
+
+  const inner = (
     <View style={styles.buttonInner}>
-      {icon != null && (
+      {loading ? <ActivityIndicator color={spinnerColor} size="small" /> : null}
+      {!loading && icon != null ? (
         typeof icon === 'string' ? (
           <AppIcon
             name={icon as AppIconName}
@@ -95,7 +101,7 @@ export function Button({
         ) : (
           icon
         )
-      )}
+      ) : null}
       <Text
         style={[
           styles.text,
@@ -106,7 +112,7 @@ export function Button({
           variant === 'danger' && styles.primaryText,
         ]}
       >
-        {title}
+        {busyLabel}
       </Text>
     </View>
   );
@@ -118,25 +124,30 @@ export function Button({
     !isPrimary && isOutline && styles.outline,
     variant === 'danger' && styles.danger,
     !isPrimary && isGhost && styles.ghost,
-    isDisabled && styles.disabled,
-    pressed && styles.pressed,
+    disabled && !loading && styles.disabled,
+    pressed && !isDisabled && styles.pressed,
   ];
 
-  if (isPrimary && !isDisabled) {
+  if (isPrimary) {
     return (
       <Pressable
         onPress={onPress}
         disabled={isDisabled}
         accessibilityRole="button"
-        accessibilityLabel={title}
-        accessibilityState={{ disabled: isDisabled }}
-        style={({ pressed }) => [styles.gradientWrap, size === 'lg' && styles.buttonLg, pressed && styles.pressed]}
+        accessibilityLabel={busyLabel}
+        accessibilityState={{ disabled: isDisabled, busy: !!loading }}
+        style={({ pressed }) => [
+          styles.gradientWrap,
+          size === 'lg' && styles.buttonLgWrap,
+          pressed && !isDisabled && styles.pressed,
+          disabled && !loading && styles.disabled,
+        ]}
       >
         <LinearGradient
           colors={[theme.colors.primary, theme.colors.gradientEnd]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={[styles.button, styles.primaryGradient, size === 'lg' && styles.buttonLgInner]}
+          style={[styles.button, styles.primaryGradient, size === 'lg' && styles.buttonLg, size === 'lg' && styles.buttonLgInner]}
         >
           {inner}
         </LinearGradient>
@@ -149,8 +160,8 @@ export function Button({
       onPress={onPress}
       disabled={isDisabled}
       accessibilityRole="button"
-      accessibilityLabel={title}
-      accessibilityState={{ disabled: isDisabled }}
+      accessibilityLabel={busyLabel}
+      accessibilityState={{ disabled: isDisabled, busy: !!loading }}
       style={pressableStyle}
     >
       {inner}
@@ -165,6 +176,7 @@ interface InputProps extends TextInputProps {
   secureToggle?: boolean;
   leftIcon?: AppIconName;
   variant?: 'default' | 'soft';
+  disabled?: boolean;
 }
 
 export function Input({
@@ -179,6 +191,8 @@ export function Input({
   multiline,
   onFocus,
   onBlur,
+  disabled,
+  editable,
   ...props
 }: InputProps) {
   const theme = useTheme();
@@ -188,6 +202,7 @@ export function Input({
   const isSecure = secureTextEntry && (secureToggle ? hidden : true);
   const isSoft = variant === 'soft';
   const isMultiline = !!multiline;
+  const isFieldDisabled = disabled || editable === false;
 
   return (
     <View style={styles.inputContainer}>
@@ -197,8 +212,9 @@ export function Input({
           styles.inputWrapper,
           isSoft && styles.inputWrapperSoft,
           isMultiline && styles.inputWrapperMultiline,
-          focused && styles.inputFocused,
+          focused && !isFieldDisabled && styles.inputFocused,
           error && styles.inputError,
+          isFieldDisabled && styles.inputDisabled,
         ]}
       >
         {leftIcon ? (
@@ -219,7 +235,9 @@ export function Input({
           accessibilityLabel={label}
           multiline={multiline}
           textAlignVertical={isMultiline ? 'top' : 'auto'}
+          editable={editable ?? !disabled}
           onFocus={(e) => {
+            if (isFieldDisabled) return;
             setFocused(true);
             onFocus?.(e);
           }}
@@ -386,6 +404,7 @@ export function FormActions({
   primaryTitle,
   onPrimary,
   primaryLoading,
+  primaryLoadingTitle,
   secondaryTitle,
   onSecondary,
   style,
@@ -393,6 +412,7 @@ export function FormActions({
   primaryTitle: string;
   onPrimary: () => void;
   primaryLoading?: boolean;
+  primaryLoadingTitle?: string;
   secondaryTitle?: string;
   onSecondary?: () => void;
   style?: ViewStyle;
@@ -405,9 +425,16 @@ export function FormActions({
 
   return (
     <View style={[styles.wrap, style]}>
-      <Button title={primaryTitle} onPress={onPrimary} loading={primaryLoading} size="lg" />
+      <Button
+        title={primaryTitle}
+        loadingTitle={primaryLoadingTitle}
+        onPress={onPrimary}
+        loading={primaryLoading}
+        disabled={primaryLoading}
+        size="lg"
+      />
       {secondaryTitle && onSecondary ? (
-        <Button title={secondaryTitle} onPress={onSecondary} variant="outline" />
+        <Button title={secondaryTitle} onPress={onSecondary} variant="outline" disabled={primaryLoading} />
       ) : null}
     </View>
   );
@@ -425,8 +452,9 @@ function createButtonStyles(t: AppTheme) {
       justifyContent: 'center',
     },
     buttonLg: { paddingVertical: 16, borderRadius: t.radii.lg },
+    buttonLgWrap: { width: '100%', borderRadius: t.radii.lg },
     buttonLgInner: { width: '100%' },
-    gradientWrap: { borderRadius: t.radii.md, overflow: 'hidden' },
+    gradientWrap: { borderRadius: t.radii.md, overflow: 'hidden', alignSelf: 'stretch' },
     primaryGradient: { backgroundColor: 'transparent' },
     buttonInner: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     primary: { backgroundColor: t.colors.primary },
@@ -479,6 +507,7 @@ function createInputStyles(t: AppTheme) {
       backgroundColor: t.colors.primarySoft,
     },
     inputError: { borderColor: t.colors.danger, backgroundColor: t.colors.dangerSoft },
+    inputDisabled: { opacity: 0.55 },
     input: {
       flex: 1,
       paddingHorizontal: t.spacing.md,
@@ -532,8 +561,8 @@ function createCardStyles(t: AppTheme) {
 
 function createSummaryStyles(t: AppTheme) {
   return StyleSheet.create({
-    summaryPressable: { flex: 1, flexBasis: '46%', minWidth: '46%' },
-    summaryCard: { flex: 1 },
+    summaryPressable: { width: '100%', alignSelf: 'stretch' },
+    summaryCard: { width: '100%' },
     summaryTop: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: t.spacing.sm },
     iconWrap: {
       width: 28,

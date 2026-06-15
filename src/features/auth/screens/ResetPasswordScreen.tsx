@@ -48,6 +48,7 @@ export function ResetPasswordScreen() {
                 secureToggle
                 placeholder="Min. 8 characters"
                 error={errors.password?.message}
+                disabled={loading}
               />
             )}
           />
@@ -64,6 +65,7 @@ export function ResetPasswordScreen() {
                 secureToggle
                 placeholder="Re-enter password"
                 error={errors.confirmPassword?.message}
+                disabled={loading}
               />
             )}
           />

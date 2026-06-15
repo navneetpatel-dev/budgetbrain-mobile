@@ -114,7 +114,10 @@ export function getApiErrorMessage(err: unknown, fallback = 'Something went wron
     if (apiMessage) return apiMessage;
     if (err.code === 'ECONNABORTED') return 'Request timed out. Check your connection.';
     if (!err.response) {
-      return `Cannot reach the API at ${API_BASE_URL}. On a physical device, set EXPO_PUBLIC_API_URL to your computer's LAN IP (e.g. http://192.168.1.x:3000/api/v1) in mobile/.env and restart Expo.`;
+      if (__DEV__) {
+        return 'Cannot reach the server. Set EXPO_PUBLIC_API_URL in mobile/.env to your computer\'s LAN address, then restart Expo.';
+      }
+      return 'Unable to connect. Check your internet connection and try again.';
     }
     return `Request failed (${err.response.status})`;
   }

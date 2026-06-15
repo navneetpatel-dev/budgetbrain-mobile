@@ -61,7 +61,8 @@ export default function IntegrationsScreen() {
                 <Pressable
                   key={item.id}
                   onPress={() => selectPending(item.id)}
-                  style={[styles.pendingChip, selected && styles.pendingChipSelected]}
+                  disabled={confirmLoading}
+                  style={[styles.pendingChip, selected && styles.pendingChipSelected, confirmLoading && { opacity: 0.55 }]}
                   accessibilityRole="button"
                   accessibilityState={{ selected }}
                 >
@@ -90,6 +91,7 @@ export default function IntegrationsScreen() {
             items={(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined }))}
             selectedId={categoryId}
             onSelect={setCategoryId}
+            disabled={confirmLoading}
           />
           <FormActions
             primaryTitle="Confirm as Expense"
@@ -116,6 +118,7 @@ export default function IntegrationsScreen() {
               placeholder="Paste bank SMS here..."
               error={smsForm.formState.errors.content?.message}
               helperText="Include amount and merchant if possible"
+              disabled={smsLoading}
             />
           )}
         />
@@ -129,7 +132,7 @@ export default function IntegrationsScreen() {
           name="subject"
           rules={{ required: 'Subject is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label="Subject" value={value} onChangeText={onChange} error={emailForm.formState.errors.subject?.message} leftIcon="mail" />
+            <Input label="Subject" value={value} onChangeText={onChange} error={emailForm.formState.errors.subject?.message} leftIcon="mail" disabled={emailLoading} />
           )}
         />
         <Controller
@@ -144,6 +147,7 @@ export default function IntegrationsScreen() {
               multiline
               placeholder="Paste email body here..."
               error={emailForm.formState.errors.body?.message}
+              disabled={emailLoading}
             />
           )}
         />

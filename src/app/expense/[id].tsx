@@ -90,21 +90,21 @@ export default function ExpenseDetailScreen() {
               name="amount"
               rules={{ required: 'Amount is required' }}
               render={({ field: { onChange, value } }) => (
-                <Input label={amountLabel('Amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} leftIcon="expense" />
+                <Input label={amountLabel('Amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} leftIcon="expense" disabled={loading} />
               )}
             />
             <Controller
               control={control}
               name="merchant"
               render={({ field: { onChange, value } }) => (
-                <Input label="Merchant" value={value} onChangeText={onChange} leftIcon="activity" />
+                <Input label="Merchant" value={value} onChangeText={onChange} leftIcon="activity" disabled={loading} />
               )}
             />
             <Controller
               control={control}
               name="date"
               render={({ field: { onChange, value } }) => (
-                <DateInput label="Date" value={value} onChange={onChange} />
+                <DateInput label="Date" value={value} onChange={onChange} disabled={loading} />
               )}
             />
           </FormSection>
@@ -116,12 +116,14 @@ export default function ExpenseDetailScreen() {
               value={selectedPayment}
               onChange={(v) => setValue('paymentMethod', v)}
               getLabel={(v) => PAYMENT_METHODS.find((pm) => pm.value === v)?.label ?? v}
+              disabled={loading}
             />
             <FormFieldLabel>Category</FormFieldLabel>
             <OptionChipList
               items={(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined }))}
               selectedId={selectedCategory}
               onSelect={(catId) => setValue('categoryId', catId)}
+              disabled={loading}
             />
           </FormSection>
 
@@ -130,7 +132,7 @@ export default function ExpenseDetailScreen() {
               control={control}
               name="notes"
               render={({ field: { onChange, value } }) => (
-                <Input label="Notes" value={value} onChangeText={onChange} multiline placeholder="Optional notes" />
+                <Input label="Notes" value={value} onChangeText={onChange} multiline placeholder="Optional notes" disabled={loading} />
               )}
             />
           </FormSection>

@@ -64,6 +64,7 @@ export default function AddExpenseScreen() {
               error={errors.amount?.message}
               leftIcon="expense"
               placeholder="0.00"
+              disabled={loading}
             />
           )}
         />
@@ -72,7 +73,7 @@ export default function AddExpenseScreen() {
           control={control}
           name="merchant"
           render={({ field: { onChange, value } }) => (
-            <Input label="Merchant" value={value} onChangeText={onChange} placeholder="e.g. Swiggy, Amazon" leftIcon="activity" />
+            <Input label="Merchant" value={value} onChangeText={onChange} placeholder="e.g. Swiggy, Amazon" leftIcon="activity" disabled={loading} />
           )}
         />
 
@@ -81,7 +82,7 @@ export default function AddExpenseScreen() {
           name="date"
           rules={{ required: 'Date is required' }}
           render={({ field: { onChange, value } }) => (
-            <DateInput label="Date" value={value} onChange={onChange} error={errors.date?.message} />
+            <DateInput label="Date" value={value} onChange={onChange} error={errors.date?.message} disabled={loading} />
           )}
         />
       </FormSection>
@@ -93,6 +94,7 @@ export default function AddExpenseScreen() {
           value={selectedPayment}
           onChange={(v) => setValue('paymentMethod', v)}
           getLabel={(v) => PAYMENT_METHODS.find((p) => p.value === v)?.label ?? v}
+          disabled={loading}
         />
 
         <FormFieldLabel>Category</FormFieldLabel>
@@ -104,6 +106,7 @@ export default function AddExpenseScreen() {
             setCategoryError(undefined);
           }}
           error={categoryError}
+          disabled={loading}
         />
       </FormSection>
 
@@ -114,6 +117,7 @@ export default function AddExpenseScreen() {
           imageUri={receipt?.uri}
           onPick={pick}
           onRemove={clear}
+          disabled={loading}
         />
 
         <Controller
@@ -126,6 +130,7 @@ export default function AddExpenseScreen() {
               onChangeText={onChange}
               placeholder="Add any extra details..."
               multiline
+              disabled={loading}
             />
           )}
         />

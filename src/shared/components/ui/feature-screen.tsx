@@ -300,23 +300,27 @@ function Chip({
   accent,
   onPress,
   styles,
+  disabled,
 }: {
   label: string;
   selected: boolean;
   accent: string;
   onPress: () => void;
   styles: ReturnType<typeof createChipStyles>;
+  disabled?: boolean;
 }) {
   return (
     <Pressable
-      onPress={onPress}
+      onPress={disabled ? undefined : onPress}
+      disabled={disabled}
       style={({ pressed }) => [
         styles.chip,
         selected && {
           backgroundColor: accent + '22',
           borderColor: accent,
         },
-        pressed && { opacity: 0.88, transform: [{ scale: 0.97 }] },
+        disabled && styles.chipDisabled,
+        pressed && !disabled && { opacity: 0.88, transform: [{ scale: 0.97 }] },
       ]}
       accessibilityRole="button"
       accessibilityState={{ selected }}
@@ -340,6 +344,7 @@ export function OptionChips<T extends string>({
   getLabel = (v) => v,
   getColor,
   error,
+  disabled,
 }: {
   options: T[];
   value: T;
@@ -347,6 +352,7 @@ export function OptionChips<T extends string>({
   getLabel?: (v: T) => string;
   getColor?: (v: T) => string | undefined;
   error?: string;
+  disabled?: boolean;
 }) {
   const theme = useTheme();
   const styles = useMemo(() => createChipStyles(theme), [theme]);
@@ -365,6 +371,7 @@ export function OptionChips<T extends string>({
               accent={accent}
               onPress={() => onChange(opt)}
               styles={styles}
+              disabled={disabled}
             />
           );
         })}
@@ -379,11 +386,13 @@ export function OptionChipList({
   selectedId,
   onSelect,
   error,
+  disabled,
 }: {
   items: { id: string; label: string; color?: string }[];
   selectedId: string;
   onSelect: (id: string) => void;
   error?: string;
+  disabled?: boolean;
 }) {
   const theme = useTheme();
   const styles = useMemo(() => createChipStyles(theme), [theme]);
@@ -400,6 +409,7 @@ export function OptionChipList({
         accent={accent}
         onPress={() => onSelect(item.id)}
         styles={styles}
+        disabled={disabled}
       />
     );
   });
@@ -424,12 +434,14 @@ export function MultiOptionChips({
   onToggle,
   getLabel = (v) => v,
   error,
+  disabled,
 }: {
   options: string[];
   selected: string[];
   onToggle: (v: string) => void;
   getLabel?: (v: string) => string;
   error?: string;
+  disabled?: boolean;
 }) {
   const theme = useTheme();
   const styles = useMemo(() => createChipStyles(theme), [theme]);
@@ -448,6 +460,7 @@ export function MultiOptionChips({
               accent={accent}
               onPress={() => onToggle(opt)}
               styles={styles}
+              disabled={disabled}
             />
           );
         })}
@@ -799,6 +812,7 @@ function createChipStyles(t: AppTheme) {
       justifyContent: 'center',
     },
     chipText: { fontSize: 13, fontWeight: '600', color: t.colors.text, textTransform: 'capitalize' },
+    chipDisabled: { opacity: 0.5 },
     errorText: { color: t.colors.danger, fontSize: 12, marginTop: t.spacing.xs, fontWeight: '500' },
   });
 }

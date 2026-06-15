@@ -32,7 +32,7 @@ export default function AddGoalScreen() {
           name="name"
           rules={{ required: 'Name is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label="Goal name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="goals" placeholder="e.g. Emergency fund" />
+            <Input label="Goal name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="goals" placeholder="e.g. Emergency fund" disabled={loading} />
           )}
         />
 
@@ -42,6 +42,7 @@ export default function AddGoalScreen() {
           value={goalType}
           onChange={(v) => setValue('type', v)}
           getLabel={(v) => GOAL_TYPES.find((t) => t.value === v)?.label ?? v}
+          disabled={loading}
         />
 
         <Controller
@@ -49,7 +50,7 @@ export default function AddGoalScreen() {
           name="targetAmount"
           rules={{ required: 'Target amount is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label={amountLabel('Target amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.targetAmount?.message} leftIcon="wallet" placeholder="0.00" />
+            <Input label={amountLabel('Target amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.targetAmount?.message} leftIcon="wallet" placeholder="0.00" disabled={loading} />
           )}
         />
       </FormSection>
@@ -59,7 +60,7 @@ export default function AddGoalScreen() {
           control={control}
           name="targetDate"
           render={({ field: { onChange, value } }) => (
-            <DateInput label="Target date" value={value} onChange={onChange} />
+            <DateInput label="Target date" value={value} onChange={onChange} disabled={loading} />
           )}
         />
       </FormSection>

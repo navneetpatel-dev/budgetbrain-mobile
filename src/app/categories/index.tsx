@@ -73,7 +73,7 @@ export default function CategoriesScreen() {
           name="name"
           rules={{ required: 'Name is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label="Category name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="category" placeholder="e.g. Food, Travel" />
+            <Input label="Category name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="category" placeholder="e.g. Food, Travel" disabled={loading} />
           )}
         />
         <ColorPicker
@@ -81,6 +81,7 @@ export default function CategoriesScreen() {
           colors={COLORS_PRESET}
           value={selectedColor}
           onChange={(c) => setValue('color', c)}
+          disabled={loading}
         />
       </FormModal>
 

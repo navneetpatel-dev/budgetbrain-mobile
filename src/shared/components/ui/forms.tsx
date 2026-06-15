@@ -48,6 +48,7 @@ export function ImageUploadField({
   onRemove,
   height = 140,
   error,
+  disabled,
 }: {
   label?: string;
   hint?: string;
@@ -56,19 +57,22 @@ export function ImageUploadField({
   onRemove?: () => void;
   height?: number;
   error?: string;
+  disabled?: boolean;
 }) {
   const theme = useTheme();
   const styles = useMemo(() => createUploadStyles(theme, height), [theme, height]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, disabled && styles.containerDisabled]}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
       <Pressable
-        onPress={imageUri ? undefined : onPick}
+        onPress={disabled || imageUri ? undefined : onPick}
+        disabled={disabled}
         style={({ pressed }) => [
           styles.zone,
           error && styles.zoneError,
-          !imageUri && pressed && styles.zonePressed,
+          disabled && styles.zoneDisabled,
+          !imageUri && pressed && !disabled && styles.zonePressed,
         ]}
         accessibilityRole="button"
         accessibilityLabel={label ?? 'Upload image'}
@@ -82,8 +86,9 @@ export function ImageUploadField({
             />
             <View style={styles.previewActions}>
               <Pressable
-                onPress={onPick}
-                style={({ pressed }) => [styles.previewBtn, pressed && { opacity: 0.85 }]}
+                onPress={disabled ? undefined : onPick}
+                disabled={disabled}
+                style={({ pressed }) => [styles.previewBtn, pressed && !disabled && { opacity: 0.85 }]}
                 accessibilityRole="button"
                 accessibilityLabel="Replace image"
               >
@@ -92,8 +97,9 @@ export function ImageUploadField({
               </Pressable>
               {onRemove ? (
                 <Pressable
-                  onPress={onRemove}
-                  style={({ pressed }) => [styles.previewBtn, styles.removeBtn, pressed && { opacity: 0.85 }]}
+                  onPress={disabled ? undefined : onRemove}
+                  disabled={disabled}
+                  style={({ pressed }) => [styles.previewBtn, styles.removeBtn, pressed && !disabled && { opacity: 0.85 }]}
                   accessibilityRole="button"
                   accessibilityLabel="Remove image"
                 >
@@ -127,12 +133,14 @@ export function ColorPicker({
   onChange,
   label,
   error,
+  disabled,
 }: {
   colors: string[];
   value: string;
   onChange: (color: string) => void;
   label?: string;
   error?: string;
+  disabled?: boolean;
 }) {
   const theme = useTheme();
   const styles = useMemo(() => createColorStyles(theme), [theme]);
@@ -146,8 +154,9 @@ export function ColorPicker({
           return (
             <Pressable
               key={c}
-              onPress={() => onChange(c)}
-              style={[styles.swatchOuter, selected && { borderColor: c }]}
+              onPress={disabled ? undefined : () => onChange(c)}
+              disabled={disabled}
+              style={[styles.swatchOuter, selected && { borderColor: c }, disabled && styles.swatchDisabled]}
               accessibilityRole="button"
               accessibilityState={{ selected }}
               accessibilityLabel={`Color ${c}`}
@@ -193,6 +202,7 @@ function createSectionStyles(t: AppTheme) {
 function createUploadStyles(t: AppTheme, height: number) {
   return StyleSheet.create({
     container: { marginBottom: t.spacing.lg },
+    containerDisabled: { opacity: 0.55 },
     label: {
       fontSize: 13,
       fontWeight: '600',
@@ -209,6 +219,7 @@ function createUploadStyles(t: AppTheme, height: number) {
       overflow: 'hidden',
     },
     zoneError: { borderColor: t.colors.danger },
+    zoneDisabled: { opacity: 0.7 },
     zonePressed: {
       borderColor: t.colors.primary + '66',
       backgroundColor: t.colors.primarySoft,
@@ -274,6 +285,7 @@ function createColorStyles(t: AppTheme) {
       borderWidth: 2,
       borderColor: 'transparent',
     },
+    swatchDisabled: { opacity: 0.5 },
     swatch: {
       width: 36,
       height: 36,

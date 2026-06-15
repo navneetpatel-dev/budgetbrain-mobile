@@ -43,6 +43,7 @@ export function LoginScreen() {
             autoComplete="email"
             placeholder="you@example.com"
             error={errors.email?.message}
+            disabled={loading}
           />
         )}
       />
@@ -62,6 +63,7 @@ export function LoginScreen() {
             autoComplete="password"
             placeholder="Your password"
             error={errors.password?.message}
+            disabled={loading}
           />
         )}
       />
@@ -72,7 +74,7 @@ export function LoginScreen() {
 
       <Button title="Sign In" onPress={handleSubmit(onSubmit)} loading={loading} size="lg" />
 
-      <SocialAuthButtons />
+      <SocialAuthButtons disabled={loading} />
 
       <AuthLink href="/(auth)/otp-login" align="center">Sign in with OTP</AuthLink>
     </AuthShell>

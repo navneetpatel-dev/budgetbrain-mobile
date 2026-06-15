@@ -218,9 +218,10 @@ export function ResponsiveGrid({
         },
         item: {
           flexGrow: 1,
-          flexShrink: 1,
+          flexShrink: 0,
           flexBasis: cols === 1 ? '100%' : cols === 2 ? '48%' : '31%',
-          minWidth: cols === 1 ? '100%' : cols === 2 ? 160 : 140,
+          minWidth: cols === 1 ? '100%' : cols === 2 ? '48%' : '31%',
+          maxWidth: cols === 1 ? '100%' : cols === 2 ? '48%' : '31%',
         },
       }),
     [cols, gridGapValue],
@@ -235,6 +236,58 @@ export function ResponsiveGrid({
             </View>
           ))
         : children}
+    </View>
+  );
+}
+
+/** Dashboard metric cards: full-width income/expense, paired goals/net-worth on phone & tablet */
+export function SummaryMetricsGrid({
+  children,
+  gap,
+  style,
+}: {
+  children: React.ReactNode;
+  gap?: number;
+  style?: ViewStyle;
+}) {
+  const { isLargeTablet, gridGap } = useResponsive();
+  const gridGapValue = gap ?? gridGap;
+  const items = Array.isArray(children) ? children : [children];
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        grid: {
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          justifyContent: 'space-between',
+          rowGap: gridGapValue,
+        },
+        full: { width: '100%' },
+        pair: { width: '48%' },
+        quad: { flex: 1, minWidth: '22%' },
+      }),
+    [gridGapValue],
+  );
+
+  if (isLargeTablet) {
+    return (
+      <View style={[styles.grid, { columnGap: gridGapValue }, style]}>
+        {items.map((child, i) => (
+          <View key={i} style={styles.quad}>
+            {child}
+          </View>
+        ))}
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.grid, style]}>
+      {items.map((child, i) => (
+        <View key={i} style={i < 2 ? styles.full : styles.pair}>
+          {child}
+        </View>
+      ))}
     </View>
   );
 }

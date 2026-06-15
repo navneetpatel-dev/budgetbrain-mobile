@@ -87,7 +87,7 @@ export default function FamilyScreen() {
           name="name"
           rules={{ required: 'Name is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label="Group name" value={value} onChangeText={onChange} error={groupForm.formState.errors.name?.message} leftIcon="family" placeholder="e.g. Smith Family" />
+            <Input label="Group name" value={value} onChangeText={onChange} error={groupForm.formState.errors.name?.message} leftIcon="family" placeholder="e.g. Smith Family" disabled={loading} />
           )}
         />
         {createError ? <FormErrorBanner message={createError} /> : null}
@@ -101,7 +101,7 @@ export default function FamilyScreen() {
           name="inviteCode"
           rules={{ required: 'Invite code is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label="Invite code" value={value} onChangeText={onChange} autoCapitalize="characters" error={joinForm.formState.errors.inviteCode?.message} leftIcon="link" placeholder="ABC123" />
+            <Input label="Invite code" value={value} onChangeText={onChange} autoCapitalize="characters" error={joinForm.formState.errors.inviteCode?.message} leftIcon="link" placeholder="ABC123" disabled={loading} />
           )}
         />
         {joinError ? <FormErrorBanner message={joinError} /> : null}

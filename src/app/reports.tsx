@@ -20,8 +20,8 @@ export default function ReportsScreen() {
       }
     >
       <FormSection title="Date range" subtitle="Leave empty to export all transactions">
-        <DateInput label="Start date" value={startDate} onChange={setStartDate} />
-        <DateInput label="End date" value={endDate} onChange={setEndDate} />
+        <DateInput label="Start date" value={startDate} onChange={setStartDate} disabled={loading} />
+        <DateInput label="End date" value={endDate} onChange={setEndDate} disabled={loading} />
       </FormSection>
 
       <FormSection title="Download">

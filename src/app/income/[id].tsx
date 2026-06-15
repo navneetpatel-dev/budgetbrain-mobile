@@ -41,21 +41,21 @@ export default function IncomeEditScreen() {
           name="amount"
           rules={{ required: 'Amount is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label={amountLabel('Amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} leftIcon="income" />
+            <Input label={amountLabel('Amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} leftIcon="income" disabled={loading} />
           )}
         />
         <Controller
           control={control}
           name="date"
           render={({ field: { onChange, value } }) => (
-            <DateInput label="Date" value={value} onChange={onChange} />
+            <DateInput label="Date" value={value} onChange={onChange} disabled={loading} />
           )}
         />
         <Controller
           control={control}
           name="notes"
           render={({ field: { onChange, value } }) => (
-            <Input label="Notes" value={value} onChangeText={onChange} placeholder="Optional notes" multiline />
+            <Input label="Notes" value={value} onChangeText={onChange} placeholder="Optional notes" multiline disabled={loading} />
           )}
         />
       </FormSection>

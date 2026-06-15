@@ -47,8 +47,9 @@ export function OtpLoginScreen() {
             textContentType="emailAddress"
             autoComplete="email"
             placeholder="you@example.com"
-            editable={!otpSent}
+            editable={!otpSent && !loading}
             error={errors.email?.message}
+            disabled={loading}
           />
         )}
       />
@@ -78,6 +79,7 @@ export function OtpLoginScreen() {
                 blurOnSubmit
                 onSubmitEditing={Keyboard.dismiss}
                 error={errors.otp?.message}
+                disabled={loading}
               />
             )}
           />

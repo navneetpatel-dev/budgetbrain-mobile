@@ -38,7 +38,7 @@ export default function OnboardingScreen() {
           name="name"
           rules={{ required: 'Name is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label="Your name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="personFill" placeholder="What should we call you?" />
+            <Input label="Your name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="personFill" placeholder="What should we call you?" disabled={loading} />
           )}
         />
 
@@ -47,7 +47,7 @@ export default function OnboardingScreen() {
           name="country"
           rules={{ required: 'Country is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label="Country" value={value} onChangeText={onChange} error={errors.country?.message} />
+            <Input label="Country" value={value} onChangeText={onChange} error={errors.country?.message} disabled={loading} />
           )}
         />
 
@@ -56,13 +56,13 @@ export default function OnboardingScreen() {
           control={control}
           name="currency"
           render={({ field: { onChange, value } }) => (
-            <OptionChips options={[...SUPPORTED_CURRENCIES]} value={value} onChange={onChange} />
+            <OptionChips options={[...SUPPORTED_CURRENCIES]} value={value} onChange={onChange} disabled={loading} />
           )}
         />
       </FormSection>
 
       <FormSection title="Financial goals" subtitle="Select all that apply">
-        <MultiOptionChips options={[...FINANCIAL_GOALS]} selected={selectedGoals} onToggle={toggleGoal} />
+        <MultiOptionChips options={[...FINANCIAL_GOALS]} selected={selectedGoals} onToggle={toggleGoal} disabled={loading} />
       </FormSection>
 
       <FormSection title="Income & savings">
@@ -72,7 +72,7 @@ export default function OnboardingScreen() {
           name="salaryRange"
           rules={{ required: 'Select salary range' }}
           render={({ field: { onChange, value } }) => (
-            <OptionChips options={[...SALARY_RANGES]} value={value} onChange={onChange} />
+            <OptionChips options={[...SALARY_RANGES]} value={value} onChange={onChange} disabled={loading} />
           )}
         />
 
@@ -89,6 +89,7 @@ export default function OnboardingScreen() {
               error={errors.monthlySavingsTarget?.message}
               leftIcon="goals"
               placeholder="0"
+              disabled={loading}
             />
           )}
         />

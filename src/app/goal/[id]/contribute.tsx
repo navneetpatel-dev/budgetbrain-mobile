@@ -36,6 +36,7 @@ export default function ContributeGoalScreen() {
               error={errors.amount?.message}
               leftIcon="goals"
               placeholder="0.00"
+              disabled={loading}
             />
           )}
         />
@@ -43,7 +44,7 @@ export default function ContributeGoalScreen() {
           control={control}
           name="notes"
           render={({ field: { onChange, value } }) => (
-            <Input label="Notes" value={value} onChangeText={onChange} placeholder="Optional note..." multiline />
+            <Input label="Notes" value={value} onChangeText={onChange} placeholder="Optional note..." multiline disabled={loading} />
           )}
         />
       </FormSection>

@@ -37,7 +37,8 @@ export function AiChatInput({
     () => createStyles(theme, insets.bottom, tabBarPaddingX),
     [theme, insets.bottom, tabBarPaddingX],
   );
-  const canSend = !loading && message.trim().length > 0;
+  const canSend = message.trim().length > 0;
+  const showActiveSend = canSend || loading;
 
   return (
     <View style={styles.wrap}>
@@ -76,12 +77,16 @@ export function AiChatInput({
         </View>
         <Pressable
           onPress={() => onSend()}
-          disabled={!canSend}
-          style={({ pressed }) => [styles.sendWrap, !canSend && styles.sendDisabled, pressed && canSend && { opacity: 0.9 }]}
+          disabled={!canSend || loading}
+          style={({ pressed }) => [
+            styles.sendWrap,
+            !showActiveSend && styles.sendDisabled,
+            pressed && showActiveSend && !loading && { opacity: 0.9 },
+          ]}
           accessibilityRole="button"
           accessibilityLabel="Send message"
         >
-          {canSend ? (
+          {showActiveSend ? (
             <LinearGradient
               colors={[theme.colors.primary, theme.colors.gradientEnd]}
               start={{ x: 0, y: 0 }}
@@ -96,11 +101,7 @@ export function AiChatInput({
             </LinearGradient>
           ) : (
             <View style={[styles.sendBtn, styles.sendBtnMuted]}>
-              {loading ? (
-                <ActivityIndicator color={theme.colors.textTertiary} size="small" />
-              ) : (
-                <AppIcon name="chevronRight" size={20} color={theme.colors.textTertiary} />
-              )}
+              <AppIcon name="chevronRight" size={20} color={theme.colors.textTertiary} />
             </View>
           )}
         </Pressable>

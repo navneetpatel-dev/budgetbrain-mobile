@@ -28,7 +28,7 @@ export default function SupportScreen() {
           name="subject"
           rules={{ required: 'Subject is required', minLength: { value: 3, message: 'At least 3 characters' } }}
           render={({ field: { onChange, value } }) => (
-            <Input label="Subject" value={value} onChangeText={onChange} error={errors.subject?.message} leftIcon="support" placeholder="Brief summary of your issue" />
+            <Input label="Subject" value={value} onChangeText={onChange} error={errors.subject?.message} leftIcon="support" placeholder="Brief summary of your issue" disabled={loading} />
           )}
         />
         <Controller
@@ -44,6 +44,7 @@ export default function SupportScreen() {
               error={errors.message?.message}
               placeholder="Describe what happened and how we can help..."
               helperText="Minimum 10 characters"
+              disabled={loading}
             />
           )}
         />

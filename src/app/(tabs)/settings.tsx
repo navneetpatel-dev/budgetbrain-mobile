@@ -193,14 +193,14 @@ export default function SettingsScreen() {
             <FormSection title="Edit profile" style={{ margin: theme.spacing.lg, marginTop: 0 }}>
               {profileError ? <FormErrorBanner message={profileError} /> : null}
               <Controller control={control} name="name" render={({ field: { onChange, value } }) => (
-                <Input label="Name" value={value} onChangeText={onChange} leftIcon="personFill" />
+                <Input label="Name" value={value} onChangeText={onChange} leftIcon="personFill" disabled={profileLoading} />
               )} />
               <Controller control={control} name="country" render={({ field: { onChange, value } }) => (
-                <Input label="Country" value={value} onChangeText={onChange} />
+                <Input label="Country" value={value} onChangeText={onChange} disabled={profileLoading} />
               )} />
               <FormFieldLabel>Currency</FormFieldLabel>
               <Controller control={control} name="currency" render={({ field: { onChange, value } }) => (
-                <OptionChips options={[...SUPPORTED_CURRENCIES]} value={value} onChange={onChange} />
+                <OptionChips options={[...SUPPORTED_CURRENCIES]} value={value} onChange={onChange} disabled={profileLoading} />
               )} />
               <FormActions primaryTitle="Save profile" onPrimary={handleSubmit(onSaveProfile)} primaryLoading={profileLoading} secondaryTitle="Cancel" onSecondary={() => setEditingProfile(false)} />
             </FormSection>

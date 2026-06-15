@@ -62,6 +62,7 @@ export default function AddIncomeScreen() {
               error={errors.amount?.message}
               leftIcon="income"
               placeholder="0.00"
+              disabled={loading}
             />
           )}
         />
@@ -71,7 +72,7 @@ export default function AddIncomeScreen() {
           name="date"
           rules={{ required: 'Date is required' }}
           render={({ field: { onChange, value } }) => (
-            <DateInput label="Date" value={value} onChange={onChange} error={errors.date?.message} />
+            <DateInput label="Date" value={value} onChange={onChange} error={errors.date?.message} disabled={loading} />
           )}
         />
       </FormSection>
@@ -83,6 +84,7 @@ export default function AddIncomeScreen() {
           value={sourceMode}
           onChange={(v) => setSourceMode(v)}
           getLabel={(v) => (v === 'existing' ? 'Existing source' : 'New source')}
+          disabled={loading}
         />
 
         {!isNewSource ? (
@@ -90,6 +92,7 @@ export default function AddIncomeScreen() {
             items={(sources ?? []).map((src) => ({ id: src.id, label: src.name }))}
             selectedId={selectedSource}
             onSelect={(id) => setValue('incomeSourceId', id)}
+            disabled={loading}
           />
         ) : (
           <>
@@ -105,6 +108,7 @@ export default function AddIncomeScreen() {
                   placeholder="e.g. Salary, Freelance"
                   error={errors.newSourceName?.message}
                   leftIcon="wallet"
+                  disabled={loading}
                 />
               )}
             />
@@ -114,6 +118,7 @@ export default function AddIncomeScreen() {
               value={newSourceType}
               onChange={(v) => setValue('newSourceType', v)}
               getLabel={(v) => INCOME_SOURCE_TYPES.find((t) => t.value === v)?.label ?? v}
+              disabled={loading}
             />
           </>
         )}
@@ -130,6 +135,7 @@ export default function AddIncomeScreen() {
               onChangeText={onChange}
               placeholder="Add any extra details..."
               multiline
+              disabled={loading}
             />
           )}
         />
