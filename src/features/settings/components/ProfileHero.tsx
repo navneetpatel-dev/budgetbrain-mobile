@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, Text, Pressable } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
@@ -41,13 +41,11 @@ export function ProfileHero({
   email,
   role,
   currency,
-  onEditPress,
 }: {
   name: string;
   email?: string;
   role?: string;
   currency?: string;
-  onEditPress?: () => void;
 }) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -108,16 +106,6 @@ export function ProfileHero({
           </View>
         </View>
 
-        {onEditPress ? (
-          <Pressable
-            onPress={onEditPress}
-            style={({ pressed }) => [styles.editBtn, pressed && { opacity: 0.8 }]}
-            accessibilityRole="button"
-            accessibilityLabel="Edit profile"
-          >
-            <AppIcon name="settings" size={18} color="rgba(255,255,255,0.95)" />
-          </Pressable>
-        ) : null}
       </View>
     </View>
   );
@@ -210,14 +198,6 @@ function createStyles(t: AppTheme) {
       color: 'rgba(255,255,255,0.9)',
       fontSize: 10,
       fontWeight: '700',
-    },
-    editBtn: {
-      width: 38,
-      height: 38,
-      borderRadius: 19,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: 'rgba(255,255,255,0.14)',
     },
   });
 }

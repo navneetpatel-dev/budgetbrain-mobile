@@ -1,17 +1,29 @@
-import { Alert } from 'react-native';
 import type { ConfirmCopy } from '@/shared/constants/confirmations';
 
-/** Native confirmation dialog with consistent copy and cancel / confirm actions. */
+type Handlers = {
+  showConfirmation: (copy: ConfirmCopy, onConfirm: () => void | Promise<void>) => void;
+  showAlert: (title: string, message: string) => void;
+};
+
+let handlers: Handlers | null = null;
+
+export function registerConfirmHandlers(next: Handlers | null) {
+  handlers = next;
+}
+
+/** Custom confirmation dialog — matches web ConfirmDialog UX. */
 export function showConfirmation(
   copy: ConfirmCopy,
   onConfirm: () => void | Promise<void>,
 ): void {
-  Alert.alert(copy.title, copy.message, [
-    { text: copy.cancelLabel ?? 'Cancel', style: 'cancel' },
-    {
-      text: copy.confirmLabel,
-      style: copy.destructive ? 'destructive' : 'default',
-      onPress: () => { void onConfirm(); },
-    },
-  ]);
+  if (handlers) {
+    handlers.showConfirmation(copy, onConfirm);
+    return;
+  }
+  onConfirm();
+}
+
+/** Single-button alert dialog — replaces native Alert for errors/info. */
+export function showAlert(title: string, message: string): void {
+  handlers?.showAlert(title, message);
 }

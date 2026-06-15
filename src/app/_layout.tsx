@@ -18,6 +18,8 @@ import { useFontBootstrap } from '@/shared/hooks/useFontBootstrap';
 import { useAuthBootstrap } from '@/shared/hooks/useAuthBootstrap';
 import { useAuthNavigation } from '@/shared/hooks/useAuthNavigation';
 import { FeatureSplashScreen } from '@/shared/components/brand/FeatureSplashScreen';
+import { ConfirmDialogProvider } from '@/shared/components/confirm/ConfirmDialogProvider';
+import { PreferencesHydrator } from '@/features/settings/components/PreferencesHydrator';
 
 initAnalytics();
 initMonitoring();
@@ -100,9 +102,12 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <SafeAreaProvider>
             <ThemeProvider>
+              <ConfirmDialogProvider>
+              <PreferencesHydrator />
               <FontGate>
                 <RootNavigator />
               </FontGate>
+              </ConfirmDialogProvider>
             </ThemeProvider>
           </SafeAreaProvider>
         </QueryClientProvider>

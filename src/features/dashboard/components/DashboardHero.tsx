@@ -9,12 +9,12 @@ import type { AppTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
 import { appHref } from '@/shared/utils/navigation';
 
-type QuickAction = { label: string; icon: AppIconName; href: string; primary?: boolean };
+type QuickAction = { label: string; icon: AppIconName; href: string };
 
 const QUICK_ACTIONS: QuickAction[] = [
-  { label: 'Expense', icon: 'expense', href: '/expense/add', primary: true },
-  { label: 'Income', icon: 'income', href: '/income/add' },
-  { label: 'Budget', icon: 'budgets', href: '/budget/add' },
+  { label: 'Expense', icon: 'expense', href: '/(tabs)/expenses' },
+  { label: 'Income', icon: 'income', href: '/(tabs)/income' },
+  { label: 'Budget', icon: 'budgets', href: '/(tabs)/budgets' },
   { label: 'AI', icon: 'ai', href: '/(tabs)/ai' },
 ];
 
@@ -103,16 +103,15 @@ export function DashboardHero({
             onPress={() => router.push(appHref(action.href))}
             style={({ pressed }) => [
               styles.actionBtn,
-              action.primary && styles.actionPrimary,
               pressed && { opacity: 0.9, transform: [{ scale: 0.97 }] },
             ]}
           >
             <AppIcon
               name={action.icon}
               size={15}
-              color={action.primary ? theme.colors.primary : 'rgba(255,255,255,0.95)'}
+              color="rgba(255,255,255,0.95)"
             />
-            <Text style={[styles.actionLabel, action.primary && styles.actionLabelPrimary]} numberOfLines={1}>
+            <Text style={styles.actionLabel} numberOfLines={1}>
               {action.label}
             </Text>
           </Pressable>
@@ -237,15 +236,10 @@ function createStyles(t: AppTheme, inlineGap: number) {
       borderWidth: 1,
       borderColor: 'rgba(255,255,255,0.1)',
     },
-    actionPrimary: {
-      backgroundColor: '#fff',
-      borderColor: 'rgba(255,255,255,0.95)',
-    },
     actionLabel: {
       color: 'rgba(255,255,255,0.92)',
       fontSize: 10,
       fontWeight: '700',
     },
-    actionLabelPrimary: { color: t.colors.primary },
   });
 }

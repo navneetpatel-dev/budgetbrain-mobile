@@ -9,6 +9,8 @@ export interface User {
   financialGoals: string[] | null;
   salaryRange: string | null;
   monthlySavingsTarget: number | null;
+  theme?: string | null;
+  accent?: string | null;
 }
 
 export interface AuthTokens {

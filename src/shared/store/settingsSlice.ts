@@ -49,6 +49,10 @@ const settingsSlice = createSlice({
     clearOfflineQueue(state) {
       state.offlineQueue = [];
     },
+    hydratePreferences(state, action: PayloadAction<{ theme?: string | null; accent?: string | null }>) {
+      if (action.payload.theme) state.theme = resolveThemeMode(action.payload.theme);
+      if (action.payload.accent) state.accent = resolveAccent(action.payload.accent);
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(REHYDRATE, (_state, action) => {
@@ -73,5 +77,6 @@ export const {
   setAppLockPin,
   addToOfflineQueue,
   clearOfflineQueue,
+  hydratePreferences,
 } = settingsSlice.actions;
 export default settingsSlice.reducer;

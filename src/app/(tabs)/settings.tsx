@@ -25,18 +25,17 @@ import { useEditProfile, type ProfileForm } from '@/features/settings/hooks/useE
 import { useLogout } from '@/features/settings/hooks/useLogout';
 import { usePushTest } from '@/features/settings/hooks/usePushTest';
 import { apiGet } from '@/shared/services/api';
-import { setTheme, setAccent } from '@/shared/store/settingsSlice';
-import { useAppDispatch, useAppSelector } from '@/shared/store/hooks';
+import { useSyncedPreferences } from '@/features/settings/hooks/useSyncedPreferences';
+import { useAppSelector } from '@/shared/store/hooks';
 import { SUBSCRIPTION_PLANS, SUPPORTED_CURRENCIES } from '@/shared/constants/config';
 import { useTheme } from '@/shared/theme';
 import { PROFILE_FEATURE_LINKS, PROFILE_ACCOUNT_LINKS } from '@/features/settings/constants/profileLinks';
 
 export default function SettingsScreen() {
   const theme = useTheme();
-  const dispatch = useAppDispatch();
   const router = useRouter();
   const user = useAppSelector((s) => s.auth.user);
-  const settings = useAppSelector((s) => s.settings);
+  const { theme: themeMode, accent, setThemeMode, setAccentPalette } = useSyncedPreferences();
   const [editingProfile, setEditingProfile] = useState(false);
 
   const logout = useLogout();
@@ -91,7 +90,6 @@ export default function SettingsScreen() {
           email={user?.email}
           role={user?.role}
           currency={user?.currency}
-          onEditPress={() => setEditingProfile((v) => !v)}
         />
       }
     >
@@ -124,10 +122,10 @@ export default function SettingsScreen() {
         <GroupedCard title="Appearance">
           <View style={{ padding: theme.spacing.lg }}>
             <ThemePicker
-              mode={settings.theme}
-              accent={settings.accent}
-              onModeChange={(m) => dispatch(setTheme(m))}
-              onAccentChange={(a) => dispatch(setAccent(a))}
+              mode={themeMode}
+              accent={accent}
+              onModeChange={setThemeMode}
+              onAccentChange={setAccentPalette}
             />
           </View>
         </GroupedCard>

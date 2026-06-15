@@ -191,6 +191,9 @@ export function FeatureHeader({
       ]}
     >
       <View style={styles.mainRow}>
+        {showBack ? (
+          <BackButton onPress={handleBack} label="Go back" size="compact" />
+        ) : null}
         {icon ? (
           <LinearGradient
             colors={[theme.colors.primary + '38', theme.colors.gradientEnd + '22']}

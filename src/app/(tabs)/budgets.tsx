@@ -1,5 +1,6 @@
-import { Alert, RefreshControl } from 'react-native';
+import { RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
+import type { Href } from 'expo-router';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import {
   EmptyState,
@@ -7,16 +8,19 @@ import {
   FeatureHeader,
   StickyHeaderFlatScreen,
   ScreenLoader,
+  useStackBack,
 } from '@/shared/components/ui';
 import { BudgetCard } from '@/features/budgets/components/BudgetCard';
 import { useDeleteBudget } from '@/features/budgets/hooks/useDeleteBudget';
 import { confirmDeleteBudget } from '@/features/budgets/services/confirmations';
+import { showAlert } from '@/shared/utils/confirmations';
 import { useTheme } from '@/shared/theme';
 import type { Budget } from '@/shared/types';
 
 export default function BudgetsScreen() {
   const theme = useTheme();
   const router = useRouter();
+  const goBack = useStackBack('/(tabs)' as Href);
   const { deleteBudget } = useDeleteBudget();
 
   const { data: budgets, total, isLoading, refetch, isRefetching } = usePaginatedList<Budget, 'budgets'>({
@@ -31,6 +35,8 @@ export default function BudgetsScreen() {
     <StickyHeaderFlatScreen
       header={
         <FeatureHeader
+          showBack
+          onBack={goBack}
           eyebrow="PLAN"
           title="Budgets"
           subtitle={`${total} active`}
@@ -58,7 +64,7 @@ export default function BudgetsScreen() {
           budget={item}
           onDelete={() =>
             confirmDeleteBudget(item.name, () =>
-              deleteBudget(item.id).catch(() => Alert.alert('Error', 'Could not delete budget')),
+              deleteBudget(item.id).catch(() => showAlert('Error', 'Could not delete budget')),
             )
           }
         />

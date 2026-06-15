@@ -10,7 +10,9 @@ import {
   SearchField,
   HeaderIconButton,
   StickyHeaderFlatScreen,
+  useStackBack,
 } from '@/shared/components/ui';
+import type { Href } from 'expo-router';
 import { useInfinitePaginatedList } from '@/shared/hooks/usePaginatedList';
 import { useTheme } from '@/shared/theme';
 import type { Transaction } from '@/shared/types';
@@ -18,6 +20,7 @@ import type { Transaction } from '@/shared/types';
 export default function ExpensesScreen() {
   const router = useRouter();
   const theme = useTheme();
+  const goBack = useStackBack('/(tabs)' as Href);
 
   const {
     items: transactions,
@@ -42,6 +45,8 @@ export default function ExpensesScreen() {
     <StickyHeaderFlatScreen
       header={
         <FeatureHeader
+          showBack
+          onBack={goBack}
           eyebrow="TRACK"
           title="Activity"
           subtitle={`${total} transaction${total !== 1 ? 's' : ''}`}
