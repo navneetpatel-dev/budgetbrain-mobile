@@ -6,7 +6,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Pressable,
   useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,24 +13,19 @@ import { useRouter } from 'expo-router';
 import { BackButton } from '@/shared/components/ui';
 import { AuthHeroHeader } from '@/features/auth/components/layout/AuthHeroHeader';
 import { useTheme } from '@/shared/theme';
+import { useResponsive } from '@/shared/utils/responsive';
 import { appHref } from '@/shared/utils/navigation';
-
-type AuthShellVariant = 'hero' | 'compact';
 
 export function AuthShell({
   children,
   footer,
-  title = 'BudgetBrain',
-  subtitle = 'Track smarter. Save better.',
-  variant = 'hero',
+  tagline,
   backHref,
   panelTitle,
 }: {
   children: React.ReactNode;
   footer?: React.ReactNode;
-  title?: string;
-  subtitle?: string;
-  variant?: AuthShellVariant;
+  tagline?: string;
   backHref?: string;
   panelTitle?: string;
 }) {
@@ -39,9 +33,11 @@ export function AuthShell({
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { height } = useWindowDimensions();
-  const isHero = variant === 'hero';
+  const { isPhone } = useResponsive();
 
-  const heroHeight = Math.min(Math.max(height * 0.36, 260), 320);
+  const heroHeight = isPhone
+    ? Math.min(Math.max(height * 0.27, 192), 224)
+    : Math.min(Math.max(height * 0.36, 260), 320);
 
   const styles = useMemo(() => createStyles(theme), [theme]);
 
@@ -53,50 +49,18 @@ export function AuthShell({
     if (backHref) router.replace(appHref(backHref));
   };
 
-  if (!isHero) {
-    return (
-      <View style={styles.compactRoot}>
-        <KeyboardAvoidingView
-          style={styles.flex}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
-          <ScrollView
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={[
-              styles.compactScroll,
-              {
-                paddingTop: insets.top + 12,
-                paddingBottom: Math.max(insets.bottom, 24),
-              },
-            ]}
-          >
-            <View style={styles.backWrap}>
-              <BackButton onPress={handleBack} />
-            </View>
-
-            <Text style={styles.compactTitle}>{title}</Text>
-            <Text style={styles.compactSubtitle}>{subtitle}</Text>
-
-            <View style={styles.form}>{children}</View>
-            {footer ? <View style={styles.compactFooter}>{footer}</View> : null}
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.heroRoot}>
       <AuthHeroHeader
-        title={title}
-        subtitle={subtitle}
+        tagline={tagline}
         topInset={insets.top}
+        compact={isPhone}
+        branded
         style={{ height: heroHeight }}
       />
 
-      <View style={styles.panel}>
-        <View style={styles.panelHandle} />
+      <View style={[styles.panel, isPhone && styles.panelCompact]}>
+        <View style={[styles.panelHandle, isPhone && styles.panelHandleCompact]} />
         <KeyboardAvoidingView
           style={styles.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -110,6 +74,11 @@ export function AuthShell({
               { paddingBottom: Math.max(insets.bottom, 20) },
             ]}
           >
+            {backHref ? (
+              <View style={styles.backWrap}>
+                <BackButton onPress={handleBack} />
+              </View>
+            ) : null}
             {panelTitle ? <Text style={styles.panelEyebrow}>{panelTitle}</Text> : null}
             <View style={styles.form}>{children}</View>
             {footer ? <View style={styles.footer}>{footer}</View> : null}
@@ -125,40 +94,28 @@ function createStyles(t: ReturnType<typeof useTheme>) {
     flex: { flex: 1 },
     heroRoot: {
       flex: 1,
-      backgroundColor: t.colors.gradientEnd,
-    },
-    compactRoot: {
-      flex: 1,
       backgroundColor: t.colors.background,
-    },
-    compactScroll: {
-      paddingHorizontal: t.spacing.xl,
-    },
-    backWrap: {
-      marginBottom: t.spacing.lg,
-    },
-    compactTitle: {
-      ...t.typography.display,
-      fontSize: 28,
-      color: t.colors.text,
-    },
-    compactSubtitle: {
-      ...t.typography.bodyMedium,
-      color: t.colors.textSecondary,
-      marginTop: t.spacing.sm,
-      marginBottom: t.spacing.xl,
-      lineHeight: 22,
-    },
-    compactFooter: {
-      marginTop: t.spacing.xl,
     },
     panel: {
       flex: 1,
-      marginTop: -28,
       backgroundColor: t.colors.background,
       borderTopLeftRadius: 28,
       borderTopRightRadius: 28,
       overflow: 'hidden',
+      ...Platform.select({
+        ios: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -6 },
+          shadowOpacity: 0.14,
+          shadowRadius: 14,
+        },
+        android: { elevation: 10 },
+        default: {},
+      }),
+    },
+    panelCompact: {
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
     },
     panelHandle: {
       alignSelf: 'center',
@@ -169,21 +126,27 @@ function createStyles(t: ReturnType<typeof useTheme>) {
       marginTop: t.spacing.md,
       marginBottom: t.spacing.sm,
     },
+    panelHandleCompact: {
+      width: 36,
+    },
     panelScroll: {
       paddingHorizontal: t.spacing.xl,
+      paddingTop: t.spacing.lg,
+    },
+    backWrap: {
+      marginBottom: t.spacing.lg,
     },
     panelEyebrow: {
       ...t.typography.label,
       color: t.colors.primary,
       marginBottom: t.spacing.lg,
-      marginTop: t.spacing.sm,
     },
     form: {
       gap: t.spacing.xs,
     },
     footer: {
-      marginTop: t.spacing.xl,
-      paddingTop: t.spacing.lg,
+      marginTop: t.spacing.lg,
+      paddingTop: t.spacing.md,
     },
   });
 }

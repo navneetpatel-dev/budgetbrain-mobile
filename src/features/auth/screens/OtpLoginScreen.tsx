@@ -37,9 +37,8 @@ export function OtpLoginScreen() {
 
   return (
     <AuthShell
-      variant="compact"
-      title="OTP sign in"
-      subtitle="We'll send a 6-digit code to your email."
+      tagline="We'll send a 6-digit code to your email."
+      panelTitle="OTP sign in"
       backHref="/(auth)/login"
       footer={<AuthFooter linkText="Back to Sign In" href="/(auth)/login" />}
     >

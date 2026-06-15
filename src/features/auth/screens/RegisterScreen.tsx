@@ -21,9 +21,8 @@ export function RegisterScreen() {
 
   return (
     <AuthShell
-      variant="compact"
-      title="Create account"
-      subtitle="Set up your profile in under a minute."
+      tagline="Set up your profile in under a minute."
+      panelTitle="Create account"
       backHref="/(auth)/login"
       footer={
         <AuthFooter text="Already have an account?" linkText="Sign In" href="/(auth)/login" />

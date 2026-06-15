@@ -29,9 +29,8 @@ export function ResetPasswordScreen() {
 
   return (
     <AuthShell
-      variant="compact"
-      title="New password"
-      subtitle={done ? 'You can now sign in with your new password.' : 'Choose a strong password you haven\'t used before.'}
+      tagline={done ? 'You can now sign in with your new password.' : 'Choose a strong password you haven\'t used before.'}
+      panelTitle="New password"
       backHref="/(auth)/login"
       footer={<AuthFooter linkText="Back to Sign In" href="/(auth)/login" />}
     >

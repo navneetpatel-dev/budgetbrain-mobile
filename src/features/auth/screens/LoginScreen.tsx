@@ -26,8 +26,6 @@ export function LoginScreen() {
 
   return (
     <AuthShell
-      subtitle="Track smarter. Save better."
-      panelTitle="Welcome back"
       footer={
         <AuthFooter text="Don't have an account?" linkText="Sign Up" href="/(auth)/register" />
       }

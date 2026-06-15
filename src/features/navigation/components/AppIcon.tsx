@@ -16,6 +16,8 @@ const ICONS = {
   settings: { ios: 'gearshape.fill', android: 'settings', web: 'settings' },
   chevronRight: { ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' },
   chart: { ios: 'chart.bar.fill', android: 'bar_chart', web: 'bar_chart' },
+  target: { ios: 'scope', android: 'track_changes', web: 'track_changes' },
+  sparkles: { ios: 'sparkles', android: 'auto_awesome', web: 'auto_awesome' },
   wallet: { ios: 'creditcard.fill', android: 'credit_card', web: 'credit_card' },
   shield: { ios: 'lock.shield.fill', android: 'shield', web: 'shield' },
   bell: { ios: 'bell.fill', android: 'notifications', web: 'notifications' },

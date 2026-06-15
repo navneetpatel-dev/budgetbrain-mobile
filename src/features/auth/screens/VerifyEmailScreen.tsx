@@ -18,9 +18,8 @@ export function VerifyEmailScreen() {
 
   return (
     <AuthShell
-      variant="compact"
-      title="Verify email"
-      subtitle={verified ? 'Your account is ready to use.' : 'Confirm your email to unlock all features.'}
+      tagline={verified ? 'Your account is ready to use.' : 'Confirm your email to unlock all features.'}
+      panelTitle="Verify email"
       backHref="/(auth)/login"
     >
       {verified ? (

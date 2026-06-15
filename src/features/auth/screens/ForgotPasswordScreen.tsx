@@ -21,9 +21,8 @@ export function ForgotPasswordScreen() {
 
   return (
     <AuthShell
-      variant="compact"
-      title="Reset password"
-      subtitle={sent ? 'Check your inbox for the link.' : 'Enter the email linked to your account.'}
+      tagline={sent ? 'Check your inbox for the link.' : 'Enter the email linked to your account.'}
+      panelTitle="Reset password"
       backHref="/(auth)/login"
       footer={<AuthFooter linkText="Back to Sign In" href="/(auth)/login" />}
     >

@@ -6,6 +6,7 @@ import {
   ListSkeleton,
   FeatureHeader,
   StickyHeaderFlatScreen,
+  ScreenLoader,
 } from '@/shared/components/ui';
 import { BudgetCard } from '@/features/budgets/components/BudgetCard';
 import { useDeleteBudget } from '@/features/budgets/hooks/useDeleteBudget';
@@ -63,8 +64,5 @@ export default function BudgetsScreen() {
         />
       )}
     />
-  );
-}
-/>
   );
 }

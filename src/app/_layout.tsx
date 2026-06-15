@@ -119,9 +119,3 @@ export default function RootLayout() {
     </Provider>
   );
 }
-eAreaProvider>
-        </QueryClientProvider>
-      </PersistGate>
-    </Provider>
-  );
-}
