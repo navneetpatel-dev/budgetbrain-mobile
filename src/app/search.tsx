@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { StyleSheet, Text, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { appHref } from '@/shared/utils/navigation';
-import { Input, StackNavHeader, StickyHeaderFlatScreen, EmptyState } from '@/shared/components/ui';
+import { Input, StackNavHeader, StickyHeaderFlatScreen, EmptyState, ListSkeleton } from '@/shared/components/ui';
 import { TransactionItem, TransactionGroup } from '@/features/expenses/components/TransactionItem';
 import { useInfinitePaginatedList } from '@/shared/hooks/usePaginatedList';
 import { useTheme } from '@/shared/theme';
@@ -63,7 +63,7 @@ export default function SearchScreen() {
       onEndReachedThreshold={0.4}
       ListHeaderComponent={
         searching ? (
-          <ActivityIndicator size="large" color={theme.colors.primary} style={styles.loader} />
+          <ListSkeleton count={6} />
         ) : query.length < 2 ? (
           <Text style={styles.hint}>Type at least 2 characters to search</Text>
         ) : null

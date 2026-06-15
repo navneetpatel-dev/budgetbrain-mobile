@@ -7,7 +7,6 @@ import {
   ListSkeleton,
   FeatureHeader,
   StickyHeaderFlatScreen,
-  ScreenLoader,
   useStackBack,
 } from '@/shared/components/ui';
 import { BudgetCard } from '@/features/budgets/components/BudgetCard';
@@ -29,7 +28,7 @@ export default function BudgetsScreen() {
     itemsKey: 'budgets',
   });
 
-  if (isLoading) return <ScreenLoader />;
+  if (isLoading) return <ListSkeleton count={4} />;
 
   return (
     <StickyHeaderFlatScreen

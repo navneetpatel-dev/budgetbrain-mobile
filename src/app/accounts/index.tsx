@@ -12,7 +12,6 @@ import {
   FormFieldLabel,
   OptionChips,
   FormActions,
-  ScreenLoader,
   FormErrorBanner,
 } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
@@ -45,7 +44,7 @@ export default function AccountsScreen() {
   } = useAccounts();
 
   if (isLoading) {
-    return <ScreenLoader />;
+    return <ListSkeleton count={4} />;
   }
 
   const items = data ?? [];

@@ -8,7 +8,6 @@ import {
   SummaryCard,
   Card,
   EmptyState,
-  ScreenLoader,
   ScreenSection,
   SectionHeader,
   ResponsiveGrid,
@@ -45,7 +44,7 @@ export default function DashboardScreen() {
     data?.goals ?? [],
   );
 
-  if (isLoading) return <ScreenLoader />;
+  if (isLoading) return <DashboardSkeleton />;
 
   const summary = data?.summary;
   const currency = summary?.currency ?? user?.currency ?? 'INR';

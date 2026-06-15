@@ -10,7 +10,6 @@ import {
   FormSection,
   FormActions,
   FormErrorBanner,
-  ScreenLoader,
 } from '@/shared/components/ui';
 import { useIncomeDetail, type IncomeForm } from '@/features/income/hooks/useIncomeDetail';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
@@ -29,7 +28,7 @@ export default function IncomeEditScreen() {
   }, [populateForm, reset]);
 
   if (isLoading || !income) {
-    return <ScreenLoader />;
+    return <DetailSkeleton />;
   }
 
   return (
