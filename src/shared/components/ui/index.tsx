@@ -15,6 +15,11 @@ import type { AppTheme } from '@/shared/theme';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon';
 
 export { Screen, ScreenContainer, ScreenLoader, ScreenSkeleton, ResponsiveGrid, StickyHeaderScreen, ScreenWrapper } from './layout';
+export {
+  SkeletonBlock, SkeletonLine, SkeletonCircle, SkeletonCard,
+  DashboardSkeleton, ListSkeleton, DetailSkeleton, SettingsSkeleton,
+  OnboardingSkeleton, ColdStartSkeleton,
+} from './skeleton';
 export type { ScreenInset } from './layout';
 export {
   FeatureHeader,

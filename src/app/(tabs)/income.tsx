@@ -6,7 +6,7 @@ import { TransactionItem, TransactionGroup } from '@/features/expenses/component
 import {
   Card,
   EmptyState,
-  ScreenSkeleton,
+  ListSkeleton,
   StickyHeaderFlatScreen,
 } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
@@ -43,7 +43,7 @@ export default function IncomeScreen() {
   });
 
   if (isLoading) {
-    return <ScreenSkeleton rows={4} />;
+    return <ListSkeleton count={4} />;
   }
 
   const sourceCount = sources?.length ?? 0;

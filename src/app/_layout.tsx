@@ -25,8 +25,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function FontGate({ children }: { children: React.ReactNode }) {
   const { fontsLoaded } = useFontBootstrap();
-
-  if (!fontsLoaded) return <ActivityIndicator style={{ flex: 1 }} />;
+  if (!fontsLoaded) return <ColdStartSkeleton />;
   return <>{children}</>;
 }
 
@@ -106,7 +105,7 @@ function RootNavigator() {
 export default function RootLayout() {
   return (
     <Provider store={store}>
-      <PersistGate loading={<ActivityIndicator size="large" />} persistor={persistor}>
+      <PersistGate loading={null} persistor={persistor}>
         <QueryClientProvider client={queryClient}>
           <SafeAreaProvider>
             <FontGate>
@@ -115,6 +114,12 @@ export default function RootLayout() {
               </ThemeProvider>
             </FontGate>
           </SafeAreaProvider>
+        </QueryClientProvider>
+      </PersistGate>
+    </Provider>
+  );
+}
+eAreaProvider>
         </QueryClientProvider>
       </PersistGate>
     </Provider>

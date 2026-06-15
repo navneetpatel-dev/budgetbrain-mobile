@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import {
   EmptyState,
-  ScreenLoader,
+  ListSkeleton,
   FeatureHeader,
   StickyHeaderFlatScreen,
 } from '@/shared/components/ui';
@@ -63,5 +63,8 @@ export default function BudgetsScreen() {
         />
       )}
     />
+  );
+}
+/>
   );
 }

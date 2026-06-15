@@ -6,7 +6,7 @@ import {
   Button,
   Input,
   DateInput,
-  ScreenLoader,
+  DetailSkeleton,
   FormFieldLabel,
   OptionChips,
   OptionChipList,

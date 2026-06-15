@@ -5,7 +5,7 @@ import {
   Input,
   Card,
   EmptyState,
-  ScreenLoader,
+  ListSkeleton,
   FormModal,
   DateInput,
   StickyHeaderFlatScreen,
@@ -170,5 +170,8 @@ function createStyles(t: ReturnType<typeof useTheme>) {
     gain: { color: t.colors.success },
     loss: { color: t.colors.danger },
     spacer: { height: 8 },
+  });
+}
+,
   });
 }

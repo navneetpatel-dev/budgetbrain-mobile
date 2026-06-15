@@ -27,7 +27,7 @@ export default function GoalEditScreen() {
   }, [populateForm, reset]);
 
   if (isLoading || !goal) {
-    return <ScreenLoader />;
+    return <DetailSkeleton />;
   }
 
   return (

@@ -14,6 +14,7 @@ import {
   ResponsiveGrid,
   ProgressBar,
   StickyHeaderScreen,
+  DashboardSkeleton,
 } from '@/shared/components/ui';
 import { TransactionItem, TransactionGroup } from '@/features/expenses/components/TransactionItem';
 import { CategoryChart } from '@/features/dashboard/components/CategoryChart';

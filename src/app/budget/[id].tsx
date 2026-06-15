@@ -25,7 +25,7 @@ export default function BudgetEditScreen() {
   }, [budget, reset, populateForm]);
 
   if (isLoading || !budget) {
-    return <ScreenLoader />;
+    return <DetailSkeleton />;
   }
 
   return (

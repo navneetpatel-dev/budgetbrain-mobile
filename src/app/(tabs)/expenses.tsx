@@ -35,7 +35,7 @@ export default function ExpensesScreen() {
     pageSize: 20,
   });
 
-  if (isLoading) return <ScreenLoader />;
+  if (isLoading) return <ListSkeleton count={6} />;
 
   return (
     <StickyHeaderFlatScreen

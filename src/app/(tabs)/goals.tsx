@@ -5,7 +5,7 @@ import { appHref } from '@/shared/utils/navigation';
 import {
   Card,
   EmptyState,
-  ScreenSkeleton,
+  ListSkeleton,
   StickyHeaderFlatScreen,
   ProgressBar,
 } from '@/shared/components/ui';
@@ -27,7 +27,7 @@ export default function GoalsScreen() {
   });
 
   if (isLoading) {
-    return <ScreenSkeleton rows={3} />;
+    return <ListSkeleton count={3} />;
   }
 
   return (

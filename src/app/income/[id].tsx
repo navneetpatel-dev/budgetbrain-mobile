@@ -5,7 +5,7 @@ import {
   Button,
   Input,
   DateInput,
-  ScreenLoader,
+  DetailSkeleton,
   FormStackScreen,
   FormSection,
   FormActions,

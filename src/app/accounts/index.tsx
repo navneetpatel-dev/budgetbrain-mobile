@@ -5,7 +5,7 @@ import {
   Input,
   Card,
   EmptyState,
-  ScreenLoader,
+  ListSkeleton,
   FormModal,
   StickyHeaderFlatScreen,
   ActionFab,
@@ -148,5 +148,8 @@ function createStyles(t: ReturnType<typeof useTheme>) {
     itemAmount: { fontSize: 18, fontWeight: '700', color: t.colors.text, marginTop: 6 },
     debt: { color: t.colors.danger },
     spacer: { height: 8 },
+  });
+}
+,
   });
 }
