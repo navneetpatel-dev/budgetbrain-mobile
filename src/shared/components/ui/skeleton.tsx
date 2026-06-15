@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View, type ViewStyle } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/shared/theme';
 import { useScreenInsets } from '@/shared/hooks/useLayout';
 import type { AppTheme } from '@/shared/theme';
@@ -95,12 +96,14 @@ export function SkeletonCard({ height = 72, style }: { height?: number; style?: 
 
 /* ── Screen Skeletons ── */
 
-function SkeletonScreen({ children }: { children: React.ReactNode }) {
+function SkeletonScreen({ children, safeAreaTop = true }: { children: React.ReactNode; safeAreaTop?: boolean }) {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const { frame } = useScreenInsets();
+  const paddingTop = safeAreaTop ? insets.top + theme.spacing.lg : theme.spacing.lg;
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <View style={[frame as ViewStyle, { paddingTop: theme.spacing.lg }]}>
+      <View style={[frame as ViewStyle, { paddingTop }]}>
         {children}
       </View>
     </View>
@@ -110,11 +113,13 @@ function SkeletonScreen({ children }: { children: React.ReactNode }) {
 /** Dashboard skeleton — hero + summary grid + chart + widgets */
 export function DashboardSkeleton() {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const { frame } = useScreenInsets();
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      {/* Hero */}
-      <SkeletonBlock width="100%" height={140} radius={0} style={{ borderRadius: 0 }} />
+      <View style={{ paddingTop: insets.top + 8 }}>
+        <SkeletonBlock width="100%" height={140} radius={0} style={{ borderRadius: 0 }} />
+      </View>
       <View style={[frame as ViewStyle, { paddingTop: theme.spacing.lg, gap: theme.spacing.lg }]}>
         {/* Summary cards grid */}
         <View style={{ flexDirection: 'row', gap: 10 }}>
@@ -137,10 +142,10 @@ export function DashboardSkeleton() {
 }
 
 /** Generic list skeleton */
-export function ListSkeleton({ count = 4 }: { count?: number }) {
+export function ListSkeleton({ count = 4, safeAreaTop = true }: { count?: number; safeAreaTop?: boolean }) {
   const theme = useTheme();
   return (
-    <SkeletonScreen>
+    <SkeletonScreen safeAreaTop={safeAreaTop}>
       <View style={{ gap: theme.spacing.md }}>
         {Array.from({ length: count }).map((_, i) => (
           <SkeletonCard key={i} height={68} />

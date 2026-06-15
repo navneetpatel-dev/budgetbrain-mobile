@@ -301,10 +301,11 @@ export function ScreenLoader() {
 
 export function ScreenSkeleton({ rows = 4 }: { rows?: number }) {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const { frame } = useScreenInsets();
 
   return (
-    <View style={[{ flex: 1, backgroundColor: theme.colors.background, paddingTop: theme.spacing.lg, gap: theme.spacing.md }, frame]}>
+    <View style={[{ flex: 1, backgroundColor: theme.colors.background, paddingTop: insets.top + theme.spacing.lg, gap: theme.spacing.md }, frame]}>
       {Array.from({ length: rows }).map((_, i) => (
         <View
           key={i}

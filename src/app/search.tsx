@@ -63,7 +63,7 @@ export default function SearchScreen() {
       onEndReachedThreshold={0.4}
       ListHeaderComponent={
         searching ? (
-          <ListSkeleton count={6} />
+          <ListSkeleton count={6} safeAreaTop={false} />
         ) : query.length < 2 ? (
           <Text style={styles.hint}>Type at least 2 characters to search</Text>
         ) : null
