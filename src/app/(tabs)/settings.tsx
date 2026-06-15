@@ -29,27 +29,7 @@ import { setTheme, setAccent } from '@/shared/store/settingsSlice';
 import { useAppDispatch, useAppSelector } from '@/shared/store/hooks';
 import { SUBSCRIPTION_PLANS, SUPPORTED_CURRENCIES } from '@/shared/constants/config';
 import { useTheme } from '@/shared/theme';
-import type { AppIconName } from '@/features/navigation/components/AppIcon';
-
-const FEATURE_LINKS: { label: string; href: string; icon: AppIconName }[] = [
-  { label: 'Goals', href: '/(tabs)/goals', icon: 'goals' },
-  { label: 'Income', href: '/(tabs)/income', icon: 'income' },
-  { label: 'AI Insights', href: '/(tabs)/ai', icon: 'ai' },
-  { label: 'Net Worth', href: '/net-worth', icon: 'netWorth' },
-  { label: 'Reports', href: '/reports', icon: 'chart' },
-  { label: 'Categories', href: '/categories', icon: 'category' },
-];
-
-const ACCOUNT_LINKS: { label: string; href: string; icon: AppIconName }[] = [
-  { label: 'Accounts', href: '/accounts', icon: 'wallet' },
-  { label: 'Investments', href: '/investments', icon: 'chart' },
-  { label: 'Family Groups', href: '/family', icon: 'family' },
-  { label: 'Integrations', href: '/integrations', icon: 'link' },
-  { label: 'Notifications', href: '/notifications', icon: 'bell' },
-  { label: 'Support', href: '/support', icon: 'support' },
-  { label: 'Privacy Policy', href: '/legal/privacy', icon: 'document' },
-  { label: 'Terms of Service', href: '/legal/terms', icon: 'document' },
-];
+import { PROFILE_FEATURE_LINKS, PROFILE_ACCOUNT_LINKS } from '@/features/settings/constants/profileLinks';
 
 export default function SettingsScreen() {
   const theme = useTheme();
@@ -118,25 +98,25 @@ export default function SettingsScreen() {
         {!isPremium && <PremiumUpsellCard />}
 
         <GroupedCard title="Features">
-          {FEATURE_LINKS.map((link, i) => (
+          {PROFILE_FEATURE_LINKS.map((link, i) => (
             <ListRow
               key={link.href}
               icon={link.icon}
               label={link.label}
               onPress={() => router.push(appHref(link.href))}
-              isLast={i === FEATURE_LINKS.length - 1}
+              isLast={i === PROFILE_FEATURE_LINKS.length - 1}
             />
           ))}
         </GroupedCard>
 
         <GroupedCard title="Account">
-          {ACCOUNT_LINKS.map((link, i) => (
+          {PROFILE_ACCOUNT_LINKS.map((link, i) => (
             <ListRow
               key={link.href}
               icon={link.icon}
               label={link.label}
               onPress={() => router.push(appHref(link.href))}
-              isLast={i === ACCOUNT_LINKS.length - 1}
+              isLast={i === PROFILE_ACCOUNT_LINKS.length - 1}
             />
           ))}
         </GroupedCard>
