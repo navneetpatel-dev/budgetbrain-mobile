@@ -1,8 +1,7 @@
-import { useState } from 'react';
-import { Alert } from 'react-native';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { apiPost } from '@/shared/services/api';
+import { apiPost, getApiErrorMessage } from '@/shared/services/api';
 import type { IncomeSource, Transaction } from '@/shared/types';
 
 export interface IncomeForm {
@@ -18,9 +17,12 @@ export function useCreateIncome() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const clearSubmitError = useCallback(() => setSubmitError(null), []);
 
   const create = async (data: IncomeForm, showNewSource: boolean) => {
     setLoading(true);
+    setSubmitError(null);
     try {
       let incomeSourceId = data.incomeSourceId;
 
@@ -43,12 +45,12 @@ export function useCreateIncome() {
       queryClient.invalidateQueries({ queryKey: ['income'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       router.back();
-    } catch {
-      Alert.alert('Error', 'Could not save income');
+    } catch (err) {
+      setSubmitError(getApiErrorMessage(err, 'Could not save income'));
     } finally {
       setLoading(false);
     }
   };
 
-  return { create, loading };
+  return { create, loading, submitError, clearSubmitError };
 }

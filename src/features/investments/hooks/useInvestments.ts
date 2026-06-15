@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Alert } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { apiPost, apiPatch } from '@/shared/services/api';
+import { apiPost, apiPatch, getApiErrorMessage } from '@/shared/services/api';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import type { Investment } from '@/shared/types';
 
@@ -30,6 +30,8 @@ export function useInvestments() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const clearSubmitError = useCallback(() => setSubmitError(null), []);
 
   const { data, isLoading } = usePaginatedList<Investment, 'investments'>({
     queryKey: ['investments'],
@@ -52,6 +54,7 @@ export function useInvestments() {
   const invType = watch('type');
 
   const openCreate = () => {
+    clearSubmitError();
     reset({
       name: '',
       type: 'stocks',
@@ -66,6 +69,7 @@ export function useInvestments() {
   };
 
   const openEdit = (inv: Investment) => {
+    clearSubmitError();
     reset({
       name: inv.name,
       type: inv.type,
@@ -81,6 +85,7 @@ export function useInvestments() {
 
   const onSubmit = async (form: InvestmentForm) => {
     setLoading(true);
+    setSubmitError(null);
     try {
       if (editingId) {
         await apiPatch(`/investments/${editingId}`, {
@@ -101,8 +106,8 @@ export function useInvestments() {
       queryClient.invalidateQueries({ queryKey: ['investments'] });
       queryClient.invalidateQueries({ queryKey: ['net-worth'] });
       setShowForm(false);
-    } catch {
-      Alert.alert('Error', 'Could not save investment');
+    } catch (err) {
+      setSubmitError(getApiErrorMessage(err, 'Could not save investment'));
     } finally {
       setLoading(false);
     }
@@ -115,6 +120,8 @@ export function useInvestments() {
     setShowForm,
     editingId,
     loading,
+    submitError,
+    clearSubmitError,
     control,
     handleSubmit,
     setValue,

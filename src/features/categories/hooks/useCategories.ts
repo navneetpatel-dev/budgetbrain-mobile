@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Alert } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { apiPost, apiPatch } from '@/shared/services/api';
+import { apiPost, apiPatch, getApiErrorMessage } from '@/shared/services/api';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import type { Category } from '@/shared/types';
 
@@ -18,6 +18,10 @@ export function useCategories() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [listError, setListError] = useState<string | null>(null);
+  const clearSubmitError = useCallback(() => setSubmitError(null), []);
+  const clearListError = useCallback(() => setListError(null), []);
 
   const { data, isLoading } = usePaginatedList<Category, 'categories'>({
     queryKey: ['categories'],
@@ -32,12 +36,14 @@ export function useCategories() {
   const selectedColor = watch('color');
 
   const openCreate = () => {
+    clearSubmitError();
     reset({ name: '', color: COLORS_PRESET[0] });
     setEditingId(null);
     setShowForm(true);
   };
 
   const openEdit = (cat: Category) => {
+    clearSubmitError();
     reset({ name: cat.name, color: cat.color ?? COLORS_PRESET[0] });
     setEditingId(cat.id);
     setShowForm(true);
@@ -45,6 +51,7 @@ export function useCategories() {
 
   const onSubmit = async (form: CategoryForm) => {
     setLoading(true);
+    setSubmitError(null);
     try {
       if (editingId) {
         await apiPatch(`/categories/${editingId}`, form);
@@ -53,8 +60,8 @@ export function useCategories() {
       }
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       setShowForm(false);
-    } catch {
-      Alert.alert('Error', 'Could not save category');
+    } catch (err) {
+      setSubmitError(getApiErrorMessage(err, 'Could not save category'));
     } finally {
       setLoading(false);
     }
@@ -67,11 +74,12 @@ export function useCategories() {
         text: 'Archive',
         style: 'destructive',
         onPress: async () => {
+          setListError(null);
           try {
             await apiPost(`/categories/${id}/archive`);
             queryClient.invalidateQueries({ queryKey: ['categories'] });
-          } catch {
-            Alert.alert('Error', 'Could not archive category');
+          } catch (err) {
+            setListError(getApiErrorMessage(err, 'Could not archive category'));
           }
         },
       },
@@ -85,11 +93,12 @@ export function useCategories() {
     const ordered = [...data];
     const [item] = ordered.splice(index, 1);
     ordered.splice(newIndex, 0, item);
+    setListError(null);
     try {
       await apiPost('/categories/reorder', { orderedIds: ordered.map((c) => c.id) });
       queryClient.invalidateQueries({ queryKey: ['categories'] });
-    } catch {
-      Alert.alert('Error', 'Could not reorder categories');
+    } catch (err) {
+      setListError(getApiErrorMessage(err, 'Could not reorder categories'));
     }
   };
 
@@ -100,6 +109,10 @@ export function useCategories() {
     showForm,
     setShowForm,
     loading,
+    submitError,
+    listError,
+    clearSubmitError,
+    clearListError,
     control,
     handleSubmit,
     setValue,

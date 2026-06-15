@@ -9,6 +9,8 @@ import {
   FormStackScreen,
   FormSection,
   FormActions,
+  FormErrorBanner,
+  ScreenLoader,
 } from '@/shared/components/ui';
 import { useIncomeDetail, type IncomeForm } from '@/features/income/hooks/useIncomeDetail';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
@@ -16,7 +18,7 @@ import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 export default function IncomeEditScreen() {
   const { amountLabel } = useUserCurrency();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { income, isLoading, loading, save, populateForm, confirmDelete } = useIncomeDetail(id);
+  const { income, isLoading, loading, save, populateForm, confirmDelete, submitError } = useIncomeDetail(id);
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<IncomeForm>({
     defaultValues: { amount: '', notes: '', date: '' },
@@ -32,6 +34,7 @@ export default function IncomeEditScreen() {
 
   return (
     <FormStackScreen eyebrow="INCOME" title="Edit Income" subtitle="Update income entry">
+      {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="Income details">
         <Controller
           control={control}

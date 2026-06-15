@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Alert } from 'react-native';
+import { useState, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { apiGet, apiPost } from '@/shared/services/api';
+import { apiGet, apiPost, getApiErrorMessage } from '@/shared/services/api';
 import { useAppSelector } from '@/shared/store/hooks';
 import type { AiAnomaly, AiChatMessage, AiConversation, AiConversationSummary, AiInsight } from '@/shared/types';
 
@@ -18,6 +17,8 @@ export function useAiChat() {
   const [conversationId, setConversationId] = useState<string | undefined>();
   const [messages, setMessages] = useState<AiChatMessage[]>([]);
   const [historyLoaded, setHistoryLoaded] = useState(false);
+  const [chatError, setChatError] = useState<string | null>(null);
+  const clearChatError = useCallback(() => setChatError(null), []);
 
   const { data: insights, isLoading: insightsLoading } = useQuery({
     queryKey: ['ai-insights'],
@@ -81,6 +82,7 @@ export function useAiChat() {
     const content = (text ?? message).trim();
     if (!content) return;
     setChatLoading(true);
+    setChatError(null);
     const userMsg: AiChatMessage = { role: 'user', content, timestamp: new Date().toISOString() };
     setMessages((prev) => [...prev, userMsg]);
     setMessage('');
@@ -92,9 +94,9 @@ export function useAiChat() {
       setConversationId(result.conversationId);
       setMessages(visibleMessages(result.messages));
       setHistoryLoaded(true);
-    } catch {
+    } catch (err) {
       setMessages((prev) => prev.slice(0, -1));
-      Alert.alert('Error', 'Could not send message');
+      setChatError(getApiErrorMessage(err, 'Could not send message'));
     } finally {
       setChatLoading(false);
     }
@@ -120,5 +122,7 @@ export function useAiChat() {
     historyLoading: isPremium && !historyLoaded,
     sendMessage,
     startNewConversation,
+    chatError,
+    clearChatError,
   };
 }

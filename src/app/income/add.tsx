@@ -9,6 +9,7 @@ import {
   FormStackScreen,
   FormSection,
   FormActions,
+  FormErrorBanner,
 } from '@/shared/components/ui';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import { useCreateIncome, type IncomeForm } from '@/features/income/hooks/useCreateIncome';
@@ -20,7 +21,7 @@ type SourceMode = 'existing' | 'new';
 
 export default function AddIncomeScreen() {
   const { amountLabel } = useUserCurrency();
-  const { create, loading } = useCreateIncome();
+  const { create, loading, submitError } = useCreateIncome();
   const [sourceMode, setSourceMode] = useState<SourceMode>('existing');
 
   const { data: sources } = usePaginatedList<IncomeSource, 'sources'>({
@@ -46,6 +47,7 @@ export default function AddIncomeScreen() {
 
   return (
     <FormStackScreen eyebrow="INCOME" title="Add Income" subtitle="Record a new income entry">
+      {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="Amount & date" subtitle="How much and when you received it">
         <Controller
           control={control}

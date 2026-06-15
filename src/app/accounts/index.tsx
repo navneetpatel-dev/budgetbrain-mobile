@@ -13,6 +13,7 @@ import {
   OptionChips,
   FormActions,
   ScreenLoader,
+  FormErrorBanner,
 } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useFabBottom } from '@/shared/hooks/useFabBottom';
@@ -32,6 +33,7 @@ export default function AccountsScreen() {
     setShowForm,
     editingId,
     loading,
+    submitError,
     control,
     handleSubmit,
     setValue,
@@ -65,6 +67,7 @@ export default function AccountsScreen() {
           />
         }
       >
+        {submitError ? <FormErrorBanner message={submitError} /> : null}
         <Controller
           control={control}
           name="name"

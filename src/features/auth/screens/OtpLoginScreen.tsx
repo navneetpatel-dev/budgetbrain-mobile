@@ -1,7 +1,8 @@
-import { Alert, Keyboard } from 'react-native';
+import { Keyboard } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { Button, Input } from '@/shared/components/ui';
-import { AuthShell, AuthFooter } from '@/features/auth/components';
+import { AuthShell, AuthFooter, AuthInfoBanner, AuthErrorBanner } from '@/features/auth/components';
+import { authFieldRules } from '@/features/auth/utils/authValidation';
 import { useOtpLogin } from '@/features/auth/hooks';
 
 interface OtpForm {
@@ -10,29 +11,19 @@ interface OtpForm {
 }
 
 export function OtpLoginScreen() {
-  const { loading, otpSent, requestOtp, verifyOtp } = useOtpLogin();
-  const { control, handleSubmit, getValues, formState: { errors } } = useForm<OtpForm>({
+  const { loading, otpSent, error, info, clearError, requestOtp, verifyOtp } = useOtpLogin();
+  const { control, handleSubmit, formState: { errors } } = useForm<OtpForm>({
     defaultValues: { email: '', otp: '' },
   });
 
-  const handleRequestOtp = async () => {
-    const email = getValues('email');
-    try {
-      await requestOtp(email);
-      Alert.alert('OTP Sent', 'Check your email for the 6-digit code.');
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Could not send OTP';
-      const title = message.includes('valid email') ? 'Invalid Email' : 'Error';
-      Alert.alert(title, message);
-    }
-  };
+  const handleRequestOtp = handleSubmit((data) => {
+    clearError();
+    void requestOtp(data.email);
+  });
 
-  const onSubmit = async (data: OtpForm) => {
-    try {
-      await verifyOtp(data.email, data.otp);
-    } catch (err) {
-      Alert.alert('Verification Failed', err instanceof Error ? err.message : 'Invalid OTP');
-    }
+  const onSubmit = (data: OtpForm) => {
+    clearError();
+    void verifyOtp(data.email, data.otp);
   };
 
   return (
@@ -45,7 +36,7 @@ export function OtpLoginScreen() {
       <Controller
         control={control}
         name="email"
-        rules={{ required: 'Email is required', pattern: { value: /\S+@\S+\.\S+/, message: 'Invalid email' } }}
+        rules={authFieldRules.email}
         render={({ field: { onChange, value } }) => (
           <Input
             label="Email"
@@ -62,6 +53,9 @@ export function OtpLoginScreen() {
         )}
       />
 
+      {info ? <AuthInfoBanner message={info} icon="mail" /> : null}
+      {error ? <AuthErrorBanner message={error} /> : null}
+
       {!otpSent ? (
         <Button title="Send Code" onPress={handleRequestOtp} loading={loading} size="lg" />
       ) : (
@@ -69,7 +63,7 @@ export function OtpLoginScreen() {
           <Controller
             control={control}
             name="otp"
-            rules={{ required: 'OTP is required', minLength: { value: 6, message: '6 digits required' }, maxLength: { value: 6, message: '6 digits required' } }}
+            rules={authFieldRules.otp}
             render={({ field: { onChange, value } }) => (
               <Input
                 label="Verification code"

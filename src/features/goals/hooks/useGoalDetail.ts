@@ -3,7 +3,7 @@ import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { UseFormReset } from 'react-hook-form';
-import { apiGet, apiPatch, apiDelete } from '@/shared/services/api';
+import { apiGet, apiPatch, apiDelete, getApiErrorMessage } from '@/shared/services/api';
 import type { Goal } from '@/shared/types';
 
 export interface GoalForm {
@@ -16,6 +16,8 @@ export function useGoalDetail(id: string) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const clearSubmitError = useCallback(() => setSubmitError(null), []);
 
   const { data: goal, isLoading } = useQuery({
     queryKey: ['goal', id],
@@ -37,6 +39,7 @@ export function useGoalDetail(id: string) {
 
   const save = async (data: GoalForm) => {
     setLoading(true);
+    setSubmitError(null);
     try {
       await apiPatch(`/goals/${id}`, {
         name: data.name,
@@ -46,8 +49,8 @@ export function useGoalDetail(id: string) {
       queryClient.invalidateQueries({ queryKey: ['goals'] });
       queryClient.invalidateQueries({ queryKey: ['goal', id] });
       router.back();
-    } catch {
-      Alert.alert('Error', 'Could not update goal');
+    } catch (err) {
+      setSubmitError(getApiErrorMessage(err, 'Could not update goal'));
     } finally {
       setLoading(false);
     }
@@ -61,12 +64,13 @@ export function useGoalDetail(id: string) {
         style: 'destructive',
         onPress: async () => {
           setLoading(true);
+          setSubmitError(null);
           try {
             await apiDelete(`/goals/${id}`);
             queryClient.invalidateQueries({ queryKey: ['goals'] });
             router.back();
-          } catch {
-            Alert.alert('Error', 'Could not delete goal');
+          } catch (err) {
+            setSubmitError(getApiErrorMessage(err, 'Could not delete goal'));
           } finally {
             setLoading(false);
           }
@@ -75,5 +79,5 @@ export function useGoalDetail(id: string) {
     ]);
   };
 
-  return { goal, isLoading, loading, save, populateForm, confirmDelete };
+  return { goal, isLoading, loading, save, populateForm, confirmDelete, submitError, clearSubmitError };
 }

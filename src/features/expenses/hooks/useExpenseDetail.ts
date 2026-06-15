@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { UseFormReset } from 'react-hook-form';
-import { apiGet, apiPatch, apiDelete, apiPost } from '@/shared/services/api';
+import { apiGet, apiPatch, apiDelete, apiPost, getApiErrorMessage } from '@/shared/services/api';
 import { queueOfflineAction, isOnline } from '@/shared/services/offlineSync';
 import type { Transaction } from '@/shared/types';
 
@@ -21,6 +21,14 @@ export function useExpenseDetail(expenseId: string) {
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitInfo, setSubmitInfo] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+  const clearFeedback = useCallback(() => {
+    setSubmitError(null);
+    setSubmitInfo(null);
+    setSubmitSuccess(null);
+  }, []);
 
   const { data: expense, isLoading } = useQuery({
     queryKey: ['expense', expenseId],
@@ -30,6 +38,7 @@ export function useExpenseDetail(expenseId: string) {
 
   const startEditing = (reset: UseFormReset<ExpenseForm>) => {
     if (!expense) return;
+    clearFeedback();
     reset({
       amount: String(expense.amount),
       merchant: expense.merchant ?? '',
@@ -43,6 +52,7 @@ export function useExpenseDetail(expenseId: string) {
 
   const update = async (data: ExpenseForm) => {
     setLoading(true);
+    clearFeedback();
     const payload = {
       id: expenseId,
       amount: Number(data.amount),
@@ -56,16 +66,16 @@ export function useExpenseDetail(expenseId: string) {
       if (!(await isOnline())) {
         queueOfflineAction('update', payload);
         setEditing(false);
-        return { ok: true as const, offline: true };
+        setSubmitInfo('Changes will sync when you reconnect.');
+        return;
       }
       await apiPatch(`/expenses/${expenseId}`, payload);
       queryClient.invalidateQueries({ queryKey: ['expense', expenseId] });
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       setEditing(false);
-      return { ok: true as const, offline: false };
-    } catch {
-      return { ok: false as const };
+    } catch (err) {
+      setSubmitError(getApiErrorMessage(err, 'Could not update expense'));
     } finally {
       setLoading(false);
     }
@@ -73,19 +83,19 @@ export function useExpenseDetail(expenseId: string) {
 
   const remove = async () => {
     setLoading(true);
+    clearFeedback();
     try {
       if (!(await isOnline())) {
         queueOfflineAction('delete', { id: expenseId });
         router.back();
-        return { ok: true as const, offline: true };
+        return;
       }
       await apiDelete(`/expenses/${expenseId}`);
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       router.back();
-      return { ok: true as const, offline: false };
-    } catch {
-      return { ok: false as const };
+    } catch (err) {
+      setSubmitError(getApiErrorMessage(err, 'Could not delete expense'));
     } finally {
       setLoading(false);
     }
@@ -93,13 +103,14 @@ export function useExpenseDetail(expenseId: string) {
 
   const duplicate = async () => {
     setLoading(true);
+    clearFeedback();
     try {
       await apiPost(`/expenses/${expenseId}/duplicate`);
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      return { ok: true as const };
-    } catch {
-      return { ok: false as const };
+      setSubmitSuccess('A copy of this expense was created.');
+    } catch (err) {
+      setSubmitError(getApiErrorMessage(err, 'Could not duplicate expense'));
     } finally {
       setLoading(false);
     }
@@ -111,14 +122,7 @@ export function useExpenseDetail(expenseId: string) {
       {
         text: 'Delete',
         style: 'destructive',
-        onPress: async () => {
-          const result = await remove();
-          if (result.ok && result.offline) {
-            Alert.alert('Queued', 'Delete will sync when you reconnect.');
-          } else if (!result.ok) {
-            Alert.alert('Error', 'Could not delete expense');
-          }
-        },
+        onPress: remove,
       },
     ]);
   };
@@ -134,5 +138,9 @@ export function useExpenseDetail(expenseId: string) {
     remove,
     duplicate,
     confirmDelete,
+    submitError,
+    submitInfo,
+    submitSuccess,
+    clearFeedback,
   };
 }

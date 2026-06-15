@@ -5,6 +5,7 @@ import {
   FormStackScreen,
   FormSection,
   FormActions,
+  FormErrorBanner,
 } from '@/shared/components/ui';
 import { useContributeGoal, type ContributeForm } from '@/features/goals/hooks/useContributeGoal';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
@@ -12,7 +13,7 @@ import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 export default function ContributeGoalScreen() {
   const { amountLabel } = useUserCurrency();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { contribute, loading } = useContributeGoal(id);
+  const { contribute, loading, submitError } = useContributeGoal(id);
 
   const { control, handleSubmit, formState: { errors } } = useForm<ContributeForm>({
     defaultValues: { amount: '', notes: '' },
@@ -20,6 +21,7 @@ export default function ContributeGoalScreen() {
 
   return (
     <FormStackScreen eyebrow="GOAL" title="Contribute" subtitle="Add to your goal">
+      {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="Contribution" subtitle="How much are you adding?">
         <Controller
           control={control}

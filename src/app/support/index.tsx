@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { StyleSheet, Text } from 'react-native';
 import { Controller } from 'react-hook-form';
-import { Button, Input, Card, StackScrollScreen, GroupedCard, FormSection, FormActions } from '@/shared/components/ui';
+import { Button, Input, Card, StackScrollScreen, GroupedCard, FormSection, FormActions, FormErrorBanner, FormSuccessBanner } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
 import { useSupportTickets } from '@/features/support/hooks/useSupportTickets';
@@ -9,7 +9,7 @@ import { useSupportTickets } from '@/features/support/hooks/useSupportTickets';
 export default function SupportScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const { loading, tickets, control, handleSubmit, errors, onSubmit } = useSupportTickets();
+  const { loading, tickets, control, handleSubmit, errors, onSubmit, submitError, submitSuccess } = useSupportTickets();
 
   return (
     <StackScrollScreen
@@ -21,6 +21,8 @@ export default function SupportScreen() {
       }
     >
       <FormSection title="New ticket" subtitle="We typically respond within 24 hours">
+        {submitError ? <FormErrorBanner message={submitError} /> : null}
+        {submitSuccess ? <FormSuccessBanner message={submitSuccess} /> : null}
         <Controller
           control={control}
           name="subject"

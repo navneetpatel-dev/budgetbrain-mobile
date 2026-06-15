@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { StyleSheet, Alert, Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import {
@@ -13,6 +13,9 @@ import {
   FormStackScreen,
   FormSection,
   FormActions,
+  FormErrorBanner,
+  FormInfoBanner,
+  FormSuccessBanner,
 } from '@/shared/components/ui';
 import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
 import { useExpenseDetail, type ExpenseForm } from '@/features/expenses/hooks/useExpenseDetail';
@@ -36,6 +39,9 @@ export default function ExpenseDetailScreen() {
     update,
     duplicate,
     confirmDelete,
+    submitError,
+    submitInfo,
+    submitSuccess,
   } = useExpenseDetail(id);
 
   const { data: categories } = useCategoryOptions();
@@ -47,26 +53,8 @@ export default function ExpenseDetailScreen() {
   const selectedCategory = watch('categoryId');
   const selectedPayment = watch('paymentMethod');
 
-  const onSave = async (data: ExpenseForm) => {
-    const result = await update(data);
-    if (result.ok && result.offline) {
-      Alert.alert('Saved Offline', 'Changes will sync when you reconnect.');
-    } else if (!result.ok) {
-      Alert.alert('Error', 'Could not update expense');
-    }
-  };
-
-  const handleDuplicate = async () => {
-    const result = await duplicate();
-    if (result.ok) {
-      Alert.alert('Duplicated', 'A copy of this expense was created.');
-    } else {
-      Alert.alert('Error', 'Could not duplicate expense');
-    }
-  };
-
   if (isLoading || !expense) {
-    return <ScreenLoader />;
+    return <DetailSkeleton />;
   }
 
   const symbol = formatCurrency(Number(expense.amount), expense.currency);
@@ -77,6 +65,10 @@ export default function ExpenseDetailScreen() {
       title={editing ? 'Edit Expense' : 'Expense Details'}
       subtitle={expense.merchant ?? expense.category?.name ?? 'Transaction'}
     >
+      {submitError ? <FormErrorBanner message={submitError} /> : null}
+      {submitInfo ? <FormInfoBanner message={submitInfo} icon="link" /> : null}
+      {submitSuccess ? <FormSuccessBanner message={submitSuccess} /> : null}
+
       {!editing ? (
         <>
           <FormSection title="Summary">
@@ -87,7 +79,7 @@ export default function ExpenseDetailScreen() {
             {expense.notes ? <Text style={styles.notes}>{expense.notes}</Text> : null}
           </FormSection>
           <FormActions primaryTitle="Edit" onPrimary={() => startEditing(reset)} />
-          <Button title="Duplicate" onPress={handleDuplicate} variant="outline" loading={loading} />
+          <Button title="Duplicate" onPress={duplicate} variant="outline" loading={loading} />
           <Button title="Delete" onPress={confirmDelete} variant="danger" loading={loading} />
         </>
       ) : (
@@ -145,7 +137,7 @@ export default function ExpenseDetailScreen() {
 
           <FormActions
             primaryTitle="Save Changes"
-            onPrimary={handleSubmit(onSave)}
+            onPrimary={handleSubmit(update)}
             primaryLoading={loading}
             secondaryTitle="Cancel"
             onSecondary={() => setEditing(false)}

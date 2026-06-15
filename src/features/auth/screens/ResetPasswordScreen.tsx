@@ -1,8 +1,8 @@
-import { Alert } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { Button, Input } from '@/shared/components/ui';
-import { AuthShell, AuthFooter, AuthSuccessBanner } from '@/features/auth/components';
+import { AuthShell, AuthFooter, AuthSuccessBanner, AuthErrorBanner } from '@/features/auth/components';
+import { authFieldRules, confirmPasswordRule } from '@/features/auth/utils/authValidation';
 import { useResetPassword } from '@/features/auth/hooks';
 
 interface ResetForm {
@@ -12,19 +12,16 @@ interface ResetForm {
 
 export function ResetPasswordScreen() {
   const { token } = useLocalSearchParams<{ token?: string }>();
-  const { resetPassword, loading, done } = useResetPassword(token);
+  const { resetPassword, loading, done, error, clearError } = useResetPassword(token);
   const { control, handleSubmit, watch, formState: { errors } } = useForm<ResetForm>({
     defaultValues: { password: '', confirmPassword: '' },
   });
 
   const password = watch('password');
 
-  const onSubmit = async (data: ResetForm) => {
-    try {
-      await resetPassword(data.password);
-    } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : 'Could not reset password');
-    }
+  const onSubmit = (data: ResetForm) => {
+    clearError();
+    void resetPassword(data.password);
   };
 
   return (
@@ -41,7 +38,7 @@ export function ResetPasswordScreen() {
           <Controller
             control={control}
             name="password"
-            rules={{ required: 'Password is required', minLength: { value: 8, message: 'Minimum 8 characters' } }}
+            rules={authFieldRules.passwordMin8}
             render={({ field: { onChange, value } }) => (
               <Input
                 label="New password"
@@ -57,10 +54,7 @@ export function ResetPasswordScreen() {
           <Controller
             control={control}
             name="confirmPassword"
-            rules={{
-              required: 'Confirm your password',
-              validate: (v) => v === password || 'Passwords do not match',
-            }}
+            rules={confirmPasswordRule(password)}
             render={({ field: { onChange, value } }) => (
               <Input
                 label="Confirm password"
@@ -73,6 +67,7 @@ export function ResetPasswordScreen() {
               />
             )}
           />
+          {error ? <AuthErrorBanner message={error} /> : null}
           <Button title="Update Password" onPress={handleSubmit(onSubmit)} loading={loading} disabled={!token} size="lg" />
         </>
       )}

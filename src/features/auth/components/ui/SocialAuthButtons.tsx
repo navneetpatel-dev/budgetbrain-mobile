@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Platform, Pressable, ActivityIndicator } from '
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useSocialAuth } from '@/features/auth/hooks/useSocialAuth';
 import { AuthDivider } from '@/features/auth/components/ui/AuthDivider';
+import { AuthErrorBanner } from '@/features/auth/components/ui/AuthErrorBanner';
 import { useTheme } from '@/shared/theme';
 
 function GoogleMark() {
@@ -25,24 +26,6 @@ const markStyles = StyleSheet.create({
   g: { fontSize: 13, fontWeight: '700', color: '#4285F4' },
 });
 
-function SocialAuthError({ message }: { message: string }) {
-  const theme = useTheme();
-  return (
-    <Text
-      accessibilityRole="alert"
-      style={{
-        color: theme.colors.danger,
-        fontSize: 13,
-        fontWeight: '500',
-        lineHeight: 18,
-        marginTop: theme.spacing.sm,
-        textAlign: 'center',
-      }}
-    >
-      {message}
-    </Text>
-  );
-}
 
 export function SocialAuthButtons() {
   const theme = useTheme();
@@ -80,7 +63,7 @@ export function SocialAuthButtons() {
           />
         )}
       </View>
-      {error ? <SocialAuthError message={error} /> : null}
+      {error ? <AuthErrorBanner message={error} /> : null}
     </View>
   );
 }

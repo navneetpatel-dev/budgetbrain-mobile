@@ -3,10 +3,11 @@ import { useLocalSearchParams } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import {
   Input,
-  ScreenLoader,
+  DetailSkeleton,
   FormStackScreen,
   FormSection,
   FormActions,
+  FormErrorBanner,
 } from '@/shared/components/ui';
 import { useBudgetDetail, type BudgetForm } from '@/features/budgets/hooks/useBudgetDetail';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
@@ -14,7 +15,7 @@ import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 export default function BudgetEditScreen() {
   const { amountLabel } = useUserCurrency();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { budget, isLoading, loading, save, populateForm } = useBudgetDetail(id);
+  const { budget, isLoading, loading, save, populateForm, submitError } = useBudgetDetail(id);
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<BudgetForm>({
     defaultValues: { name: '', amount: '', alertThreshold: '80' },
@@ -30,6 +31,7 @@ export default function BudgetEditScreen() {
 
   return (
     <FormStackScreen eyebrow="BUDGET" title="Edit Budget" subtitle={budget.name}>
+      {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="Budget details">
         <Controller
           control={control}

@@ -1,8 +1,7 @@
-import { useState } from 'react';
-import { Alert } from 'react-native';
+import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { apiPost, apiPatch } from '@/shared/services/api';
+import { apiPost, apiPatch, getApiErrorMessage } from '@/shared/services/api';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import type { FinancialAccount } from '@/shared/types';
 
@@ -26,6 +25,8 @@ export function useAccounts() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const clearSubmitError = useCallback(() => setSubmitError(null), []);
 
   const { data, isLoading } = usePaginatedList<FinancialAccount, 'accounts'>({
     queryKey: ['accounts'],
@@ -40,12 +41,14 @@ export function useAccounts() {
   const accountType = watch('type');
 
   const openCreate = () => {
+    clearSubmitError();
     reset({ name: '', type: 'bank', institution: '', balance: '', accountNumberLast4: '' });
     setEditingId(null);
     setShowForm(true);
   };
 
   const openEdit = (acc: FinancialAccount) => {
+    clearSubmitError();
     reset({
       name: acc.name,
       type: acc.type,
@@ -59,6 +62,7 @@ export function useAccounts() {
 
   const onSubmit = async (form: AccountForm) => {
     setLoading(true);
+    setSubmitError(null);
     try {
       const payload = {
         name: form.name,
@@ -75,8 +79,8 @@ export function useAccounts() {
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
       queryClient.invalidateQueries({ queryKey: ['net-worth'] });
       setShowForm(false);
-    } catch {
-      Alert.alert('Error', 'Could not save account');
+    } catch (err) {
+      setSubmitError(getApiErrorMessage(err, 'Could not save account'));
     } finally {
       setLoading(false);
     }
@@ -89,6 +93,8 @@ export function useAccounts() {
     setShowForm,
     editingId,
     loading,
+    submitError,
+    clearSubmitError,
     control,
     handleSubmit,
     setValue,

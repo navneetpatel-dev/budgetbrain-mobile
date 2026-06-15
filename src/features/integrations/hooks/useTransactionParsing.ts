@@ -1,9 +1,8 @@
 import { useState, useCallback } from 'react';
-import { Alert } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { apiPost } from '@/shared/services/api';
+import { apiPost, getApiErrorMessage } from '@/shared/services/api';
 import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import type { ParsedTransactionPending } from '@/shared/types';
@@ -43,6 +42,13 @@ export function useTransactionParsing() {
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [categoryId, setCategoryId] = useState('');
+  const [smsError, setSmsError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const clearSmsError = useCallback(() => setSmsError(null), []);
+  const clearEmailError = useCallback(() => setEmailError(null), []);
+  const clearConfirmError = useCallback(() => setConfirmError(null), []);
 
   const { data: pendingItems, total: pendingTotal, refetch: refetchPending } = usePaginatedList<
     ParsedTransactionPending,
@@ -67,6 +73,8 @@ export function useTransactionParsing() {
   const selectPending = useCallback((id: string) => {
     setSelectedId(id);
     setCategoryId('');
+    setConfirmError(null);
+    setActionError(null);
   }, []);
 
   const handleParseResult = async (result: {
@@ -80,14 +88,16 @@ export function useTransactionParsing() {
 
   const parseSms = async (data: SmsForm) => {
     setSmsLoading(true);
+    setSmsError(null);
     try {
       const result = await apiPost<{
         parsed: { id: string; source: 'sms' };
         suggestion: { amount: number; merchant: string; confidence: number };
       }>('/integrations/sms', data);
       await handleParseResult(result);
-    } catch {
-      Alert.alert('Error', 'Could not parse SMS');
+      smsForm.reset();
+    } catch (err) {
+      setSmsError(getApiErrorMessage(err, 'Could not parse SMS'));
     } finally {
       setSmsLoading(false);
     }
@@ -95,22 +105,25 @@ export function useTransactionParsing() {
 
   const parseEmail = async (data: EmailForm) => {
     setEmailLoading(true);
+    setEmailError(null);
     try {
       const result = await apiPost<{
         parsed: { id: string; source: 'email' };
         suggestion: { amount: number; merchant: string; confidence: number };
       }>('/integrations/email', data);
       await handleParseResult(result);
-    } catch {
-      Alert.alert('Error', 'Could not parse email');
+      emailForm.reset();
+    } catch (err) {
+      setEmailError(getApiErrorMessage(err, 'Could not parse email'));
     } finally {
       setEmailLoading(false);
     }
   };
 
   const confirmParsed = async () => {
+    setConfirmError(null);
     if (!parsedRecord || !categoryId) {
-      Alert.alert('Select Category', 'Choose a category before confirming.');
+      setConfirmError('Choose a category before confirming.');
       return;
     }
     setConfirmLoading(true);
@@ -121,11 +134,9 @@ export function useTransactionParsing() {
       setCategoryId('');
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      Alert.alert('Expense Created', 'Transaction added from parsed content.', [
-        { text: 'OK', onPress: () => router.push('/(tabs)/expenses') },
-      ]);
-    } catch {
-      Alert.alert('Error', 'Could not create expense');
+      router.push('/(tabs)/expenses');
+    } catch (err) {
+      setConfirmError(getApiErrorMessage(err, 'Could not create expense'));
     } finally {
       setConfirmLoading(false);
     }
@@ -133,13 +144,14 @@ export function useTransactionParsing() {
 
   const rejectParsed = async () => {
     if (!parsedRecord) return;
+    setActionError(null);
     try {
       await apiPost(`/integrations/${parsedRecord.id}/reject`, {});
       await refetchPending();
       setSelectedId(null);
       setCategoryId('');
-    } catch {
-      Alert.alert('Error', 'Could not reject parsed transaction');
+    } catch (err) {
+      setActionError(getApiErrorMessage(err, 'Could not reject parsed transaction'));
     }
   };
 
@@ -161,5 +173,12 @@ export function useTransactionParsing() {
     parseEmail,
     confirmParsed,
     rejectParsed,
+    smsError,
+    emailError,
+    confirmError,
+    actionError,
+    clearSmsError,
+    clearEmailError,
+    clearConfirmError,
   };
 }

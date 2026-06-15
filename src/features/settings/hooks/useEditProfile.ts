@@ -1,6 +1,5 @@
-import { useState } from 'react';
-import { Alert } from 'react-native';
-import { apiPatch } from '@/shared/services/api';
+import { useState, useCallback } from 'react';
+import { apiPatch, getApiErrorMessage } from '@/shared/services/api';
 import { setUser } from '@/shared/store/authSlice';
 import { useAppDispatch } from '@/shared/store/hooks';
 import type { User } from '@/shared/types';
@@ -14,20 +13,23 @@ export interface ProfileForm {
 export function useEditProfile() {
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const clearSubmitError = useCallback(() => setSubmitError(null), []);
 
   const save = async (data: ProfileForm) => {
     setLoading(true);
+    setSubmitError(null);
     try {
       const updated = await apiPatch<User>('/users/me', data);
       if (updated) dispatch(setUser(updated));
       return true;
-    } catch {
-      Alert.alert('Error', 'Could not update profile');
+    } catch (err) {
+      setSubmitError(getApiErrorMessage(err, 'Could not update profile'));
       return false;
     } finally {
       setLoading(false);
     }
   };
 
-  return { save, loading };
+  return { save, loading, submitError, clearSubmitError };
 }

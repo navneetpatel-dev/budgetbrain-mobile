@@ -8,6 +8,7 @@ import {
   FormStackScreen,
   FormSection,
   FormActions,
+  FormErrorBanner,
 } from '@/shared/components/ui';
 import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
 import { useCreateBudget, type BudgetForm } from '@/features/budgets/hooks/useCreateBudget';
@@ -15,7 +16,7 @@ import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 
 export default function AddBudgetScreen() {
   const { amountLabel } = useUserCurrency();
-  const { create, loading } = useCreateBudget();
+  const { create, loading, submitError } = useCreateBudget();
 
   const { data: categories } = useCategoryOptions();
 
@@ -38,6 +39,7 @@ export default function AddBudgetScreen() {
 
   return (
     <FormStackScreen eyebrow="BUDGET" title="Create Budget" subtitle="Set a spending limit">
+      {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="Budget details" subtitle="Name, type, and limit">
         <Controller
           control={control}

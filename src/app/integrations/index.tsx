@@ -8,6 +8,7 @@ import {
   OptionChipList,
   FormSection,
   FormActions,
+  FormErrorBanner,
 } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
@@ -36,6 +37,10 @@ export default function IntegrationsScreen() {
     parseEmail,
     confirmParsed,
     rejectParsed,
+    smsError,
+    emailError,
+    confirmError,
+    actionError,
   } = useTransactionParsing();
 
   return (
@@ -72,6 +77,8 @@ export default function IntegrationsScreen() {
 
       {parsed ? (
         <FormSection title="Parsed transaction" subtitle="Review before saving">
+          {confirmError ? <FormErrorBanner message={confirmError} /> : null}
+          {actionError ? <FormErrorBanner message={actionError} /> : null}
           <Text style={styles.confirmDetail}>
             {format(parsed.parsedAmount)} · {parsed.parsedMerchant ?? 'Unknown'}
           </Text>
@@ -95,6 +102,7 @@ export default function IntegrationsScreen() {
       ) : null}
 
       <FormSection title="Parse SMS" subtitle="Paste a bank transaction SMS">
+        {smsError ? <FormErrorBanner message={smsError} /> : null}
         <Controller
           control={smsForm.control}
           name="content"
@@ -115,6 +123,7 @@ export default function IntegrationsScreen() {
       </FormSection>
 
       <FormSection title="Parse email" subtitle="Paste a receipt or order email">
+        {emailError ? <FormErrorBanner message={emailError} /> : null}
         <Controller
           control={emailForm.control}
           name="subject"

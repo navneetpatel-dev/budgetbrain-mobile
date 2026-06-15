@@ -1,22 +1,19 @@
-import { Alert } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { Button, Input } from '@/shared/components/ui';
-import { AuthShell, AuthFooter } from '@/features/auth/components';
+import { AuthShell, AuthFooter, AuthErrorBanner } from '@/features/auth/components';
+import { authFieldRules } from '@/features/auth/utils/authValidation';
 import { useRegister } from '@/features/auth/hooks';
 import type { RegisterCredentials } from '@/features/auth/types';
 
 export function RegisterScreen() {
-  const { register, loading } = useRegister();
+  const { register, loading, error, clearError } = useRegister();
   const { control, handleSubmit, formState: { errors } } = useForm<RegisterCredentials>({
     defaultValues: { name: '', email: '', password: '' },
   });
 
-  const onSubmit = async (data: RegisterCredentials) => {
-    try {
-      await register(data);
-    } catch (err) {
-      Alert.alert('Registration Failed', err instanceof Error ? err.message : 'Could not create account');
-    }
+  const onSubmit = (data: RegisterCredentials) => {
+    clearError();
+    void register(data);
   };
 
   return (
@@ -31,7 +28,7 @@ export function RegisterScreen() {
       <Controller
         control={control}
         name="name"
-        rules={{ required: 'Name is required' }}
+        rules={authFieldRules.name}
         render={({ field: { onChange, value } }) => (
           <Input label="Full name" value={value} onChangeText={onChange} placeholder="Jane Doe" error={errors.name?.message} />
         )}
@@ -40,7 +37,7 @@ export function RegisterScreen() {
       <Controller
         control={control}
         name="email"
-        rules={{ required: 'Email is required', pattern: { value: /\S+@\S+\.\S+/, message: 'Invalid email' } }}
+        rules={authFieldRules.email}
         render={({ field: { onChange, value } }) => (
           <Input
             label="Email"
@@ -59,7 +56,7 @@ export function RegisterScreen() {
       <Controller
         control={control}
         name="password"
-        rules={{ required: 'Password is required', minLength: { value: 8, message: 'Minimum 8 characters' } }}
+        rules={authFieldRules.passwordMin8}
         render={({ field: { onChange, value } }) => (
           <Input
             label="Password"
@@ -74,6 +71,8 @@ export function RegisterScreen() {
           />
         )}
       />
+
+      {error ? <AuthErrorBanner message={error} /> : null}
 
       <Button title="Create Account" onPress={handleSubmit(onSubmit)} loading={loading} size="lg" />
     </AuthShell>

@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, Pressable, TextInput, ActivityIndicator, Scroll
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
+import { FormErrorBanner } from '@/shared/components/ui/FormErrorBanner';
 import { useTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
 
@@ -18,6 +19,7 @@ interface AiChatInputProps {
   onSend: (text?: string) => void;
   loading: boolean;
   showSuggestions: boolean;
+  error?: string | null;
 }
 
 export function AiChatInput({
@@ -26,6 +28,7 @@ export function AiChatInput({
   onSend,
   loading,
   showSuggestions,
+  error,
 }: AiChatInputProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -38,6 +41,7 @@ export function AiChatInput({
 
   return (
     <View style={styles.wrap}>
+      {error ? <FormErrorBanner message={error} /> : null}
       {showSuggestions && (
         <ScrollView
           horizontal

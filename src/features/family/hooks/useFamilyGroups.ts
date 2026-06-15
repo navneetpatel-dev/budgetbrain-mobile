@@ -1,8 +1,7 @@
-import { useState } from 'react';
-import { Alert } from 'react-native';
+import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { apiPost } from '@/shared/services/api';
+import { apiPost, getApiErrorMessage } from '@/shared/services/api';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import { useAppSelector } from '@/shared/store/hooks';
 import type { FamilyMembership } from '@/shared/types';
@@ -20,6 +19,18 @@ export function useFamilyGroups() {
   const user = useAppSelector((s) => s.auth.user);
   const isPremium = ['premium', 'lifetime', 'admin'].includes(user?.role ?? '');
   const [loading, setLoading] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [joinError, setJoinError] = useState<string | null>(null);
+  const [createSuccess, setCreateSuccess] = useState<string | null>(null);
+  const [joinSuccess, setJoinSuccess] = useState<string | null>(null);
+  const clearCreateFeedback = useCallback(() => {
+    setCreateError(null);
+    setCreateSuccess(null);
+  }, []);
+  const clearJoinFeedback = useCallback(() => {
+    setJoinError(null);
+    setJoinSuccess(null);
+  }, []);
 
   const { data: memberships } = usePaginatedList<FamilyMembership, 'memberships'>({
     queryKey: ['family-groups'],
@@ -33,13 +44,14 @@ export function useFamilyGroups() {
 
   const createGroup = async (data: GroupForm) => {
     setLoading(true);
+    clearCreateFeedback();
     try {
       await apiPost('/family/groups', data);
       queryClient.invalidateQueries({ queryKey: ['family-groups'] });
       groupForm.reset();
-      Alert.alert('Created', 'Family group created. Share the invite code with members.');
-    } catch {
-      Alert.alert('Error', 'Could not create group');
+      setCreateSuccess('Family group created. Share the invite code with members.');
+    } catch (err) {
+      setCreateError(getApiErrorMessage(err, 'Could not create group'));
     } finally {
       setLoading(false);
     }
@@ -47,14 +59,14 @@ export function useFamilyGroups() {
 
   const joinGroup = async (data: JoinForm) => {
     setLoading(true);
+    clearJoinFeedback();
     try {
       await apiPost('/family/join', data);
       queryClient.invalidateQueries({ queryKey: ['family-groups'] });
       joinForm.reset();
-      Alert.alert('Joined', 'You have joined the family group.');
-    } catch (err: unknown) {
-      const message = (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message;
-      Alert.alert('Error', message ?? 'Could not join group');
+      setJoinSuccess('You have joined the family group.');
+    } catch (err) {
+      setJoinError(getApiErrorMessage(err, 'Could not join group'));
     } finally {
       setLoading(false);
     }
@@ -68,5 +80,11 @@ export function useFamilyGroups() {
     joinForm,
     createGroup,
     joinGroup,
+    createError,
+    joinError,
+    createSuccess,
+    joinSuccess,
+    clearCreateFeedback,
+    clearJoinFeedback,
   };
 }

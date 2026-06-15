@@ -7,13 +7,14 @@ import {
   MultiOptionChips,
   FormSection,
   FormActions,
+  FormErrorBanner,
 } from '@/shared/components/ui';
 import { useOnboarding, type OnboardingForm } from '@/features/onboarding/hooks/useOnboarding';
 import { SUPPORTED_CURRENCIES, FINANCIAL_GOALS, SALARY_RANGES } from '@/shared/constants/config';
 import { getCurrencySymbol } from '@/shared/utils/currency';
 
 export default function OnboardingScreen() {
-  const { loading, selectedGoals, toggleGoal, submit } = useOnboarding();
+  const { loading, selectedGoals, toggleGoal, submit, submitError } = useOnboarding();
 
   const { control, handleSubmit, watch, formState: { errors } } = useForm<OnboardingForm>({
     defaultValues: {
@@ -30,6 +31,7 @@ export default function OnboardingScreen() {
 
   return (
     <FormStackScreen eyebrow="WELCOME" title="Personalize" subtitle="Tell us a bit about yourself">
+      {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="About you">
         <Controller
           control={control}

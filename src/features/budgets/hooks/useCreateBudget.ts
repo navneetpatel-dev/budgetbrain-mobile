@@ -1,8 +1,7 @@
-import { useState } from 'react';
-import { Alert } from 'react-native';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { apiPost } from '@/shared/services/api';
+import { apiPost, getApiErrorMessage } from '@/shared/services/api';
 import type { Budget } from '@/shared/types';
 
 export interface BudgetForm {
@@ -18,10 +17,13 @@ export function useCreateBudget() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const clearSubmitError = useCallback(() => setSubmitError(null), []);
 
   const create = async (data: BudgetForm) => {
+    setSubmitError(null);
     if (data.type === 'category' && !data.categoryId) {
-      Alert.alert('Category Required', 'Select a category for category budgets');
+      setSubmitError('Select a category for category budgets');
       return;
     }
     setLoading(true);
@@ -37,12 +39,12 @@ export function useCreateBudget() {
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       router.back();
-    } catch {
-      Alert.alert('Error', 'Could not create budget');
+    } catch (err) {
+      setSubmitError(getApiErrorMessage(err, 'Could not create budget'));
     } finally {
       setLoading(false);
     }
   };
 
-  return { create, loading };
+  return { create, loading, submitError, clearSubmitError };
 }

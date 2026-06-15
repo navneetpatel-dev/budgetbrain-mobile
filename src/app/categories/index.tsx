@@ -5,12 +5,14 @@ import {
   Input,
   Card,
   EmptyState,
+  ListSkeleton,
   ScreenLoader,
   FormModal,
   StickyHeaderFlatScreen,
   ActionFab,
   ColorPicker,
   FormActions,
+  FormErrorBanner,
 } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useFabBottom } from '@/shared/hooks/useFabBottom';
@@ -28,6 +30,8 @@ export default function CategoriesScreen() {
     showForm,
     setShowForm,
     loading,
+    submitError,
+    listError,
     control,
     handleSubmit,
     setValue,
@@ -63,6 +67,7 @@ export default function CategoriesScreen() {
           />
         }
       >
+        {submitError ? <FormErrorBanner message={submitError} /> : null}
         <Controller
           control={control}
           name="name"
@@ -90,6 +95,7 @@ export default function CategoriesScreen() {
         data={items}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingBottom: fabBottom + 72 }}
+        ListHeaderComponent={listError ? <FormErrorBanner message={listError} /> : null}
         ListEmptyComponent={
           <EmptyState icon="category" title="No categories" subtitle="Create categories to organize expenses" action="Add category" onAction={openCreate} />
         }

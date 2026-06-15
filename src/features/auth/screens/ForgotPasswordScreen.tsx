@@ -1,22 +1,19 @@
-import { Alert } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { Button, Input } from '@/shared/components/ui';
-import { AuthShell, AuthFooter, AuthSuccessBanner } from '@/features/auth/components';
+import { AuthShell, AuthFooter, AuthSuccessBanner, AuthErrorBanner } from '@/features/auth/components';
+import { authFieldRules } from '@/features/auth/utils/authValidation';
 import { useForgotPassword } from '@/features/auth/hooks';
 import type { ForgotPasswordInput } from '@/features/auth/types';
 
 export function ForgotPasswordScreen() {
-  const { forgotPassword, loading, sent } = useForgotPassword();
+  const { forgotPassword, loading, sent, error, clearError } = useForgotPassword();
   const { control, handleSubmit, formState: { errors } } = useForm<ForgotPasswordInput>({
     defaultValues: { email: '' },
   });
 
-  const onSubmit = async (data: ForgotPasswordInput) => {
-    try {
-      await forgotPassword(data);
-    } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : 'Could not send reset email');
-    }
+  const onSubmit = (data: ForgotPasswordInput) => {
+    clearError();
+    void forgotPassword(data);
   };
 
   return (
@@ -33,7 +30,7 @@ export function ForgotPasswordScreen() {
           <Controller
             control={control}
             name="email"
-            rules={{ required: 'Email is required', pattern: { value: /\S+@\S+\.\S+/, message: 'Invalid email' } }}
+            rules={authFieldRules.email}
             render={({ field: { onChange, value } }) => (
               <Input
                 label="Email"
@@ -48,6 +45,7 @@ export function ForgotPasswordScreen() {
               />
             )}
           />
+          {error ? <AuthErrorBanner message={error} /> : null}
           <Button title="Send Reset Link" onPress={handleSubmit(onSubmit)} loading={loading} size="lg" />
         </>
       )}

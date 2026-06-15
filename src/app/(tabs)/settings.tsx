@@ -14,6 +14,7 @@ import {
   FormFieldLabel,
   OptionChips,
   FormActions,
+  FormErrorBanner,
 } from '@/shared/components/ui';
 import { ProfileHero } from '@/features/settings/components/ProfileHero';
 import { PremiumUpsellCard } from '@/features/settings/components/PremiumUpsellCard';
@@ -60,7 +61,7 @@ export default function SettingsScreen() {
 
   const logout = useLogout();
   const deleteAccount = useDeleteAccount();
-  const { save: saveProfile, loading: profileLoading } = useEditProfile();
+  const { save: saveProfile, loading: profileLoading, submitError: profileError, clearSubmitError } = useEditProfile();
   const { type: biometricType, supported: biometricSupported, enabled: biometricEnabled, toggle: toggleBiometric } = useBiometricToggle();
   const testPush = usePushTest();
 
@@ -176,7 +177,10 @@ export default function SettingsScreen() {
           <ListRow
             icon="profile"
             label={editingProfile ? 'Cancel editing' : 'Edit profile'}
-            onPress={() => setEditingProfile(!editingProfile)}
+            onPress={() => {
+              if (editingProfile) clearSubmitError();
+              setEditingProfile(!editingProfile);
+            }}
             isLast={false}
           />
           {!editingProfile ? (
@@ -187,6 +191,7 @@ export default function SettingsScreen() {
             </>
           ) : (
             <FormSection title="Edit profile" style={{ margin: theme.spacing.lg, marginTop: 0 }}>
+              {profileError ? <FormErrorBanner message={profileError} /> : null}
               <Controller control={control} name="name" render={({ field: { onChange, value } }) => (
                 <Input label="Name" value={value} onChangeText={onChange} leftIcon="personFill" />
               )} />

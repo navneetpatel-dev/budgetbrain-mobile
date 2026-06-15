@@ -1,19 +1,15 @@
-import { Alert } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Button } from '@/shared/components/ui';
-import { AuthShell, AuthSuccessBanner, AuthInfoBanner } from '@/features/auth/components';
+import { AuthShell, AuthSuccessBanner, AuthInfoBanner, AuthErrorBanner } from '@/features/auth/components';
 import { useVerifyEmail } from '@/features/auth/hooks';
 
 export function VerifyEmailScreen() {
   const { token } = useLocalSearchParams<{ token?: string }>();
-  const { verify, loading, verified, goToLogin } = useVerifyEmail(token);
+  const { verify, loading, verified, error, clearError, goToLogin } = useVerifyEmail(token);
 
-  const handleVerify = async () => {
-    try {
-      await verify();
-    } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : 'This verification link is invalid or expired.');
-    }
+  const handleVerify = () => {
+    clearError();
+    void verify();
   };
 
   return (
@@ -30,6 +26,7 @@ export function VerifyEmailScreen() {
       ) : (
         <>
           <AuthInfoBanner message="Tap the button below to verify your BudgetBrain account." />
+          {error ? <AuthErrorBanner message={error} /> : null}
           <Button title="Verify Email" onPress={handleVerify} loading={loading} size="lg" />
         </>
       )}

@@ -14,6 +14,7 @@ import {
   OptionChips,
   FormActions,
   ScreenLoader,
+  FormErrorBanner,
 } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useFabBottom } from '@/shared/hooks/useFabBottom';
@@ -33,6 +34,7 @@ export default function InvestmentsScreen() {
     setShowForm,
     editingId,
     loading,
+    submitError,
     control,
     handleSubmit,
     setValue,
@@ -66,6 +68,7 @@ export default function InvestmentsScreen() {
           />
         }
       >
+        {submitError ? <FormErrorBanner message={submitError} /> : null}
         {!editingId && (
           <>
             <Controller

@@ -9,6 +9,9 @@ import {
   EmptyState,
   FormSection,
   FormActions,
+  FormErrorBanner,
+  FormSuccessBanner,
+  FormInfoBanner,
 } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
@@ -18,7 +21,19 @@ export default function FamilyScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
-  const { isPremium, memberships, loading, groupForm, joinForm, createGroup, joinGroup } = useFamilyGroups();
+  const {
+    isPremium,
+    memberships,
+    loading,
+    groupForm,
+    joinForm,
+    createGroup,
+    joinGroup,
+    createError,
+    joinError,
+    createSuccess,
+    joinSuccess,
+  } = useFamilyGroups();
 
   if (!isPremium) {
     return (
@@ -75,6 +90,8 @@ export default function FamilyScreen() {
             <Input label="Group name" value={value} onChangeText={onChange} error={groupForm.formState.errors.name?.message} leftIcon="family" placeholder="e.g. Smith Family" />
           )}
         />
+        {createError ? <FormErrorBanner message={createError} /> : null}
+        {createSuccess ? <FormSuccessBanner message={createSuccess} /> : null}
         <FormActions primaryTitle="Create Group" onPrimary={groupForm.handleSubmit(createGroup)} primaryLoading={loading} />
       </FormSection>
 
@@ -87,6 +104,8 @@ export default function FamilyScreen() {
             <Input label="Invite code" value={value} onChangeText={onChange} autoCapitalize="characters" error={joinForm.formState.errors.inviteCode?.message} leftIcon="link" placeholder="ABC123" />
           )}
         />
+        {joinError ? <FormErrorBanner message={joinError} /> : null}
+        {joinSuccess ? <FormSuccessBanner message={joinSuccess} /> : null}
         <FormActions primaryTitle="Join Group" onPrimary={joinForm.handleSubmit(joinGroup)} primaryLoading={loading} />
       </FormSection>
     </StackScrollScreen>

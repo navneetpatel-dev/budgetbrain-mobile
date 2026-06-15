@@ -41,6 +41,7 @@ export function AiScreen() {
     historyLoading,
     sendMessage,
     startNewConversation,
+    chatError,
   } = useAiChat();
 
   useEffect(() => {
@@ -111,6 +112,7 @@ export function AiScreen() {
           onSend={sendMessage}
           loading={chatLoading}
           showSuggestions={isEmpty}
+          error={chatError}
         />
       </KeyboardAvoidingView>
     </ScreenContainer>

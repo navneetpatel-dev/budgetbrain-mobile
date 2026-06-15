@@ -5,10 +5,11 @@ import {
   Button,
   Input,
   DateInput,
-  ScreenLoader,
+  DetailSkeleton,
   FormStackScreen,
   FormSection,
   FormActions,
+  FormErrorBanner,
 } from '@/shared/components/ui';
 import { useGoalDetail, type GoalForm } from '@/features/goals/hooks/useGoalDetail';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
@@ -16,7 +17,7 @@ import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 export default function GoalEditScreen() {
   const { amountLabel } = useUserCurrency();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { goal, isLoading, loading, save, populateForm, confirmDelete } = useGoalDetail(id);
+  const { goal, isLoading, loading, save, populateForm, confirmDelete, submitError } = useGoalDetail(id);
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<GoalForm>({
     defaultValues: { name: '', targetAmount: '', targetDate: '' },
@@ -32,6 +33,7 @@ export default function GoalEditScreen() {
 
   return (
     <FormStackScreen eyebrow="GOAL" title="Edit Goal" subtitle={goal.name}>
+      {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="Goal details">
         <Controller
           control={control}

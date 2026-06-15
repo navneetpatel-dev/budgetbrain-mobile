@@ -7,6 +7,7 @@ import {
   FormStackScreen,
   FormSection,
   FormActions,
+  FormErrorBanner,
 } from '@/shared/components/ui';
 import { useCreateGoal, type GoalForm } from '@/features/goals/hooks/useCreateGoal';
 import { GOAL_TYPES } from '@/shared/constants/config';
@@ -14,7 +15,7 @@ import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 
 export default function AddGoalScreen() {
   const { amountLabel } = useUserCurrency();
-  const { create, loading } = useCreateGoal();
+  const { create, loading, submitError } = useCreateGoal();
 
   const { control, handleSubmit, setValue, watch, formState: { errors } } = useForm<GoalForm>({
     defaultValues: { name: '', type: 'emergency_fund', targetAmount: '', targetDate: '' },
@@ -24,6 +25,7 @@ export default function AddGoalScreen() {
 
   return (
     <FormStackScreen eyebrow="GOAL" title="Create Goal" subtitle="Set a savings target">
+      {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="Goal details" subtitle="What are you saving for?">
         <Controller
           control={control}

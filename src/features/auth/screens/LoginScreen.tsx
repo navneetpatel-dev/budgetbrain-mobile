@@ -1,27 +1,25 @@
-import { Alert } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { Button, Input } from '@/shared/components/ui';
 import {
   AuthShell,
   AuthFooter,
   AuthLink,
+  AuthErrorBanner,
   SocialAuthButtons,
 } from '@/features/auth/components';
+import { authFieldRules } from '@/features/auth/utils/authValidation';
 import { useLogin } from '@/features/auth/hooks';
 import type { LoginCredentials } from '@/features/auth/types';
 
 export function LoginScreen() {
-  const { login, loading } = useLogin();
+  const { login, loading, error, clearError } = useLogin();
   const { control, handleSubmit, formState: { errors } } = useForm<LoginCredentials>({
     defaultValues: { email: '', password: '' },
   });
 
-  const onSubmit = async (data: LoginCredentials) => {
-    try {
-      await login(data);
-    } catch (err) {
-      Alert.alert('Login Failed', err instanceof Error ? err.message : 'Invalid credentials');
-    }
+  const onSubmit = (data: LoginCredentials) => {
+    clearError();
+    void login(data);
   };
 
   return (
@@ -33,7 +31,7 @@ export function LoginScreen() {
       <Controller
         control={control}
         name="email"
-        rules={{ required: 'Email is required', pattern: { value: /\S+@\S+\.\S+/, message: 'Invalid email' } }}
+        rules={authFieldRules.email}
         render={({ field: { onChange, value } }) => (
           <Input
             label="Email"
@@ -52,7 +50,7 @@ export function LoginScreen() {
       <Controller
         control={control}
         name="password"
-        rules={{ required: 'Password is required' }}
+        rules={authFieldRules.password}
         render={({ field: { onChange, value } }) => (
           <Input
             label="Password"
@@ -67,6 +65,8 @@ export function LoginScreen() {
           />
         )}
       />
+
+      {error ? <AuthErrorBanner message={error} /> : null}
 
       <AuthLink href="/(auth)/forgot-password" align="right">Forgot password?</AuthLink>
 

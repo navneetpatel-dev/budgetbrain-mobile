@@ -1,7 +1,6 @@
-import { useState } from 'react';
-import { Alert } from 'react-native';
+import { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
-import { apiPost } from '@/shared/services/api';
+import { apiPost, getApiErrorMessage } from '@/shared/services/api';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 
 export interface TicketForm {
@@ -19,6 +18,13 @@ export interface SupportTicket {
 
 export function useSupportTickets() {
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+  const clearFeedback = useCallback(() => {
+    setSubmitError(null);
+    setSubmitSuccess(null);
+  }, []);
+
   const { data: tickets, refetch } = usePaginatedList<SupportTicket, 'tickets'>({
     queryKey: ['support-tickets'],
     url: '/support',
@@ -31,13 +37,14 @@ export function useSupportTickets() {
 
   const onSubmit = async (data: TicketForm) => {
     setLoading(true);
+    clearFeedback();
     try {
       await apiPost('/support', data);
       reset();
       await refetch();
-      Alert.alert('Submitted', 'Our team will respond within 24–48 hours.');
-    } catch {
-      Alert.alert('Error', 'Could not submit ticket');
+      setSubmitSuccess('Our team will respond within 24–48 hours.');
+    } catch (err) {
+      setSubmitError(getApiErrorMessage(err, 'Could not submit ticket'));
     } finally {
       setLoading(false);
     }
@@ -50,5 +57,8 @@ export function useSupportTickets() {
     handleSubmit,
     errors,
     onSubmit,
+    submitError,
+    submitSuccess,
+    clearFeedback,
   };
 }

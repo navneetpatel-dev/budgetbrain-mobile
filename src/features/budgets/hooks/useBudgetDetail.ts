@@ -1,9 +1,8 @@
 import { useState, useCallback } from 'react';
-import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { UseFormReset } from 'react-hook-form';
-import { apiGet, apiPatch } from '@/shared/services/api';
+import { apiGet, apiPatch, getApiErrorMessage } from '@/shared/services/api';
 import type { Budget } from '@/shared/types';
 
 export interface BudgetForm {
@@ -16,6 +15,8 @@ export function useBudgetDetail(id: string) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const clearSubmitError = useCallback(() => setSubmitError(null), []);
 
   const { data: budget, isLoading } = useQuery({
     queryKey: ['budget', id],
@@ -37,6 +38,7 @@ export function useBudgetDetail(id: string) {
 
   const save = async (data: BudgetForm) => {
     setLoading(true);
+    setSubmitError(null);
     try {
       await apiPatch(`/budgets/${id}`, {
         name: data.name,
@@ -46,12 +48,12 @@ export function useBudgetDetail(id: string) {
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['budget', id] });
       router.back();
-    } catch {
-      Alert.alert('Error', 'Could not update budget');
+    } catch (err) {
+      setSubmitError(getApiErrorMessage(err, 'Could not update budget'));
     } finally {
       setLoading(false);
     }
   };
 
-  return { budget, isLoading, loading, save, populateForm };
+  return { budget, isLoading, loading, save, populateForm, submitError, clearSubmitError };
 }
