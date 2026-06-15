@@ -12,6 +12,7 @@ import {
   FormFieldLabel,
   OptionChips,
   FormActions,
+  ScreenLoader,
 } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useFabBottom } from '@/shared/hooks/useFabBottom';
@@ -148,8 +149,5 @@ function createStyles(t: ReturnType<typeof useTheme>) {
     itemAmount: { fontSize: 18, fontWeight: '700', color: t.colors.text, marginTop: 6 },
     debt: { color: t.colors.danger },
     spacer: { height: 8 },
-  });
-}
-,
   });
 }

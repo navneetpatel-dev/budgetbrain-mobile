@@ -13,6 +13,7 @@ import {
   FormFieldLabel,
   OptionChips,
   FormActions,
+  ScreenLoader,
 } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useFabBottom } from '@/shared/hooks/useFabBottom';
@@ -170,8 +171,5 @@ function createStyles(t: ReturnType<typeof useTheme>) {
     gain: { color: t.colors.success },
     loss: { color: t.colors.danger },
     spacer: { height: 8 },
-  });
-}
-,
   });
 }

@@ -4,7 +4,6 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import { store, persistor } from '@/shared/store';
@@ -18,6 +17,7 @@ import { ThemeProvider, useTheme } from '@/shared/theme';
 import { useFontBootstrap } from '@/shared/hooks/useFontBootstrap';
 import { useAuthBootstrap } from '@/shared/hooks/useAuthBootstrap';
 import { useAuthNavigation } from '@/shared/hooks/useAuthNavigation';
+import { ColdStartSkeleton } from '@/shared/components/ui';
 
 initAnalytics();
 initMonitoring();
@@ -32,15 +32,6 @@ function FontGate({ children }: { children: React.ReactNode }) {
 function ThemedStatusBar() {
   const theme = useTheme();
   return <StatusBar style={theme.isDark ? 'light' : 'dark'} />;
-}
-
-function LoadingScreen() {
-  const theme = useTheme();
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.colors.background }}>
-      <ActivityIndicator size="large" color={theme.colors.primary} />
-    </View>
-  );
 }
 
 function AuthGate({ children }: { children: React.ReactNode }) {
@@ -60,7 +51,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthenticated]);
 
-  if (isLoading) return <LoadingScreen />;
+  if (isLoading) return <ColdStartSkeleton />;
 
   return <>{children}</>;
 }
@@ -108,11 +99,11 @@ export default function RootLayout() {
       <PersistGate loading={null} persistor={persistor}>
         <QueryClientProvider client={queryClient}>
           <SafeAreaProvider>
-            <FontGate>
-              <ThemeProvider>
+            <ThemeProvider>
+              <FontGate>
                 <RootNavigator />
-              </ThemeProvider>
-            </FontGate>
+              </FontGate>
+            </ThemeProvider>
           </SafeAreaProvider>
         </QueryClientProvider>
       </PersistGate>
