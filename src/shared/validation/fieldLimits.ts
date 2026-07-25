@@ -1,5 +1,5 @@
 /**
- * Keep in sync with backend/src/validation/{limits,messages,fields}.ts
+ * Keep in sync with backend/src/shared/validation/{limits,messages,fields}.ts
  * Frontend first gate; backend Zod is the authoritative gate (same copy).
  */
 
@@ -50,8 +50,11 @@ export const ValidationMessages = {
   passwordRequired: 'Password is required',
   passwordMin: `Password must be at least ${FieldLimits.password.min} characters`,
   passwordMax: `Password must be at most ${FieldLimits.password.max} characters`,
+  passwordAlphanumeric: 'Password must include a letter, a number, and a special character',
   passwordLetter: 'Password must include a letter',
   passwordNumber: 'Password must include a number',
+  passwordSpecial: 'Password must include a special character',
+  passwordNoSpaces: 'Password cannot contain spaces',
   passwordConfirmRequired: 'Confirm your password',
   passwordMismatch: 'Passwords do not match',
   otpInvalid: 'Enter the 6-digit code',

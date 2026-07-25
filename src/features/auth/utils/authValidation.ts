@@ -12,13 +12,20 @@ export const authFieldRules = {
     required: ValidationMessages.passwordRequired,
     maxLength: { value: FieldLimits.password.max, message: ValidationMessages.passwordMax },
   },
+  /** Register / reset — matches backend passwordField (letter + number + special, no spaces). */
   passwordMin8: {
     required: ValidationMessages.passwordRequired,
     minLength: { value: FieldLimits.password.min, message: ValidationMessages.passwordMin },
     maxLength: { value: FieldLimits.password.max, message: ValidationMessages.passwordMax },
     validate: (value: string) => {
-      if (!/[A-Za-z]/.test(value)) return ValidationMessages.passwordLetter;
-      if (!/[0-9]/.test(value)) return ValidationMessages.passwordNumber;
+      if (/\s/.test(value)) return ValidationMessages.passwordNoSpaces;
+      if (
+        !/[A-Za-z]/.test(value) ||
+        !/[0-9]/.test(value) ||
+        !/[^A-Za-z0-9]/.test(value)
+      ) {
+        return ValidationMessages.passwordAlphanumeric;
+      }
       return true;
     },
   },
