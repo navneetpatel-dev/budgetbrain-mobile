@@ -31,45 +31,39 @@ export function BudgetCard({
   const goToEdit = () => router.push(appHref(`/budget/${budget.id}?edit=1`));
 
   return (
-    <Pressable
-      onPress={goToEdit}
-      accessibilityRole="button"
-      accessibilityLabel={`Edit ${budget.name}`}
-    >
-      <Card style={styles.budgetCard}>
-        <View style={styles.budgetHeader}>
-          <View style={styles.titleCol}>
-            <Text style={styles.budgetName}>{budget.name}</Text>
-            <Text style={styles.budgetType}>{budget.type}</Text>
-          </View>
-          <View style={styles.actions}>
-            <Pressable
-              onPress={goToEdit}
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel={`Edit ${budget.name}`}
-            >
-              <AppIcon name="edit" size={18} color={theme.colors.textTertiary} />
-            </Pressable>
-            <Pressable
-              onPress={onDelete}
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel={`Delete ${budget.name}`}
-            >
-              <AppIcon name="trash" size={18} color={theme.colors.danger} />
-            </Pressable>
-          </View>
+    <Card style={styles.budgetCard}>
+      <View style={styles.budgetHeader}>
+        <View style={styles.titleCol}>
+          <Text style={styles.budgetName}>{budget.name}</Text>
+          <Text style={styles.budgetType}>{budget.type}</Text>
         </View>
-        <Text style={styles.budgetAmount}>
-          {formatCurrency(spent, budget.currency)}{' '}
-          <Text style={styles.budgetLimit}>/ {formatCurrency(Number(budget.amount), budget.currency)}</Text>
-        </Text>
-        {budget.category && <Text style={styles.category}>{budget.category.name}</Text>}
-        <ProgressBar progress={progress} color={fillColor} style={{ marginTop: 12 }} />
-        <Text style={styles.alertText}>{progress}% used · alerts at {budget.alertThreshold}%</Text>
-      </Card>
-    </Pressable>
+        <View style={styles.actions}>
+          <Pressable
+            onPress={goToEdit}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={`Edit ${budget.name}`}
+          >
+            <AppIcon name="edit" size={18} color={theme.colors.textTertiary} />
+          </Pressable>
+          <Pressable
+            onPress={onDelete}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={`Delete ${budget.name}`}
+          >
+            <AppIcon name="trash" size={18} color={theme.colors.danger} />
+          </Pressable>
+        </View>
+      </View>
+      <Text style={styles.budgetAmount}>
+        {formatCurrency(spent, budget.currency)}{' '}
+        <Text style={styles.budgetLimit}>/ {formatCurrency(Number(budget.amount), budget.currency)}</Text>
+      </Text>
+      {budget.category && <Text style={styles.category}>{budget.category.name}</Text>}
+      <ProgressBar progress={progress} color={fillColor} style={{ marginTop: 12 }} />
+      <Text style={styles.alertText}>{progress}% used · alerts at {budget.alertThreshold}%</Text>
+    </Card>
   );
 }
 

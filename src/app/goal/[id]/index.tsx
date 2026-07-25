@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import type { Href } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import {
   Input,
@@ -15,6 +16,7 @@ import {
   DetailMetaList,
   ProgressBar,
   FormErrorBanner,
+  useStackBack,
 } from '@/shared/components/ui';
 import { useGoalDetail, type GoalForm } from '@/features/goals/hooks/useGoalDetail';
 import { useTheme } from '@/shared/theme';
@@ -26,10 +28,14 @@ import { amountRules, maxLen, optionalDateRules, textRules } from '@/shared/vali
 export default function GoalDetailScreen() {
   const theme = useTheme();
   const router = useRouter();
+  const goBack = useStackBack('/(tabs)/goals' as Href);
   const { amountLabel } = useUserCurrency();
   const { id, edit } = useLocalSearchParams<{ id: string; edit?: string }>();
+  const openedInEdit = edit === '1' || edit === 'true';
   const { goal, isLoading, isError, refetch, loading, save, populateForm, confirmDelete, submitError } = useGoalDetail(id);
-  const [editing, setEditing] = useState(edit === '1' || edit === 'true');
+  const [editing, setEditing] = useState(openedInEdit);
+  /** True only when Edit was tapped from the view screen (not list → ?edit=1). */
+  const editFromViewRef = useRef(false);
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<GoalForm>({
     defaultValues: { name: '', targetAmount: '', targetDate: '' },
@@ -39,9 +45,24 @@ export default function GoalDetailScreen() {
     populateForm(reset);
   }, [populateForm, reset]);
 
+  const exitEdit = () => {
+    if (editFromViewRef.current) {
+      editFromViewRef.current = false;
+      setEditing(false);
+      return;
+    }
+    goBack();
+  };
+
+  const startEdit = () => {
+    populateForm(reset);
+    editFromViewRef.current = true;
+    setEditing(true);
+  };
+
   if (isLoading) {
     return (
-      <FormStackScreen eyebrow="Goal" title="Goal" subtitle="Loading details">
+      <FormStackScreen eyebrow="Goal" title="Goal" subtitle="Loading details" onBack={goBack}>
         <DetailSkeleton />
       </FormStackScreen>
     );
@@ -49,7 +70,7 @@ export default function GoalDetailScreen() {
 
   if (isError || !goal) {
     return (
-      <FormStackScreen eyebrow="Goal" title="Goal" subtitle="Unavailable">
+      <FormStackScreen eyebrow="Goal" title="Goal" subtitle="Unavailable" onBack={goBack}>
         <EmptyState
           icon="goals"
           title="Couldn’t load goal"
@@ -68,6 +89,7 @@ export default function GoalDetailScreen() {
       eyebrow={goal.type.replace(/_/g, ' ')}
       title={editing ? 'Edit Goal' : goal.name}
       subtitle={editing ? 'Update goal' : `${pct}% achieved`}
+      onBack={editing ? exitEdit : goBack}
     >
       {submitError ? <FormErrorBanner message={submitError} /> : null}
 
@@ -102,10 +124,7 @@ export default function GoalDetailScreen() {
             primaryTitle="Contribute"
             onPrimary={() => router.push(`/goal/${id}/contribute`)}
             secondaryTitle="Edit"
-            onSecondary={() => {
-              populateForm(reset);
-              setEditing(true);
-            }}
+            onSecondary={startEdit}
             onDestructive={confirmDelete}
             destructiveLoading={loading}
           />
@@ -142,11 +161,14 @@ export default function GoalDetailScreen() {
           <FormActions
             primaryTitle="Save Changes"
             onPrimary={handleSubmit(async (data) => {
-              if (await save(data)) setEditing(false);
+              if (await save(data)) {
+                editFromViewRef.current = false;
+                setEditing(false);
+              }
             })}
             primaryLoading={loading}
             secondaryTitle="Cancel"
-            onSecondary={() => setEditing(false)}
+            onSecondary={exitEdit}
           />
         </>
       )}

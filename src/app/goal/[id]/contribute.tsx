@@ -1,4 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
+import type { Href } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import {
   Input,
@@ -6,6 +7,7 @@ import {
   FormSection,
   FormActions,
   FormErrorBanner,
+  useStackBack,
 } from '@/shared/components/ui';
 import { useContributeGoal, type ContributeForm } from '@/features/goals/hooks/useContributeGoal';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
@@ -14,6 +16,7 @@ import { amountRules, maxLen, optionalTextRules } from '@/shared/validation/fiel
 export default function ContributeGoalScreen() {
   const { amountLabel } = useUserCurrency();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const goBack = useStackBack(`/goal/${id}` as Href);
   const { contribute, loading, submitError } = useContributeGoal(id);
 
   const { control, handleSubmit, formState: { errors } } = useForm<ContributeForm>({
@@ -21,7 +24,7 @@ export default function ContributeGoalScreen() {
   });
 
   return (
-    <FormStackScreen eyebrow="Goal" title="Contribute" subtitle="Add to your goal">
+    <FormStackScreen eyebrow="Goal" title="Contribute" subtitle="Add to your goal" onBack={goBack}>
       {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="Contribution" subtitle="How much are you adding?">
         <Controller

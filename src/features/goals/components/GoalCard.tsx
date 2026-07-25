@@ -23,47 +23,41 @@ export function GoalCard({
   const goToEdit = () => router.push(appHref(`/goal/${goal.id}?edit=1`));
 
   return (
-    <Pressable
-      onPress={goToEdit}
-      accessibilityRole="button"
-      accessibilityLabel={`Edit ${goal.name}`}
-    >
-      <Card style={styles.goalCard}>
-        <View style={styles.goalHeader}>
-          <View style={styles.titleCol}>
-            <Text style={styles.goalName}>{goal.name}</Text>
-            <Text style={styles.goalType}>{goal.type.replace('_', ' ')}</Text>
-          </View>
-          <View style={styles.actions}>
-            <Pressable
-              onPress={goToEdit}
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel={`Edit ${goal.name}`}
-            >
-              <AppIcon name="edit" size={18} color={theme.colors.textTertiary} />
-            </Pressable>
-            <Pressable
-              onPress={onDelete}
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel={`Delete ${goal.name}`}
-            >
-              <AppIcon name="trash" size={18} color={theme.colors.danger} />
-            </Pressable>
-          </View>
+    <Card style={styles.goalCard}>
+      <View style={styles.goalHeader}>
+        <View style={styles.titleCol}>
+          <Text style={styles.goalName}>{goal.name}</Text>
+          <Text style={styles.goalType}>{goal.type.replace('_', ' ')}</Text>
         </View>
-        <View style={styles.amountBlock}>
-          <Text style={styles.current}>{formatCurrency(Number(goal.currentAmount), goal.currency)}</Text>
-          <Text style={styles.target}>of {formatCurrency(Number(goal.targetAmount), goal.currency)}</Text>
+        <View style={styles.actions}>
+          <Pressable
+            onPress={goToEdit}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={`Edit ${goal.name}`}
+          >
+            <AppIcon name="edit" size={18} color={theme.colors.textTertiary} />
+          </Pressable>
+          <Pressable
+            onPress={onDelete}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={`Delete ${goal.name}`}
+          >
+            <AppIcon name="trash" size={18} color={theme.colors.danger} />
+          </Pressable>
         </View>
-        <ProgressBar
-          progress={progress}
-          color={progress >= 100 ? theme.colors.success : theme.colors.primary}
-        />
-        <Text style={styles.progressText}>{progress}% achieved</Text>
-      </Card>
-    </Pressable>
+      </View>
+      <View style={styles.amountBlock}>
+        <Text style={styles.current}>{formatCurrency(Number(goal.currentAmount), goal.currency)}</Text>
+        <Text style={styles.target}>of {formatCurrency(Number(goal.targetAmount), goal.currency)}</Text>
+      </View>
+      <ProgressBar
+        progress={progress}
+        color={progress >= 100 ? theme.colors.success : theme.colors.primary}
+      />
+      <Text style={styles.progressText}>{progress}% achieved</Text>
+    </Card>
   );
 }
 

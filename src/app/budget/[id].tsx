@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import type { Href } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import {
   Input,
@@ -14,6 +15,7 @@ import {
   DetailMetaList,
   ProgressBar,
   FormErrorBanner,
+  useStackBack,
 } from '@/shared/components/ui';
 import { useBudgetDetail, type BudgetForm } from '@/features/budgets/hooks/useBudgetDetail';
 import { useDeleteBudget } from '@/features/budgets/hooks/useDeleteBudget';
@@ -28,12 +30,16 @@ import { showAlert } from '@/shared/utils/confirmations';
 export default function BudgetDetailScreen() {
   const theme = useTheme();
   const router = useRouter();
+  const goBack = useStackBack('/(tabs)/budgets' as Href);
   const { amountLabel } = useUserCurrency();
   const { id, edit } = useLocalSearchParams<{ id: string; edit?: string }>();
+  const openedInEdit = edit === '1' || edit === 'true';
   const { budget, isLoading, isError, refetch, loading, save, populateForm, submitError } = useBudgetDetail(id);
   const { deleteBudget } = useDeleteBudget();
-  const [editing, setEditing] = useState(edit === '1' || edit === 'true');
+  const [editing, setEditing] = useState(openedInEdit);
   const [deleting, setDeleting] = useState(false);
+  /** True only when Edit was tapped from the view screen (not list → ?edit=1). */
+  const editFromViewRef = useRef(false);
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<BudgetForm>({
     defaultValues: { name: '', amount: '', alertThreshold: '80' },
@@ -43,9 +49,24 @@ export default function BudgetDetailScreen() {
     populateForm(reset);
   }, [budget, reset, populateForm]);
 
+  const exitEdit = () => {
+    if (editFromViewRef.current) {
+      editFromViewRef.current = false;
+      setEditing(false);
+      return;
+    }
+    goBack();
+  };
+
+  const startEdit = () => {
+    populateForm(reset);
+    editFromViewRef.current = true;
+    setEditing(true);
+  };
+
   if (isLoading) {
     return (
-      <FormStackScreen eyebrow="Budget" title="Budget" subtitle="Loading details">
+      <FormStackScreen eyebrow="Budget" title="Budget" subtitle="Loading details" onBack={goBack}>
         <DetailSkeleton />
       </FormStackScreen>
     );
@@ -53,7 +74,7 @@ export default function BudgetDetailScreen() {
 
   if (isError || !budget) {
     return (
-      <FormStackScreen eyebrow="Budget" title="Budget" subtitle="Unavailable">
+      <FormStackScreen eyebrow="Budget" title="Budget" subtitle="Unavailable" onBack={goBack}>
         <EmptyState
           icon="budgets"
           title="Couldn’t load budget"
@@ -76,6 +97,7 @@ export default function BudgetDetailScreen() {
       eyebrow={`${budget.type} budget`}
       title={editing ? 'Edit Budget' : budget.name}
       subtitle={editing ? 'Update budget' : `${pct}% used`}
+      onBack={editing ? exitEdit : goBack}
     >
       {submitError ? <FormErrorBanner message={submitError} /> : null}
 
@@ -103,16 +125,13 @@ export default function BudgetDetailScreen() {
           />
           <DetailActions
             primaryTitle="Edit"
-            onPrimary={() => {
-              populateForm(reset);
-              setEditing(true);
-            }}
+            onPrimary={startEdit}
             onDestructive={() => {
               confirmDeleteBudget(budget.name, async () => {
                 setDeleting(true);
                 try {
                   await deleteBudget(budget.id);
-                  router.back();
+                  goBack();
                 } catch {
                   showAlert('Error', 'Could not delete budget');
                 } finally {
@@ -155,11 +174,14 @@ export default function BudgetDetailScreen() {
           <FormActions
             primaryTitle="Save Changes"
             onPrimary={handleSubmit(async (data) => {
-              if (await save(data)) setEditing(false);
+              if (await save(data)) {
+                editFromViewRef.current = false;
+                setEditing(false);
+              }
             })}
             primaryLoading={loading}
             secondaryTitle="Cancel"
-            onSecondary={() => setEditing(false)}
+            onSecondary={exitEdit}
           />
         </>
       )}
