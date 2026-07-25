@@ -4,7 +4,6 @@ import { appHref } from '@/shared/utils/navigation';
 import { TransactionItem, TransactionGroup } from '@/features/expenses/components/TransactionItem';
 import {
   EmptyState,
-  ListSkeleton,
   ListRowsSkeleton,
   FeatureHeader,
   SearchField,
@@ -39,8 +38,6 @@ export default function ExpensesScreen() {
     pageSize: 20,
   });
 
-  if (isLoading) return <ListSkeleton count={6} variant="transaction" />;
-
   return (
     <StickyHeaderFlatScreen
       header={
@@ -49,7 +46,10 @@ export default function ExpensesScreen() {
           onBack={goBack}
           eyebrow="TRACK"
           title="Activity"
-          subtitle={`${total} transaction${total !== 1 ? 's' : ''}`}
+          subtitle={isLoading ? 'Loading…' : `${total} transaction${total !== 1 ? 's' : ''}`}
+          actionIcon="add"
+          actionLabel="Add expense"
+          onAction={() => router.push('/expense/add')}
           footer={
             <SearchField
               placeholder="Search transactions"
@@ -65,7 +65,7 @@ export default function ExpensesScreen() {
           }
         />
       }
-      data={transactions}
+      data={isLoading ? [] : transactions}
       keyExtractor={(item) => item.id}
       refreshControl={
         <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
@@ -78,13 +78,17 @@ export default function ExpensesScreen() {
         isFetchingNextPage ? <ListRowsSkeleton count={2} variant="transaction" /> : null
       }
       ListEmptyComponent={
-        <EmptyState
-          icon="activity"
-          title="No expenses yet"
-          subtitle="Your spending history will appear here"
-          action="Add expense"
-          onAction={() => router.push('/expense/add')}
-        />
+        isLoading ? (
+          <ListRowsSkeleton count={6} variant="transaction" />
+        ) : (
+          <EmptyState
+            icon="activity"
+            title="No expenses yet"
+            subtitle="Your spending history will appear here"
+            action="Add expense"
+            onAction={() => router.push('/expense/add')}
+          />
+        )
       }
       renderItem={({ item }) => (
         <TransactionGroup>

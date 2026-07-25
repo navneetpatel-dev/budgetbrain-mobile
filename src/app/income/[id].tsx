@@ -29,7 +29,11 @@ export default function IncomeEditScreen() {
   }, [populateForm, reset]);
 
   if (isLoading || !income) {
-    return <DetailSkeleton />;
+    return (
+      <FormStackScreen eyebrow="INCOME" title="Income" subtitle="Loading details">
+        <DetailSkeleton />
+      </FormStackScreen>
+    );
   }
 
   return (

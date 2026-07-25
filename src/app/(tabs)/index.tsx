@@ -10,11 +10,10 @@ import {
   EmptyState,
   ScreenSection,
   SectionHeader,
-  ResponsiveGrid,
   SummaryMetricsGrid,
   ProgressBar,
   StickyHeaderScreen,
-  DashboardSkeleton,
+  DashboardContentSkeleton,
 } from '@/shared/components/ui';
 import { TransactionItem, TransactionGroup } from '@/features/expenses/components/TransactionItem';
 import { CategoryChart } from '@/features/dashboard/components/CategoryChart';
@@ -44,11 +43,10 @@ export default function DashboardScreen() {
     data?.goals ?? [],
   );
 
-  if (isLoading) return <DashboardSkeleton />;
-
   const summary = data?.summary;
   const currency = summary?.currency ?? user?.currency ?? 'INR';
   const transactions = data?.recentTransactions ?? [];
+  const goalsCount = data?.goals?.length ?? 0;
 
   return (
     <StickyHeaderScreen
@@ -64,123 +62,131 @@ export default function DashboardScreen() {
         <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
       }
     >
-      <ScreenSection>
-        <SummaryMetricsGrid>
-          <SummaryCard
-            title="Income"
-            amount={formatCurrency(summary?.totalIncome ?? 0, currency)}
-            color={theme.colors.success}
-            icon="income"
-          />
-          <SummaryCard
-            title="Expenses"
-            amount={formatCurrency(summary?.totalExpenses ?? 0, currency)}
-            color={theme.colors.danger}
-            icon="expense"
-          />
-          <SummaryCard
-            title="Goals"
-            amount="Track"
-            subtitle="Savings targets"
-            icon="goals"
-            color={theme.colors.primary}
-            onPress={() => router.push('/(tabs)/goals')}
-          />
-          <SummaryCard
-            title="Net Worth"
-            amount="Overview"
-            subtitle="Assets & liabilities"
-            icon="netWorth"
-            color={theme.colors.primary}
-            onPress={() => router.push('/net-worth')}
-          />
-        </SummaryMetricsGrid>
-      </ScreenSection>
-
-      <ScreenSection>
-        <Card variant="elevated">
-          <SectionHeader title="Spending by Category" />
-          <CategoryChart data={data?.categoryBreakdown ?? []} currency={currency} />
-        </Card>
-      </ScreenSection>
-
-      {budgetWidgets.length > 0 && (
-        <ScreenSection style={sectionStyle}>
-          <SectionHeader
-            title="Budget Progress"
-            action="See all"
-            onAction={() => router.push('/(tabs)/budgets')}
-          />
-          <Card variant="elevated">
-            {budgetWidgets.map(({ budget, spent, limit, progress }, i) => (
-              <View key={budget.id} style={[styles.widgetRow, i < budgetWidgets.length - 1 && styles.widgetDivider]}>
-                <View style={styles.widgetHeader}>
-                  <Text style={styles.widgetName} numberOfLines={1}>{budget.name}</Text>
-                  <Text style={styles.widgetPct}>{progress}%</Text>
-                </View>
-                <ProgressBar progress={progress} color={progress >= budget.alertThreshold ? theme.colors.warning : theme.colors.primary} />
-                <Text style={styles.widgetMeta}>
-                  {formatCurrency(spent, budget.currency)} / {formatCurrency(limit, budget.currency)}
-                </Text>
-              </View>
-            ))}
-          </Card>
-        </ScreenSection>
-      )}
-
-      {goalWidgets.length > 0 && (
-        <ScreenSection style={sectionStyle}>
-          <SectionHeader
-            title="Goal Progress"
-            action="See all"
-            onAction={() => router.push('/(tabs)/goals')}
-          />
-          <Card variant="elevated">
-            {goalWidgets.map(({ goal, current, target, progress }, i) => (
-              <View key={goal.id} style={[styles.widgetRow, i < goalWidgets.length - 1 && styles.widgetDivider]}>
-                <View style={styles.widgetHeader}>
-                  <Text style={styles.widgetName} numberOfLines={1}>{goal.name}</Text>
-                  <Text style={styles.widgetPct}>{progress}%</Text>
-                </View>
-                <ProgressBar progress={progress} color={theme.colors.success} />
-                <Text style={styles.widgetMeta}>
-                  {formatCurrency(current, goal.currency)} / {formatCurrency(target, goal.currency)}
-                </Text>
-              </View>
-            ))}
-          </Card>
-        </ScreenSection>
-      )}
-
-      <ScreenSection style={sectionStyle}>
-        <SectionHeader
-          title="Recent Activity"
-          action="See all"
-          onAction={() => router.push('/(tabs)/expenses')}
-        />
-
-        {transactions.length ? (
-          <TransactionGroup>
-            {transactions.map((tx, i) => (
-              <TransactionItem
-                key={tx.id}
-                transaction={tx}
-                onPress={() => router.push(appHref(`/expense/${tx.id}`))}
-                isFirst={i === 0}
-                isLast={i === transactions.length - 1}
+      {isLoading || !data || !summary ? (
+        <DashboardContentSkeleton />
+      ) : (
+        <>
+          <ScreenSection>
+            <SummaryMetricsGrid>
+              <SummaryCard
+                title="Income"
+                amount={formatCurrency(summary.totalIncome, currency)}
+                color={theme.colors.success}
+                icon="income"
+                onPress={() => router.push('/(tabs)/income')}
               />
-            ))}
-          </TransactionGroup>
-        ) : (
-          <EmptyState
-            icon="activity"
-            title="No transactions yet"
-            subtitle="Tap + on the tab bar to log your first expense"
-            action="Add expense"
-            onAction={() => router.push('/expense/add')}
-          />
-        )}
-      </ScreenSection>
+              <SummaryCard
+                title="Expenses"
+                amount={formatCurrency(summary.totalExpenses, currency)}
+                color={theme.colors.danger}
+                icon="expense"
+                onPress={() => router.push('/(tabs)/expenses')}
+              />
+              <SummaryCard
+                title="Goals"
+                amount={goalsCount > 0 ? String(goalsCount) : 'Start'}
+                subtitle={goalsCount > 0 ? `active goal${goalsCount !== 1 ? 's' : ''}` : 'Set a savings target'}
+                icon="goals"
+                color={theme.colors.primary}
+                onPress={() => router.push('/(tabs)/goals')}
+              />
+              <SummaryCard
+                title="Net Worth"
+                amount="View"
+                subtitle="Assets & liabilities"
+                icon="netWorth"
+                color={theme.colors.primary}
+                onPress={() => router.push('/net-worth')}
+              />
+            </SummaryMetricsGrid>
+          </ScreenSection>
+
+          <ScreenSection>
+            <Card variant="elevated">
+              <SectionHeader title="Spending by Category" />
+              <CategoryChart data={data.categoryBreakdown ?? []} currency={currency} />
+            </Card>
+          </ScreenSection>
+
+          {budgetWidgets.length > 0 && (
+            <ScreenSection style={sectionStyle}>
+              <SectionHeader
+                title="Budget Progress"
+                action="See all"
+                onAction={() => router.push('/(tabs)/budgets')}
+              />
+              <Card variant="elevated">
+                {budgetWidgets.map(({ budget, spent, limit, progress }, i) => (
+                  <View key={budget.id} style={[styles.widgetRow, i < budgetWidgets.length - 1 && styles.widgetDivider]}>
+                    <View style={styles.widgetHeader}>
+                      <Text style={styles.widgetName} numberOfLines={1}>{budget.name}</Text>
+                      <Text style={styles.widgetPct}>{progress}%</Text>
+                    </View>
+                    <ProgressBar progress={progress} color={progress >= budget.alertThreshold ? theme.colors.warning : theme.colors.primary} />
+                    <Text style={styles.widgetMeta}>
+                      {formatCurrency(spent, budget.currency)} / {formatCurrency(limit, budget.currency)}
+                    </Text>
+                  </View>
+                ))}
+              </Card>
+            </ScreenSection>
+          )}
+
+          {goalWidgets.length > 0 && (
+            <ScreenSection style={sectionStyle}>
+              <SectionHeader
+                title="Goal Progress"
+                action="See all"
+                onAction={() => router.push('/(tabs)/goals')}
+              />
+              <Card variant="elevated">
+                {goalWidgets.map(({ goal, current, target, progress }, i) => (
+                  <View key={goal.id} style={[styles.widgetRow, i < goalWidgets.length - 1 && styles.widgetDivider]}>
+                    <View style={styles.widgetHeader}>
+                      <Text style={styles.widgetName} numberOfLines={1}>{goal.name}</Text>
+                      <Text style={styles.widgetPct}>{progress}%</Text>
+                    </View>
+                    <ProgressBar progress={progress} color={theme.colors.success} />
+                    <Text style={styles.widgetMeta}>
+                      {formatCurrency(current, goal.currency)} / {formatCurrency(target, goal.currency)}
+                    </Text>
+                  </View>
+                ))}
+              </Card>
+            </ScreenSection>
+          )}
+
+          <ScreenSection style={sectionStyle}>
+            <SectionHeader
+              title="Recent Activity"
+              action="See all"
+              onAction={() => router.push('/(tabs)/expenses')}
+            />
+
+            {transactions.length ? (
+              <TransactionGroup>
+                {transactions.map((tx, i) => (
+                  <TransactionItem
+                    key={tx.id}
+                    transaction={tx}
+                    onPress={() => router.push(appHref(`/expense/${tx.id}`))}
+                    isFirst={i === 0}
+                    isLast={i === transactions.length - 1}
+                  />
+                ))}
+              </TransactionGroup>
+            ) : (
+              <EmptyState
+                icon="activity"
+                title="No transactions yet"
+                subtitle="Tap + on the tab bar to log your first expense"
+                action="Add expense"
+                onAction={() => router.push('/expense/add')}
+              />
+            )}
+          </ScreenSection>
+        </>
+      )}
     </StickyHeaderScreen>
   );
 }

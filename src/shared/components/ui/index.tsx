@@ -18,7 +18,7 @@ import { getLoadingLabel } from '@/shared/utils/buttonLoadingLabel';
 export { Screen, ScreenContainer, ScreenLoader, ScreenSkeleton, ResponsiveGrid, SummaryMetricsGrid, StickyHeaderScreen, ScreenWrapper } from './layout';
 export {
   SkeletonBlock, SkeletonLine, SkeletonCircle, SkeletonCard,
-  DashboardSkeleton, ListSkeleton, ListRowsSkeleton, DetailSkeleton, SettingsSkeleton,
+  DashboardSkeleton, DashboardContentSkeleton, ListSkeleton, ListRowsSkeleton, DetailSkeleton, SettingsSkeleton,
   NetWorthSkeleton, FamilySkeleton, SupportSkeleton, SubscriptionSkeleton,
   OnboardingSkeleton, ColdStartSkeleton, AiChatSkeleton,
 } from './skeleton';
@@ -344,12 +344,16 @@ export function EmptyState({
   icon,
   action,
   onAction,
+  secondaryAction,
+  onSecondaryAction,
 }: {
   title: string;
   subtitle?: string;
   icon?: AppIconName;
   action?: string;
   onAction?: () => void;
+  secondaryAction?: string;
+  onSecondaryAction?: () => void;
 }) {
   const theme = useTheme();
   const styles = useMemo(() => createEmptyStyles(theme), [theme]);
@@ -372,6 +376,16 @@ export function EmptyState({
           >
             <Text style={styles.actionText}>{action}</Text>
           </LinearGradient>
+        </Pressable>
+      )}
+      {secondaryAction && onSecondaryAction && (
+        <Pressable
+          onPress={onSecondaryAction}
+          style={({ pressed }) => [styles.secondaryBtn, pressed && { opacity: 0.85 }]}
+          accessibilityRole="button"
+          accessibilityLabel={secondaryAction}
+        >
+          <Text style={styles.secondaryText}>{secondaryAction}</Text>
         </Pressable>
       )}
     </View>
@@ -609,6 +623,12 @@ function createEmptyStyles(t: AppTheme) {
       borderRadius: t.radii.full,
     },
     actionText: { ...t.typography.bodySemibold, color: t.colors.onPrimary, fontSize: 14 },
+    secondaryBtn: {
+      marginTop: t.spacing.md,
+      paddingHorizontal: t.spacing.lg,
+      paddingVertical: 10,
+    },
+    secondaryText: { ...t.typography.bodySemibold, color: t.colors.primary, fontSize: 14 },
   });
 }
 

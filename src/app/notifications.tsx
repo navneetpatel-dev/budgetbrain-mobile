@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { StyleSheet, Text, RefreshControl } from 'react-native';
-import { Card, EmptyState, ListSkeleton, ListRowsSkeleton, StickyHeaderFlatScreen } from '@/shared/components/ui';
+import { Card, EmptyState, ListRowsSkeleton, StickyHeaderFlatScreen } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
 import { useMarkNotificationRead } from '@/features/notifications/hooks/useMarkNotificationRead';
@@ -18,10 +18,6 @@ export default function NotificationsScreen() {
     isFetchingNextPage,
   } = useMarkNotificationRead();
 
-  if (isLoading) {
-    return <ListSkeleton count={5} variant="notification" />;
-  }
-
   const items = data ?? [];
   const unread = items.filter((n) => !n.read).length;
 
@@ -31,10 +27,10 @@ export default function NotificationsScreen() {
       header={
         <ProfileStackHeader
           screen="notifications"
-          subtitle={unread > 0 ? `${unread} unread` : 'All caught up'}
+          subtitle={isLoading ? 'Loading…' : unread > 0 ? `${unread} unread` : 'All caught up'}
         />
       }
-      data={items}
+      data={isLoading ? [] : items}
       keyExtractor={(item) => item.id}
       refreshControl={
         <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
@@ -47,7 +43,11 @@ export default function NotificationsScreen() {
         isFetchingNextPage ? <ListRowsSkeleton count={2} variant="notification" /> : null
       }
       ListEmptyComponent={
-        <EmptyState title="No notifications" subtitle="You're all caught up" icon="bell" />
+        isLoading ? (
+          <ListRowsSkeleton count={5} variant="notification" />
+        ) : (
+          <EmptyState title="No notifications" subtitle="You're all caught up" icon="bell" />
+        )
       }
       renderItem={({ item }) => (
         <Card style={item.read ? styles.card : styles.unreadCard}>

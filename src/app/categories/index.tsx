@@ -5,7 +5,7 @@ import {
   Input,
   Card,
   EmptyState,
-  ListSkeleton,
+  ListRowsSkeleton,
   FormModal,
   StickyHeaderFlatScreen,
   ActionFab,
@@ -14,6 +14,7 @@ import {
   FormErrorBanner,
 } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
+import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useFabBottom } from '@/shared/hooks/useFabBottom';
 import { useTheme } from '@/shared/theme';
 import { useCategories, COLORS_PRESET } from '@/features/categories/hooks/useCategories';
@@ -43,10 +44,6 @@ export default function CategoriesScreen() {
     archiveCategory,
     moveCategory,
   } = useCategories();
-
-  if (isLoading) {
-    return <ListSkeleton count={5} variant="category" />;
-  }
 
   const items = data ?? [];
 
@@ -90,15 +87,19 @@ export default function CategoriesScreen() {
         header={
           <ProfileStackHeader
             screen="categories"
-            subtitle={`${items.length} categor${items.length !== 1 ? 'ies' : 'y'}`}
+            subtitle={isLoading ? 'Loading…' : `${items.length} categor${items.length !== 1 ? 'ies' : 'y'}`}
           />
         }
-        data={items}
+        data={isLoading ? [] : items}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingBottom: fabBottom + 72 }}
         ListHeaderComponent={listError ? <FormErrorBanner message={listError} /> : null}
         ListEmptyComponent={
-          <EmptyState icon="category" title="No categories" subtitle="Create categories to organize expenses" action="Add category" onAction={openCreate} />
+          isLoading ? (
+            <ListRowsSkeleton count={5} variant="category" />
+          ) : (
+            <EmptyState icon="category" title="No categories" subtitle="Create categories to organize expenses" action="Add category" onAction={openCreate} />
+          )
         }
         renderItem={({ item, index }) => (
           <Card style={styles.catCard}>
@@ -106,18 +107,42 @@ export default function CategoriesScreen() {
               <View style={[styles.dot, { backgroundColor: item.color ?? theme.colors.primary }]} />
               <Text style={styles.catName}>{item.name}</Text>
               <View style={styles.actions}>
-                <Pressable onPress={() => moveCategory(index, -1)}>
-                  <Text style={styles.actionBtn}>↑</Text>
+                <Pressable
+                  onPress={() => moveCategory(index, -1)}
+                  style={styles.iconBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Move ${item.name} up`}
+                  hitSlop={6}
+                >
+                  <AppIcon name="arrowUp" size={16} color={theme.colors.primary} />
                 </Pressable>
-                <Pressable onPress={() => moveCategory(index, 1)}>
-                  <Text style={styles.actionBtn}>↓</Text>
+                <Pressable
+                  onPress={() => moveCategory(index, 1)}
+                  style={styles.iconBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Move ${item.name} down`}
+                  hitSlop={6}
+                >
+                  <AppIcon name="arrowDown" size={16} color={theme.colors.primary} />
                 </Pressable>
-                <Pressable onPress={() => openEdit(item)}>
-                  <Text style={styles.actionBtn}>Edit</Text>
+                <Pressable
+                  onPress={() => openEdit(item)}
+                  style={styles.iconBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Edit ${item.name}`}
+                  hitSlop={6}
+                >
+                  <AppIcon name="edit" size={16} color={theme.colors.primary} />
                 </Pressable>
                 {!item.isDefault && (
-                  <Pressable onPress={() => archiveCategory(item.id, item.name)}>
-                    <Text style={[styles.actionBtn, styles.archive]}>Archive</Text>
+                  <Pressable
+                    onPress={() => archiveCategory(item.id, item.name)}
+                    style={styles.iconBtn}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Archive ${item.name}`}
+                    hitSlop={6}
+                  >
+                    <AppIcon name="trash" size={16} color={theme.colors.danger} />
                   </Pressable>
                 )}
               </View>
@@ -138,8 +163,13 @@ function createStyles(t: ReturnType<typeof useTheme>) {
     catRow: { flexDirection: 'row', alignItems: 'center' },
     dot: { width: 12, height: 12, borderRadius: 6, marginRight: 10 },
     catName: { flex: 1, fontSize: 15, fontWeight: '600', color: t.colors.text },
-    actions: { flexDirection: 'row', gap: 8, alignItems: 'center' },
-    actionBtn: { color: t.colors.primary, fontSize: 13, fontWeight: '600' },
-    archive: { color: t.colors.danger },
+    actions: { flexDirection: 'row', gap: 4, alignItems: 'center' },
+    iconBtn: {
+      width: 32,
+      height: 32,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 8,
+    },
   });
 }

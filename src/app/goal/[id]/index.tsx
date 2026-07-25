@@ -29,7 +29,11 @@ export default function GoalEditScreen() {
   }, [populateForm, reset]);
 
   if (isLoading || !goal) {
-    return <DetailSkeleton />;
+    return (
+      <FormStackScreen eyebrow="GOAL" title="Goal" subtitle="Loading details">
+        <DetailSkeleton />
+      </FormStackScreen>
+    );
   }
 
   return (

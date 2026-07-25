@@ -9,7 +9,7 @@ import {
   FormSection,
   FormActions,
   FormErrorBanner,
-  ListSkeleton,
+  ListRowsSkeleton,
 } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
@@ -46,8 +46,6 @@ export default function IntegrationsScreen() {
     actionError,
   } = useTransactionParsing();
 
-  if (pendingLoading) return <ListSkeleton count={4} variant="transaction" />;
-
   return (
     <StackScrollScreen
       header={
@@ -57,7 +55,8 @@ export default function IntegrationsScreen() {
         />
       }
     >
-      {pendingTotal > 0 ? (
+      {pendingLoading ? <ListRowsSkeleton count={4} variant="transaction" /> : null}
+      {!pendingLoading && pendingTotal > 0 ? (
         <FormSection title="Pending review" subtitle={`${pendingTotal} item${pendingTotal !== 1 ? 's' : ''} awaiting confirmation`}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pendingRow}>
             {pendingItems.map((item) => {

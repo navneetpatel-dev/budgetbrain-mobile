@@ -5,7 +5,7 @@ import {
   Input,
   Card,
   EmptyState,
-  ListSkeleton,
+  ListRowsSkeleton,
   FormModal,
   DateInput,
   StickyHeaderFlatScreen,
@@ -44,10 +44,6 @@ export default function InvestmentsScreen() {
     openEdit,
     onSubmit,
   } = useInvestments();
-
-  if (isLoading) {
-    return <ListSkeleton count={4} variant="account" />;
-  }
 
   const items = data ?? [];
 
@@ -135,14 +131,18 @@ export default function InvestmentsScreen() {
         header={
           <ProfileStackHeader
             screen="investments"
-            subtitle={`${items.length} holding${items.length !== 1 ? 's' : ''}`}
+            subtitle={isLoading ? 'Loading…' : `${items.length} holding${items.length !== 1 ? 's' : ''}`}
           />
         }
-        data={items}
+        data={isLoading ? [] : items}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingBottom: fabBottom + 72 }}
         ListEmptyComponent={
-          <EmptyState icon="chart" title="No investments" subtitle="Track stocks, mutual funds, and more" action="Add investment" onAction={openCreate} />
+          isLoading ? (
+            <ListRowsSkeleton count={4} variant="account" />
+          ) : (
+            <EmptyState icon="chart" title="No investments" subtitle="Track stocks, mutual funds, and more" action="Add investment" onAction={openCreate} />
+          )
         }
         renderItem={({ item }) => (
           <Pressable onPress={() => openEdit(item)}>

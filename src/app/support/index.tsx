@@ -12,8 +12,6 @@ export default function SupportScreen() {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { loading, isLoading, tickets, control, handleSubmit, errors, onSubmit, submitError, submitSuccess } = useSupportTickets();
 
-  if (isLoading) return <SupportSkeleton />;
-
   return (
     <StackScrollScreen
       header={
@@ -23,48 +21,53 @@ export default function SupportScreen() {
         />
       }
     >
-      <FormSection title="New ticket" subtitle="We typically respond within 24 hours">
-        {submitError ? <FormErrorBanner message={submitError} /> : null}
-        {submitSuccess ? <FormSuccessBanner message={submitSuccess} /> : null}
-        <Controller
-          control={control}
-          name="subject"
-          rules={textRules('subject')}
-          render={({ field: { onChange, value } }) => (
-            <Input label="Subject" value={value} onChangeText={onChange} maxLength={maxLen('subject')} error={errors.subject?.message} leftIcon="support" placeholder="Brief summary of your issue" disabled={loading} />
-          )}
-        />
-        <Controller
-          control={control}
-          name="message"
-          rules={textRules('message')}
-          render={({ field: { onChange, value } }) => (
-            <Input
-              label="Message"
-              value={value}
-              onChangeText={onChange}
-              maxLength={maxLen('message')}
-              multiline
-              error={errors.message?.message}
-              placeholder="Describe what happened and how we can help..."
-              helperText={ValidationMessages.minChars(FieldLimits.message.min)}
-              disabled={loading}
+      {isLoading ? <SupportSkeleton /> : null}
+      {!isLoading && (
+        <>
+          <FormSection title="New ticket" subtitle="We typically respond within 24 hours">
+            {submitError ? <FormErrorBanner message={submitError} /> : null}
+            {submitSuccess ? <FormSuccessBanner message={submitSuccess} /> : null}
+            <Controller
+              control={control}
+              name="subject"
+              rules={textRules('subject')}
+              render={({ field: { onChange, value } }) => (
+                <Input label="Subject" value={value} onChangeText={onChange} maxLength={maxLen('subject')} error={errors.subject?.message} leftIcon="support" placeholder="Brief summary of your issue" disabled={loading} />
+              )}
             />
-          )}
-        />
-        <FormActions primaryTitle="Submit Ticket" onPrimary={handleSubmit(onSubmit)} primaryLoading={loading} />
-      </FormSection>
+            <Controller
+              control={control}
+              name="message"
+              rules={textRules('message')}
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  label="Message"
+                  value={value}
+                  onChangeText={onChange}
+                  maxLength={maxLen('message')}
+                  multiline
+                  error={errors.message?.message}
+                  placeholder="Describe what happened and how we can help..."
+                  helperText={ValidationMessages.minChars(FieldLimits.message.min)}
+                  disabled={loading}
+                />
+              )}
+            />
+            <FormActions primaryTitle="Submit Ticket" onPrimary={handleSubmit(onSubmit)} primaryLoading={loading} />
+          </FormSection>
 
-      {tickets.length > 0 && (
-        <GroupedCard title="Your tickets" padded>
-          {tickets.map((t) => (
-            <Card key={t.id} style={styles.ticketCard}>
-              <Text style={styles.ticketSubject}>{t.subject}</Text>
-              <Text style={styles.ticketStatus}>{t.status.replace('_', ' ')}</Text>
-              <Text style={styles.ticketDate}>{new Date(t.createdAt).toLocaleDateString()}</Text>
-            </Card>
-          ))}
-        </GroupedCard>
+          {tickets.length > 0 && (
+            <GroupedCard title="Your tickets" padded>
+              {tickets.map((t) => (
+                <Card key={t.id} style={styles.ticketCard}>
+                  <Text style={styles.ticketSubject}>{t.subject}</Text>
+                  <Text style={styles.ticketStatus}>{t.status.replace('_', ' ')}</Text>
+                  <Text style={styles.ticketDate}>{new Date(t.createdAt).toLocaleDateString()}</Text>
+                </Card>
+              ))}
+            </GroupedCard>
+          )}
+        </>
       )}
     </StackScrollScreen>
   );

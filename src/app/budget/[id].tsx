@@ -27,7 +27,11 @@ export default function BudgetEditScreen() {
   }, [budget, reset, populateForm]);
 
   if (isLoading || !budget) {
-    return <DetailSkeleton />;
+    return (
+      <FormStackScreen eyebrow="BUDGET" title="Budget" subtitle="Loading details">
+        <DetailSkeleton />
+      </FormStackScreen>
+    );
   }
 
   return (

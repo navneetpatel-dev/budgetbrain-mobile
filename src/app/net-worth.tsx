@@ -40,14 +40,11 @@ export default function NetWorthScreen() {
     queryFn: () => apiGet<NetWorthData>('/net-worth'),
   });
 
-  if (isLoading) {
-    return <NetWorthSkeleton />;
-  }
-
   const s = data?.summary;
   const currency = s?.currency ?? 'INR';
   const accounts = data?.accounts ?? [];
   const investments = data?.investments ?? [];
+  const isEmpty = !isLoading && accounts.length === 0 && investments.length === 0;
 
   return (
     <StickyHeaderScreen
@@ -55,93 +52,117 @@ export default function NetWorthScreen() {
       header={
         <ProfileStackHeader
           screen="net-worth"
-          subtitle={`${accounts.length} account${accounts.length !== 1 ? 's' : ''} · ${investments.length} investment${investments.length !== 1 ? 's' : ''}`}
+          subtitle={
+            isLoading
+              ? 'Loading…'
+              : `${accounts.length} account${accounts.length !== 1 ? 's' : ''} · ${investments.length} investment${investments.length !== 1 ? 's' : ''}`
+          }
         />
       }
       refreshControl={
         <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
       }
     >
-      <View style={styles.heroWrap}>
-        <LinearGradient
-          colors={[theme.colors.primary + '28', theme.colors.gradientEnd + '18']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        />
-        <Text style={styles.heroLabel}>TOTAL NET WORTH</Text>
-        <Text style={styles.heroValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
-          {formatCurrency(s?.netWorth ?? 0, currency)}
-        </Text>
-        <Text style={styles.heroCurrency}>{currency}</Text>
-      </View>
+      {isLoading || !data || !s ? (
+        <NetWorthSkeleton />
+      ) : (
+        <>
+          <View style={styles.heroWrap}>
+            <LinearGradient
+              colors={[theme.colors.primary + '28', theme.colors.gradientEnd + '18']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFill}
+            />
+            <Text style={styles.heroLabel}>TOTAL NET WORTH</Text>
+            <Text style={styles.heroValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
+              {formatCurrency(s.netWorth, currency)}
+            </Text>
+            <Text style={styles.heroCurrency}>{currency}</Text>
+          </View>
 
-      <ResponsiveGrid>
-        <SummaryCard title="Assets" amount={formatCurrency(s?.totalAssets ?? 0, currency)} color={theme.colors.success} icon="income" />
-        <SummaryCard title="Liabilities" amount={formatCurrency(s?.totalLiabilities ?? 0, currency)} color={theme.colors.danger} icon="expense" />
-        <SummaryCard
-          title="Bank Balance"
-          amount={formatCurrency(s?.bankBalance ?? 0, currency)}
-          icon="wallet"
-          onPress={() => router.push('/accounts')}
-        />
-        <SummaryCard
-          title="Investments"
-          amount={formatCurrency(s?.investmentValue ?? 0, currency)}
-          color={theme.colors.primary}
-          icon="chart"
-          onPress={() => router.push('/investments')}
-        />
-      </ResponsiveGrid>
+          <ResponsiveGrid>
+            <SummaryCard title="Assets" amount={formatCurrency(s.totalAssets, currency)} color={theme.colors.success} icon="income" />
+            <SummaryCard title="Liabilities" amount={formatCurrency(s.totalLiabilities, currency)} color={theme.colors.danger} icon="expense" />
+            <SummaryCard
+              title="Bank Balance"
+              amount={formatCurrency(s.bankBalance, currency)}
+              icon="wallet"
+              onPress={() => router.push('/accounts')}
+            />
+            <SummaryCard
+              title="Investments"
+              amount={formatCurrency(s.investmentValue, currency)}
+              color={theme.colors.primary}
+              icon="chart"
+              onPress={() => router.push('/investments')}
+            />
+          </ResponsiveGrid>
 
-      <GroupedCard title="Accounts" padded>
-        {accounts.length ? (
-          accounts.map((acc) => (
-            <Pressable key={acc.id} onPress={() => router.push('/accounts')}>
-              <Card style={styles.item}>
-                <Text style={styles.itemName}>{acc.name}</Text>
-                <Text style={styles.itemMeta}>{acc.type.replace('_', ' ')} · {acc.institution ?? '—'}</Text>
-                <Text style={[styles.itemAmount, acc.type === 'credit_card' && styles.debt]}>
-                  {formatCurrency(Number(acc.balance), currency)}
-                </Text>
-              </Card>
-            </Pressable>
-          ))
-        ) : (
-          <EmptyState
-            icon="wallet"
-            title="No accounts yet"
-            subtitle="Add bank accounts and credit cards to track net worth"
-            action="Manage accounts"
-            onAction={() => router.push('/accounts')}
-          />
-        )}
-      </GroupedCard>
+          {isEmpty ? (
+            <EmptyState
+              icon="netWorth"
+              title="Nothing tracked yet"
+              subtitle="Add accounts and investments to see your full net worth picture"
+              action="Add account"
+              onAction={() => router.push('/accounts')}
+              secondaryAction="Add investment"
+              onSecondaryAction={() => router.push('/investments')}
+            />
+          ) : (
+            <>
+              <GroupedCard title="Accounts" padded>
+                {accounts.length ? (
+                  accounts.map((acc) => (
+                    <Pressable key={acc.id} onPress={() => router.push('/accounts')}>
+                      <Card style={styles.item}>
+                        <Text style={styles.itemName}>{acc.name}</Text>
+                        <Text style={styles.itemMeta}>{acc.type.replace('_', ' ')} · {acc.institution ?? '—'}</Text>
+                        <Text style={[styles.itemAmount, acc.type === 'credit_card' && styles.debt]}>
+                          {formatCurrency(Number(acc.balance), currency)}
+                        </Text>
+                      </Card>
+                    </Pressable>
+                  ))
+                ) : (
+                  <EmptyState
+                    icon="wallet"
+                    title="No accounts yet"
+                    subtitle="Add bank accounts and credit cards to track net worth"
+                    action="Manage accounts"
+                    onAction={() => router.push('/accounts')}
+                  />
+                )}
+              </GroupedCard>
 
-      <GroupedCard title="Investments" padded>
-        {investments.length ? (
-          investments.map((inv) => (
-            <Pressable key={inv.id} onPress={() => router.push('/investments')}>
-              <Card style={styles.item}>
-                <Text style={styles.itemName}>{inv.name}</Text>
-                <Text style={styles.itemMeta}>{inv.type.replace('_', ' ')}</Text>
-                <Text style={styles.itemAmount}>{formatCurrency(inv.currentValue, currency)}</Text>
-                <Text style={[styles.gainLoss, inv.gainLoss >= 0 ? styles.gain : styles.loss]}>
-                  {inv.gainLoss >= 0 ? '+' : ''}{formatCurrency(inv.gainLoss, currency)}
-                </Text>
-              </Card>
-            </Pressable>
-          ))
-        ) : (
-          <EmptyState
-            icon="chart"
-            title="No investments yet"
-            subtitle="Track stocks, mutual funds, and more"
-            action="Manage investments"
-            onAction={() => router.push('/investments')}
-          />
-        )}
-      </GroupedCard>
+              <GroupedCard title="Investments" padded>
+                {investments.length ? (
+                  investments.map((inv) => (
+                    <Pressable key={inv.id} onPress={() => router.push('/investments')}>
+                      <Card style={styles.item}>
+                        <Text style={styles.itemName}>{inv.name}</Text>
+                        <Text style={styles.itemMeta}>{inv.type.replace('_', ' ')}</Text>
+                        <Text style={styles.itemAmount}>{formatCurrency(inv.currentValue, currency)}</Text>
+                        <Text style={[styles.gainLoss, inv.gainLoss >= 0 ? styles.gain : styles.loss]}>
+                          {inv.gainLoss >= 0 ? '+' : ''}{formatCurrency(inv.gainLoss, currency)}
+                        </Text>
+                      </Card>
+                    </Pressable>
+                  ))
+                ) : (
+                  <EmptyState
+                    icon="chart"
+                    title="No investments yet"
+                    subtitle="Track stocks, mutual funds, and more"
+                    action="Manage investments"
+                    onAction={() => router.push('/investments')}
+                  />
+                )}
+              </GroupedCard>
+            </>
+          )}
+        </>
+      )}
     </StickyHeaderScreen>
   );
 }

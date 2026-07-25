@@ -55,7 +55,11 @@ export default function ExpenseDetailScreen() {
   const selectedPayment = watch('paymentMethod');
 
   if (isLoading || !expense) {
-    return <DetailSkeleton />;
+    return (
+      <FormStackScreen eyebrow="EXPENSE" title="Expense" subtitle="Loading details">
+        <DetailSkeleton />
+      </FormStackScreen>
+    );
   }
 
   const symbol = formatCurrency(Number(expense.amount), expense.currency);

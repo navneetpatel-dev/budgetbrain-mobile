@@ -5,7 +5,7 @@ import {
   Input,
   Card,
   EmptyState,
-  ListSkeleton,
+  ListRowsSkeleton,
   FormModal,
   StickyHeaderFlatScreen,
   ActionFab,
@@ -43,10 +43,6 @@ export default function AccountsScreen() {
     openEdit,
     onSubmit,
   } = useAccounts();
-
-  if (isLoading) {
-    return <ListSkeleton count={4} variant="account" />;
-  }
 
   const items = data ?? [];
 
@@ -119,14 +115,18 @@ export default function AccountsScreen() {
         header={
           <ProfileStackHeader
             screen="accounts"
-            subtitle={`${items.length} account${items.length !== 1 ? 's' : ''}`}
+            subtitle={isLoading ? 'Loading…' : `${items.length} account${items.length !== 1 ? 's' : ''}`}
           />
         }
-        data={items}
+        data={isLoading ? [] : items}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingBottom: fabBottom + 72 }}
         ListEmptyComponent={
-          <EmptyState icon="wallet" title="No accounts" subtitle="Add bank accounts and wallets to track net worth" action="Add account" onAction={openCreate} />
+          isLoading ? (
+            <ListRowsSkeleton count={4} variant="account" />
+          ) : (
+            <EmptyState icon="wallet" title="No accounts" subtitle="Add bank accounts and wallets to track net worth" action="Add account" onAction={openCreate} />
+          )
         }
         renderItem={({ item }) => (
           <Pressable onPress={() => openEdit(item)}>

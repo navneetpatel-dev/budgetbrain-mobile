@@ -360,6 +360,86 @@ export function ScreenSkeleton({ rows = 4 }: { rows?: number }) {
   return <ListSkeleton count={rows} variant="generic" showHeader />;
 }
 
+/** Dashboard body only — keep `DashboardHero` mounted while loading. */
+export function DashboardContentSkeleton() {
+  const theme = useTheme();
+  return (
+    <View style={{ gap: theme.spacing.lg }}>
+      <View style={{ flexDirection: 'row', gap: 10 }}>
+        <View style={{ flex: 1 }}>
+          <SurfaceCard style={{ padding: theme.spacing.md }}>
+            <SkeletonBlock width={28} height={28} radius={8} style={{ marginBottom: 12 }} />
+            <SkeletonBlock width="50%" height={11} radius={5} style={{ marginBottom: 8 }} />
+            <SkeletonBlock width="70%" height={18} radius={6} />
+          </SurfaceCard>
+        </View>
+        <View style={{ flex: 1 }}>
+          <SurfaceCard style={{ padding: theme.spacing.md }}>
+            <SkeletonBlock width={28} height={28} radius={8} style={{ marginBottom: 12 }} />
+            <SkeletonBlock width="50%" height={11} radius={5} style={{ marginBottom: 8 }} />
+            <SkeletonBlock width="70%" height={18} radius={6} />
+          </SurfaceCard>
+        </View>
+      </View>
+      <View style={{ flexDirection: 'row', gap: 10 }}>
+        <View style={{ flex: 1 }}>
+          <SurfaceCard style={{ padding: theme.spacing.md }}>
+            <SkeletonBlock width={28} height={28} radius={8} style={{ marginBottom: 12 }} />
+            <SkeletonBlock width="50%" height={11} radius={5} style={{ marginBottom: 8 }} />
+            <SkeletonBlock width="70%" height={18} radius={6} />
+          </SurfaceCard>
+        </View>
+        <View style={{ flex: 1 }}>
+          <SurfaceCard style={{ padding: theme.spacing.md }}>
+            <SkeletonBlock width={28} height={28} radius={8} style={{ marginBottom: 12 }} />
+            <SkeletonBlock width="50%" height={11} radius={5} style={{ marginBottom: 8 }} />
+            <SkeletonBlock width="70%" height={18} radius={6} />
+          </SurfaceCard>
+        </View>
+      </View>
+      <View>
+        <SkeletonBlock width={160} height={14} radius={6} style={{ marginBottom: 12 }} />
+        <SurfaceCard>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <View key={i} style={{ marginBottom: i < 3 ? theme.spacing.md : 0 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                <SkeletonBlock width="40%" height={12} radius={5} />
+                <SkeletonBlock width={48} height={12} radius={5} />
+              </View>
+              <SkeletonBlock width="100%" height={6} radius={999} />
+            </View>
+          ))}
+        </SurfaceCard>
+      </View>
+      <View>
+        <SkeletonBlock width={140} height={14} radius={6} style={{ marginBottom: 12 }} />
+        <SurfaceCard>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <View
+              key={i}
+              style={{
+                paddingVertical: theme.spacing.md,
+                borderBottomWidth: i < 2 ? 1 : 0,
+                borderBottomColor: theme.colors.borderSubtle,
+              }}
+            >
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                <SkeletonBlock width="45%" height={14} radius={6} />
+                <SkeletonBlock width={36} height={12} radius={5} />
+              </View>
+              <SkeletonBlock width="100%" height={8} radius={999} style={{ marginBottom: 6 }} />
+              <SkeletonBlock width="55%" height={11} radius={5} />
+            </View>
+          ))}
+        </SurfaceCard>
+      </View>
+      {Array.from({ length: 3 }).map((_, i) => (
+        <TransactionRowSkeleton key={i} />
+      ))}
+    </View>
+  );
+}
+
 export function DashboardSkeleton() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -379,87 +459,18 @@ export function DashboardSkeleton() {
         <SkeletonBlock width={160} height={36} radius={10} style={{ marginBottom: 8 }} />
         <SkeletonBlock width={100} height={12} radius={6} />
       </View>
-      <View style={[frame as ViewStyle, { paddingTop: theme.spacing.lg, gap: theme.spacing.lg }]}>
-        <View style={{ flexDirection: 'row', gap: 10 }}>
-          <View style={{ flex: 1 }}>
-            <SurfaceCard style={{ padding: theme.spacing.md }}>
-              <SkeletonBlock width={28} height={28} radius={8} style={{ marginBottom: 12 }} />
-              <SkeletonBlock width="50%" height={11} radius={5} style={{ marginBottom: 8 }} />
-              <SkeletonBlock width="70%" height={18} radius={6} />
-            </SurfaceCard>
-          </View>
-          <View style={{ flex: 1 }}>
-            <SurfaceCard style={{ padding: theme.spacing.md }}>
-              <SkeletonBlock width={28} height={28} radius={8} style={{ marginBottom: 12 }} />
-              <SkeletonBlock width="50%" height={11} radius={5} style={{ marginBottom: 8 }} />
-              <SkeletonBlock width="70%" height={18} radius={6} />
-            </SurfaceCard>
-          </View>
-        </View>
-        <View style={{ flexDirection: 'row', gap: 10 }}>
-          <View style={{ flex: 1 }}>
-            <SurfaceCard style={{ padding: theme.spacing.md }}>
-              <SkeletonBlock width={28} height={28} radius={8} style={{ marginBottom: 12 }} />
-              <SkeletonBlock width="50%" height={11} radius={5} style={{ marginBottom: 8 }} />
-              <SkeletonBlock width="70%" height={18} radius={6} />
-            </SurfaceCard>
-          </View>
-          <View style={{ flex: 1 }}>
-            <SurfaceCard style={{ padding: theme.spacing.md }}>
-              <SkeletonBlock width={28} height={28} radius={8} style={{ marginBottom: 12 }} />
-              <SkeletonBlock width="50%" height={11} radius={5} style={{ marginBottom: 8 }} />
-              <SkeletonBlock width="70%" height={18} radius={6} />
-            </SurfaceCard>
-          </View>
-        </View>
-        <View>
-          <SkeletonBlock width={160} height={14} radius={6} style={{ marginBottom: 12 }} />
-          <SurfaceCard>
-            {Array.from({ length: 4 }).map((_, i) => (
-              <View key={i} style={{ marginBottom: i < 3 ? theme.spacing.md : 0 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <SkeletonBlock width="40%" height={12} radius={5} />
-                  <SkeletonBlock width={48} height={12} radius={5} />
-                </View>
-                <SkeletonBlock width="100%" height={6} radius={999} />
-              </View>
-            ))}
-          </SurfaceCard>
-        </View>
-        <View>
-          <SkeletonBlock width={140} height={14} radius={6} style={{ marginBottom: 12 }} />
-          <SurfaceCard>
-            {Array.from({ length: 3 }).map((_, i) => (
-              <View
-                key={i}
-                style={{
-                  paddingVertical: theme.spacing.md,
-                  borderBottomWidth: i < 2 ? 1 : 0,
-                  borderBottomColor: theme.colors.borderSubtle,
-                }}
-              >
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <SkeletonBlock width="45%" height={14} radius={6} />
-                  <SkeletonBlock width={36} height={12} radius={5} />
-                </View>
-                <SkeletonBlock width="100%" height={8} radius={999} style={{ marginBottom: 6 }} />
-                <SkeletonBlock width="55%" height={11} radius={5} />
-              </View>
-            ))}
-          </SurfaceCard>
-        </View>
-        {Array.from({ length: 3 }).map((_, i) => (
-          <TransactionRowSkeleton key={i} />
-        ))}
+      <View style={[frame as ViewStyle, { paddingTop: theme.spacing.lg }]}>
+        <DashboardContentSkeleton />
       </View>
     </View>
   );
 }
 
+/** Content-only — keep real FormStackScreen header mounted while loading. */
 export function DetailSkeleton() {
   const theme = useTheme();
   return (
-    <SkeletonScreen>
+    <View style={{ gap: theme.spacing.md }}>
       <View style={{ alignItems: 'center', paddingVertical: theme.spacing.xl, gap: 10 }}>
         <SkeletonBlock width={72} height={12} radius={5} />
         <SkeletonBlock width={140} height={40} radius={10} />
@@ -488,7 +499,7 @@ export function DetailSkeleton() {
         <SkeletonBlock width="100%" height={50} radius={theme.radii.md} />
         <SkeletonBlock width="100%" height={50} radius={theme.radii.md} />
       </View>
-    </SkeletonScreen>
+    </View>
   );
 }
 
@@ -559,11 +570,11 @@ export function SettingsSkeleton() {
   );
 }
 
+/** Content-only — keep real stack header mounted while loading. */
 export function NetWorthSkeleton() {
   const theme = useTheme();
   return (
-    <SkeletonScreen gap={theme.spacing.lg}>
-      <SkeletonHeaderBar withAction={false} />
+    <View style={{ gap: theme.spacing.lg }}>
       <View
         style={{
           borderRadius: theme.radii.xl,
@@ -611,15 +622,15 @@ export function NetWorthSkeleton() {
       {Array.from({ length: 3 }).map((_, i) => (
         <AccountRowSkeleton key={i} />
       ))}
-    </SkeletonScreen>
+    </View>
   );
 }
 
+/** Content-only — keep real stack header mounted while loading. */
 export function FamilySkeleton() {
   const theme = useTheme();
   return (
-    <SkeletonScreen gap={theme.spacing.md}>
-      <SkeletonHeaderBar withAction={false} />
+    <View style={{ gap: theme.spacing.md }}>
       {Array.from({ length: 2 }).map((_, i) => (
         <SurfaceCard key={i}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md }}>
@@ -643,15 +654,15 @@ export function FamilySkeleton() {
           <SkeletonBlock width="100%" height={48} radius={theme.radii.md} />
         </SurfaceCard>
       </View>
-    </SkeletonScreen>
+    </View>
   );
 }
 
+/** Content-only — keep real stack header mounted while loading. */
 export function SupportSkeleton() {
   const theme = useTheme();
   return (
-    <SkeletonScreen gap={theme.spacing.md}>
-      <SkeletonHeaderBar />
+    <View style={{ gap: theme.spacing.md }}>
       <SurfaceCard>
         <SkeletonBlock width={90} height={12} radius={5} style={{ marginBottom: 14 }} />
         <SkeletonBlock width="100%" height={48} radius={theme.radii.md} style={{ marginBottom: 12 }} />
@@ -661,7 +672,7 @@ export function SupportSkeleton() {
       {Array.from({ length: 3 }).map((_, i) => (
         <TicketRowSkeleton key={i} />
       ))}
-    </SkeletonScreen>
+    </View>
   );
 }
 

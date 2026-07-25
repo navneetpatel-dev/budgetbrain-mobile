@@ -4,7 +4,7 @@ import type { Href } from 'expo-router';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import {
   EmptyState,
-  ListSkeleton,
+  ListRowsSkeleton,
   FeatureHeader,
   StickyHeaderFlatScreen,
   useStackBack,
@@ -28,8 +28,6 @@ export default function BudgetsScreen() {
     itemsKey: 'budgets',
   });
 
-  if (isLoading) return <ListSkeleton count={4} variant="budget" />;
-
   return (
     <StickyHeaderFlatScreen
       header={
@@ -38,25 +36,29 @@ export default function BudgetsScreen() {
           onBack={goBack}
           eyebrow="PLAN"
           title="Budgets"
-          subtitle={`${total} active`}
+          subtitle={isLoading ? 'Loading…' : `${total} active`}
           actionIcon="add"
           actionLabel="Create budget"
           onAction={() => router.push('/budget/add')}
         />
       }
-      data={budgets}
+      data={isLoading ? [] : budgets}
       keyExtractor={(item) => item.id}
       refreshControl={
         <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
       }
       ListEmptyComponent={
-        <EmptyState
-          icon="budgets"
-          title="No budgets yet"
-          subtitle="Set spending limits to stay on track"
-          action="Create budget"
-          onAction={() => router.push('/budget/add')}
-        />
+        isLoading ? (
+          <ListRowsSkeleton count={4} variant="budget" />
+        ) : (
+          <EmptyState
+            icon="budgets"
+            title="No budgets yet"
+            subtitle="Set spending limits to stay on track"
+            action="Create budget"
+            onAction={() => router.push('/budget/add')}
+          />
+        )
       }
       renderItem={({ item }) => (
         <BudgetCard

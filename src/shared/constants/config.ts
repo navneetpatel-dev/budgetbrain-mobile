@@ -13,11 +13,11 @@ export const FINANCIAL_GOALS = [
 ] as const;
 
 export const SALARY_RANGES = [
-  'Under ₹3L',
-  '₹3L - ₹6L',
-  '₹6L - ₹12L',
-  '₹12L - ₹24L',
-  'Above ₹24L',
+  'Under 3L',
+  '3L - 6L',
+  '6L - 12L',
+  '12L - 24L',
+  'Above 24L',
 ] as const;
 
 export const SUBSCRIPTION_PLANS = {
