@@ -673,25 +673,6 @@ export function SupportSkeleton() {
   );
 }
 
-export function SubscriptionSkeleton() {
-  const theme = useTheme();
-  return (
-    <SkeletonScreen gap={theme.spacing.md} safeAreaTop={false}>
-      {Array.from({ length: 3 }).map((_, i) => (
-        <SurfaceCard key={i}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 }}>
-            <SkeletonBlock width="40%" height={18} radius={6} />
-            <SkeletonBlock width={72} height={18} radius={6} />
-          </View>
-          <SkeletonBlock width="100%" height={14} radius={5} style={{ marginBottom: 8 }} />
-          <SkeletonBlock width="70%" height={12} radius={5} style={{ marginBottom: 16 }} />
-          <SkeletonBlock width="100%" height={48} radius={theme.radii.md} />
-        </SurfaceCard>
-      ))}
-    </SkeletonScreen>
-  );
-}
-
 export function OnboardingSkeleton() {
   const theme = useTheme();
   return (

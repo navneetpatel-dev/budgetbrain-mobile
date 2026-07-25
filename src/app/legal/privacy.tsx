@@ -20,7 +20,7 @@ export default function PrivacyScreen() {
 
       <Text style={styles.section}>2. How We Use Your Data</Text>
       <Text style={styles.body}>
-        Your data is used to provide budgeting, expense tracking, AI insights (for Premium users),
+        Your data is used to provide budgeting, expense tracking, AI insights,
         and to improve our services. Transaction data is stored securely on our servers.
       </Text>
 
@@ -32,7 +32,7 @@ export default function PrivacyScreen() {
 
       <Text style={styles.section}>4. Third-Party Services</Text>
       <Text style={styles.body}>
-        We use analytics (PostHog), crash reporting, and payment processing (RevenueCat) services.
+        We use analytics (PostHog) and crash reporting services.
         These providers have their own privacy policies governing their use of data.
       </Text>
 

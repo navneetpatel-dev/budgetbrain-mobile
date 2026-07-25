@@ -1,14 +1,9 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
-import { useRouter } from 'expo-router';
 import { apiDownloadText, apiDownloadBinary } from '@/shared/services/api';
 import { saveAndShareFile } from '@/shared/utils/downloads';
-import { useAppSelector } from '@/shared/store/hooks';
 
 export function useExportReports() {
-  const router = useRouter();
-  const user = useAppSelector((s) => s.auth.user);
-  const isPremium = ['premium', 'lifetime', 'admin'].includes(user?.role ?? '');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [loading, setLoading] = useState(false);
@@ -33,13 +28,6 @@ export function useExportReports() {
   };
 
   const downloadPdf = async () => {
-    if (!isPremium) {
-      Alert.alert('Premium Feature', 'PDF reports are available for Premium subscribers.', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Upgrade', onPress: () => router.push('/subscription') },
-      ]);
-      return;
-    }
     setLoading(true);
     try {
       const buffer = await apiDownloadBinary('/reports/pdf', buildParams());
@@ -52,7 +40,6 @@ export function useExportReports() {
   };
 
   return {
-    isPremium,
     startDate,
     setStartDate,
     endDate,

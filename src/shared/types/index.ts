@@ -4,7 +4,7 @@ export interface User {
   name: string | null;
   country: string | null;
   currency: string;
-  role: 'free' | 'premium' | 'lifetime' | 'admin';
+  role: 'free' | 'admin';
   onboardingCompleted: boolean;
   financialGoals: string[] | null;
   salaryRange: string | null;

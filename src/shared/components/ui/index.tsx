@@ -19,7 +19,7 @@ export { Screen, ScreenContainer, ScreenLoader, ScreenSkeleton, ResponsiveGrid, 
 export {
   SkeletonBlock, SkeletonLine, SkeletonCircle, SkeletonCard,
   DashboardSkeleton, DashboardContentSkeleton, ListSkeleton, ListRowsSkeleton, DetailSkeleton, SettingsSkeleton,
-  NetWorthSkeleton, FamilySkeleton, SupportSkeleton, SubscriptionSkeleton,
+  NetWorthSkeleton, FamilySkeleton, SupportSkeleton,
   OnboardingSkeleton, ColdStartSkeleton, AiChatSkeleton,
 } from './skeleton';
 export type { ListSkeletonVariant } from './skeleton';

@@ -20,12 +20,6 @@ export const SALARY_RANGES = [
   'Above 24L',
 ] as const;
 
-export const SUBSCRIPTION_PLANS = {
-  monthly: { price: 199, label: 'Monthly', period: '/month' },
-  yearly: { price: 1499, label: 'Yearly', period: '/year' },
-  lifetime: { price: 3999, label: 'Lifetime', period: ' one-time' },
-} as const;
-
 export const PAYMENT_METHODS = [
   { value: 'upi', label: 'UPI' },
   { value: 'card', label: 'Card' },

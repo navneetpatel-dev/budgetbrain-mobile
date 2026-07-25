@@ -18,7 +18,6 @@ import {
   AiChatBubble,
   AiTypingIndicator,
   AiChatInput,
-  AiPremiumGate,
 } from '@/features/ai/components';
 
 export function AiScreen() {
@@ -32,7 +31,6 @@ export function AiScreen() {
   );
   const scrollRef = useRef<ScrollView>(null);
   const {
-    isPremium,
     message,
     setMessage,
     chatLoading,
@@ -46,10 +44,6 @@ export function AiScreen() {
   useEffect(() => {
     scrollRef.current?.scrollToEnd({ animated: true });
   }, [messages, chatLoading]);
-
-  if (!isPremium) {
-    return <AiPremiumGate />;
-  }
 
   if (historyLoading) {
     return <AiChatSkeleton />;

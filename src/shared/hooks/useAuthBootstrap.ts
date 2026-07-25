@@ -3,7 +3,6 @@ import { useAppDispatch } from '@/shared/store/hooks';
 import { getAccessToken, apiGet } from '@/shared/services/api';
 import { setUser, setLoading } from '@/shared/store/authSlice';
 import { identifyUser } from '@/shared/services/analytics';
-import { initPurchases } from '@/shared/services/purchases';
 import { registerForPushNotifications } from '@/shared/services/notifications';
 import type { User } from '@/shared/types';
 
@@ -18,7 +17,6 @@ export function useAuthBootstrap() {
           const profile = await apiGet<User>('/users/me');
           dispatch(setUser(profile));
           identifyUser(profile.id, { email: profile.email, role: profile.role });
-          await initPurchases(profile.id);
           registerForPushNotifications().catch(() => {});
         } else {
           dispatch(setLoading(false));

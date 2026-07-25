@@ -3,7 +3,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { apiPost, getApiErrorMessage } from '@/shared/services/api';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
-import { useAppSelector } from '@/shared/store/hooks';
 import type { FamilyMembership } from '@/shared/types';
 
 export interface GroupForm {
@@ -16,8 +15,6 @@ export interface JoinForm {
 
 export function useFamilyGroups() {
   const queryClient = useQueryClient();
-  const user = useAppSelector((s) => s.auth.user);
-  const isPremium = ['premium', 'lifetime', 'admin'].includes(user?.role ?? '');
   const [loading, setLoading] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [joinError, setJoinError] = useState<string | null>(null);
@@ -36,7 +33,6 @@ export function useFamilyGroups() {
     queryKey: ['family-groups'],
     url: '/family/groups',
     itemsKey: 'memberships',
-    enabled: isPremium,
   });
 
   const groupForm = useForm<GroupForm>({ defaultValues: { name: '' } });
@@ -73,7 +69,6 @@ export function useFamilyGroups() {
   };
 
   return {
-    isPremium,
     memberships,
     isLoading,
     loading,

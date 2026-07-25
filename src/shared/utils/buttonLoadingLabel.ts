@@ -26,7 +26,6 @@ const EXACT: Record<string, string> = {
   'Parse Email': 'Parsing email…',
   'Confirm as Expense': 'Confirming…',
   'Download CSV': 'Downloading…',
-  'Restore Purchases': 'Restoring…',
   'Delete': 'Deleting…',
   'Duplicate': 'Duplicating…',
   Google: 'Signing in…',

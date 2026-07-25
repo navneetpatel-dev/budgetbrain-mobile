@@ -7,35 +7,6 @@ import { useTheme } from '@/shared/theme';
 import type { AppTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
 
-function roleLabel(role?: string) {
-  switch (role) {
-    case 'admin':
-      return 'Admin';
-    case 'premium':
-      return 'Premium';
-    case 'lifetime':
-      return 'Lifetime';
-    default:
-      return 'Free plan';
-  }
-}
-
-function roleColors(role: string | undefined, t: AppTheme) {
-  switch (role) {
-    case 'admin':
-      return { bg: t.colors.warningSoft, text: t.colors.warning, border: t.colors.warning + '44' };
-    case 'premium':
-    case 'lifetime':
-      return { bg: t.colors.primarySoft, text: t.colors.primary, border: t.colors.primary + '44' };
-    default:
-      return {
-        bg: t.isDark ? 'rgba(255,255,255,0.08)' : t.colors.surfaceHover,
-        text: t.colors.textSecondary,
-        border: t.isDark ? 'rgba(255,255,255,0.1)' : t.colors.border,
-      };
-  }
-}
-
 export function ProfileHero({
   name,
   email,
@@ -52,7 +23,7 @@ export function ProfileHero({
   const { tabBarPaddingX } = useResponsive();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const initial = name?.[0]?.toUpperCase() ?? '?';
-  const badge = roleColors(role, theme);
+  const isAdmin = role === 'admin';
 
   return (
     <View style={[styles.wrap, { paddingTop: insets.top + 10, paddingHorizontal: tabBarPaddingX }]}>
@@ -93,17 +64,29 @@ export function ProfileHero({
               {email}
             </Text>
           ) : null}
-          <View style={styles.metaRow}>
-            <View style={[styles.roleBadge, { backgroundColor: badge.bg, borderColor: badge.border }]}>
-              <Text style={[styles.roleText, { color: badge.text }]}>{roleLabel(role).toUpperCase()}</Text>
+          {(isAdmin || currency) ? (
+            <View style={styles.metaRow}>
+              {isAdmin ? (
+                <View
+                  style={[
+                    styles.roleBadge,
+                    {
+                      backgroundColor: theme.colors.warningSoft,
+                      borderColor: theme.colors.warning + '44',
+                    },
+                  ]}
+                >
+                  <Text style={[styles.roleText, { color: theme.colors.warning }]}>ADMIN</Text>
+                </View>
+              ) : null}
+              {currency ? (
+                <View style={styles.currencyChip}>
+                  <AppIcon name="wallet" size={11} color="rgba(255,255,255,0.85)" />
+                  <Text style={styles.currencyText}>{currency}</Text>
+                </View>
+              ) : null}
             </View>
-            {currency ? (
-              <View style={styles.currencyChip}>
-                <AppIcon name="wallet" size={11} color="rgba(255,255,255,0.85)" />
-                <Text style={styles.currencyText}>{currency}</Text>
-              </View>
-            ) : null}
-          </View>
+          ) : null}
         </View>
 
       </View>

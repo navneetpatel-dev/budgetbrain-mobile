@@ -1,14 +1,9 @@
-import { useMemo } from 'react';
-import { StyleSheet, Text } from 'react-native';
-import { DateInput, StackScrollScreen, FormSection, FormActions, Button } from '@/shared/components/ui';
+import { StackScrollScreen, FormSection, FormActions, Button, DateInput } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
-import { useTheme } from '@/shared/theme';
 import { useExportReports } from '@/features/reports/hooks/useExportReports';
 
 export default function ReportsScreen() {
-  const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
-  const { isPremium, startDate, setStartDate, endDate, setEndDate, loading, downloadCsv, downloadPdf } = useExportReports();
+  const { startDate, setStartDate, endDate, setEndDate, loading, downloadCsv, downloadPdf } = useExportReports();
 
   return (
     <StackScrollScreen
@@ -26,15 +21,8 @@ export default function ReportsScreen() {
 
       <FormSection title="Download">
         <FormActions primaryTitle="Download CSV" onPrimary={downloadCsv} primaryLoading={loading} />
-        <Button title="Download PDF (Premium)" onPress={downloadPdf} variant="outline" loading={loading} />
-        {!isPremium ? <Text style={styles.premiumHint}>PDF export requires Premium</Text> : null}
+        <Button title="Download PDF" onPress={downloadPdf} variant="outline" loading={loading} />
       </FormSection>
     </StackScrollScreen>
   );
-}
-
-function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    premiumHint: { ...t.typography.caption, color: t.colors.textSecondary, textAlign: 'center', marginTop: t.spacing.sm },
-  });
 }

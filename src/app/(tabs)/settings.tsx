@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import { StyleSheet, View, Text, Switch } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { appHref } from '@/shared/utils/navigation';
 import { useForm, Controller } from 'react-hook-form';
@@ -18,17 +17,15 @@ import {
   SettingsSkeleton,
 } from '@/shared/components/ui';
 import { ProfileHero } from '@/features/settings/components/ProfileHero';
-import { PremiumUpsellCard } from '@/features/settings/components/PremiumUpsellCard';
 import { ThemePicker } from '@/features/settings/components/ThemePicker';
 import { useBiometricToggle } from '@/features/settings/hooks/useBiometricToggle';
 import { useDeleteAccount } from '@/features/settings/hooks/useDeleteAccount';
 import { useEditProfile, type ProfileForm } from '@/features/settings/hooks/useEditProfile';
 import { useLogout } from '@/features/settings/hooks/useLogout';
 import { usePushTest } from '@/features/settings/hooks/usePushTest';
-import { apiGet } from '@/shared/services/api';
 import { useSyncedPreferences } from '@/features/settings/hooks/useSyncedPreferences';
 import { useAppSelector } from '@/shared/store/hooks';
-import { SUBSCRIPTION_PLANS, SUPPORTED_CURRENCIES } from '@/shared/constants/config';
+import { SUPPORTED_CURRENCIES } from '@/shared/constants/config';
 import { useTheme } from '@/shared/theme';
 import { PROFILE_FEATURE_LINKS, PROFILE_ACCOUNT_LINKS } from '@/features/settings/constants/profileLinks';
 import { maxLen, textRules } from '@/shared/validation/fieldLimits';
@@ -54,12 +51,6 @@ export default function SettingsScreen() {
     reset({ name: user?.name ?? '', country: user?.country ?? '', currency: user?.currency ?? 'INR' });
   }, [user, reset]);
 
-  const { data: subscription } = useQuery({
-    queryKey: ['subscription'],
-    queryFn: () =>
-      apiGet<{ role: string; plans: typeof SUBSCRIPTION_PLANS }>('/subscriptions/status'),
-  });
-
   const styles = useMemo(
     () =>
       StyleSheet.create({
@@ -76,8 +67,6 @@ export default function SettingsScreen() {
       }),
     [theme],
   );
-
-  const isPremium = ['premium', 'lifetime', 'admin'].includes(user?.role ?? '');
 
   const onSaveProfile = async (data: ProfileForm) => {
     const ok = await saveProfile(data);
@@ -97,8 +86,6 @@ export default function SettingsScreen() {
         />
       }
     >
-        {!isPremium && <PremiumUpsellCard />}
-
         <GroupedCard title="Features">
           {PROFILE_FEATURE_LINKS.map((link, i) => (
             <ListRow
@@ -168,8 +155,7 @@ export default function SettingsScreen() {
           {!editingProfile ? (
             <>
               <ListRow icon="wallet" label="Currency" value={user?.currency ?? 'INR'} />
-              <ListRow icon="profile" label="Country" value={user?.country ?? '—'} />
-              <ListRow icon="chart" label="Plan" value={subscription?.role ?? user?.role ?? 'free'} isLast />
+              <ListRow icon="profile" label="Country" value={user?.country ?? '—'} isLast />
             </>
           ) : (
             <FormSection title="Edit profile" style={{ margin: theme.spacing.lg, marginTop: 0 }}>

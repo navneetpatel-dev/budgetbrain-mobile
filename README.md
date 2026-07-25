@@ -8,7 +8,7 @@ Cross-platform expense tracking app built with Expo and React Native.
 
 - Expo SDK 56, React Native, TypeScript
 - Expo Router, Redux Toolkit, React Query
-- Expo Secure Store, RevenueCat (dev build), PostHog (optional)
+- Expo Secure Store, PostHog (optional)
 
 ## Prerequisites
 
@@ -45,7 +45,7 @@ Or use **Sign Up** to register a new account.
 
 ## Environment
 
-See `.env.example` for optional keys (PostHog, RevenueCat, Sentry).
+See `.env.example` for optional keys (PostHog, Sentry).
 
 ## Scripts
 
@@ -59,11 +59,9 @@ See `.env.example` for optional keys (PostHog, RevenueCat, Sentry).
 ## Expo Go limitations
 
 - Push notifications require a **development build** (`npx expo run:android`)
-- RevenueCat in-app purchases require a **development build**
 
 ## Features
 
 - Auth, onboarding, dashboard
 - Expenses, budgets, goals, net worth
 - Offline queue, biometric lock, receipt upload
-- Subscription screen (RevenueCat)

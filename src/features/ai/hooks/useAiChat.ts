@@ -12,7 +12,7 @@ function visibleMessages(messages: AiChatMessage[] | null | undefined): AiChatMe
 export function useAiChat() {
   const user = useAppSelector((s) => s.auth.user);
   const currency = user?.currency ?? 'INR';
-  const isPremium = ['premium', 'lifetime', 'admin'].includes(user?.role ?? '');
+  const authenticated = !!user;
   const [message, setMessage] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | undefined>();
@@ -24,14 +24,14 @@ export function useAiChat() {
   const { data: insights, isLoading: insightsLoading } = useQuery({
     queryKey: ['ai-insights'],
     queryFn: () => apiGet<AiInsight>('/ai/insights'),
-    enabled: isPremium,
+    enabled: authenticated,
     retry: false,
   });
 
   const { data: anomalies, isLoading: anomaliesLoading } = useQuery({
     queryKey: ['ai-anomalies'],
     queryFn: () => apiGet<{ anomalies: AiAnomaly[] }>('/ai/anomalies'),
-    enabled: isPremium,
+    enabled: authenticated,
     retry: false,
   });
 
@@ -42,7 +42,7 @@ export function useAiChat() {
   } = useQuery({
     queryKey: ['ai-conversations'],
     queryFn: () => apiGet<AiConversationSummary[]>('/ai/conversations'),
-    enabled: isPremium,
+    enabled: authenticated,
     retry: false,
   });
 
@@ -56,27 +56,21 @@ export function useAiChat() {
   } = useQuery({
     queryKey: ['ai-conversation', latestConversationId],
     queryFn: () => apiGet<AiConversation>(`/ai/conversations/${latestConversationId}`),
-    enabled: isPremium && !!latestConversationId,
+    enabled: authenticated && !!latestConversationId,
     retry: false,
   });
 
   useEffect(() => {
-    if (!isPremium) {
-      seededFromId.current = null;
-      setConversationId(undefined);
-      setMessages([]);
-      return;
-    }
     if (!latestConversation?.id) return;
     if (seededFromId.current === latestConversation.id) return;
 
     seededFromId.current = latestConversation.id;
     setConversationId(latestConversation.id);
     setMessages(visibleMessages(latestConversation.messages));
-  }, [isPremium, latestConversation]);
+  }, [latestConversation]);
 
   const historyLoading =
-    isPremium &&
+    authenticated &&
     (!conversationsFetched ||
       conversationsLoading ||
       (!!latestConversationId && !conversationFetched && !conversationError) ||
@@ -115,7 +109,6 @@ export function useAiChat() {
 
   return {
     currency,
-    isPremium,
     message,
     setMessage,
     chatLoading,

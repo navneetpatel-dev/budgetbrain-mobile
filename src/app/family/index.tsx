@@ -1,17 +1,14 @@
 import { useMemo } from 'react';
 import { StyleSheet, Text } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Controller } from 'react-hook-form';
 import {
   Input,
   Card,
   StackScrollScreen,
-  EmptyState,
   FormSection,
   FormActions,
   FormErrorBanner,
   FormSuccessBanner,
-  FormInfoBanner,
   FamilySkeleton,
 } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
@@ -22,9 +19,7 @@ import { inviteCodeRules, maxLen, textRules } from '@/shared/validation/fieldLim
 export default function FamilyScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const router = useRouter();
   const {
-    isPremium,
     memberships,
     isLoading,
     loading,
@@ -37,27 +32,6 @@ export default function FamilyScreen() {
     createSuccess,
     joinSuccess,
   } = useFamilyGroups();
-
-  if (!isPremium) {
-    return (
-      <StackScrollScreen
-        header={
-          <ProfileStackHeader
-            screen="family"
-            subtitle="Share budgets with family members"
-          />
-        }
-      >
-        <EmptyState
-          icon="family"
-          title="Family Accounts is Premium"
-          subtitle="Share budgets and track expenses together with family members"
-          action="Upgrade to Premium"
-          onAction={() => router.push('/subscription')}
-        />
-      </StackScrollScreen>
-    );
-  }
 
   const groups = memberships ?? [];
 
