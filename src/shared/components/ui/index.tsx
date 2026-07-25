@@ -863,8 +863,20 @@ function createSectionStyles(t: AppTheme) {
       justifyContent: 'space-between',
       alignItems: 'center',
       marginBottom: t.spacing.sm,
+      minHeight: 28,
     },
-    title: { ...t.typography.titleSm, color: t.colors.text },
-    action: { ...t.typography.bodySemibold, color: t.colors.primary, fontSize: 14 },
+    title: {
+      fontSize: 15,
+      fontWeight: '600',
+      letterSpacing: -0.2,
+      color: t.colors.text,
+      fontFamily: t.typography.titleSm.fontFamily,
+    },
+    action: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: t.colors.primary,
+      fontFamily: t.typography.bodySemibold.fontFamily,
+    },
   });
 }

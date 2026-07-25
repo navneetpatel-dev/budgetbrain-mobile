@@ -102,52 +102,58 @@ export default function CategoriesScreen() {
           )
         }
         renderItem={({ item, index }) => (
-          <Card style={styles.catCard}>
-            <View style={styles.catRow}>
-              <View style={[styles.dot, { backgroundColor: item.color ?? theme.colors.primary }]} />
-              <Text style={styles.catName}>{item.name}</Text>
-              <View style={styles.actions}>
-                <Pressable
-                  onPress={() => moveCategory(index, -1)}
-                  style={styles.iconBtn}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Move ${item.name} up`}
-                  hitSlop={6}
-                >
-                  <AppIcon name="arrowUp" size={16} color={theme.colors.primary} />
-                </Pressable>
-                <Pressable
-                  onPress={() => moveCategory(index, 1)}
-                  style={styles.iconBtn}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Move ${item.name} down`}
-                  hitSlop={6}
-                >
-                  <AppIcon name="arrowDown" size={16} color={theme.colors.primary} />
-                </Pressable>
-                <Pressable
-                  onPress={() => openEdit(item)}
-                  style={styles.iconBtn}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Edit ${item.name}`}
-                  hitSlop={6}
-                >
-                  <AppIcon name="edit" size={16} color={theme.colors.primary} />
-                </Pressable>
-                {!item.isDefault && (
+          <Pressable
+            onPress={() => openEdit(item)}
+            accessibilityRole="button"
+            accessibilityLabel={`Edit ${item.name}`}
+          >
+            <Card style={styles.catCard}>
+              <View style={styles.catRow}>
+                <View style={[styles.dot, { backgroundColor: item.color ?? theme.colors.primary }]} />
+                <Text style={styles.catName}>{item.name}</Text>
+                <View style={styles.actions}>
                   <Pressable
-                    onPress={() => archiveCategory(item.id, item.name)}
-                    style={styles.iconBtn}
+                    onPress={() => moveCategory(index, -1)}
+                    style={({ pressed }) => [styles.iconBtn, pressed && styles.iconBtnPressed]}
                     accessibilityRole="button"
-                    accessibilityLabel={`Archive ${item.name}`}
-                    hitSlop={6}
+                    accessibilityLabel={`Move ${item.name} up`}
+                    hitSlop={4}
                   >
-                    <AppIcon name="trash" size={16} color={theme.colors.danger} />
+                    <AppIcon name="arrowUp" size={18} color={theme.colors.primary} />
                   </Pressable>
-                )}
+                  <Pressable
+                    onPress={() => moveCategory(index, 1)}
+                    style={({ pressed }) => [styles.iconBtn, pressed && styles.iconBtnPressed]}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Move ${item.name} down`}
+                    hitSlop={4}
+                  >
+                    <AppIcon name="arrowDown" size={18} color={theme.colors.primary} />
+                  </Pressable>
+                  <Pressable
+                    onPress={() => openEdit(item)}
+                    style={({ pressed }) => [styles.iconBtn, pressed && styles.iconBtnPressed]}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Edit ${item.name}`}
+                    hitSlop={4}
+                  >
+                    <AppIcon name="edit" size={17} color={theme.colors.primary} />
+                  </Pressable>
+                  {!item.isDefault && (
+                    <Pressable
+                      onPress={() => archiveCategory(item.id, item.name)}
+                      style={({ pressed }) => [styles.iconBtnDanger, pressed && styles.iconBtnPressed]}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Archive ${item.name}`}
+                      hitSlop={4}
+                    >
+                      <AppIcon name="trash" size={16} color={theme.colors.danger} />
+                    </Pressable>
+                  )}
+                </View>
               </View>
-            </View>
-          </Card>
+            </Card>
+          </Pressable>
         )}
       />
 
@@ -163,13 +169,23 @@ function createStyles(t: ReturnType<typeof useTheme>) {
     catRow: { flexDirection: 'row', alignItems: 'center' },
     dot: { width: 12, height: 12, borderRadius: 6, marginRight: 10 },
     catName: { flex: 1, fontSize: 15, fontWeight: '600', color: t.colors.text },
-    actions: { flexDirection: 'row', gap: 4, alignItems: 'center' },
+    actions: { flexDirection: 'row', gap: 6, alignItems: 'center' },
     iconBtn: {
-      width: 32,
-      height: 32,
+      width: 34,
+      height: 34,
       alignItems: 'center',
       justifyContent: 'center',
-      borderRadius: 8,
+      borderRadius: 17,
+      backgroundColor: t.colors.primary + '14',
     },
+    iconBtnDanger: {
+      width: 34,
+      height: 34,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 17,
+      backgroundColor: t.colors.danger + '12',
+    },
+    iconBtnPressed: { opacity: 0.72, transform: [{ scale: 0.94 }] },
   });
 }

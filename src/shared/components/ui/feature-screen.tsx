@@ -264,23 +264,33 @@ export function HeaderIconButton({
   onPress,
   label,
   variant = 'soft',
+  badge,
 }: {
   icon: AppIconName;
   onPress: () => void;
   label: string;
   variant?: 'soft' | 'solid';
+  /** Show a small active indicator (e.g. filter count). */
+  badge?: number | boolean;
 }) {
   const theme = useTheme();
   const styles = useMemo(() => createIconBtnStyles(theme, variant), [theme, variant]);
+  const showBadge = typeof badge === 'number' ? badge > 0 : !!badge;
+  const badgeLabel = typeof badge === 'number' && badge > 0 ? String(badge > 9 ? '9+' : badge) : null;
 
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.btn, pressed && { opacity: 0.88 }]}
+      style={({ pressed }) => [styles.btn, showBadge && styles.btnActive, pressed && { opacity: 0.88 }]}
       accessibilityRole="button"
       accessibilityLabel={label}
     >
       <AppIcon name={icon} size={20} color={variant === 'solid' ? theme.colors.onPrimary : theme.colors.primary} />
+      {showBadge ? (
+        <View style={styles.badge}>
+          {badgeLabel ? <Text style={styles.badgeText}>{badgeLabel}</Text> : null}
+        </View>
+      ) : null}
     </Pressable>
   );
 }
@@ -423,7 +433,12 @@ export function OptionChips<T extends string>({
                 accessibilityRole="button"
                 accessibilityState={{ selected }}
               >
-                <Text style={[styles.segmentText, selected && { color: accent, fontWeight: '700' }]}>
+                <Text
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.85}
+                  style={[styles.segmentText, selected && { color: accent }]}
+                >
                   {getLabel(opt)}
                 </Text>
               </Pressable>
@@ -455,7 +470,7 @@ export function OptionChips<T extends string>({
               accessibilityRole="button"
               accessibilityState={{ selected }}
             >
-              <Text style={[styles.chipText, selected && { color: accent, fontWeight: '700' }]}>
+              <Text style={[styles.chipText, selected && { color: accent }]}>
                 {getLabel(opt)}
               </Text>
             </Pressable>
@@ -764,7 +779,7 @@ export function StickyHeaderFlatScreen<T>({
 function createHeaderStyles(t: AppTheme) {
   return StyleSheet.create({
     wrap: {
-      paddingBottom: t.spacing.md,
+      paddingBottom: t.spacing.sm,
       borderBottomWidth: 1,
       borderBottomColor: t.isDark ? 'rgba(255,255,255,0.06)' : t.colors.borderSubtle,
       backgroundColor: t.colors.background,
@@ -830,7 +845,7 @@ function createHeaderStyles(t: AppTheme) {
       borderWidth: 1,
       borderColor: t.colors.primary + '33',
     },
-    footer: { marginTop: t.spacing.sm },
+    footer: { marginTop: 6 },
   });
 }
 
@@ -911,12 +926,37 @@ function createIconBtnStyles(t: AppTheme, variant: 'soft' | 'solid') {
       borderWidth: variant === 'soft' ? 1 : 0,
       borderColor: t.colors.primary + '33',
     },
+    btnActive: {
+      borderColor: t.colors.primary,
+      borderWidth: 1.5,
+      backgroundColor: t.colors.primary + '28',
+    },
+    badge: {
+      position: 'absolute',
+      top: 6,
+      right: 6,
+      minWidth: 14,
+      height: 14,
+      borderRadius: 7,
+      paddingHorizontal: 3,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: t.colors.primary,
+      borderWidth: 1.5,
+      borderColor: t.colors.surface,
+    },
+    badgeText: {
+      color: t.colors.onPrimary,
+      fontSize: 9,
+      fontWeight: '700',
+      lineHeight: 11,
+    },
   });
 }
 
 function createChipStyles(t: AppTheme) {
   return StyleSheet.create({
-    container: { marginBottom: t.spacing.lg },
+    container: { marginBottom: 0 },
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     scrollRow: { flexDirection: 'row', gap: 8, paddingVertical: 2 },
     segmented: {
@@ -929,19 +969,19 @@ function createChipStyles(t: AppTheme) {
     },
     segment: {
       flex: 1,
+      minWidth: 0,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: 11,
-      paddingHorizontal: 6,
+      paddingVertical: 10,
+      paddingHorizontal: 4,
       borderRightWidth: StyleSheet.hairlineWidth,
       borderRightColor: t.isDark ? 'rgba(255,255,255,0.1)' : t.colors.borderSubtle,
       borderWidth: 0,
     },
     segmentText: {
-      fontSize: 13,
+      fontSize: 12,
       fontWeight: '600',
       color: t.colors.text,
-      textTransform: 'capitalize',
       textAlign: 'center',
     },
     selectControl: {

@@ -1,28 +1,26 @@
-import { useMemo } from 'react';
-import { StyleSheet, View, RefreshControl, Text, Pressable } from 'react-native';
+import { RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import type { Href } from 'expo-router';
-import { appHref } from '@/shared/utils/navigation';
 import {
-  Card,
   EmptyState,
   ListRowsSkeleton,
   FeatureHeader,
   StickyHeaderFlatScreen,
-  ProgressBar,
   useStackBack,
 } from '@/shared/components/ui';
+import { GoalCard } from '@/features/goals/components/GoalCard';
+import { useDeleteGoal } from '@/features/goals/hooks/useDeleteGoal';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
+import { CONFIRM } from '@/shared/constants/confirmations';
+import { showAlert, showConfirmation } from '@/shared/utils/confirmations';
 import { useTheme } from '@/shared/theme';
-import { formatCurrency } from '@/shared/utils/currency';
-import { toSafePercent } from '@/shared/utils/number';
 import type { Goal } from '@/shared/types';
 
 export default function GoalsScreen() {
   const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
   const goBack = useStackBack('/(tabs)' as Href);
+  const { deleteGoal } = useDeleteGoal();
   const { data: goals, total, isLoading, isError, refetch, isRefetching } = usePaginatedList<Goal, 'goals'>({
     queryKey: ['goals'],
     url: '/goals',
@@ -69,43 +67,16 @@ export default function GoalsScreen() {
           />
         )
       }
-      renderItem={({ item }) => {
-        const progress = toSafePercent(item.currentAmount, item.targetAmount);
-
-        return (
-          <Pressable
-            onPress={() => router.push(appHref(`/goal/${item.id}`))}
-            accessibilityRole="button"
-            accessibilityLabel={`Open ${item.name}`}
-          >
-            <Card style={styles.goalCard}>
-              <Text style={styles.goalName}>{item.name}</Text>
-              <Text style={styles.goalType}>{item.type.replace('_', ' ')}</Text>
-              <View style={styles.amountBlock}>
-                <Text style={styles.current}>{formatCurrency(Number(item.currentAmount), item.currency)}</Text>
-                <Text style={styles.target}>of {formatCurrency(Number(item.targetAmount), item.currency)}</Text>
-              </View>
-              <ProgressBar
-                progress={progress}
-                color={progress >= 100 ? theme.colors.success : theme.colors.primary}
-              />
-              <Text style={styles.progressText}>{progress}% achieved</Text>
-            </Card>
-          </Pressable>
-        );
-      }}
+      renderItem={({ item }) => (
+        <GoalCard
+          goal={item}
+          onDelete={() =>
+            showConfirmation(CONFIRM.deleteGoal, () =>
+              deleteGoal(item.id).catch(() => showAlert('Error', 'Could not delete goal')),
+            )
+          }
+        />
+      )}
     />
   );
-}
-
-function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    goalCard: { marginBottom: 0 },
-    goalName: { ...t.typography.titleSm, color: t.colors.text },
-    goalType: { ...t.typography.caption, color: t.colors.textSecondary, textTransform: 'capitalize', marginBottom: 8 },
-    amountBlock: { marginBottom: 12 },
-    current: { ...t.typography.amount, color: t.colors.primary },
-    target: { ...t.typography.caption, color: t.colors.textTertiary, marginTop: 2, fontWeight: '500' },
-    progressText: { ...t.typography.caption, color: t.colors.textSecondary, marginTop: 6 },
-  });
 }

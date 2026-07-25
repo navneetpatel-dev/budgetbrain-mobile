@@ -38,8 +38,17 @@ export function TransactionItem({
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const isExpense = transaction.type === 'expense';
-  const catColor = transaction.category?.color ?? theme.colors.primary;
+  const accent =
+    (isExpense ? transaction.category?.color : undefined) ?? theme.colors.primary;
   const formattedAmount = formatCurrency(Number(transaction.amount), transaction.currency);
+  const title = isExpense
+    ? (transaction.merchant ?? transaction.category?.name ?? 'Expense')
+    : (transaction.incomeSource?.name ?? transaction.merchant ?? 'Income');
+  const dateLabel = formatDate(transaction.date);
+  const entityLabel = isExpense
+    ? transaction.category?.name
+    : transaction.incomeSource?.name;
+  const a11yMeta = entityLabel ? `${dateLabel}, ${entityLabel}` : dateLabel;
 
   return (
     <Pressable
@@ -52,16 +61,32 @@ export function TransactionItem({
         pressed && styles.pressed,
       ]}
       accessibilityRole={onPress ? 'button' : undefined}
-      accessibilityLabel={`${transaction.merchant ?? transaction.category?.name ?? 'Transaction'}, ${formatDate(transaction.date)}`}
+      accessibilityLabel={`${title}, ${a11yMeta}`}
     >
-      <View style={[styles.icon, { backgroundColor: catColor + '18' }]}>
-        <View style={[styles.dot, { backgroundColor: catColor }]} />
+      <View style={[styles.icon, { backgroundColor: accent + '18' }]}>
+        <View style={[styles.dot, { backgroundColor: accent }]} />
       </View>
       <View style={styles.content}>
         <Text style={styles.merchant} numberOfLines={1}>
-          {transaction.merchant ?? transaction.category?.name ?? 'Transaction'}
+          {title}
         </Text>
-        <Text style={styles.date}>{formatDate(transaction.date)}</Text>
+        <View style={styles.metaRow}>
+          <Text style={styles.date} numberOfLines={1}>
+            {dateLabel}
+          </Text>
+          {entityLabel ? (
+            <View
+              style={[
+                styles.entityChip,
+                { backgroundColor: accent + '18', borderColor: accent + '44' },
+              ]}
+            >
+              <Text style={[styles.entityChipText, { color: accent }]} numberOfLines={1}>
+                {entityLabel}
+              </Text>
+            </View>
+          ) : null}
+        </View>
       </View>
       <View style={styles.amountCol}>
         <Text style={[styles.amount, isExpense ? styles.expense : styles.income]}>
@@ -127,9 +152,31 @@ function createStyles(t: ReturnType<typeof useTheme>) {
       justifyContent: 'center',
     },
     dot: { width: 10, height: 10, borderRadius: 5 },
-    content: { flex: 1 },
+    content: { flex: 1, minWidth: 0 },
     merchant: { ...t.typography.bodyMedium, color: t.colors.text, fontWeight: '600' },
-    date: { ...t.typography.caption, color: t.colors.textTertiary, marginTop: 2 },
+    metaRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: 6,
+      marginTop: 4,
+    },
+    date: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: t.colors.textTertiary,
+    },
+    entityChip: {
+      maxWidth: '70%',
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: t.radii.full,
+      borderWidth: 1,
+    },
+    entityChipText: {
+      fontSize: 11,
+      fontWeight: '700',
+    },
     amountCol: { alignItems: 'flex-end' },
     amount: { ...t.typography.bodySemibold, fontSize: 15, fontVariant: ['tabular-nums'] },
     expense: { color: t.colors.danger },

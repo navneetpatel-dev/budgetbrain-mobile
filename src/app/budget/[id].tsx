@@ -29,10 +29,10 @@ export default function BudgetDetailScreen() {
   const theme = useTheme();
   const router = useRouter();
   const { amountLabel } = useUserCurrency();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, edit } = useLocalSearchParams<{ id: string; edit?: string }>();
   const { budget, isLoading, isError, refetch, loading, save, populateForm, submitError } = useBudgetDetail(id);
   const { deleteBudget } = useDeleteBudget();
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(edit === '1' || edit === 'true');
   const [deleting, setDeleting] = useState(false);
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<BudgetForm>({

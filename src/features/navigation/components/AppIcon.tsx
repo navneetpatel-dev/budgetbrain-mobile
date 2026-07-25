@@ -28,6 +28,8 @@ const ICONS = {
   document: { ios: 'doc.text.fill', android: 'description', web: 'description' },
   calendar: { ios: 'calendar', android: 'calendar_today', web: 'calendar_today' },
   category: { ios: 'square.grid.2x2.fill', android: 'category', web: 'category' },
+  filter: { ios: 'line.3.horizontal.decrease.circle', android: 'filter_list', web: 'filter_list' },
+  more: { ios: 'ellipsis', android: 'more_horiz', web: 'more_horiz' },
   sun: { ios: 'sun.max.fill', android: 'wb_sunny', web: 'wb_sunny' },
   moon: { ios: 'moon.fill', android: 'dark_mode', web: 'dark_mode' },
   auto: { ios: 'circle.lefthalf.filled', android: 'brightness_auto', web: 'brightness_auto' },
@@ -38,9 +40,9 @@ const ICONS = {
   personFill: { ios: 'person.fill', android: 'person', web: 'person' },
   checkmark: { ios: 'checkmark.circle.fill', android: 'check_circle', web: 'check_circle' },
   arrowLeft: { ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' },
-  arrowUp: { ios: 'arrow.up', android: 'arrow_upward', web: 'arrow_upward' },
-  arrowDown: { ios: 'arrow.down', android: 'arrow_downward', web: 'arrow_downward' },
-  edit: { ios: 'pencil', android: 'edit', web: 'edit' },
+  arrowUp: { ios: 'chevron.up', android: 'keyboard_arrow_up', web: 'keyboard_arrow_up' },
+  arrowDown: { ios: 'chevron.down', android: 'keyboard_arrow_down', web: 'keyboard_arrow_down' },
+  edit: { ios: 'square.and.pencil', android: 'edit_note', web: 'edit_note' },
   close: { ios: 'xmark', android: 'close', web: 'close' },
   apple: { ios: 'apple.logo', android: 'phone_iphone', web: 'phone_iphone' },
   eye: { ios: 'eye', android: 'visibility', web: 'visibility' },
@@ -76,7 +78,7 @@ export function AppIcon({
         tintColor={color}
         size={size}
         style={{ width: size, height: size }}
-        {...(Platform.OS === 'ios' ? { weight: 'medium' as const } : {})}
+        {...(Platform.OS === 'ios' ? { weight: 'semibold' as const } : {})}
       />
     </View>
   );

@@ -33,11 +33,13 @@ export interface Transaction {
   amount: number;
   currency: string;
   categoryId: string | null;
+  incomeSourceId?: string | null;
   notes: string | null;
   merchant: string | null;
   date: string;
   paymentMethod: string | null;
   category?: Category;
+  incomeSource?: IncomeSource;
 }
 
 export interface Budget {

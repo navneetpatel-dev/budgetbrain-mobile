@@ -21,7 +21,6 @@ import { DashboardHero } from '@/features/dashboard/components/DashboardHero';
 import { useDashboardWidgets } from '@/features/dashboard/hooks/useDashboardWidgets';
 import { useTheme } from '@/shared/theme';
 import { useAppSelector } from '@/shared/store/hooks';
-import { useResponsive } from '@/shared/utils/responsive';
 import { formatCurrency } from '@/shared/utils/currency';
 import { toSafePercent } from '@/shared/utils/number';
 import type { DashboardData } from '@/shared/types';
@@ -35,8 +34,8 @@ export default function DashboardScreen() {
   const theme = useTheme();
   const user = useAppSelector((s) => s.auth.user);
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const { sectionGap } = useResponsive();
-  const sectionStyle = useMemo(() => ({ gap: sectionGap }), [sectionGap]);
+  // Parent scroll already spaces sections; keep header→card tight (SectionHeader has its own margin).
+  const sectionStyle = useMemo(() => ({ gap: 0 }), []);
 
   const { data, isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ['dashboard'],
@@ -134,10 +133,28 @@ export default function DashboardScreen() {
             </SummaryMetricsGrid>
           </ScreenSection>
 
-          <ScreenSection>
-            <Card variant="elevated">
-              <SectionHeader title="Spending by Category" />
-              <CategoryChart data={data.categoryBreakdown ?? []} currency={currency} />
+          <ScreenSection style={sectionStyle}>
+            <SectionHeader
+              title="Spending by Category"
+              action="See all"
+              onAction={() =>
+                router.push({
+                  pathname: '/(tabs)/expenses',
+                  params: { type: 'expense' },
+                })
+              }
+            />
+            <Card variant="elevated" style={styles.listCard}>
+              <CategoryChart
+                data={data.categoryBreakdown ?? []}
+                currency={currency}
+                onCategoryPress={(categoryId) =>
+                  router.push({
+                    pathname: '/(tabs)/expenses',
+                    params: { type: 'expense', categoryId },
+                  })
+                }
+              />
             </Card>
           </ScreenSection>
 
@@ -148,14 +165,26 @@ export default function DashboardScreen() {
                 action="See all"
                 onAction={() => router.push('/(tabs)/budgets')}
               />
-              <Card variant="elevated">
+              <Card variant="elevated" style={styles.listCard}>
                 {budgetWidgets.map(({ budget, spent, limit, progress }, i) => (
-                  <View key={budget.id} style={[styles.widgetRow, i < budgetWidgets.length - 1 && styles.widgetDivider]}>
+                  <View
+                    key={budget.id}
+                    style={[
+                      styles.widgetRow,
+                      i === 0 && styles.widgetRowFirst,
+                      i === budgetWidgets.length - 1 && styles.widgetRowLast,
+                      i < budgetWidgets.length - 1 && styles.widgetDivider,
+                    ]}
+                  >
                     <View style={styles.widgetHeader}>
                       <Text style={styles.widgetName} numberOfLines={1}>{budget.name}</Text>
                       <Text style={styles.widgetPct}>{progress}%</Text>
                     </View>
-                    <ProgressBar progress={progress} color={progress >= budget.alertThreshold ? theme.colors.warning : theme.colors.primary} />
+                    <ProgressBar
+                      progress={progress}
+                      height={6}
+                      color={progress >= budget.alertThreshold ? theme.colors.warning : theme.colors.primary}
+                    />
                     <Text style={styles.widgetMeta}>
                       {formatCurrency(spent, budget.currency)} / {formatCurrency(limit, budget.currency)}
                     </Text>
@@ -172,14 +201,22 @@ export default function DashboardScreen() {
                 action="See all"
                 onAction={() => router.push('/(tabs)/goals')}
               />
-              <Card variant="elevated">
+              <Card variant="elevated" style={styles.listCard}>
                 {goalWidgets.map(({ goal, current, target, progress }, i) => (
-                  <View key={goal.id} style={[styles.widgetRow, i < goalWidgets.length - 1 && styles.widgetDivider]}>
+                  <View
+                    key={goal.id}
+                    style={[
+                      styles.widgetRow,
+                      i === 0 && styles.widgetRowFirst,
+                      i === goalWidgets.length - 1 && styles.widgetRowLast,
+                      i < goalWidgets.length - 1 && styles.widgetDivider,
+                    ]}
+                  >
                     <View style={styles.widgetHeader}>
                       <Text style={styles.widgetName} numberOfLines={1}>{goal.name}</Text>
                       <Text style={styles.widgetPct}>{progress}%</Text>
                     </View>
-                    <ProgressBar progress={progress} color={theme.colors.success} />
+                    <ProgressBar progress={progress} height={6} color={theme.colors.success} />
                     <Text style={styles.widgetMeta}>
                       {formatCurrency(current, goal.currency)} / {formatCurrency(target, goal.currency)}
                     </Text>
@@ -230,14 +267,46 @@ export default function DashboardScreen() {
 
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    widgetRow: { paddingVertical: t.spacing.md },
+    listCard: {
+      padding: 0,
+      overflow: 'hidden',
+    },
+    widgetRow: {
+      paddingHorizontal: t.spacing.lg,
+      paddingVertical: 14,
+    },
+    widgetRowFirst: { paddingTop: t.spacing.md },
+    widgetRowLast: { paddingBottom: t.spacing.md },
     widgetDivider: {
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: t.colors.borderSubtle,
     },
-    widgetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-    widgetName: { ...t.typography.bodyMedium, color: t.colors.text, fontWeight: '600', flex: 1, marginRight: 8 },
-    widgetPct: { ...t.typography.caption, color: t.colors.textSecondary, fontWeight: '600' },
-    widgetMeta: { ...t.typography.caption, color: t.colors.textTertiary, marginTop: 6 },
+    widgetHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+      gap: 8,
+    },
+    widgetName: {
+      fontSize: 15,
+      fontWeight: '600',
+      letterSpacing: -0.1,
+      color: t.colors.text,
+      flex: 1,
+    },
+    widgetPct: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: t.colors.textSecondary,
+      fontVariant: ['tabular-nums'],
+    },
+    widgetMeta: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: t.colors.textTertiary,
+      marginTop: 8,
+      fontVariant: ['tabular-nums'],
+    },
   });
 }

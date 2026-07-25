@@ -27,9 +27,9 @@ export default function GoalDetailScreen() {
   const theme = useTheme();
   const router = useRouter();
   const { amountLabel } = useUserCurrency();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, edit } = useLocalSearchParams<{ id: string; edit?: string }>();
   const { goal, isLoading, isError, refetch, loading, save, populateForm, confirmDelete, submitError } = useGoalDetail(id);
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(edit === '1' || edit === 'true');
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<GoalForm>({
     defaultValues: { name: '', targetAmount: '', targetDate: '' },
