@@ -73,7 +73,7 @@ export function OtpLoginScreen() {
                 value={value}
                 onChangeText={onChange}
                 keyboardType="number-pad"
-                maxLength={6}
+                maxLength={maxLen('otp')}
                 placeholder="000000"
                 textContentType="oneTimeCode"
                 autoComplete="one-time-code"

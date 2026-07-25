@@ -99,7 +99,7 @@ export default function AccountsScreen() {
               name="accountNumberLast4"
               rules={last4Rules()}
               render={({ field: { onChange, value } }) => (
-                <Input label="Last 4 digits" value={value} onChangeText={onChange} keyboardType="number-pad" maxLength={4} helperText="Optional — for identification only" disabled={loading} error={errors.accountNumberLast4?.message} />
+                <Input label="Last 4 digits" value={value} onChangeText={onChange} keyboardType="number-pad" maxLength={maxLen('accountNumberLast4')} helperText="Optional — for identification only" disabled={loading} error={errors.accountNumberLast4?.message} />
               )}
             />
           </>
