@@ -20,7 +20,7 @@ export function GoalCard({
   const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
   const progress = toSafePercent(goal.currentAmount, goal.targetAmount);
-  const goToEdit = () => router.push(appHref(`/goal/${goal.id}?edit=1`));
+  const openGoal = () => router.push(appHref(`/goal/${goal.id}`));
 
   return (
     <Card style={styles.goalCard}>
@@ -31,10 +31,10 @@ export function GoalCard({
         </View>
         <View style={styles.actions}>
           <Pressable
-            onPress={goToEdit}
+            onPress={openGoal}
             hitSlop={8}
             accessibilityRole="button"
-            accessibilityLabel={`Edit ${goal.name}`}
+            accessibilityLabel={`Open ${goal.name}`}
           >
             <AppIcon name="edit" size={18} color={theme.colors.textTertiary} />
           </Pressable>
