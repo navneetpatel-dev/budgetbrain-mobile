@@ -188,7 +188,11 @@ export default function DashboardScreen() {
                   <TransactionItem
                     key={tx.id}
                     transaction={tx}
-                    onPress={() => router.push(appHref(`/expense/${tx.id}`))}
+                    onPress={() =>
+                      router.push(
+                        appHref(tx.type === 'income' ? `/income/${tx.id}` : `/expense/${tx.id}`),
+                      )
+                    }
                     isFirst={i === 0}
                     isLast={i === transactions.length - 1}
                   />

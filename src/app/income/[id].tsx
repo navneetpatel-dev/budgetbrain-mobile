@@ -23,7 +23,19 @@ export default function IncomeDetailScreen() {
   const theme = useTheme();
   const { amountLabel } = useUserCurrency();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { income, isLoading, loading, save, populateForm, confirmDelete, submitError } = useIncomeDetail(id);
+  const {
+    income,
+    isLoading,
+    loading,
+    updating,
+    duplicating,
+    deleting,
+    save,
+    duplicate,
+    populateForm,
+    confirmDelete,
+    submitError,
+  } = useIncomeDetail(id);
   const [editing, setEditing] = useState(false);
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<IncomeForm>({
@@ -73,8 +85,11 @@ export default function IncomeDetailScreen() {
               populateForm(reset);
               setEditing(true);
             }}
+            secondaryTitle="Duplicate"
+            onSecondary={duplicate}
+            secondaryLoading={duplicating}
             onDestructive={confirmDelete}
-            destructiveLoading={loading}
+            destructiveLoading={deleting}
           />
         </>
       ) : (
@@ -108,8 +123,10 @@ export default function IncomeDetailScreen() {
 
           <FormActions
             primaryTitle="Save Changes"
-            onPrimary={handleSubmit(save)}
-            primaryLoading={loading}
+            onPrimary={handleSubmit(async (data) => {
+              if (await save(data)) setEditing(false);
+            })}
+            primaryLoading={updating}
             secondaryTitle="Cancel"
             onSecondary={() => setEditing(false)}
           />

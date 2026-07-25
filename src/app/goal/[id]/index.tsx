@@ -126,7 +126,9 @@ export default function GoalDetailScreen() {
 
           <FormActions
             primaryTitle="Save Changes"
-            onPrimary={handleSubmit(save)}
+            onPrimary={handleSubmit(async (data) => {
+              if (await save(data)) setEditing(false);
+            })}
             primaryLoading={loading}
             secondaryTitle="Cancel"
             onSecondary={() => setEditing(false)}

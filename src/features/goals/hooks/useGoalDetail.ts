@@ -42,16 +42,19 @@ export function useGoalDetail(id: string) {
     setLoading(true);
     setSubmitError(null);
     try {
-      await apiPatch(`/goals/${id}`, {
+      const updated = await apiPatch<Goal>(`/goals/${id}`, {
         name: data.name,
         targetAmount: Number(data.targetAmount),
         targetDate: data.targetDate || undefined,
       });
-      queryClient.invalidateQueries({ queryKey: ['goals'] });
+      queryClient.setQueryData(['goal', id], updated);
       queryClient.invalidateQueries({ queryKey: ['goal', id] });
-      router.back();
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      return true;
     } catch (err) {
       setSubmitError(getApiErrorMessage(err, 'Could not update goal'));
+      return false;
     } finally {
       setLoading(false);
     }

@@ -65,35 +65,25 @@ export default function GoalsScreen() {
         const progress = toSafePercent(item.currentAmount, item.targetAmount);
 
         return (
-          <Card style={styles.goalCard}>
-            <Text style={styles.goalName}>{item.name}</Text>
-            <Text style={styles.goalType}>{item.type.replace('_', ' ')}</Text>
-            <View style={styles.amountBlock}>
-              <Text style={styles.current}>{formatCurrency(Number(item.currentAmount), item.currency)}</Text>
-              <Text style={styles.target}>of {formatCurrency(Number(item.targetAmount), item.currency)}</Text>
-            </View>
-            <ProgressBar
-              progress={progress}
-              color={progress >= 100 ? theme.colors.success : theme.colors.primary}
-            />
-            <Text style={styles.progressText}>{progress}% achieved</Text>
-            <View style={styles.goalActions}>
-              <Pressable
-                onPress={() => router.push(appHref(`/goal/${item.id}`))}
-                accessibilityRole="button"
-                accessibilityLabel={`Edit ${item.name}`}
-              >
-                <Text style={styles.editText}>Edit</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => router.push(appHref(`/goal/${item.id}/contribute`))}
-                accessibilityRole="button"
-                accessibilityLabel={`Contribute to ${item.name}`}
-              >
-                <Text style={styles.contributeText}>+ Contribute</Text>
-              </Pressable>
-            </View>
-          </Card>
+          <Pressable
+            onPress={() => router.push(appHref(`/goal/${item.id}`))}
+            accessibilityRole="button"
+            accessibilityLabel={`Open ${item.name}`}
+          >
+            <Card style={styles.goalCard}>
+              <Text style={styles.goalName}>{item.name}</Text>
+              <Text style={styles.goalType}>{item.type.replace('_', ' ')}</Text>
+              <View style={styles.amountBlock}>
+                <Text style={styles.current}>{formatCurrency(Number(item.currentAmount), item.currency)}</Text>
+                <Text style={styles.target}>of {formatCurrency(Number(item.targetAmount), item.currency)}</Text>
+              </View>
+              <ProgressBar
+                progress={progress}
+                color={progress >= 100 ? theme.colors.success : theme.colors.primary}
+              />
+              <Text style={styles.progressText}>{progress}% achieved</Text>
+            </Card>
+          </Pressable>
         );
       }}
     />
@@ -109,8 +99,5 @@ function createStyles(t: ReturnType<typeof useTheme>) {
     current: { ...t.typography.amount, color: t.colors.primary },
     target: { ...t.typography.caption, color: t.colors.textTertiary, marginTop: 2, fontWeight: '500' },
     progressText: { ...t.typography.caption, color: t.colors.textSecondary, marginTop: 6 },
-    goalActions: { flexDirection: 'row', gap: 16, marginTop: 12 },
-    editText: { color: t.colors.textSecondary, fontWeight: '600', fontSize: 14 },
-    contributeText: { color: t.colors.primary, fontWeight: '600', fontSize: 14 },
   });
 }

@@ -23,6 +23,7 @@ export function useContributeGoal(goalId: string) {
         amount: Number(data.amount),
         notes: data.notes || undefined,
       });
+      queryClient.invalidateQueries({ queryKey: ['goal', goalId] });
       queryClient.invalidateQueries({ queryKey: ['goals'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       router.back();

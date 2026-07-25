@@ -31,10 +31,9 @@ export default function ExpensesScreen() {
     hasNextPage,
     isFetchingNextPage,
   } = useInfinitePaginatedList<Transaction>({
-    queryKey: ['transactions', 'expense'],
+    queryKey: ['transactions', 'all'],
     url: '/expenses',
     itemsKey: 'transactions',
-    params: { type: 'expense' },
     pageSize: 20,
   });
 
@@ -83,8 +82,8 @@ export default function ExpensesScreen() {
         ) : (
           <EmptyState
             icon="activity"
-            title="No expenses yet"
-            subtitle="Your spending history will appear here"
+            title="No transactions yet"
+            subtitle="Your income and spending history will appear here"
             action="Add expense"
             onAction={() => router.push('/expense/add')}
           />
@@ -94,7 +93,11 @@ export default function ExpensesScreen() {
         <TransactionGroup>
           <TransactionItem
             transaction={item}
-            onPress={() => router.push(appHref(`/expense/${item.id}`))}
+            onPress={() =>
+              router.push(
+                appHref(item.type === 'income' ? `/income/${item.id}` : `/expense/${item.id}`),
+              )
+            }
             isFirst
             isLast
           />

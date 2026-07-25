@@ -82,7 +82,11 @@ export default function SearchScreen() {
         <TransactionGroup>
           <TransactionItem
             transaction={item}
-            onPress={() => router.push(appHref(`/expense/${item.id}`))}
+            onPress={() =>
+              router.push(
+                appHref(item.type === 'income' ? `/income/${item.id}` : `/expense/${item.id}`),
+              )
+            }
             isFirst
             isLast
           />
