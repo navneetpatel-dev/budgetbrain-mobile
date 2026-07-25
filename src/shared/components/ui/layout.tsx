@@ -1,4 +1,4 @@
-import { useMemo, forwardRef } from 'react';
+import { useMemo, forwardRef, Children } from 'react';
 import {
   ScrollView,
   View,
@@ -242,7 +242,7 @@ export function ResponsiveGrid({
   );
 }
 
-/** Dashboard metric cards: full-width income/expense, paired goals/net-worth on phone & tablet */
+/** Dashboard metric cards — equal-height cells in a 2×2 (phone) or 4-col (tablet) grid. */
 export function SummaryMetricsGrid({
   children,
   gap,
@@ -254,12 +254,12 @@ export function SummaryMetricsGrid({
 }) {
   const { isLargeTablet, gridGap } = useResponsive();
   const gridGapValue = gap ?? gridGap;
-  const items = Array.isArray(children) ? children : [children];
+  const items = Children.toArray(children);
   const styles = useMemo(
     () =>
       StyleSheet.create({
         stack: { gap: gridGapValue },
-        row: { flexDirection: 'row', gap: gridGapValue },
+        row: { flexDirection: 'row', alignItems: 'stretch', gap: gridGapValue },
         cell: { flex: 1, minWidth: 0 },
         quad: { flex: 1, minWidth: 0 },
       }),
@@ -280,9 +280,11 @@ export function SummaryMetricsGrid({
 
   return (
     <View style={[styles.stack, style]}>
-      {items[0] ? <View style={styles.cell}>{items[0]}</View> : null}
-      {items[1] ? <View style={styles.cell}>{items[1]}</View> : null}
-      {items[2] || items[3] ? (
+      <View style={styles.row}>
+        {items[0] ? <View style={styles.cell}>{items[0]}</View> : null}
+        {items[1] ? <View style={styles.cell}>{items[1]}</View> : null}
+      </View>
+      {(items[2] || items[3]) ? (
         <View style={styles.row}>
           {items[2] ? <View style={styles.cell}>{items[2]}</View> : null}
           {items[3] ? <View style={styles.cell}>{items[3]}</View> : null}

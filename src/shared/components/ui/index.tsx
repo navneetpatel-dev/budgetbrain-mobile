@@ -313,7 +313,7 @@ export function SummaryCard({ title, amount, color, subtitle, icon, onPress }: S
   const tint = color ?? theme.colors.text;
 
   const content = (
-    <>
+    <View style={styles.summaryBody}>
       <View style={styles.summaryTop}>
         {icon && (
           <View style={[styles.iconWrap, { backgroundColor: tint + '18' }]}>
@@ -322,9 +322,10 @@ export function SummaryCard({ title, amount, color, subtitle, icon, onPress }: S
         )}
         <Text style={styles.summaryTitle}>{title}</Text>
       </View>
-      <Text style={[styles.summaryAmount, { color: tint }]}>{amount}</Text>
-      {subtitle && <Text style={styles.summarySubtitle}>{subtitle}</Text>}
-    </>
+      <Text style={[styles.summaryAmount, { color: tint }]} numberOfLines={1}>{amount}</Text>
+      {/* Always reserve subtitle space so metric cards share one height in a row. */}
+      <Text style={styles.summarySubtitle} numberOfLines={1}>{subtitle ?? ' '}</Text>
+    </View>
   );
 
   if (onPress) {
@@ -577,8 +578,9 @@ function createCardStyles(t: AppTheme) {
 
 function createSummaryStyles(t: AppTheme) {
   return StyleSheet.create({
-    summaryPressable: { width: '100%', alignSelf: 'stretch' },
-    summaryCard: { width: '100%' },
+    summaryPressable: { flex: 1, width: '100%', alignSelf: 'stretch' },
+    summaryCard: { flex: 1, width: '100%' },
+    summaryBody: { flex: 1 },
     summaryTop: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: t.spacing.sm },
     iconWrap: {
       width: 28,
@@ -589,7 +591,13 @@ function createSummaryStyles(t: AppTheme) {
     },
     summaryTitle: { ...t.typography.caption, color: t.colors.textSecondary, flex: 1 },
     summaryAmount: { ...t.typography.amount, color: t.colors.text },
-    summarySubtitle: { ...t.typography.caption, color: t.colors.textTertiary, marginTop: 4 },
+    summarySubtitle: {
+      ...t.typography.caption,
+      color: t.colors.textTertiary,
+      marginTop: 4,
+      minHeight: 18,
+      lineHeight: 18,
+    },
   });
 }
 

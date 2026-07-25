@@ -71,6 +71,7 @@ export default function DashboardScreen() {
               <SummaryCard
                 title="Income"
                 amount={formatCurrency(summary.totalIncome, currency)}
+                subtitle="This month"
                 color={theme.colors.success}
                 icon="income"
                 onPress={() => router.push('/(tabs)/income')}
@@ -78,6 +79,7 @@ export default function DashboardScreen() {
               <SummaryCard
                 title="Expenses"
                 amount={formatCurrency(summary.totalExpenses, currency)}
+                subtitle="This month"
                 color={theme.colors.danger}
                 icon="expense"
                 onPress={() => router.push('/(tabs)/expenses')}
