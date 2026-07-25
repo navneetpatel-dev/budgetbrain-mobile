@@ -88,20 +88,28 @@ export function TransactionItem({
           ) : null}
         </View>
       </View>
-      <View style={styles.amountCol}>
-        <Text style={[styles.amount, isExpense ? styles.expense : styles.income]}>
-          {isExpense ? '−' : '+'}
-          {formattedAmount}
-        </Text>
-        {showBadge && (
-          <View style={[styles.badge, isExpense ? styles.badgeExpense : styles.badgeIncome]}>
+      <View style={styles.trailing}>
+        <View style={styles.amountRow}>
+          <Text style={[styles.amount, isExpense ? styles.expense : styles.income]}>
+            {isExpense ? '−' : '+'}
+            {formattedAmount}
+          </Text>
+          {onPress ? <AppIcon name="chevronRight" size={15} color={theme.colors.textTertiary} /> : null}
+        </View>
+        {showBadge ? (
+          <View
+            style={[
+              styles.badge,
+              isExpense ? styles.badgeExpense : styles.badgeIncome,
+              onPress ? styles.badgeWithChevron : null,
+            ]}
+          >
             <Text style={[styles.badgeText, isExpense ? styles.badgeTextExpense : styles.badgeTextIncome]}>
               {isExpense ? 'Expense' : 'Income'}
             </Text>
           </View>
-        )}
+        ) : null}
       </View>
-      {onPress && <AppIcon name="chevronRight" size={14} color={theme.colors.textTertiary} />}
     </Pressable>
   );
 }
@@ -114,7 +122,7 @@ export function TransactionGroup({ children }: { children: React.ReactNode }) {
       StyleSheet.create({
         group: {
           backgroundColor: theme.colors.surface,
-          borderRadius: theme.radii.lg,
+          borderRadius: theme.radii.xl,
           borderWidth: 1,
           borderColor: theme.colors.borderSubtle,
           overflow: 'hidden',
@@ -130,10 +138,11 @@ function createStyles(t: ReturnType<typeof useTheme>) {
     container: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: t.spacing.md,
+      paddingVertical: 18,
       paddingHorizontal: t.spacing.lg,
-      gap: t.spacing.md,
+      gap: 14,
       backgroundColor: t.colors.surface,
+      minHeight: 88,
     },
     first: {},
     last: {
@@ -145,21 +154,25 @@ function createStyles(t: ReturnType<typeof useTheme>) {
     },
     pressed: { backgroundColor: t.colors.surfaceHover },
     icon: {
-      width: 42,
-      height: 42,
-      borderRadius: 12,
+      width: 48,
+      height: 48,
+      borderRadius: 14,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    dot: { width: 10, height: 10, borderRadius: 5 },
-    content: { flex: 1, minWidth: 0 },
-    merchant: { ...t.typography.bodyMedium, color: t.colors.text, fontWeight: '600' },
+    dot: { width: 12, height: 12, borderRadius: 6 },
+    content: { flex: 1, minWidth: 0, gap: 6 },
+    merchant: {
+      fontSize: 15,
+      fontWeight: '600',
+      letterSpacing: -0.1,
+      color: t.colors.text,
+    },
     metaRow: {
       flexDirection: 'row',
       alignItems: 'center',
       flexWrap: 'wrap',
-      gap: 6,
-      marginTop: 4,
+      gap: 8,
     },
     date: {
       fontSize: 12,
@@ -168,28 +181,48 @@ function createStyles(t: ReturnType<typeof useTheme>) {
     },
     entityChip: {
       maxWidth: '70%',
-      paddingHorizontal: 8,
-      paddingVertical: 2,
+      paddingHorizontal: 9,
+      paddingVertical: 3,
       borderRadius: t.radii.full,
       borderWidth: 1,
     },
     entityChipText: {
       fontSize: 11,
-      fontWeight: '700',
+      fontWeight: '600',
     },
-    amountCol: { alignItems: 'flex-end' },
-    amount: { ...t.typography.bodySemibold, fontSize: 15, fontVariant: ['tabular-nums'] },
+    trailing: {
+      alignItems: 'flex-end',
+      justifyContent: 'center',
+      gap: 5,
+      minWidth: 84,
+    },
+    amountRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+      gap: 8,
+    },
+    amount: {
+      fontSize: 15,
+      fontWeight: '600',
+      letterSpacing: -0.1,
+      textAlign: 'right',
+      fontVariant: ['tabular-nums'],
+    },
     expense: { color: t.colors.danger },
     income: { color: t.colors.success },
     badge: {
-      marginTop: 4,
-      paddingHorizontal: 8,
-      paddingVertical: 2,
+      paddingHorizontal: 9,
+      paddingVertical: 3,
       borderRadius: t.radii.full,
+      alignSelf: 'flex-end',
+    },
+    badgeWithChevron: {
+      marginRight: 23,
     },
     badgeExpense: { backgroundColor: t.colors.dangerSoft },
     badgeIncome: { backgroundColor: t.colors.successSoft },
-    badgeText: { fontSize: 10, fontWeight: '600' },
+    badgeText: { fontSize: 10, fontWeight: '600', textAlign: 'center' },
     badgeTextExpense: { color: t.colors.danger },
     badgeTextIncome: { color: t.colors.success },
   });

@@ -174,15 +174,18 @@ function TransactionRowSkeleton() {
   const theme = useTheme();
   return (
     <SurfaceCard>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: theme.spacing.md }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md, flex: 1 }}>
-          <SkeletonBlock width={40} height={40} radius={12} />
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14, minHeight: 56 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, flex: 1 }}>
+          <SkeletonBlock width={48} height={48} radius={14} />
           <View style={{ flex: 1 }}>
-            <SkeletonBlock width="58%" height={14} radius={6} style={{ marginBottom: 8 }} />
-            <SkeletonBlock width="38%" height={11} radius={5} />
+            <SkeletonBlock width="58%" height={16} radius={6} style={{ marginBottom: 10 }} />
+            <SkeletonBlock width="42%" height={12} radius={5} />
           </View>
         </View>
-        <SkeletonBlock width={64} height={14} radius={6} />
+        <View style={{ alignItems: 'flex-end', gap: 8 }}>
+          <SkeletonBlock width={72} height={16} radius={6} />
+          <SkeletonBlock width={56} height={18} radius={999} />
+        </View>
       </View>
     </SurfaceCard>
   );

@@ -1,3 +1,4 @@
+import { View } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import {
   Input,
@@ -14,10 +15,12 @@ import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptio
 import { useCreateExpense, type ExpenseForm } from '@/features/expenses/hooks/useCreateExpense';
 import { useReceiptPicker } from '@/features/expenses/hooks/useReceiptPicker';
 import { PAYMENT_METHODS } from '@/shared/constants/config';
+import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import { ValidationMessages, amountRules, dateRules, maxLen, optionalTextRules, textRules } from '@/shared/validation/fieldLimits';
 
 export default function AddExpenseScreen() {
+  const theme = useTheme();
   const { amountLabel } = useUserCurrency();
   const { create, loading } = useCreateExpense();
   const { receipt, pick, clear } = useReceiptPicker();
@@ -91,21 +94,23 @@ export default function AddExpenseScreen() {
           disabled={loading}
         />
 
-        <FormFieldLabel>Category</FormFieldLabel>
-        <Controller
-          control={control}
-          name="categoryId"
-          rules={{ required: ValidationMessages.categoryRequired }}
-          render={({ field: { onChange, value } }) => (
-            <OptionChipList
-              items={(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined }))}
-              selectedId={value}
-              onSelect={onChange}
-              error={errors.categoryId?.message}
-              disabled={loading}
-            />
-          )}
-        />
+        <View style={{ marginTop: theme.spacing.lg }}>
+          <FormFieldLabel>Category</FormFieldLabel>
+          <Controller
+            control={control}
+            name="categoryId"
+            rules={{ required: ValidationMessages.categoryRequired }}
+            render={({ field: { onChange, value } }) => (
+              <OptionChipList
+                items={(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined }))}
+                selectedId={value}
+                onSelect={onChange}
+                error={errors.categoryId?.message}
+                disabled={loading}
+              />
+            )}
+          />
+        </View>
       </FormSection>
 
       <FormSection title="Extras" subtitle="Optional attachments and notes">

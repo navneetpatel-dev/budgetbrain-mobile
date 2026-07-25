@@ -1,3 +1,4 @@
+import { View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import {
@@ -150,21 +151,23 @@ export default function ExpenseDetailScreen() {
               getLabel={(v) => PAYMENT_METHODS.find((pm) => pm.value === v)?.label ?? v}
               disabled={loading}
             />
-            <FormFieldLabel>Category</FormFieldLabel>
-            <Controller
-              control={control}
-              name="categoryId"
-              rules={{ required: ValidationMessages.categoryRequired }}
-              render={({ field: { onChange, value } }) => (
-                <OptionChipList
-                  items={(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined }))}
-                  selectedId={value}
-                  onSelect={onChange}
-                  error={errors.categoryId?.message}
-                  disabled={loading}
-                />
-              )}
-            />
+            <View style={{ marginTop: theme.spacing.lg }}>
+              <FormFieldLabel>Category</FormFieldLabel>
+              <Controller
+                control={control}
+                name="categoryId"
+                rules={{ required: ValidationMessages.categoryRequired }}
+                render={({ field: { onChange, value } }) => (
+                  <OptionChipList
+                    items={(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined }))}
+                    selectedId={value}
+                    onSelect={onChange}
+                    error={errors.categoryId?.message}
+                    disabled={loading}
+                  />
+                )}
+              />
+            </View>
           </FormSection>
 
           <FormSection title="Notes">
