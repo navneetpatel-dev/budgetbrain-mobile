@@ -72,9 +72,9 @@ export default function AddExpenseScreen() {
         <Controller
           control={control}
           name="merchant"
-          rules={{ required: 'Merchant is required' }}
+          rules={{ required: 'Merchant is required', maxLength: { value: 255, message: 'Merchant must be at most 255 characters' } }}
           render={({ field: { onChange, value } }) => (
-            <Input label="Merchant" value={value} onChangeText={onChange} placeholder="e.g. Swiggy, Amazon" error={errors.merchant?.message} leftIcon="activity" disabled={loading} />
+            <Input label="Merchant" value={value} onChangeText={onChange} maxLength={255} placeholder="e.g. Swiggy, Amazon" error={errors.merchant?.message} leftIcon="activity" disabled={loading} />
           )}
         />
 
@@ -124,11 +124,13 @@ export default function AddExpenseScreen() {
         <Controller
           control={control}
           name="notes"
+          rules={{ maxLength: { value: 2000, message: 'Notes must be at most 2000 characters' } }}
           render={({ field: { onChange, value } }) => (
             <Input
               label="Notes"
               value={value}
               onChangeText={onChange}
+              maxLength={2000}
               placeholder="Add any extra details..."
               multiline
               disabled={loading}

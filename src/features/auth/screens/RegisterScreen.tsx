@@ -2,6 +2,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { Button, Input } from '@/shared/components/ui';
 import { AuthShell, AuthFooter, AuthErrorBanner } from '@/features/auth/components';
 import { authFieldRules } from '@/features/auth/utils/authValidation';
+import { maxLen } from '@/shared/validation/fieldLimits';
 import { useRegister } from '@/features/auth/hooks';
 import type { RegisterCredentials } from '@/features/auth/types';
 
@@ -30,7 +31,7 @@ export function RegisterScreen() {
         name="name"
         rules={authFieldRules.name}
         render={({ field: { onChange, value } }) => (
-          <Input label="Full name" value={value} onChangeText={onChange} placeholder="Jane Doe" error={errors.name?.message} disabled={loading} />
+          <Input label="Full name" value={value} onChangeText={onChange} maxLength={maxLen('name')} placeholder="Jane Doe" error={errors.name?.message} disabled={loading} />
         )}
       />
 
@@ -41,6 +42,7 @@ export function RegisterScreen() {
         render={({ field: { onChange, value } }) => (
           <Input
             label="Email"
+            maxLength={maxLen('email')}
             value={value}
             onChangeText={onChange}
             keyboardType="email-address"
@@ -61,6 +63,7 @@ export function RegisterScreen() {
         render={({ field: { onChange, value } }) => (
           <Input
             label="Password"
+            maxLength={maxLen('password')}
             value={value}
             onChangeText={onChange}
             secureTextEntry

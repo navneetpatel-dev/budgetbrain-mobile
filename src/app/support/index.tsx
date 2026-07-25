@@ -5,6 +5,7 @@ import { Button, Input, Card, StackScrollScreen, GroupedCard, FormSection, FormA
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
 import { useSupportTickets } from '@/features/support/hooks/useSupportTickets';
+import { maxLen, textRules } from '@/shared/validation/fieldLimits';
 
 export default function SupportScreen() {
   const theme = useTheme();
@@ -28,24 +29,25 @@ export default function SupportScreen() {
         <Controller
           control={control}
           name="subject"
-          rules={{ required: 'Subject is required', minLength: { value: 3, message: 'At least 3 characters' } }}
+          rules={textRules('subject', { required: 'Subject is required', label: 'Subject' })}
           render={({ field: { onChange, value } }) => (
-            <Input label="Subject" value={value} onChangeText={onChange} error={errors.subject?.message} leftIcon="support" placeholder="Brief summary of your issue" disabled={loading} />
+            <Input label="Subject" value={value} onChangeText={onChange} maxLength={maxLen('subject')} error={errors.subject?.message} leftIcon="support" placeholder="Brief summary of your issue" disabled={loading} />
           )}
         />
         <Controller
           control={control}
           name="message"
-          rules={{ required: 'Message is required', minLength: { value: 10, message: 'At least 10 characters' } }}
+          rules={textRules('message', { required: 'Message is required', label: 'Message' })}
           render={({ field: { onChange, value } }) => (
             <Input
               label="Message"
               value={value}
               onChangeText={onChange}
+              maxLength={maxLen('message')}
               multiline
               error={errors.message?.message}
               placeholder="Describe what happened and how we can help..."
-              helperText="Minimum 10 characters"
+              helperText="10–5000 characters"
               disabled={loading}
             />
           )}

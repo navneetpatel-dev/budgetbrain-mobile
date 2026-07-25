@@ -3,6 +3,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { Button, Input } from '@/shared/components/ui';
 import { AuthShell, AuthFooter, AuthSuccessBanner, AuthErrorBanner } from '@/features/auth/components';
 import { authFieldRules, confirmPasswordRule } from '@/features/auth/utils/authValidation';
+import { maxLen } from '@/shared/validation/fieldLimits';
 import { useResetPassword } from '@/features/auth/hooks';
 
 interface ResetForm {
@@ -46,6 +47,7 @@ export function ResetPasswordScreen() {
                 onChangeText={onChange}
                 secureTextEntry
                 secureToggle
+                maxLength={maxLen('password')}
                 placeholder="Min. 8 characters"
                 error={errors.password?.message}
                 disabled={loading}
@@ -63,6 +65,7 @@ export function ResetPasswordScreen() {
                 onChangeText={onChange}
                 secureTextEntry
                 secureToggle
+                maxLength={maxLen('password')}
                 placeholder="Re-enter password"
                 error={errors.confirmPassword?.message}
                 disabled={loading}

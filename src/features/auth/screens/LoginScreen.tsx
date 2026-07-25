@@ -8,6 +8,7 @@ import {
   SocialAuthButtons,
 } from '@/features/auth/components';
 import { authFieldRules } from '@/features/auth/utils/authValidation';
+import { maxLen } from '@/shared/validation/fieldLimits';
 import { useLogin } from '@/features/auth/hooks';
 import type { LoginCredentials } from '@/features/auth/types';
 
@@ -35,6 +36,7 @@ export function LoginScreen() {
         render={({ field: { onChange, value } }) => (
           <Input
             label="Email"
+            maxLength={maxLen('email')}
             value={value}
             onChangeText={onChange}
             keyboardType="email-address"
@@ -55,6 +57,7 @@ export function LoginScreen() {
         render={({ field: { onChange, value } }) => (
           <Input
             label="Password"
+            maxLength={maxLen('password')}
             value={value}
             onChangeText={onChange}
             secureTextEntry

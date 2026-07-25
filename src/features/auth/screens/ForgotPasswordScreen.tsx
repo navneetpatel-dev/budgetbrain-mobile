@@ -2,6 +2,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { Button, Input } from '@/shared/components/ui';
 import { AuthShell, AuthFooter, AuthSuccessBanner, AuthErrorBanner } from '@/features/auth/components';
 import { authFieldRules } from '@/features/auth/utils/authValidation';
+import { maxLen } from '@/shared/validation/fieldLimits';
 import { useForgotPassword } from '@/features/auth/hooks';
 import type { ForgotPasswordInput } from '@/features/auth/types';
 
@@ -34,6 +35,7 @@ export function ForgotPasswordScreen() {
             render={({ field: { onChange, value } }) => (
               <Input
                 label="Email"
+                maxLength={maxLen('email')}
                 value={value}
                 onChangeText={onChange}
                 keyboardType="email-address"

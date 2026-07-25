@@ -3,6 +3,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { Button, Input } from '@/shared/components/ui';
 import { AuthShell, AuthFooter, AuthInfoBanner, AuthErrorBanner } from '@/features/auth/components';
 import { authFieldRules } from '@/features/auth/utils/authValidation';
+import { maxLen } from '@/shared/validation/fieldLimits';
 import { useOtpLogin } from '@/features/auth/hooks';
 
 interface OtpForm {
@@ -40,6 +41,7 @@ export function OtpLoginScreen() {
         render={({ field: { onChange, value } }) => (
           <Input
             label="Email"
+            maxLength={maxLen('email')}
             value={value}
             onChangeText={onChange}
             keyboardType="email-address"

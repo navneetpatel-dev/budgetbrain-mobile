@@ -1,30 +1,37 @@
-const EMAIL_PATTERN = /\S+@\S+\.\S+/;
+import { FieldLimits, textRules } from '../../../shared/validation/fieldLimits';
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const authFieldRules = {
   email: {
-    required: 'Email is required',
+    ...textRules('email', { required: 'Email is required', label: 'Email' }),
     pattern: { value: EMAIL_PATTERN, message: 'Enter a valid email address' },
   },
   password: {
     required: 'Password is required',
+    maxLength: {
+      value: FieldLimits.password.max,
+      message: `Password must be at most ${FieldLimits.password.max} characters`,
+    },
   },
   passwordMin8: {
-    required: 'Password is required',
-    minLength: { value: 8, message: 'Password must be at least 8 characters' },
+    ...textRules('password', { required: 'Password is required', label: 'Password' }),
   },
   name: {
-    required: 'Name is required',
+    ...textRules('name', { required: 'Name is required', label: 'Name' }),
   },
   otp: {
-    required: 'Verification code is required',
-    minLength: { value: 6, message: 'Enter the 6-digit code' },
-    maxLength: { value: 6, message: 'Enter the 6-digit code' },
+    ...textRules('otp', { required: 'Verification code is required', label: 'Code' }),
   },
 };
 
 export function confirmPasswordRule(password: string) {
   return {
     required: 'Confirm your password',
+    maxLength: {
+      value: FieldLimits.password.max,
+      message: `Password must be at most ${FieldLimits.password.max} characters`,
+    },
     validate: (value: string) => value === password || 'Passwords do not match',
   };
 }
