@@ -722,31 +722,72 @@ export function ColdStartSkeleton() {
   );
 }
 
+function ChatUserBubbleSkeleton({ width, height = 40 }: { width: number | string; height?: number }) {
+  return (
+    <View style={{ alignItems: 'flex-end' }}>
+      <SkeletonBlock
+        width={width}
+        height={height}
+        radius={18}
+        style={{ borderBottomRightRadius: 6, maxWidth: '82%' }}
+      />
+    </View>
+  );
+}
+
+function ChatAssistantBubbleSkeleton({
+  width,
+  height = 56,
+}: {
+  width: number | string;
+  height?: number;
+}) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, maxWidth: '100%' }}>
+      <SkeletonCircle size={28} />
+      <SkeletonBlock
+        width={width}
+        height={height}
+        radius={18}
+        style={{ borderBottomLeftRadius: 6, maxWidth: '82%', flexShrink: 1 }}
+      />
+    </View>
+  );
+}
+
 export function AiChatSkeleton() {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
+  const { frame } = useScreenInsets();
+
   return (
-    <SkeletonScreen>
-      <SkeletonHeaderBar withAction />
-      <View style={{ gap: theme.spacing.md, marginTop: theme.spacing.sm }}>
-        <View style={{ alignItems: 'flex-end' }}>
-          <SkeletonBlock width="68%" height={52} radius={theme.radii.lg} />
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <View style={[frame as ViewStyle, { paddingTop: insets.top + theme.spacing.lg, flex: 1 }]}>
+        <SkeletonHeaderBar withAction />
+
+        <View style={{ flex: 1, gap: theme.spacing.md, paddingTop: theme.spacing.sm }}>
+          <ChatUserBubbleSkeleton width="62%" height={40} />
+          <ChatAssistantBubbleSkeleton width="78%" height={72} />
+          <ChatUserBubbleSkeleton width="48%" height={40} />
+          <ChatAssistantBubbleSkeleton width="84%" height={96} />
+          <ChatUserBubbleSkeleton width="56%" height={40} />
+          <ChatAssistantBubbleSkeleton width="70%" height={64} />
         </View>
-        <View style={{ alignItems: 'flex-start' }}>
-          <SkeletonBlock width="78%" height={72} radius={theme.radii.lg} />
-        </View>
-        <View style={{ alignItems: 'flex-end' }}>
-          <SkeletonBlock width="54%" height={44} radius={theme.radii.lg} />
-        </View>
-        <View style={{ alignItems: 'flex-start' }}>
-          <SkeletonBlock width="72%" height={88} radius={theme.radii.lg} />
-        </View>
-        <View style={{ alignItems: 'flex-end' }}>
-          <SkeletonBlock width="60%" height={48} radius={theme.radii.lg} />
+
+        <View style={{ paddingTop: theme.spacing.md, paddingBottom: insets.bottom + theme.spacing.sm, gap: theme.spacing.sm }}>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <SkeletonBlock width={132} height={32} radius={999} />
+            <SkeletonBlock width={118} height={32} radius={999} />
+            <SkeletonBlock width={148} height={32} radius={999} />
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 10 }}>
+            <View style={{ flex: 1 }}>
+              <SkeletonBlock width="100%" height={48} radius={22} />
+            </View>
+            <SkeletonCircle size={44} />
+          </View>
         </View>
       </View>
-      <View style={{ marginTop: 'auto', paddingTop: theme.spacing.xl }}>
-        <SkeletonBlock width="100%" height={52} radius={theme.radii.lg} />
-      </View>
-    </SkeletonScreen>
+    </View>
   );
 }
