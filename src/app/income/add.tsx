@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Text } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import {
   Input,
@@ -15,6 +16,7 @@ import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import { useCreateIncome, type IncomeForm } from '@/features/income/hooks/useCreateIncome';
 import { INCOME_SOURCE_TYPES } from '@/shared/constants/config';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
+import { useTheme } from '@/shared/theme';
 import type { IncomeSource } from '@/shared/types';
 import {
   amountRules,
@@ -28,17 +30,26 @@ import {
 type SourceMode = 'existing' | 'new';
 
 export default function AddIncomeScreen() {
+  const theme = useTheme();
   const { amountLabel } = useUserCurrency();
   const { create, loading, submitError } = useCreateIncome();
-  const [sourceMode, setSourceMode] = useState<SourceMode>('existing');
+  const [sourceMode, setSourceMode] = useState<SourceMode>('new');
+  const modeInitialized = useRef(false);
 
-  const { data: sources } = usePaginatedList<IncomeSource, 'sources'>({
+  const { data: sources, isLoading: sourcesLoading } = usePaginatedList<IncomeSource, 'sources'>({
     queryKey: ['income-sources'],
     url: '/income/sources',
     itemsKey: 'sources',
   });
+  const hasSources = sources.length > 0;
 
-  const { control, handleSubmit, setValue, watch, clearErrors, formState: { errors } } = useForm<IncomeForm>({
+  useEffect(() => {
+    if (modeInitialized.current || sourcesLoading) return;
+    modeInitialized.current = true;
+    if (hasSources) setSourceMode('existing');
+  }, [sourcesLoading, hasSources]);
+
+  const { control, handleSubmit, setValue, watch, clearErrors, setError, formState: { errors } } = useForm<IncomeForm>({
     defaultValues: {
       amount: '',
       notes: '',
@@ -51,8 +62,13 @@ export default function AddIncomeScreen() {
 
   const newSourceType = watch('newSourceType');
   const isNewSource = sourceMode === 'new';
+  const emptySourcesMessage = 'No income sources yet. Switch to New source to create one.';
 
   const onSubmit = async (data: IncomeForm) => {
+    if (!isNewSource && !hasSources) {
+      setError('incomeSourceId', { type: 'required', message: emptySourcesMessage });
+      return;
+    }
     await create(data, isNewSource);
   };
 
@@ -102,21 +118,34 @@ export default function AddIncomeScreen() {
         />
 
         {!isNewSource ? (
-          <Controller
-            control={control}
-            name="incomeSourceId"
-            shouldUnregister
-            rules={{ required: ValidationMessages.incomeSourceRequired }}
-            render={({ field: { onChange, value } }) => (
-              <OptionChipList
-                items={(sources ?? []).map((src) => ({ id: src.id, label: src.name }))}
-                selectedId={value}
-                onSelect={onChange}
-                error={errors.incomeSourceId?.message}
-                disabled={loading}
-              />
-            )}
-          />
+          hasSources ? (
+            <Controller
+              control={control}
+              name="incomeSourceId"
+              shouldUnregister
+              rules={{ required: ValidationMessages.incomeSourceRequired }}
+              render={({ field: { onChange, value } }) => (
+                <OptionChipList
+                  items={(sources ?? []).map((src) => ({ id: src.id, label: src.name }))}
+                  selectedId={value}
+                  onSelect={onChange}
+                  error={errors.incomeSourceId?.message}
+                  disabled={loading}
+                />
+              )}
+            />
+          ) : (
+            <Text
+              style={{
+                color: errors.incomeSourceId ? theme.colors.danger : theme.colors.textSecondary,
+                fontSize: 13,
+                marginBottom: theme.spacing.sm,
+                fontWeight: errors.incomeSourceId ? '500' : '400',
+              }}
+            >
+              {errors.incomeSourceId?.message ?? emptySourcesMessage}
+            </Text>
+          )
         ) : (
           <>
             <Controller
