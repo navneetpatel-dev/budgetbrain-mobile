@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { apiPost } from '@/shared/services/api';
+import { invalidateMoneyQueries } from '@/shared/services/queryInvalidation';
 import { uploadReceipt } from '@/features/expenses/services/receipts';
 import { queueOfflineAction, isOnline } from '@/shared/services/offlineSync';
 import { trackEvent } from '@/shared/services/analytics';
@@ -47,6 +48,7 @@ export function useCreateExpense() {
 
       if (!online) {
         queueOfflineAction('create', payload);
+        invalidateMoneyQueries(queryClient);
         router.back();
         return { ok: true, offline: true };
       }
@@ -58,12 +60,12 @@ export function useCreateExpense() {
       }
 
       trackEvent('expense_created', { amount: payload.amount, hasReceipt: !!receipt });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      invalidateMoneyQueries(queryClient);
       router.back();
       return { ok: true, offline: false };
     } catch {
       queueOfflineAction('create', payload);
+      invalidateMoneyQueries(queryClient);
       router.back();
       return { ok: false, error: 'offline' };
     } finally {

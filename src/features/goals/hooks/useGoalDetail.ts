@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { UseFormReset } from 'react-hook-form';
 import { apiGet, apiPatch, apiDelete, getApiErrorMessage } from '@/shared/services/api';
+import { invalidateGoalQueries, removeGoalDetail } from '@/shared/services/queryInvalidation';
 import { CONFIRM } from '@/shared/constants/confirmations';
 import { showConfirmation } from '@/shared/utils/confirmations';
 import type { Goal } from '@/shared/types';
@@ -20,7 +21,7 @@ export function useGoalDetail(id: string) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const clearSubmitError = useCallback(() => setSubmitError(null), []);
 
-  const { data: goal, isLoading } = useQuery({
+  const { data: goal, isLoading, isError, refetch } = useQuery({
     queryKey: ['goal', id],
     queryFn: () => apiGet<Goal>(`/goals/${id}`),
     enabled: !!id,
@@ -48,9 +49,7 @@ export function useGoalDetail(id: string) {
         targetDate: data.targetDate || undefined,
       });
       queryClient.setQueryData(['goal', id], updated);
-      queryClient.invalidateQueries({ queryKey: ['goal', id] });
-      queryClient.invalidateQueries({ queryKey: ['goals'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      invalidateGoalQueries(queryClient, id);
       return true;
     } catch (err) {
       setSubmitError(getApiErrorMessage(err, 'Could not update goal'));
@@ -66,7 +65,8 @@ export function useGoalDetail(id: string) {
       setSubmitError(null);
       try {
         await apiDelete(`/goals/${id}`);
-        queryClient.invalidateQueries({ queryKey: ['goals'] });
+        removeGoalDetail(queryClient, id);
+        invalidateGoalQueries(queryClient);
         router.back();
       } catch (err) {
         setSubmitError(getApiErrorMessage(err, 'Could not delete goal'));
@@ -76,5 +76,16 @@ export function useGoalDetail(id: string) {
     });
   };
 
-  return { goal, isLoading, loading, save, populateForm, confirmDelete, submitError, clearSubmitError };
+  return {
+    goal,
+    isLoading,
+    isError,
+    refetch,
+    loading,
+    save,
+    populateForm,
+    confirmDelete,
+    submitError,
+    clearSubmitError,
+  };
 }

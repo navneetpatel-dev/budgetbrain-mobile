@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { apiPost, apiPatch, getApiErrorMessage } from '@/shared/services/api';
+import { invalidateCategoryConsumers } from '@/shared/services/queryInvalidation';
 import { CONFIRM } from '@/shared/constants/confirmations';
 import { showConfirmation } from '@/shared/utils/confirmations';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
@@ -59,7 +60,7 @@ export function useCategories() {
       } else {
         await apiPost('/categories', form);
       }
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      invalidateCategoryConsumers(queryClient);
       setShowForm(false);
     } catch (err) {
       setSubmitError(getApiErrorMessage(err, 'Could not save category'));
@@ -73,7 +74,7 @@ export function useCategories() {
       setListError(null);
       try {
         await apiPost(`/categories/${id}/archive`);
-        queryClient.invalidateQueries({ queryKey: ['categories'] });
+        invalidateCategoryConsumers(queryClient);
       } catch (err) {
         setListError(getApiErrorMessage(err, 'Could not archive category'));
       }

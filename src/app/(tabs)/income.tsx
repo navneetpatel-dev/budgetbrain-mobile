@@ -26,6 +26,7 @@ export default function IncomeScreen() {
     items: transactions,
     total: transactionTotal,
     isLoading,
+    isError,
     isRefetching,
     refetch,
     fetchNextPage,
@@ -102,6 +103,14 @@ export default function IncomeScreen() {
       ListEmptyComponent={
         isLoading ? (
           <ListRowsSkeleton count={4} variant="transaction" />
+        ) : isError ? (
+          <EmptyState
+            title="Couldn’t load income"
+            subtitle="Check your connection and try again"
+            icon="income"
+            action="Retry"
+            onAction={() => void refetch()}
+          />
         ) : (
           <EmptyState
             title="No income yet"

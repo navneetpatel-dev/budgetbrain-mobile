@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { apiPost, getApiErrorMessage } from '@/shared/services/api';
+import { invalidateMoneyQueries } from '@/shared/services/queryInvalidation';
 import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import type { ParsedTransactionPending } from '@/shared/types';
@@ -143,8 +144,7 @@ export function useTransactionParsing() {
       await refetchPending();
       setSelectedId(null);
       setCategoryIdState('');
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      invalidateMoneyQueries(queryClient);
       router.push('/(tabs)/expenses');
     } catch (err) {
       setConfirmError(getApiErrorMessage(err, 'Could not create expense'));

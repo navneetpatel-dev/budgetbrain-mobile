@@ -23,7 +23,7 @@ export default function GoalsScreen() {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
   const goBack = useStackBack('/(tabs)' as Href);
-  const { data: goals, total, isLoading, refetch, isRefetching } = usePaginatedList<Goal, 'goals'>({
+  const { data: goals, total, isLoading, isError, refetch, isRefetching } = usePaginatedList<Goal, 'goals'>({
     queryKey: ['goals'],
     url: '/goals',
     itemsKey: 'goals',
@@ -51,6 +51,14 @@ export default function GoalsScreen() {
       ListEmptyComponent={
         isLoading ? (
           <ListRowsSkeleton count={3} variant="goal" />
+        ) : isError ? (
+          <EmptyState
+            title="Couldn’t load goals"
+            subtitle="Check your connection and try again"
+            icon="goals"
+            action="Retry"
+            onAction={() => void refetch()}
+          />
         ) : (
           <EmptyState
             title="No goals yet"

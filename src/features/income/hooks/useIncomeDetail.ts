@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { UseFormReset } from 'react-hook-form';
 import { apiGet, apiPatch, apiDelete, apiPost, getApiErrorMessage } from '@/shared/services/api';
+import { invalidateMoneyQueries } from '@/shared/services/queryInvalidation';
 import { CONFIRM } from '@/shared/constants/confirmations';
 import { showConfirmation } from '@/shared/utils/confirmations';
 import type { Transaction } from '@/shared/types';
@@ -26,7 +27,7 @@ export function useIncomeDetail(id: string) {
     router.dismissTo('/(tabs)');
   }, [router]);
 
-  const { data: income, isLoading } = useQuery({
+  const { data: income, isLoading, isError, refetch } = useQuery({
     queryKey: ['income', id],
     queryFn: () => apiGet<Transaction>(`/income/${id}`),
     enabled: !!id,
@@ -50,9 +51,8 @@ export function useIncomeDetail(id: string) {
         date: data.date,
       });
       queryClient.setQueryData(['income', id], updated);
-      queryClient.invalidateQueries({ queryKey: ['income'] });
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      void queryClient.invalidateQueries({ queryKey: ['income', id] });
+      invalidateMoneyQueries(queryClient);
       return true;
     } catch (err) {
       setSubmitError(getApiErrorMessage(err, 'Could not update income'));
@@ -67,9 +67,7 @@ export function useIncomeDetail(id: string) {
     setSubmitError(null);
     try {
       await apiPost(`/income/${id}/duplicate`);
-      queryClient.invalidateQueries({ queryKey: ['income'] });
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      invalidateMoneyQueries(queryClient);
       goHome();
     } catch (err) {
       setSubmitError(getApiErrorMessage(err, 'Could not duplicate income'));
@@ -84,9 +82,8 @@ export function useIncomeDetail(id: string) {
       setSubmitError(null);
       try {
         await apiDelete(`/income/${id}`);
-        queryClient.invalidateQueries({ queryKey: ['income'] });
-        queryClient.invalidateQueries({ queryKey: ['transactions'] });
-        queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+        void queryClient.removeQueries({ queryKey: ['income', id] });
+        invalidateMoneyQueries(queryClient);
         goHome();
       } catch (err) {
         setSubmitError(getApiErrorMessage(err, 'Could not delete income'));
@@ -99,6 +96,8 @@ export function useIncomeDetail(id: string) {
   return {
     income,
     isLoading,
+    isError,
+    refetch,
     loading: pendingAction !== null,
     updating: pendingAction === 'update',
     duplicating: pendingAction === 'duplicate',

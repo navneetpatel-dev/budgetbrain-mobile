@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { apiPost, getApiErrorMessage } from '@/shared/services/api';
+import { invalidateBudgetQueries } from '@/shared/services/queryInvalidation';
 import type { Budget } from '@/shared/types';
 import { ValidationMessages } from '@/shared/validation/fieldLimits';
 
@@ -37,8 +38,7 @@ export function useCreateBudget() {
         startDate: data.startDate,
         alertThreshold: Number(data.alertThreshold),
       });
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      invalidateBudgetQueries(queryClient);
       router.back();
     } catch (err) {
       setSubmitError(getApiErrorMessage(err, 'Could not create budget'));

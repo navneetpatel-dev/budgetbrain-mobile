@@ -25,6 +25,7 @@ export default function ExpensesScreen() {
     items: transactions,
     total,
     isLoading,
+    isError,
     isRefetching,
     refetch,
     fetchNextPage,
@@ -79,6 +80,14 @@ export default function ExpensesScreen() {
       ListEmptyComponent={
         isLoading ? (
           <ListRowsSkeleton count={6} variant="transaction" />
+        ) : isError ? (
+          <EmptyState
+            icon="activity"
+            title="Couldn’t load activity"
+            subtitle="Check your connection and try again"
+            action="Retry"
+            onAction={() => void refetch()}
+          />
         ) : (
           <EmptyState
             icon="activity"

@@ -2,6 +2,8 @@ import NetInfo from '@react-native-community/netinfo';
 import { store } from '../store';
 import { addToOfflineQueue, clearOfflineQueue } from '../store/settingsSlice';
 import { apiPost } from './api';
+import { queryClient } from './queryClient';
+import { invalidateMoneyQueries } from './queryInvalidation';
 
 let syncInProgress = false;
 
@@ -50,6 +52,9 @@ export async function processOfflineQueue(): Promise<void> {
 
     await apiPost('/sync/batch', { items });
     store.dispatch(clearOfflineQueue());
+    invalidateMoneyQueries(queryClient);
+    void queryClient.invalidateQueries({ queryKey: ['expense'] });
+    void queryClient.invalidateQueries({ queryKey: ['income'] });
   } catch {
     // Will retry on next reconnect
   } finally {

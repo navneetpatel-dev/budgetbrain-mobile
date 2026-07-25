@@ -5,6 +5,7 @@ import { useForm, Controller } from 'react-hook-form';
 import {
   Input,
   DetailSkeleton,
+  EmptyState,
   FormStackScreen,
   FormSection,
   FormActions,
@@ -29,7 +30,7 @@ export default function BudgetDetailScreen() {
   const router = useRouter();
   const { amountLabel } = useUserCurrency();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { budget, isLoading, loading, save, populateForm, submitError } = useBudgetDetail(id);
+  const { budget, isLoading, isError, refetch, loading, save, populateForm, submitError } = useBudgetDetail(id);
   const { deleteBudget } = useDeleteBudget();
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -42,10 +43,24 @@ export default function BudgetDetailScreen() {
     populateForm(reset);
   }, [budget, reset, populateForm]);
 
-  if (isLoading || !budget) {
+  if (isLoading) {
     return (
       <FormStackScreen eyebrow="Budget" title="Budget" subtitle="Loading details">
         <DetailSkeleton />
+      </FormStackScreen>
+    );
+  }
+
+  if (isError || !budget) {
+    return (
+      <FormStackScreen eyebrow="Budget" title="Budget" subtitle="Unavailable">
+        <EmptyState
+          icon="budgets"
+          title="Couldn’t load budget"
+          subtitle="Check your connection and try again"
+          action="Retry"
+          onAction={() => void refetch()}
+        />
       </FormStackScreen>
     );
   }
@@ -139,7 +154,9 @@ export default function BudgetDetailScreen() {
 
           <FormActions
             primaryTitle="Save Changes"
-            onPrimary={handleSubmit(save)}
+            onPrimary={handleSubmit(async (data) => {
+              if (await save(data)) setEditing(false);
+            })}
             primaryLoading={loading}
             secondaryTitle="Cancel"
             onSecondary={() => setEditing(false)}

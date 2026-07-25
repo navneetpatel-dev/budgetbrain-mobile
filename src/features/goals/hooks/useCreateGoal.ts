@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { apiPost, getApiErrorMessage } from '@/shared/services/api';
+import { invalidateGoalQueries } from '@/shared/services/queryInvalidation';
 import type { Goal } from '@/shared/types';
 
 export interface GoalForm {
@@ -28,8 +29,7 @@ export function useCreateGoal() {
         targetAmount: Number(data.targetAmount),
         targetDate: data.targetDate || undefined,
       });
-      queryClient.invalidateQueries({ queryKey: ['goals'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      invalidateGoalQueries(queryClient);
       router.back();
     } catch (err) {
       setSubmitError(getApiErrorMessage(err, 'Could not create goal'));

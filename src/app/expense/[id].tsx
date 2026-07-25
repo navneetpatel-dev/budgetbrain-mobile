@@ -4,6 +4,7 @@ import {
   Input,
   DateInput,
   DetailSkeleton,
+  EmptyState,
   FormFieldLabel,
   OptionChips,
   OptionChipList,
@@ -30,6 +31,8 @@ export default function ExpenseDetailScreen() {
   const {
     expense,
     isLoading,
+    isError,
+    refetch,
     editing,
     setEditing,
     loading,
@@ -51,10 +54,24 @@ export default function ExpenseDetailScreen() {
 
   const selectedPayment = watch('paymentMethod');
 
-  if (isLoading || !expense) {
+  if (isLoading) {
     return (
       <FormStackScreen eyebrow="Expense" title="Expense" subtitle="Loading details">
         <DetailSkeleton />
+      </FormStackScreen>
+    );
+  }
+
+  if (isError || !expense) {
+    return (
+      <FormStackScreen eyebrow="Expense" title="Expense" subtitle="Unavailable">
+        <EmptyState
+          icon="activity"
+          title="Couldn’t load expense"
+          subtitle="Check your connection and try again"
+          action="Retry"
+          onAction={() => void refetch()}
+        />
       </FormStackScreen>
     );
   }

@@ -6,6 +6,7 @@ import {
   Input,
   DateInput,
   DetailSkeleton,
+  EmptyState,
   FormStackScreen,
   FormSection,
   FormActions,
@@ -27,7 +28,7 @@ export default function GoalDetailScreen() {
   const router = useRouter();
   const { amountLabel } = useUserCurrency();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { goal, isLoading, loading, save, populateForm, confirmDelete, submitError } = useGoalDetail(id);
+  const { goal, isLoading, isError, refetch, loading, save, populateForm, confirmDelete, submitError } = useGoalDetail(id);
   const [editing, setEditing] = useState(false);
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<GoalForm>({
@@ -38,10 +39,24 @@ export default function GoalDetailScreen() {
     populateForm(reset);
   }, [populateForm, reset]);
 
-  if (isLoading || !goal) {
+  if (isLoading) {
     return (
       <FormStackScreen eyebrow="Goal" title="Goal" subtitle="Loading details">
         <DetailSkeleton />
+      </FormStackScreen>
+    );
+  }
+
+  if (isError || !goal) {
+    return (
+      <FormStackScreen eyebrow="Goal" title="Goal" subtitle="Unavailable">
+        <EmptyState
+          icon="goals"
+          title="Couldn’t load goal"
+          subtitle="Check your connection and try again"
+          action="Retry"
+          onAction={() => void refetch()}
+        />
       </FormStackScreen>
     );
   }

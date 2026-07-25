@@ -75,6 +75,7 @@ export function useInfinitePaginatedList<T>(config: {
     items,
     total: total ?? items.length,
     isLoading: query.isLoading,
+    isError: query.isError,
     isRefetching: query.isRefetching,
     isFetchingNextPage: query.isFetchingNextPage,
     hasNextPage: query.hasNextPage,
@@ -104,6 +105,7 @@ export function usePaginatedList<T, K extends string>(config: {
     data: query.data?.items ?? [],
     total: query.data?.total ?? query.data?.items.length ?? 0,
     isLoading: query.isLoading,
+    isError: query.isError,
     isRefetching: query.isRefetching,
     refetch: query.refetch,
   };

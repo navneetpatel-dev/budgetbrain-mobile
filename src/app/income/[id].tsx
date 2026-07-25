@@ -5,6 +5,7 @@ import {
   Input,
   DateInput,
   DetailSkeleton,
+  EmptyState,
   FormStackScreen,
   FormSection,
   FormActions,
@@ -26,6 +27,8 @@ export default function IncomeDetailScreen() {
   const {
     income,
     isLoading,
+    isError,
+    refetch,
     loading,
     updating,
     duplicating,
@@ -46,10 +49,24 @@ export default function IncomeDetailScreen() {
     populateForm(reset);
   }, [populateForm, reset]);
 
-  if (isLoading || !income) {
+  if (isLoading) {
     return (
       <FormStackScreen eyebrow="Income" title="Income" subtitle="Loading details">
         <DetailSkeleton />
+      </FormStackScreen>
+    );
+  }
+
+  if (isError || !income) {
+    return (
+      <FormStackScreen eyebrow="Income" title="Income" subtitle="Unavailable">
+        <EmptyState
+          icon="income"
+          title="Couldn’t load income"
+          subtitle="Check your connection and try again"
+          action="Retry"
+          onAction={() => void refetch()}
+        />
       </FormStackScreen>
     );
   }

@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react';
-import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { UseFormReset } from 'react-hook-form';
 import { apiGet, apiPatch, getApiErrorMessage } from '@/shared/services/api';
+import { invalidateBudgetQueries } from '@/shared/services/queryInvalidation';
 import type { Budget } from '@/shared/types';
 
 export interface BudgetForm {
@@ -12,13 +12,12 @@ export interface BudgetForm {
 }
 
 export function useBudgetDetail(id: string) {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const clearSubmitError = useCallback(() => setSubmitError(null), []);
 
-  const { data: budget, isLoading } = useQuery({
+  const { data: budget, isLoading, isError, refetch } = useQuery({
     queryKey: ['budget', id],
     queryFn: () => apiGet<Budget>(`/budgets/${id}`),
     enabled: !!id,
@@ -40,20 +39,31 @@ export function useBudgetDetail(id: string) {
     setLoading(true);
     setSubmitError(null);
     try {
-      await apiPatch(`/budgets/${id}`, {
+      const updated = await apiPatch<Budget>(`/budgets/${id}`, {
         name: data.name,
         amount: Number(data.amount),
         alertThreshold: Number(data.alertThreshold),
       });
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
-      queryClient.invalidateQueries({ queryKey: ['budget', id] });
-      router.back();
+      queryClient.setQueryData(['budget', id], updated);
+      invalidateBudgetQueries(queryClient, id);
+      return true;
     } catch (err) {
       setSubmitError(getApiErrorMessage(err, 'Could not update budget'));
+      return false;
     } finally {
       setLoading(false);
     }
   };
 
-  return { budget, isLoading, loading, save, populateForm, submitError, clearSubmitError };
+  return {
+    budget,
+    isLoading,
+    isError,
+    refetch,
+    loading,
+    save,
+    populateForm,
+    submitError,
+    clearSubmitError,
+  };
 }

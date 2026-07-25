@@ -22,7 +22,7 @@ export default function BudgetsScreen() {
   const goBack = useStackBack('/(tabs)' as Href);
   const { deleteBudget } = useDeleteBudget();
 
-  const { data: budgets, total, isLoading, refetch, isRefetching } = usePaginatedList<Budget, 'budgets'>({
+  const { data: budgets, total, isLoading, isError, refetch, isRefetching } = usePaginatedList<Budget, 'budgets'>({
     queryKey: ['budgets'],
     url: '/budgets',
     itemsKey: 'budgets',
@@ -50,6 +50,14 @@ export default function BudgetsScreen() {
       ListEmptyComponent={
         isLoading ? (
           <ListRowsSkeleton count={4} variant="budget" />
+        ) : isError ? (
+          <EmptyState
+            icon="budgets"
+            title="Couldn’t load budgets"
+            subtitle="Check your connection and try again"
+            action="Retry"
+            onAction={() => void refetch()}
+          />
         ) : (
           <EmptyState
             icon="budgets"

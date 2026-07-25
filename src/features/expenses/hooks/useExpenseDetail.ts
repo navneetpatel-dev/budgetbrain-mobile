@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { UseFormReset } from 'react-hook-form';
 import { apiGet, apiPatch, apiDelete, apiPost, getApiErrorMessage } from '@/shared/services/api';
+import { invalidateMoneyQueries } from '@/shared/services/queryInvalidation';
 import { queueOfflineAction, isOnline } from '@/shared/services/offlineSync';
 import type { Transaction } from '@/shared/types';
 
@@ -33,7 +34,7 @@ export function useExpenseDetail(expenseId: string) {
     router.dismissTo('/(tabs)');
   }, [router]);
 
-  const { data: expense, isLoading } = useQuery({
+  const { data: expense, isLoading, isError, refetch } = useQuery({
     queryKey: ['expense', expenseId],
     queryFn: () => apiGet<Transaction>(`/expenses/${expenseId}`),
     enabled: !!expenseId,
@@ -68,14 +69,26 @@ export function useExpenseDetail(expenseId: string) {
     try {
       if (!(await isOnline())) {
         queueOfflineAction('update', payload);
+        queryClient.setQueryData<Transaction>(['expense', expenseId], (prev) =>
+          prev
+            ? {
+                ...prev,
+                amount: payload.amount,
+                merchant: payload.merchant ?? null,
+                notes: payload.notes ?? null,
+                categoryId: payload.categoryId,
+                paymentMethod: payload.paymentMethod,
+                date: payload.date,
+              }
+            : prev,
+        );
         setEditing(false);
         return;
       }
       const updated = await apiPatch<Transaction>(`/expenses/${expenseId}`, payload);
       queryClient.setQueryData(['expense', expenseId], updated);
-      queryClient.invalidateQueries({ queryKey: ['expense', expenseId] });
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      void queryClient.invalidateQueries({ queryKey: ['expense', expenseId] });
+      invalidateMoneyQueries(queryClient);
       setEditing(false);
     } catch (err) {
       setSubmitError(getApiErrorMessage(err, 'Could not update expense'));
@@ -90,12 +103,14 @@ export function useExpenseDetail(expenseId: string) {
     try {
       if (!(await isOnline())) {
         queueOfflineAction('delete', { id: expenseId });
+        void queryClient.removeQueries({ queryKey: ['expense', expenseId] });
+        invalidateMoneyQueries(queryClient);
         goHome();
         return;
       }
       await apiDelete(`/expenses/${expenseId}`);
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      void queryClient.removeQueries({ queryKey: ['expense', expenseId] });
+      invalidateMoneyQueries(queryClient);
       goHome();
     } catch (err) {
       setSubmitError(getApiErrorMessage(err, 'Could not delete expense'));
@@ -109,8 +124,7 @@ export function useExpenseDetail(expenseId: string) {
     clearFeedback();
     try {
       await apiPost(`/expenses/${expenseId}/duplicate`);
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      invalidateMoneyQueries(queryClient);
       goHome();
     } catch (err) {
       setSubmitError(getApiErrorMessage(err, 'Could not duplicate expense'));
@@ -126,6 +140,8 @@ export function useExpenseDetail(expenseId: string) {
   return {
     expense,
     isLoading,
+    isError,
+    refetch,
     editing,
     setEditing,
     loading: pendingAction !== null,

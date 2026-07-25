@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { StyleSheet, View, RefreshControl, Text } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { appHref } from '@/shared/utils/navigation';
 import { apiGet } from '@/shared/services/api';
 import {
@@ -38,7 +38,7 @@ export default function DashboardScreen() {
   const { sectionGap } = useResponsive();
   const sectionStyle = useMemo(() => ({ gap: sectionGap }), [sectionGap]);
 
-  const { data, isLoading, refetch, isRefetching } = useQuery({
+  const { data, isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ['dashboard'],
     queryFn: () => apiGet<DashboardData>('/expenses/dashboard'),
   });
@@ -46,6 +46,12 @@ export default function DashboardScreen() {
     queryKey: ['net-worth'],
     queryFn: () => apiGet<NetWorthSummary>('/net-worth'),
   });
+
+  useFocusEffect(
+    useCallback(() => {
+      void refetch();
+    }, [refetch]),
+  );
 
   const { budgetWidgets, goalWidgets } = useDashboardWidgets(
     data?.budgets ?? [],
@@ -72,15 +78,23 @@ export default function DashboardScreen() {
           amount={Number(summary?.netSavings ?? 0) || 0}
           currency={currency}
           savingsRate={summary?.savingsRate}
-          loading={isLoading || !summary}
+          loading={isLoading && !summary}
         />
       }
       refreshControl={
         <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
       }
     >
-      {isLoading || !data || !summary ? (
+      {isLoading && !data ? (
         <DashboardContentSkeleton />
+      ) : isError || !data || !summary ? (
+        <EmptyState
+          icon="home"
+          title="Couldn’t load dashboard"
+          subtitle="Pull to refresh or try again"
+          action="Retry"
+          onAction={() => void refetch()}
+        />
       ) : (
         <>
           <ScreenSection>
