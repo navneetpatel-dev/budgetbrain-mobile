@@ -82,6 +82,8 @@ export const ValidationMessages = {
   incomeSourceRequired: 'Select an income source',
   financialGoalsMin: 'Please select at least one financial goal',
   financialGoalsMax: 'Must be at most 20 financial goals',
+  enumInvalid: 'Invalid option',
+  uuidInvalid: 'Invalid id',
 } as const;
 
 export function maxLen(key: FieldLimitKey): number {

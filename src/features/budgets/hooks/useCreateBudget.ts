@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { apiPost, getApiErrorMessage } from '@/shared/services/api';
 import type { Budget } from '@/shared/types';
+import { ValidationMessages } from '@/shared/validation/fieldLimits';
 
 export interface BudgetForm {
   name: string;
@@ -23,7 +24,7 @@ export function useCreateBudget() {
   const create = async (data: BudgetForm) => {
     setSubmitError(null);
     if (data.type === 'category' && !data.categoryId) {
-      setSubmitError('Select a category for category budgets');
+      setSubmitError(ValidationMessages.categoryRequired);
       return;
     }
     setLoading(true);

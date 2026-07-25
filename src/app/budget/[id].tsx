@@ -11,7 +11,7 @@ import {
 } from '@/shared/components/ui';
 import { useBudgetDetail, type BudgetForm } from '@/features/budgets/hooks/useBudgetDetail';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
-import { alertThresholdRules, amountRules, textRules } from '@/shared/validation/fieldLimits';
+import { alertThresholdRules, amountRules, maxLen, textRules } from '@/shared/validation/fieldLimits';
 
 export default function BudgetEditScreen() {
   const { amountLabel } = useUserCurrency();
@@ -39,7 +39,7 @@ export default function BudgetEditScreen() {
           name="name"
           rules={textRules('entityName')}
           render={({ field: { onChange, value } }) => (
-            <Input label="Budget name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="budgets" disabled={loading} />
+            <Input label="Budget name" maxLength={maxLen('entityName')} value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="budgets" disabled={loading} />
           )}
         />
         <Controller

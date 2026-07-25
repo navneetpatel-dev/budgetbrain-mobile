@@ -5,7 +5,7 @@ import { Button, Input, Card, StackScrollScreen, GroupedCard, FormSection, FormA
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
 import { useSupportTickets } from '@/features/support/hooks/useSupportTickets';
-import { maxLen, textRules } from '@/shared/validation/fieldLimits';
+import { FieldLimits, maxLen, textRules, ValidationMessages } from '@/shared/validation/fieldLimits';
 
 export default function SupportScreen() {
   const theme = useTheme();
@@ -47,7 +47,7 @@ export default function SupportScreen() {
               multiline
               error={errors.message?.message}
               placeholder="Describe what happened and how we can help..."
-              helperText="Must be at least 10 characters"
+              helperText={ValidationMessages.minChars(FieldLimits.message.min)}
               disabled={loading}
             />
           )}

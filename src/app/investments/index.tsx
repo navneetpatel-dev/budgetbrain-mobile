@@ -76,7 +76,7 @@ export default function InvestmentsScreen() {
               name="name"
               rules={textRules('entityName')}
               render={({ field: { onChange, value } }) => (
-                <Input label="Investment name" value={value} onChangeText={onChange} maxLength={255} error={errors.name?.message} leftIcon="chart" />
+                <Input label="Investment name" value={value} onChangeText={onChange} maxLength={maxLen('entityName')} error={errors.name?.message} leftIcon="chart" />
               )}
             />
             <FormFieldLabel>Investment type</FormFieldLabel>

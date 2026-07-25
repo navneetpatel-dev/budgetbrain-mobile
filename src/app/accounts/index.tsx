@@ -19,7 +19,7 @@ import { useFabBottom } from '@/shared/hooks/useFabBottom';
 import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import { useAccounts, ACCOUNT_TYPES } from '@/features/accounts/hooks/useAccounts';
-import { moneyValueRules, optionalTextRules, last4Rules, textRules } from '@/shared/validation/fieldLimits';
+import { last4Rules, maxLen, moneyValueRules, optionalTextRules, textRules } from '@/shared/validation/fieldLimits';
 
 export default function AccountsScreen() {
   const theme = useTheme();
@@ -73,7 +73,7 @@ export default function AccountsScreen() {
           name="name"
           rules={textRules('entityName')}
           render={({ field: { onChange, value } }) => (
-            <Input label="Account name" maxLength={255} value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="wallet" disabled={loading} />
+            <Input label="Account name" maxLength={maxLen('entityName')} value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="wallet" disabled={loading} />
           )}
         />
         {!editingId && (
@@ -91,7 +91,7 @@ export default function AccountsScreen() {
               name="institution"
               rules={optionalTextRules('institution')}
               render={({ field: { onChange, value } }) => (
-                <Input label="Institution" maxLength={255} value={value} onChangeText={onChange} placeholder="e.g. HDFC Bank" leftIcon="netWorth" disabled={loading} error={errors.institution?.message} />
+                <Input label="Institution" maxLength={maxLen('institution')} value={value} onChangeText={onChange} placeholder="e.g. HDFC Bank" leftIcon="netWorth" disabled={loading} error={errors.institution?.message} />
               )}
             />
             <Controller

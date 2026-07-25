@@ -13,7 +13,7 @@ import {
 } from '@/shared/components/ui';
 import { useGoalDetail, type GoalForm } from '@/features/goals/hooks/useGoalDetail';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
-import { amountRules, optionalDateRules, textRules } from '@/shared/validation/fieldLimits';
+import { amountRules, maxLen, optionalDateRules, textRules } from '@/shared/validation/fieldLimits';
 
 export default function GoalEditScreen() {
   const { amountLabel } = useUserCurrency();
@@ -41,7 +41,7 @@ export default function GoalEditScreen() {
           name="name"
           rules={textRules('entityName')}
           render={({ field: { onChange, value } }) => (
-            <Input label="Goal name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="goals" disabled={loading} />
+            <Input label="Goal name" maxLength={maxLen('entityName')} value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="goals" disabled={loading} />
           )}
         />
         <Controller

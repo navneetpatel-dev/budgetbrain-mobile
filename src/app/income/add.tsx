@@ -16,7 +16,14 @@ import { useCreateIncome, type IncomeForm } from '@/features/income/hooks/useCre
 import { INCOME_SOURCE_TYPES } from '@/shared/constants/config';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import type { IncomeSource } from '@/shared/types';
-import { amountRules, dateRules, maxLen, optionalTextRules, textRules } from '@/shared/validation/fieldLimits';
+import {
+  amountRules,
+  dateRules,
+  maxLen,
+  optionalTextRules,
+  textRules,
+  ValidationMessages,
+} from '@/shared/validation/fieldLimits';
 
 type SourceMode = 'existing' | 'new';
 
@@ -49,7 +56,7 @@ export default function AddIncomeScreen() {
 
   const onSubmit = async (data: IncomeForm) => {
     if (!isNewSource && !data.incomeSourceId) {
-      setSourceError('Select an income source');
+      setSourceError(ValidationMessages.incomeSourceRequired);
       return;
     }
     setSourceError(undefined);
@@ -123,6 +130,7 @@ export default function AddIncomeScreen() {
                   label="Source name"
                   value={value}
                   onChangeText={onChange}
+                  maxLength={maxLen('entityName')}
                   placeholder="e.g. Salary, Freelance"
                   error={errors.newSourceName?.message}
                   leftIcon="wallet"

@@ -12,7 +12,7 @@ import {
 import { useOnboarding, type OnboardingForm } from '@/features/onboarding/hooks/useOnboarding';
 import { SUPPORTED_CURRENCIES, FINANCIAL_GOALS, SALARY_RANGES } from '@/shared/constants/config';
 import { getCurrencySymbol } from '@/shared/utils/currency';
-import { amountRules, textRules } from '@/shared/validation/fieldLimits';
+import { amountRules, maxLen, textRules } from '@/shared/validation/fieldLimits';
 
 export default function OnboardingScreen() {
   const { loading, selectedGoals, toggleGoal, submit, submitError } = useOnboarding();
@@ -39,7 +39,7 @@ export default function OnboardingScreen() {
           name="name"
           rules={textRules('name')}
           render={({ field: { onChange, value } }) => (
-            <Input label="Your name" value={value} onChangeText={onChange} maxLength={255} error={errors.name?.message} leftIcon="personFill" placeholder="What should we call you?" disabled={loading} />
+            <Input label="Your name" value={value} onChangeText={onChange} maxLength={maxLen('name')} error={errors.name?.message} leftIcon="personFill" placeholder="What should we call you?" disabled={loading} />
           )}
         />
 
@@ -48,7 +48,7 @@ export default function OnboardingScreen() {
           name="country"
           rules={textRules('country')}
           render={({ field: { onChange, value } }) => (
-            <Input label="Country" maxLength={100} value={value} onChangeText={onChange} error={errors.country?.message} disabled={loading} />
+            <Input label="Country" maxLength={maxLen('country')} value={value} onChangeText={onChange} error={errors.country?.message} disabled={loading} />
           )}
         />
 

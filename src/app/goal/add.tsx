@@ -12,7 +12,7 @@ import {
 import { useCreateGoal, type GoalForm } from '@/features/goals/hooks/useCreateGoal';
 import { GOAL_TYPES } from '@/shared/constants/config';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
-import { amountRules, optionalDateRules, textRules } from '@/shared/validation/fieldLimits';
+import { amountRules, maxLen, optionalDateRules, textRules } from '@/shared/validation/fieldLimits';
 
 export default function AddGoalScreen() {
   const { amountLabel } = useUserCurrency();
@@ -33,7 +33,7 @@ export default function AddGoalScreen() {
           name="name"
           rules={textRules('entityName')}
           render={({ field: { onChange, value } }) => (
-            <Input label="Goal name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="goals" placeholder="e.g. Emergency fund" disabled={loading} />
+            <Input label="Goal name" maxLength={maxLen('entityName')} value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="goals" placeholder="e.g. Emergency fund" disabled={loading} />
           )}
         />
 

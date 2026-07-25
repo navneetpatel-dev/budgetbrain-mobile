@@ -13,7 +13,7 @@ import {
 import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
 import { useCreateBudget, type BudgetForm } from '@/features/budgets/hooks/useCreateBudget';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
-import { alertThresholdRules, amountRules, dateRules, textRules } from '@/shared/validation/fieldLimits';
+import { alertThresholdRules, amountRules, dateRules, maxLen, textRules } from '@/shared/validation/fieldLimits';
 
 export default function AddBudgetScreen() {
   const { amountLabel } = useUserCurrency();
@@ -47,7 +47,7 @@ export default function AddBudgetScreen() {
           name="name"
           rules={textRules('entityName')}
           render={({ field: { onChange, value } }) => (
-            <Input label="Budget name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="budgets" placeholder="e.g. Groceries" disabled={loading} />
+            <Input label="Budget name" maxLength={maxLen('entityName')} value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="budgets" placeholder="e.g. Groceries" disabled={loading} />
           )}
         />
 

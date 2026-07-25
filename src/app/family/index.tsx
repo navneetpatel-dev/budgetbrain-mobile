@@ -17,7 +17,7 @@ import {
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
 import { useFamilyGroups } from '@/features/family/hooks/useFamilyGroups';
-import { inviteCodeRules, textRules } from '@/shared/validation/fieldLimits';
+import { inviteCodeRules, maxLen, textRules } from '@/shared/validation/fieldLimits';
 
 export default function FamilyScreen() {
   const theme = useTheme();
@@ -92,7 +92,7 @@ export default function FamilyScreen() {
           name="name"
           rules={textRules('entityName')}
           render={({ field: { onChange, value } }) => (
-            <Input label="Group name" maxLength={255} value={value} onChangeText={onChange} error={groupForm.formState.errors.name?.message} leftIcon="family" placeholder="e.g. Smith Family" disabled={loading} />
+            <Input label="Group name" maxLength={maxLen('entityName')} value={value} onChangeText={onChange} error={groupForm.formState.errors.name?.message} leftIcon="family" placeholder="e.g. Smith Family" disabled={loading} />
           )}
         />
         {createError ? <FormErrorBanner message={createError} /> : null}
@@ -106,7 +106,7 @@ export default function FamilyScreen() {
           name="inviteCode"
           rules={inviteCodeRules()}
           render={({ field: { onChange, value } }) => (
-            <Input label="Invite code" maxLength={20} value={value} onChangeText={onChange} autoCapitalize="characters" error={joinForm.formState.errors.inviteCode?.message} leftIcon="link" placeholder="ABC123" disabled={loading} />
+            <Input label="Invite code" maxLength={maxLen('inviteCode')} value={value} onChangeText={onChange} autoCapitalize="characters" error={joinForm.formState.errors.inviteCode?.message} leftIcon="link" placeholder="ABC123" disabled={loading} />
           )}
         />
         {joinError ? <FormErrorBanner message={joinError} /> : null}
