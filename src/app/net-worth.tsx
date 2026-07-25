@@ -106,7 +106,7 @@ export default function NetWorthScreen() {
               subtitle="Add accounts and investments to see your full net worth picture"
               action="Add account"
               onAction={() => router.push('/accounts')}
-              secondaryAction="Add investment"
+              secondaryAction="View investments"
               onSecondaryAction={() => router.push('/investments')}
             />
           ) : (
