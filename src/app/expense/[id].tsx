@@ -96,15 +96,17 @@ export default function ExpenseDetailScreen() {
             <Controller
               control={control}
               name="merchant"
+              rules={{ required: 'Merchant is required' }}
               render={({ field: { onChange, value } }) => (
-                <Input label="Merchant" value={value} onChangeText={onChange} leftIcon="activity" disabled={loading} />
+                <Input label="Merchant" value={value} onChangeText={onChange} error={errors.merchant?.message} leftIcon="activity" disabled={loading} />
               )}
             />
             <Controller
               control={control}
               name="date"
+              rules={{ required: 'Date is required' }}
               render={({ field: { onChange, value } }) => (
-                <DateInput label="Date" value={value} onChange={onChange} disabled={loading} />
+                <DateInput label="Date" value={value} onChange={onChange} error={errors.date?.message} disabled={loading} />
               )}
             />
           </FormSection>

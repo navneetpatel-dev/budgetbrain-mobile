@@ -72,7 +72,7 @@ export default function OnboardingScreen() {
           name="salaryRange"
           rules={{ required: 'Select salary range' }}
           render={({ field: { onChange, value } }) => (
-            <OptionChips options={[...SALARY_RANGES]} value={value} onChange={onChange} disabled={loading} />
+            <OptionChips options={[...SALARY_RANGES]} value={value} onChange={onChange} error={errors.salaryRange?.message} disabled={loading} />
           )}
         />
 

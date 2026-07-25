@@ -45,7 +45,7 @@ export default function SettingsScreen() {
   const { type: biometricType, supported: biometricSupported, enabled: biometricEnabled, toggle: toggleBiometric } = useBiometricToggle();
   const testPush = usePushTest();
 
-  const { control, handleSubmit, reset } = useForm<ProfileForm>({
+  const { control, handleSubmit, reset, formState: { errors } } = useForm<ProfileForm>({
     defaultValues: { name: user?.name ?? '', country: user?.country ?? '', currency: user?.currency ?? 'INR' },
   });
 
@@ -173,12 +173,22 @@ export default function SettingsScreen() {
           ) : (
             <FormSection title="Edit profile" style={{ margin: theme.spacing.lg, marginTop: 0 }}>
               {profileError ? <FormErrorBanner message={profileError} /> : null}
-              <Controller control={control} name="name" render={({ field: { onChange, value } }) => (
-                <Input label="Name" value={value} onChangeText={onChange} leftIcon="personFill" disabled={profileLoading} />
-              )} />
-              <Controller control={control} name="country" render={({ field: { onChange, value } }) => (
-                <Input label="Country" value={value} onChangeText={onChange} disabled={profileLoading} />
-              )} />
+              <Controller
+                control={control}
+                name="name"
+                rules={{ required: 'Name is required' }}
+                render={({ field: { onChange, value } }) => (
+                  <Input label="Name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="personFill" disabled={profileLoading} />
+                )}
+              />
+              <Controller
+                control={control}
+                name="country"
+                rules={{ required: 'Country is required' }}
+                render={({ field: { onChange, value } }) => (
+                  <Input label="Country" value={value} onChangeText={onChange} error={errors.country?.message} disabled={profileLoading} />
+                )}
+              />
               <FormFieldLabel>Currency</FormFieldLabel>
               <Controller control={control} name="currency" render={({ field: { onChange, value } }) => (
                 <OptionChips options={[...SUPPORTED_CURRENCIES]} value={value} onChange={onChange} disabled={profileLoading} />

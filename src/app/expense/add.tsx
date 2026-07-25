@@ -72,8 +72,9 @@ export default function AddExpenseScreen() {
         <Controller
           control={control}
           name="merchant"
+          rules={{ required: 'Merchant is required' }}
           render={({ field: { onChange, value } }) => (
-            <Input label="Merchant" value={value} onChangeText={onChange} placeholder="e.g. Swiggy, Amazon" leftIcon="activity" disabled={loading} />
+            <Input label="Merchant" value={value} onChangeText={onChange} placeholder="e.g. Swiggy, Amazon" error={errors.merchant?.message} leftIcon="activity" disabled={loading} />
           )}
         />
 

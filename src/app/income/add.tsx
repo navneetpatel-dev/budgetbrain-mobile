@@ -23,6 +23,7 @@ export default function AddIncomeScreen() {
   const { amountLabel } = useUserCurrency();
   const { create, loading, submitError } = useCreateIncome();
   const [sourceMode, setSourceMode] = useState<SourceMode>('existing');
+  const [sourceError, setSourceError] = useState<string>();
 
   const { data: sources } = usePaginatedList<IncomeSource, 'sources'>({
     queryKey: ['income-sources'],
@@ -44,6 +45,15 @@ export default function AddIncomeScreen() {
   const selectedSource = watch('incomeSourceId');
   const newSourceType = watch('newSourceType');
   const isNewSource = sourceMode === 'new';
+
+  const onSubmit = async (data: IncomeForm) => {
+    if (!isNewSource && !data.incomeSourceId) {
+      setSourceError('Select an income source');
+      return;
+    }
+    setSourceError(undefined);
+    await create(data, isNewSource);
+  };
 
   return (
     <FormStackScreen eyebrow="INCOME" title="Add Income" subtitle="Record a new income entry">
@@ -82,7 +92,10 @@ export default function AddIncomeScreen() {
         <OptionChips
           options={['existing', 'new'] as const}
           value={sourceMode}
-          onChange={(v) => setSourceMode(v)}
+          onChange={(v) => {
+            setSourceMode(v);
+            setSourceError(undefined);
+          }}
           getLabel={(v) => (v === 'existing' ? 'Existing source' : 'New source')}
           disabled={loading}
         />
@@ -91,7 +104,11 @@ export default function AddIncomeScreen() {
           <OptionChipList
             items={(sources ?? []).map((src) => ({ id: src.id, label: src.name }))}
             selectedId={selectedSource}
-            onSelect={(id) => setValue('incomeSourceId', id)}
+            onSelect={(id) => {
+              setValue('incomeSourceId', id);
+              setSourceError(undefined);
+            }}
+            error={sourceError}
             disabled={loading}
           />
         ) : (
@@ -143,7 +160,7 @@ export default function AddIncomeScreen() {
 
       <FormActions
         primaryTitle="Save Income"
-        onPrimary={handleSubmit((data) => create(data, isNewSource))}
+        onPrimary={handleSubmit(onSubmit)}
         primaryLoading={loading}
       />
     </FormStackScreen>
