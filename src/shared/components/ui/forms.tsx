@@ -92,7 +92,7 @@ export function ImageUploadField({
                 accessibilityRole="button"
                 accessibilityLabel="Replace image"
               >
-                <AppIcon name="document" size={16} color="#fff" />
+                <AppIcon name="document" size={16} color={theme.colors.onPrimary} />
                 <Text style={styles.previewBtnText}>Replace</Text>
               </Pressable>
               {onRemove ? (
@@ -103,7 +103,7 @@ export function ImageUploadField({
                   accessibilityRole="button"
                   accessibilityLabel="Remove image"
                 >
-                  <AppIcon name="trash" size={16} color="#fff" />
+                  <AppIcon name="trash" size={16} color={theme.colors.onPrimary} />
                 </Pressable>
               ) : null}
             </View>
@@ -162,7 +162,7 @@ export function ColorPicker({
               accessibilityLabel={`Color ${c}`}
             >
               <View style={[styles.swatch, { backgroundColor: c }]}>
-                {selected ? <AppIcon name="checkmark" size={16} color="#fff" /> : null}
+                {selected ? <AppIcon name="checkmark" size={16} color={theme.colors.onPrimary} /> : null}
               </View>
             </Pressable>
           );
@@ -264,7 +264,7 @@ function createUploadStyles(t: AppTheme, height: number) {
       borderColor: 'rgba(255,255,255,0.2)',
     },
     removeBtn: { paddingHorizontal: 10 },
-    previewBtnText: { color: '#fff', fontSize: 12, fontWeight: '600' },
+    previewBtnText: { color: t.colors.onPrimary, fontSize: 12, fontWeight: '600' },
     errorText: { color: t.colors.danger, fontSize: 12, marginTop: t.spacing.xs },
   });
 }

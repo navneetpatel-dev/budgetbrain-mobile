@@ -119,10 +119,7 @@ function SurfaceCard({ children, style }: { children: ReactNode; style?: ViewSty
           borderWidth: 1,
           borderColor: theme.colors.borderSubtle,
           padding: theme.spacing.lg,
-          shadowColor: '#0F172A',
-          shadowOpacity: theme.isDark ? 0 : 0.04,
-          shadowRadius: 8,
-          shadowOffset: { width: 0, height: 2 },
+          ...(!theme.isDark ? theme.shadows.sm : null),
         },
         style,
       ]}

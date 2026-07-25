@@ -33,7 +33,7 @@ export const typography: ThemeTypography = {
   amountLg: { fontSize: 32, fontWeight: '800', letterSpacing: -1, fontFamily: 'Inter_800ExtraBold' },
 };
 
-function getShadows(isDark: boolean): ThemeShadows {
+function getShadows(isDark: boolean, primary: string): ThemeShadows {
   if (isDark) {
     return {
       sm: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4, elevation: 2 },
@@ -42,7 +42,7 @@ function getShadows(isDark: boolean): ThemeShadows {
     };
   }
   return {
-    sm: { shadowColor: '#6366F1', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
+    sm: { shadowColor: primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
     md: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 16, elevation: 4 },
     lg: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.12, shadowRadius: 28, elevation: 8 },
   };
@@ -54,15 +54,16 @@ export function buildTheme(
   themeMode: ThemeMode
 ): AppTheme {
   const isDark = resolvedMode === 'dark';
+  const colors = getThemeColors(resolvedMode, accent);
   return {
     mode: resolvedMode,
     accent,
     isDark,
-    colors: getThemeColors(resolvedMode, accent),
+    colors,
     typography,
     spacing,
     radii,
-    shadows: getShadows(isDark),
+    shadows: getShadows(isDark, colors.primary),
   };
 }
 

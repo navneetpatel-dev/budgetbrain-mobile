@@ -313,6 +313,7 @@ function Chip({
   styles: ReturnType<typeof createChipStyles>;
   disabled?: boolean;
 }) {
+  const theme = useTheme();
   return (
     <Pressable
       onPress={disabled ? undefined : onPress}
@@ -331,7 +332,7 @@ function Chip({
     >
       {selected ? (
         <View style={[styles.chipDot, { backgroundColor: accent }]}>
-          <AppIcon name="checkmark" size={10} color="#fff" />
+          <AppIcon name="checkmark" size={10} color={theme.colors.onPrimary} />
         </View>
       ) : null}
       <Text style={[styles.chipText, selected && { color: accent, fontWeight: '700' }]}>

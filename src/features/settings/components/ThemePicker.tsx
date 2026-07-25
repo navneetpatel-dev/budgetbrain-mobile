@@ -101,7 +101,7 @@ function createStyles(t: ReturnType<typeof useTheme>) {
       width: 10,
       height: 10,
       borderRadius: 5,
-      backgroundColor: '#fff',
+      backgroundColor: t.colors.onPrimary,
       borderWidth: 2,
       borderColor: 'rgba(0,0,0,0.15)',
     },
