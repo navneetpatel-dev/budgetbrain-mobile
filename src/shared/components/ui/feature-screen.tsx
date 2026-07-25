@@ -363,7 +363,9 @@ export function OptionChips<T extends string>({
   const theme = useTheme();
   const styles = useMemo(() => createChipStyles(theme), [theme]);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const useSelect = options.length > 4;
+  /** Shared rule with web: ≤4 segmented, 5–8 chips, >8 sheet. */
+  const useSelect = options.length > 8;
+  const useSegmented = options.length <= 4;
 
   if (useSelect) {
     return (
@@ -397,9 +399,42 @@ export function OptionChips<T extends string>({
     );
   }
 
+  if (useSegmented) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.segmented}>
+          {options.map((opt) => {
+            const selected = value === opt;
+            const accent = getColor?.(opt) ?? theme.colors.primary;
+            return (
+              <Pressable
+                key={opt}
+                onPress={disabled ? undefined : () => onChange(opt)}
+                disabled={disabled}
+                style={({ pressed }) => [
+                  styles.segment,
+                  selected && { backgroundColor: accent + '22' },
+                  disabled && styles.chipDisabled,
+                  pressed && !disabled && { opacity: 0.9 },
+                ]}
+                accessibilityRole="button"
+                accessibilityState={{ selected }}
+              >
+                <Text style={[styles.segmentText, selected && { color: accent, fontWeight: '700' }]}>
+                  {getLabel(opt)}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <View style={styles.segmented}>
+      <View style={styles.grid}>
         {options.map((opt) => {
           const selected = value === opt;
           const accent = getColor?.(opt) ?? theme.colors.primary;
@@ -409,7 +444,7 @@ export function OptionChips<T extends string>({
               onPress={disabled ? undefined : () => onChange(opt)}
               disabled={disabled}
               style={({ pressed }) => [
-                styles.segment,
+                styles.chip,
                 selected && { backgroundColor: accent + '22', borderColor: accent },
                 disabled && styles.chipDisabled,
                 pressed && !disabled && { opacity: 0.9 },
@@ -417,7 +452,7 @@ export function OptionChips<T extends string>({
               accessibilityRole="button"
               accessibilityState={{ selected }}
             >
-              <Text style={[styles.segmentText, selected && { color: accent, fontWeight: '700' }]}>
+              <Text style={[styles.chipText, selected && { color: accent, fontWeight: '700' }]}>
                 {getLabel(opt)}
               </Text>
             </Pressable>
