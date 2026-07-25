@@ -72,6 +72,7 @@ export default function DashboardScreen() {
           amount={Number(summary?.netSavings ?? 0) || 0}
           currency={currency}
           savingsRate={summary?.savingsRate}
+          loading={isLoading || !summary}
         />
       }
       refreshControl={

@@ -37,11 +37,14 @@ export function SkeletonBlock({
   width: w = '100%',
   height: h = 16,
   radius,
+  tone = 'default',
   style,
 }: {
   width?: number | string;
   height?: number;
   radius?: number;
+  /** Use onBrand for skeletons sitting on primary/gradient hero surfaces. */
+  tone?: 'default' | 'onBrand';
   style?: ViewStyle;
 }) {
   const theme = useTheme();
@@ -50,6 +53,7 @@ export function SkeletonBlock({
     inputRange: [0, 1],
     outputRange: [-220, 320],
   });
+  const onBrand = tone === 'onBrand';
 
   return (
     <View
@@ -58,7 +62,7 @@ export function SkeletonBlock({
           width: w as number,
           height: h,
           borderRadius: radius ?? theme.radii.sm,
-          backgroundColor: theme.colors.surfaceHover,
+          backgroundColor: onBrand ? 'rgba(255,255,255,0.22)' : theme.colors.surfaceHover,
           overflow: 'hidden',
         },
         style,
@@ -72,13 +76,13 @@ export function SkeletonBlock({
           bottom: 0,
           width: 180,
           transform: [{ translateX }],
-          opacity: theme.isDark ? 0.28 : 0.55,
+          opacity: onBrand ? 0.55 : (theme.isDark ? 0.28 : 0.55),
         }}
       >
         <View
           style={{
             flex: 1,
-            backgroundColor: theme.colors.primarySoft,
+            backgroundColor: onBrand ? 'rgba(255,255,255,0.55)' : theme.colors.primarySoft,
           }}
         />
       </Animated.View>

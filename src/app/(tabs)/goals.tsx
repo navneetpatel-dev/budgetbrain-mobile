@@ -68,12 +68,15 @@ export default function GoalsScreen() {
           <Card style={styles.goalCard}>
             <Text style={styles.goalName}>{item.name}</Text>
             <Text style={styles.goalType}>{item.type.replace('_', ' ')}</Text>
-            <View style={styles.amountRow}>
+            <View style={styles.amountBlock}>
               <Text style={styles.current}>{formatCurrency(Number(item.currentAmount), item.currency)}</Text>
-              <Text style={styles.target}>/ {formatCurrency(Number(item.targetAmount), item.currency)}</Text>
+              <Text style={styles.target}>of {formatCurrency(Number(item.targetAmount), item.currency)}</Text>
             </View>
-            <ProgressBar progress={progress} color={theme.colors.success} />
-            <Text style={styles.progressText}>{progress}% complete</Text>
+            <ProgressBar
+              progress={progress}
+              color={progress >= 100 ? theme.colors.success : theme.colors.primary}
+            />
+            <Text style={styles.progressText}>{progress}% achieved</Text>
             <View style={styles.goalActions}>
               <Pressable
                 onPress={() => router.push(appHref(`/goal/${item.id}`))}
@@ -102,9 +105,9 @@ function createStyles(t: ReturnType<typeof useTheme>) {
     goalCard: { marginBottom: 0 },
     goalName: { ...t.typography.titleSm, color: t.colors.text },
     goalType: { ...t.typography.caption, color: t.colors.textSecondary, textTransform: 'capitalize', marginBottom: 8 },
-    amountRow: { flexDirection: 'row', alignItems: 'baseline', marginBottom: 12 },
+    amountBlock: { marginBottom: 12 },
     current: { ...t.typography.amount, color: t.colors.primary },
-    target: { ...t.typography.bodyMedium, color: t.colors.textSecondary, marginLeft: 4 },
+    target: { ...t.typography.caption, color: t.colors.textTertiary, marginTop: 2, fontWeight: '500' },
     progressText: { ...t.typography.caption, color: t.colors.textSecondary, marginTop: 6 },
     goalActions: { flexDirection: 'row', gap: 16, marginTop: 12 },
     editText: { color: t.colors.textSecondary, fontWeight: '600', fontSize: 14 },

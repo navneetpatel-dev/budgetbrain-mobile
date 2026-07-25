@@ -11,6 +11,7 @@ import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
 import { useCountUp } from '@/shared/hooks/useCountUp';
 import { formatCurrency } from '@/shared/utils/currency';
 import { appHref } from '@/shared/utils/navigation';
+import { SkeletonBlock } from '@/shared/components/ui/skeleton';
 
 type QuickAction = { label: string; icon: AppIconName; href: string };
 
@@ -24,11 +25,13 @@ export function DashboardHero({
   amount,
   currency,
   savingsRate,
+  loading = false,
 }: {
   name: string;
   amount: number;
   currency: string;
   savingsRate?: number;
+  loading?: boolean;
 }) {
   const theme = useTheme();
   const router = useRouter();
@@ -86,14 +89,23 @@ export function DashboardHero({
 
       <Animated.View style={{ opacity: fade }}>
         <Text style={styles.balanceLabel}>Net savings</Text>
-        <View style={styles.balanceRow}>
-          <Text style={styles.balanceAmount} numberOfLines={1}>
-            {formatCurrency(animatedAmount, currency)}
-          </Text>
-          <Text style={styles.balanceCurrency}>{currency}</Text>
-        </View>
-        {savingsRate !== undefined ? (
+        {loading ? (
+          <View style={styles.balanceSkeletonWrap}>
+            <SkeletonBlock width={148} height={34} radius={10} tone="onBrand" />
+            <SkeletonBlock width={36} height={14} radius={6} tone="onBrand" style={{ marginBottom: 4 }} />
+          </View>
+        ) : (
+          <View style={styles.balanceRow}>
+            <Text style={styles.balanceAmount} numberOfLines={1}>
+              {formatCurrency(animatedAmount, currency)}
+            </Text>
+            <Text style={styles.balanceCurrency}>{currency}</Text>
+          </View>
+        )}
+        {!loading && savingsRate !== undefined ? (
           <Text style={styles.rateText}>{Math.round(savingsRate)}% saved this month</Text>
+        ) : loading ? (
+          <SkeletonBlock width={140} height={12} radius={6} tone="onBrand" style={{ marginTop: 8, marginBottom: theme.spacing.md }} />
         ) : null}
       </Animated.View>
 
@@ -178,6 +190,12 @@ function createStyles(t: AppTheme, inlineGap: number) {
       flexDirection: 'row',
       alignItems: 'baseline',
       gap: t.spacing.sm,
+    },
+    balanceSkeletonWrap: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      gap: t.spacing.sm,
+      minHeight: 40,
     },
     balanceAmount: {
       color: '#fff',
