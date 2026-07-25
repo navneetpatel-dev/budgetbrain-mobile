@@ -63,7 +63,7 @@ export default function SettingsScreen() {
         },
         switchLabel: { ...theme.typography.bodyMedium, color: theme.colors.text, fontWeight: '600' },
         switchHint: { ...theme.typography.caption, color: theme.colors.textTertiary, marginTop: 2 },
-        actions: { gap: theme.spacing.md, marginTop: theme.spacing.lg },
+        actions: { gap: theme.spacing.md, marginTop: theme.spacing.xl, alignItems: 'center' },
       }),
     [theme],
   );
@@ -186,8 +186,8 @@ export default function SettingsScreen() {
         </GroupedCard>
 
         <View style={styles.actions}>
-          <Button title="Sign out" onPress={logout} variant="outline" />
-          <Button title="Delete account" onPress={deleteAccount} variant="danger" />
+          <Button title="Sign out" onPress={logout} variant="outline" size="lg" />
+          <Button title="Delete account" onPress={deleteAccount} variant="dangerGhost" />
         </View>
     </StickyHeaderScreen>
   );

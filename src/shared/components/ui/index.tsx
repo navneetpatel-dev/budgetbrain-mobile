@@ -62,7 +62,7 @@ export { FormInfoBanner } from './FormInfoBanner';
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'outline' | 'danger' | 'dangerGhost' | 'ghost';
   loading?: boolean;
   loadingTitle?: string;
   disabled?: boolean;
@@ -85,12 +85,24 @@ export function Button({
   const isPrimary = variant === 'primary';
   const isOutline = variant === 'outline';
   const isGhost = variant === 'ghost';
+  const isDangerGhost = variant === 'dangerGhost';
   const isSecondary = variant === 'secondary';
   const isDisabled = disabled || loading;
   const busyLabel = loading ? (loadingTitle ?? getLoadingLabel(title)) : title;
 
   const spinnerColor =
-    isOutline || isGhost ? theme.colors.primary : theme.colors.onPrimary;
+    isOutline || isGhost
+      ? theme.colors.primary
+      : isDangerGhost
+        ? theme.colors.danger
+        : theme.colors.onPrimary;
+
+  const iconColor =
+    isPrimary || variant === 'danger'
+      ? theme.colors.onPrimary
+      : isDangerGhost
+        ? theme.colors.danger
+        : theme.colors.primary;
 
   const inner = (
     <View style={styles.buttonInner}>
@@ -100,7 +112,7 @@ export function Button({
           <AppIcon
             name={icon as AppIconName}
             size={18}
-            color={isPrimary || variant === 'danger' ? theme.colors.onPrimary : theme.colors.primary}
+            color={iconColor}
           />
         ) : (
           icon
@@ -113,6 +125,7 @@ export function Button({
           isSecondary && styles.secondaryText,
           isOutline && styles.outlineText,
           isGhost && styles.ghostText,
+          isDangerGhost && styles.dangerGhostText,
           variant === 'danger' && styles.primaryText,
         ]}
       >
@@ -128,6 +141,7 @@ export function Button({
     !isPrimary && isOutline && styles.outline,
     variant === 'danger' && styles.danger,
     !isPrimary && isGhost && styles.ghost,
+    isDangerGhost && styles.dangerGhost,
     disabled && !loading && styles.disabled,
     pressed && !isDisabled && styles.pressed,
   ];
@@ -166,7 +180,10 @@ export function Button({
       accessibilityRole="button"
       accessibilityLabel={busyLabel}
       accessibilityState={{ disabled: isDisabled, busy: !!loading }}
-      style={pressableStyle}
+      style={({ pressed }) => [
+        ...pressableStyle({ pressed }),
+        size === 'lg' && styles.buttonLgWrap,
+      ]}
     >
       {inner}
     </Pressable>
@@ -464,6 +481,196 @@ export function FormActions({
   );
 }
 
+/** Detail hero: amount + title context */
+export function DetailHero({
+  amount,
+  amountColor,
+  title,
+  subtitle,
+}: {
+  amount: string;
+  amountColor?: string;
+  title?: string;
+  subtitle?: string;
+}) {
+  const theme = useTheme();
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        wrap: {
+          alignItems: 'center',
+          paddingVertical: theme.spacing.xl,
+          paddingHorizontal: theme.spacing.md,
+        },
+        amount: {
+          fontSize: 36,
+          fontWeight: '800',
+          letterSpacing: -1,
+          color: amountColor ?? theme.colors.text,
+        },
+        title: {
+          fontSize: 17,
+          fontWeight: '600',
+          color: theme.colors.text,
+          marginTop: theme.spacing.sm,
+          letterSpacing: -0.2,
+          textAlign: 'center',
+        },
+        subtitle: {
+          fontSize: 13,
+          fontWeight: '500',
+          color: theme.colors.textTertiary,
+          marginTop: 4,
+          textAlign: 'center',
+        },
+      }),
+    [theme, amountColor],
+  );
+
+  return (
+    <View style={styles.wrap}>
+      <Text style={styles.amount}>{amount}</Text>
+      {title ? <Text style={styles.title}>{title}</Text> : null}
+      {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+    </View>
+  );
+}
+
+/** Clean key/value rows — no heavy card chrome */
+export function DetailMetaList({
+  rows,
+}: {
+  rows: Array<{ label: string; value: string }>;
+}) {
+  const theme = useTheme();
+  const visible = rows.filter((r) => r.value && r.value !== '-');
+  const styles = useMemo(() => {
+    const hairline = theme.isDark ? 'rgba(255,255,255,0.08)' : theme.colors.borderSubtle;
+    return StyleSheet.create({
+      wrap: {
+        borderTopWidth: StyleSheet.hairlineWidth,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderColor: hairline,
+      },
+      row: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        gap: theme.spacing.lg,
+        paddingVertical: 14,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: hairline,
+      },
+      rowLast: { borderBottomWidth: 0 },
+      label: { fontSize: 13, fontWeight: '500', color: theme.colors.textTertiary },
+      value: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: theme.colors.text,
+        textAlign: 'right',
+        flex: 1,
+        textTransform: 'capitalize',
+      },
+    });
+  }, [theme]);
+
+  if (!visible.length) return null;
+
+  return (
+    <View style={styles.wrap}>
+      {visible.map((row, i) => (
+        <View key={row.label} style={[styles.row, i === visible.length - 1 && styles.rowLast]}>
+          <Text style={styles.label}>{row.label}</Text>
+          <Text style={styles.value}>{row.value}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+/** Compact detail actions: primary + secondary in a row, quiet delete */
+export function DetailActions({
+  primaryTitle = 'Edit',
+  onPrimary,
+  primaryLoading,
+  secondaryTitle,
+  onSecondary,
+  secondaryLoading,
+  destructiveTitle = 'Delete',
+  onDestructive,
+  destructiveLoading,
+  style,
+}: {
+  primaryTitle?: string;
+  onPrimary: () => void;
+  primaryLoading?: boolean;
+  secondaryTitle?: string;
+  onSecondary?: () => void;
+  secondaryLoading?: boolean;
+  destructiveTitle?: string;
+  onDestructive?: () => void;
+  destructiveLoading?: boolean;
+  style?: ViewStyle;
+}) {
+  const theme = useTheme();
+  const styles = useMemo(
+    () => StyleSheet.create({
+      wrap: {
+        gap: theme.spacing.md,
+        marginTop: theme.spacing.lg,
+        alignItems: 'center',
+      },
+      row: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        gap: theme.spacing.sm,
+        width: '100%',
+      },
+      rowBtn: { flexGrow: 1, flexBasis: 140, maxWidth: 220 },
+    }),
+    [theme],
+  );
+  const busy = primaryLoading || secondaryLoading || destructiveLoading;
+
+  return (
+    <View style={[styles.wrap, style]}>
+      <View style={styles.row}>
+        <View style={styles.rowBtn}>
+          <Button
+            title={primaryTitle}
+            onPress={onPrimary}
+            loading={primaryLoading}
+            disabled={busy && !primaryLoading}
+            size="lg"
+          />
+        </View>
+        {secondaryTitle && onSecondary ? (
+          <View style={styles.rowBtn}>
+            <Button
+              title={secondaryTitle}
+              onPress={onSecondary}
+              variant="outline"
+              loading={secondaryLoading}
+              disabled={busy && !secondaryLoading}
+              size="lg"
+            />
+          </View>
+        ) : null}
+      </View>
+      {onDestructive ? (
+        <Button
+          title={destructiveTitle}
+          onPress={onDestructive}
+          variant="dangerGhost"
+          loading={destructiveLoading}
+          disabled={busy && !destructiveLoading}
+        />
+      ) : null}
+    </View>
+  );
+}
+
 export { FormSection, ImageUploadField, ColorPicker } from './forms';
 
 function createButtonStyles(t: AppTheme) {
@@ -489,6 +696,7 @@ function createButtonStyles(t: AppTheme) {
       borderColor: t.colors.border,
     },
     danger: { backgroundColor: t.colors.danger },
+    dangerGhost: { backgroundColor: 'transparent' },
     ghost: { backgroundColor: t.colors.primarySoft },
     disabled: { opacity: 0.5 },
     pressed: { opacity: 0.88, transform: [{ scale: 0.98 }] },
@@ -497,6 +705,7 @@ function createButtonStyles(t: AppTheme) {
     secondaryText: { color: t.colors.text },
     outlineText: { color: t.colors.primary },
     ghostText: { color: t.colors.primary },
+    dangerGhostText: { color: t.colors.danger, fontWeight: '600' },
   });
 }
 

@@ -1,9 +1,6 @@
-import { useMemo } from 'react';
-import { StyleSheet, Text } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import {
-  Button,
   Input,
   DateInput,
   DetailSkeleton,
@@ -13,6 +10,9 @@ import {
   FormStackScreen,
   FormSection,
   FormActions,
+  DetailActions,
+  DetailHero,
+  DetailMetaList,
   FormErrorBanner,
   FormInfoBanner,
   FormSuccessBanner,
@@ -27,7 +27,6 @@ import { ValidationMessages, amountRules, dateRules, maxLen, optionalTextRules, 
 
 export default function ExpenseDetailScreen() {
   const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
   const { amountLabel } = useUserCurrency();
   const { id } = useLocalSearchParams<{ id: string }>();
   const {
@@ -61,13 +60,14 @@ export default function ExpenseDetailScreen() {
     );
   }
 
-  const symbol = formatCurrency(Number(expense.amount), expense.currency);
+  const title = expense.merchant ?? expense.category?.name ?? 'Expense';
+  const amount = formatCurrency(Number(expense.amount), expense.currency);
 
   return (
     <FormStackScreen
       eyebrow="Expense"
-      title={editing ? 'Edit Expense' : 'Expense Details'}
-      subtitle={expense.merchant ?? expense.category?.name ?? 'Transaction'}
+      title={editing ? 'Edit Expense' : title}
+      subtitle={editing ? 'Update transaction' : expense.category?.name}
     >
       {submitError ? <FormErrorBanner message={submitError} /> : null}
       {submitInfo ? <FormInfoBanner message={submitInfo} icon="link" /> : null}
@@ -75,16 +75,28 @@ export default function ExpenseDetailScreen() {
 
       {!editing ? (
         <>
-          <FormSection title="Summary">
-            <Text style={styles.amount}>{symbol}</Text>
-            <Text style={styles.merchant}>{expense.merchant ?? expense.category?.name ?? 'Expense'}</Text>
-            <Text style={styles.meta}>Date: {expense.date}</Text>
-            <Text style={styles.meta}>Payment: {expense.paymentMethod?.replace('_', ' ') ?? '—'}</Text>
-            {expense.notes ? <Text style={styles.notes}>{expense.notes}</Text> : null}
-          </FormSection>
-          <FormActions primaryTitle="Edit" onPrimary={() => startEditing(reset)} />
-          <Button title="Duplicate" onPress={duplicate} variant="outline" loading={loading} />
-          <Button title="Delete" onPress={confirmDelete} variant="danger" loading={loading} />
+          <DetailHero
+            amount={amount}
+            amountColor={theme.colors.danger}
+            title={title}
+            subtitle={expense.category?.name && expense.merchant ? expense.category.name : undefined}
+          />
+          <DetailMetaList
+            rows={[
+              { label: 'Date', value: expense.date },
+              { label: 'Payment', value: expense.paymentMethod?.replace(/_/g, ' ') ?? '' },
+              { label: 'Notes', value: expense.notes ?? '' },
+            ]}
+          />
+          <DetailActions
+            primaryTitle="Edit"
+            onPrimary={() => startEditing(reset)}
+            secondaryTitle="Duplicate"
+            onSecondary={duplicate}
+            secondaryLoading={loading}
+            onDestructive={confirmDelete}
+            destructiveLoading={loading}
+          />
         </>
       ) : (
         <>
@@ -163,13 +175,4 @@ export default function ExpenseDetailScreen() {
       )}
     </FormStackScreen>
   );
-}
-
-function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    amount: { fontSize: 32, fontWeight: '800', color: t.colors.danger },
-    merchant: { fontSize: 18, fontWeight: '600', color: t.colors.text, marginTop: 8 },
-    meta: { fontSize: 14, color: t.colors.textSecondary, marginTop: 4 },
-    notes: { fontSize: 14, color: t.colors.text, marginTop: 12, lineHeight: 20 },
-  });
 }
