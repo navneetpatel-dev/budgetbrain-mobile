@@ -23,7 +23,7 @@ import { PAYMENT_METHODS } from '@/shared/constants/config';
 import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import { formatCurrency } from '@/shared/utils/currency';
-import { amountRules, dateRules, maxLen, optionalTextRules, textRules } from '@/shared/validation/fieldLimits';
+import { ValidationMessages, amountRules, dateRules, maxLen, optionalTextRules, textRules } from '@/shared/validation/fieldLimits';
 
 export default function ExpenseDetailScreen() {
   const theme = useTheme();
@@ -51,7 +51,6 @@ export default function ExpenseDetailScreen() {
     defaultValues: { amount: '', merchant: '', notes: '', categoryId: '', paymentMethod: 'upi', date: '' },
   });
 
-  const selectedCategory = watch('categoryId');
   const selectedPayment = watch('paymentMethod');
 
   if (isLoading || !expense) {
@@ -126,11 +125,19 @@ export default function ExpenseDetailScreen() {
               disabled={loading}
             />
             <FormFieldLabel>Category</FormFieldLabel>
-            <OptionChipList
-              items={(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined }))}
-              selectedId={selectedCategory}
-              onSelect={(catId) => setValue('categoryId', catId)}
-              disabled={loading}
+            <Controller
+              control={control}
+              name="categoryId"
+              rules={{ required: ValidationMessages.categoryRequired }}
+              render={({ field: { onChange, value } }) => (
+                <OptionChipList
+                  items={(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined }))}
+                  selectedId={value}
+                  onSelect={onChange}
+                  error={errors.categoryId?.message}
+                  disabled={loading}
+                />
+              )}
             />
           </FormSection>
 

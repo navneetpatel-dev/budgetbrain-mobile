@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
   Input,
@@ -22,7 +21,6 @@ export default function AddExpenseScreen() {
   const { amountLabel } = useUserCurrency();
   const { create, loading } = useCreateExpense();
   const { receipt, pick, clear } = useReceiptPicker();
-  const [categoryError, setCategoryError] = useState<string>();
 
   const { data: categories } = useCategoryOptions();
 
@@ -37,15 +35,9 @@ export default function AddExpenseScreen() {
     },
   });
 
-  const selectedCategory = watch('categoryId');
   const selectedPayment = watch('paymentMethod');
 
   const onSubmit = async (data: ExpenseForm) => {
-    if (!data.categoryId) {
-      setCategoryError(ValidationMessages.categoryRequired);
-      return;
-    }
-    setCategoryError(undefined);
     await create(data, receipt);
   };
 
@@ -100,15 +92,19 @@ export default function AddExpenseScreen() {
         />
 
         <FormFieldLabel>Category</FormFieldLabel>
-        <OptionChipList
-          items={(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined }))}
-          selectedId={selectedCategory}
-          onSelect={(id) => {
-            setValue('categoryId', id);
-            setCategoryError(undefined);
-          }}
-          error={categoryError}
-          disabled={loading}
+        <Controller
+          control={control}
+          name="categoryId"
+          rules={{ required: ValidationMessages.categoryRequired }}
+          render={({ field: { onChange, value } }) => (
+            <OptionChipList
+              items={(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined }))}
+              selectedId={value}
+              onSelect={onChange}
+              error={errors.categoryId?.message}
+              disabled={loading}
+            />
+          )}
         />
       </FormSection>
 
