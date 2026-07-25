@@ -7,12 +7,10 @@ import { FormErrorBanner } from '@/shared/components/ui/FormErrorBanner';
 import { useTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
 import { maxLen } from '@/shared/validation/fieldLimits';
-
-const SUGGESTED_PROMPTS = [
-  'Where did I overspend this month?',
-  'How can I save more?',
-  'Summarize my top categories',
-];
+import {
+  AI_FOLLOW_UP_SUGGESTIONS,
+  AI_STARTER_SUGGESTIONS,
+} from '@/features/ai/constants/suggestions';
 
 const COMPOSER_MIN_HEIGHT = 48;
 const SEND_SIZE = 36;
@@ -22,7 +20,7 @@ interface AiChatInputProps {
   onChangeMessage: (text: string) => void;
   onSend: (text?: string) => void;
   loading: boolean;
-  showSuggestions: boolean;
+  suggestionMode?: 'starter' | 'followup' | 'hidden';
   error?: string | null;
 }
 
@@ -31,7 +29,7 @@ export function AiChatInput({
   onChangeMessage,
   onSend,
   loading,
-  showSuggestions,
+  suggestionMode = 'starter',
   error,
 }: AiChatInputProps) {
   const theme = useTheme();
@@ -43,29 +41,44 @@ export function AiChatInput({
     [theme, bottomPad, tabBarPaddingX],
   );
   const canSend = message.trim().length > 0 && !loading;
+  const prompts =
+    suggestionMode === 'followup'
+      ? AI_FOLLOW_UP_SUGGESTIONS
+      : suggestionMode === 'starter'
+        ? AI_STARTER_SUGGESTIONS
+        : [];
+  const suggestionLabel = suggestionMode === 'followup' ? 'Continue with' : 'Suggested questions';
 
   return (
     <View style={styles.wrap}>
       {error ? <FormErrorBanner message={error} /> : null}
-      {showSuggestions && (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.prompts}
-          keyboardShouldPersistTaps="handled"
-        >
-          {SUGGESTED_PROMPTS.map((prompt) => (
-            <Pressable
-              key={prompt}
-              onPress={() => onSend(prompt)}
-              style={({ pressed }) => [styles.promptChip, pressed && { opacity: 0.85 }]}
-            >
-              <AppIcon name="ai" size={12} color={theme.colors.primary} />
-              <Text style={styles.promptText}>{prompt}</Text>
-            </Pressable>
-          ))}
-        </ScrollView>
-      )}
+      {prompts.length > 0 ? (
+        <View style={styles.suggestionsBlock}>
+          <Text style={styles.suggestionsLabel}>{suggestionLabel}</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.prompts}
+            keyboardShouldPersistTaps="handled"
+          >
+            {prompts.map((prompt) => (
+              <Pressable
+                key={prompt}
+                onPress={() => onSend(prompt)}
+                disabled={loading}
+                style={({ pressed }) => [
+                  styles.promptChip,
+                  pressed && { opacity: 0.85 },
+                  loading && { opacity: 0.55 },
+                ]}
+              >
+                <AppIcon name="ai" size={12} color={theme.colors.primary} />
+                <Text style={styles.promptText}>{prompt}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
+      ) : null}
 
       <View style={styles.composer}>
         <TextInput
@@ -125,6 +138,16 @@ function createStyles(t: ReturnType<typeof useTheme>, bottomPad: number, horizon
       borderTopColor: t.isDark ? 'rgba(255,255,255,0.08)' : t.colors.borderSubtle,
       backgroundColor: t.colors.background,
       gap: t.spacing.sm,
+    },
+    suggestionsBlock: {
+      gap: 6,
+    },
+    suggestionsLabel: {
+      fontSize: 11,
+      fontWeight: '600',
+      letterSpacing: 0.4,
+      textTransform: 'uppercase',
+      color: t.colors.textTertiary,
     },
     prompts: {
       gap: 8,

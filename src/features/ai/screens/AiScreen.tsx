@@ -97,7 +97,7 @@ export function AiScreen() {
           onChangeMessage={setMessage}
           onSend={sendMessage}
           loading={chatLoading}
-          showSuggestions={isEmpty}
+          suggestionMode={isEmpty ? 'starter' : 'followup'}
           error={chatError}
         />
       </KeyboardAvoidingView>

@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import type { AiChatMessage } from '@/shared/types';
+import { AiRichReply } from './AiRichReply';
 
 export function AiChatBubble({ message }: { message: AiChatMessage }) {
   const theme = useTheme();
@@ -31,7 +32,7 @@ export function AiChatBubble({ message }: { message: AiChatMessage }) {
         <AppIcon name="ai" size={14} color={theme.colors.primary} />
       </View>
       <View style={styles.assistantBubble}>
-        <Text style={styles.assistantText}>{message.content}</Text>
+        <AiRichReply content={message.content} />
       </View>
     </View>
   );
@@ -85,16 +86,15 @@ function createStyles(t: ReturnType<typeof useTheme>, isUser: boolean) {
     },
     userText: { color: t.colors.onPrimary, fontSize: 15, lineHeight: 21 },
     assistantBubble: {
-      maxWidth: '82%',
+      maxWidth: '86%',
       paddingHorizontal: 14,
-      paddingVertical: 10,
+      paddingVertical: 12,
       borderRadius: 18,
       borderBottomLeftRadius: 6,
       backgroundColor: t.isDark ? 'rgba(255,255,255,0.06)' : t.colors.surface,
       borderWidth: 1,
       borderColor: t.isDark ? 'rgba(255,255,255,0.08)' : t.colors.borderSubtle,
     },
-    assistantText: { color: t.colors.text, fontSize: 15, lineHeight: 21 },
   });
 }
 
