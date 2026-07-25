@@ -368,6 +368,7 @@ export function OptionChips<T extends string>({
   const useSegmented = options.length <= 4;
 
   if (useSelect) {
+    const hasValue = options.includes(value);
     return (
       <View style={styles.container}>
         <Pressable
@@ -379,9 +380,11 @@ export function OptionChips<T extends string>({
             pressed && !disabled && { opacity: 0.9 },
           ]}
           accessibilityRole="button"
-          accessibilityLabel={getLabel(value)}
+          accessibilityLabel={hasValue ? getLabel(value) : 'Choose'}
         >
-          <Text style={styles.selectValue}>{getLabel(value)}</Text>
+          <Text style={[styles.selectValue, !hasValue && { color: theme.colors.textTertiary }]}>
+            {hasValue ? getLabel(value) : 'Choose'}
+          </Text>
           <AppIcon name="chevronRight" size={14} color={theme.colors.textTertiary} />
         </Pressable>
         {error ? <Text style={styles.errorText}>{error}</Text> : null}

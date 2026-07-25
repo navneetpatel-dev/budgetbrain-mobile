@@ -3,7 +3,6 @@ import { apiPost, getApiErrorMessage } from '@/shared/services/api';
 import { setUser } from '@/shared/store/authSlice';
 import { useAppDispatch } from '@/shared/store/hooks';
 import type { User } from '@/shared/types';
-import { ValidationMessages } from '@/shared/validation/fieldLimits';
 
 export interface OnboardingForm {
   name: string;
@@ -17,30 +16,15 @@ export interface OnboardingForm {
 export function useOnboarding() {
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
-  const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const clearSubmitError = useCallback(() => setSubmitError(null), []);
 
-  const toggleGoal = (goal: string) => {
-    clearSubmitError();
-    const updated = selectedGoals.includes(goal)
-      ? selectedGoals.filter((g) => g !== goal)
-      : [...selectedGoals, goal];
-    setSelectedGoals(updated);
-  };
-
   const submit = async (data: OnboardingForm) => {
     setSubmitError(null);
-    if (selectedGoals.length === 0) {
-      setSubmitError(ValidationMessages.financialGoalsMin);
-      return;
-    }
-
     setLoading(true);
     try {
       const user = await apiPost<User>('/users/onboarding', {
         ...data,
-        financialGoals: selectedGoals,
         monthlySavingsTarget: Number(data.monthlySavingsTarget),
       });
       dispatch(setUser(user));
@@ -51,5 +35,5 @@ export function useOnboarding() {
     }
   };
 
-  return { loading, selectedGoals, toggleGoal, submit, submitError, clearSubmitError };
+  return { loading, submit, submitError, clearSubmitError };
 }

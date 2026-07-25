@@ -31,7 +31,6 @@ export default function AddIncomeScreen() {
   const { amountLabel } = useUserCurrency();
   const { create, loading, submitError } = useCreateIncome();
   const [sourceMode, setSourceMode] = useState<SourceMode>('existing');
-  const [sourceError, setSourceError] = useState<string>();
 
   const { data: sources } = usePaginatedList<IncomeSource, 'sources'>({
     queryKey: ['income-sources'],
@@ -39,7 +38,7 @@ export default function AddIncomeScreen() {
     itemsKey: 'sources',
   });
 
-  const { control, handleSubmit, setValue, watch, formState: { errors } } = useForm<IncomeForm>({
+  const { control, handleSubmit, setValue, watch, clearErrors, formState: { errors } } = useForm<IncomeForm>({
     defaultValues: {
       amount: '',
       notes: '',
@@ -50,16 +49,10 @@ export default function AddIncomeScreen() {
     },
   });
 
-  const selectedSource = watch('incomeSourceId');
   const newSourceType = watch('newSourceType');
   const isNewSource = sourceMode === 'new';
 
   const onSubmit = async (data: IncomeForm) => {
-    if (!isNewSource && !data.incomeSourceId) {
-      setSourceError(ValidationMessages.incomeSourceRequired);
-      return;
-    }
-    setSourceError(undefined);
     await create(data, isNewSource);
   };
 
@@ -102,29 +95,35 @@ export default function AddIncomeScreen() {
           value={sourceMode}
           onChange={(v) => {
             setSourceMode(v);
-            setSourceError(undefined);
+            clearErrors(['incomeSourceId', 'newSourceName']);
           }}
           getLabel={(v) => (v === 'existing' ? 'Existing source' : 'New source')}
           disabled={loading}
         />
 
         {!isNewSource ? (
-          <OptionChipList
-            items={(sources ?? []).map((src) => ({ id: src.id, label: src.name }))}
-            selectedId={selectedSource}
-            onSelect={(id) => {
-              setValue('incomeSourceId', id);
-              setSourceError(undefined);
-            }}
-            error={sourceError}
-            disabled={loading}
+          <Controller
+            control={control}
+            name="incomeSourceId"
+            shouldUnregister
+            rules={{ required: ValidationMessages.incomeSourceRequired }}
+            render={({ field: { onChange, value } }) => (
+              <OptionChipList
+                items={(sources ?? []).map((src) => ({ id: src.id, label: src.name }))}
+                selectedId={value}
+                onSelect={onChange}
+                error={errors.incomeSourceId?.message}
+                disabled={loading}
+              />
+            )}
           />
         ) : (
           <>
             <Controller
               control={control}
               name="newSourceName"
-              rules={isNewSource ? textRules('entityName') : undefined}
+              shouldUnregister
+              rules={textRules('entityName')}
               render={({ field: { onChange, value } }) => (
                 <Input
                   label="Source name"

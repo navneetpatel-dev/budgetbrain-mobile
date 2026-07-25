@@ -13,7 +13,7 @@ import {
 import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
 import { useCreateBudget, type BudgetForm } from '@/features/budgets/hooks/useCreateBudget';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
-import { alertThresholdRules, amountRules, dateRules, maxLen, textRules } from '@/shared/validation/fieldLimits';
+import { alertThresholdRules, amountRules, dateRules, maxLen, textRules, ValidationMessages } from '@/shared/validation/fieldLimits';
 
 export default function AddBudgetScreen() {
   const { amountLabel } = useUserCurrency();
@@ -24,7 +24,7 @@ export default function AddBudgetScreen() {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
 
-  const { control, handleSubmit, setValue, watch, formState: { errors } } = useForm<BudgetForm>({
+  const { control, handleSubmit, setValue, watch, clearErrors, formState: { errors } } = useForm<BudgetForm>({
     defaultValues: {
       name: '',
       type: 'monthly',
@@ -36,7 +36,6 @@ export default function AddBudgetScreen() {
   });
 
   const budgetType = watch('type');
-  const selectedCategory = watch('categoryId');
 
   return (
     <FormStackScreen eyebrow="Budget" title="Create Budget" subtitle="Set a spending limit">
@@ -55,7 +54,10 @@ export default function AddBudgetScreen() {
         <OptionChips
           options={['monthly', 'weekly', 'category'] as const}
           value={budgetType}
-          onChange={(v) => setValue('type', v)}
+          onChange={(v) => {
+            setValue('type', v);
+            if (v !== 'category') clearErrors('categoryId');
+          }}
           getLabel={(v) => (v === 'category' ? 'By category' : v.charAt(0).toUpperCase() + v.slice(1))}
           disabled={loading}
         />
@@ -92,11 +94,20 @@ export default function AddBudgetScreen() {
         {budgetType === 'category' && (
           <>
             <FormFieldLabel>Category</FormFieldLabel>
-            <OptionChipList
-              items={(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined }))}
-              selectedId={selectedCategory}
-              onSelect={(id) => setValue('categoryId', id)}
-              disabled={loading}
+            <Controller
+              control={control}
+              name="categoryId"
+              shouldUnregister
+              rules={{ required: ValidationMessages.categoryRequired }}
+              render={({ field: { onChange, value } }) => (
+                <OptionChipList
+                  items={(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined }))}
+                  selectedId={value}
+                  onSelect={onChange}
+                  error={errors.categoryId?.message}
+                  disabled={loading}
+                />
+              )}
             />
           </>
         )}

@@ -33,6 +33,7 @@ export default function IntegrationsScreen() {
     selectPending,
     categoryId,
     setCategoryId,
+    categoryError,
     categories,
     smsForm,
     emailForm,
@@ -95,6 +96,7 @@ export default function IntegrationsScreen() {
             items={(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined }))}
             selectedId={categoryId}
             onSelect={setCategoryId}
+            error={categoryError}
             disabled={confirmLoading}
           />
           <FormActions

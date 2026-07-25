@@ -12,10 +12,10 @@ import {
 import { useOnboarding, type OnboardingForm } from '@/features/onboarding/hooks/useOnboarding';
 import { SUPPORTED_CURRENCIES, FINANCIAL_GOALS, SALARY_RANGES } from '@/shared/constants/config';
 import { getCurrencySymbol } from '@/shared/utils/currency';
-import { amountRules, maxLen, textRules } from '@/shared/validation/fieldLimits';
+import { amountRules, maxLen, textRules, ValidationMessages } from '@/shared/validation/fieldLimits';
 
 export default function OnboardingScreen() {
-  const { loading, selectedGoals, toggleGoal, submit, submitError } = useOnboarding();
+  const { loading, submit, submitError } = useOnboarding();
 
   const { control, handleSubmit, watch, formState: { errors } } = useForm<OnboardingForm>({
     defaultValues: {
@@ -63,7 +63,28 @@ export default function OnboardingScreen() {
       </FormSection>
 
       <FormSection title="Financial goals" subtitle="Select all that apply">
-        <MultiOptionChips options={[...FINANCIAL_GOALS]} selected={selectedGoals} onToggle={toggleGoal} disabled={loading} />
+        <Controller
+          control={control}
+          name="financialGoals"
+          rules={{
+            validate: (value) =>
+              (Array.isArray(value) && value.length > 0) || ValidationMessages.financialGoalsMin,
+          }}
+          render={({ field: { onChange, value } }) => (
+            <MultiOptionChips
+              options={[...FINANCIAL_GOALS]}
+              selected={value}
+              onToggle={(goal) => {
+                const updated = value.includes(goal)
+                  ? value.filter((g) => g !== goal)
+                  : [...value, goal];
+                onChange(updated);
+              }}
+              error={errors.financialGoals?.message}
+              disabled={loading}
+            />
+          )}
+        />
       </FormSection>
 
       <FormSection title="Income & savings">
@@ -71,9 +92,15 @@ export default function OnboardingScreen() {
         <Controller
           control={control}
           name="salaryRange"
-          rules={textRules('salaryRange')}
+          rules={{ required: 'Please select a salary range' }}
           render={({ field: { onChange, value } }) => (
-            <OptionChips options={[...SALARY_RANGES]} value={value} onChange={onChange} error={errors.salaryRange?.message} disabled={loading} />
+            <OptionChips
+              options={[...SALARY_RANGES]}
+              value={value}
+              onChange={onChange}
+              error={errors.salaryRange?.message}
+              disabled={loading}
+            />
           )}
         />
 

@@ -6,6 +6,7 @@ import { apiPost, getApiErrorMessage } from '@/shared/services/api';
 import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import type { ParsedTransactionPending } from '@/shared/types';
+import { ValidationMessages } from '@/shared/validation/fieldLimits';
 
 export interface SmsForm {
   content: string;
@@ -41,11 +42,17 @@ export function useTransactionParsing() {
   const [emailLoading, setEmailLoading] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [categoryId, setCategoryId] = useState('');
+  const [categoryId, setCategoryIdState] = useState('');
+  const [categoryError, setCategoryError] = useState<string | undefined>();
   const [smsError, setSmsError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+
+  const setCategoryId = useCallback((id: string) => {
+    setCategoryIdState(id);
+    setCategoryError(undefined);
+  }, []);
   const clearSmsError = useCallback(() => setSmsError(null), []);
   const clearEmailError = useCallback(() => setEmailError(null), []);
   const clearConfirmError = useCallback(() => setConfirmError(null), []);
@@ -77,7 +84,7 @@ export function useTransactionParsing() {
     setCategoryId('');
     setConfirmError(null);
     setActionError(null);
-  }, []);
+  }, [setCategoryId]);
 
   const handleParseResult = async (result: {
     parsed: { id: string; source?: 'sms' | 'email' };
@@ -124,16 +131,18 @@ export function useTransactionParsing() {
 
   const confirmParsed = async () => {
     setConfirmError(null);
-    if (!parsedRecord || !categoryId) {
-      setConfirmError('Choose a category before confirming.');
+    if (!parsedRecord) return;
+    if (!categoryId) {
+      setCategoryError(ValidationMessages.categoryRequired);
       return;
     }
+    setCategoryError(undefined);
     setConfirmLoading(true);
     try {
       await apiPost(`/integrations/${parsedRecord.id}/confirm`, { categoryId });
       await refetchPending();
       setSelectedId(null);
-      setCategoryId('');
+      setCategoryIdState('');
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       router.push('/(tabs)/expenses');
@@ -147,11 +156,12 @@ export function useTransactionParsing() {
   const rejectParsed = async () => {
     if (!parsedRecord) return;
     setActionError(null);
+    setCategoryError(undefined);
     try {
       await apiPost(`/integrations/${parsedRecord.id}/reject`, {});
       await refetchPending();
       setSelectedId(null);
-      setCategoryId('');
+      setCategoryIdState('');
     } catch (err) {
       setActionError(getApiErrorMessage(err, 'Could not reject parsed transaction'));
     }
@@ -169,6 +179,7 @@ export function useTransactionParsing() {
     selectPending,
     categoryId,
     setCategoryId,
+    categoryError,
     categories,
     smsForm,
     emailForm,
