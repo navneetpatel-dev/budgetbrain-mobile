@@ -25,7 +25,7 @@ export function AiScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const { tabBarPaddingX } = useResponsive();
-  const footerBottom = insets.bottom + theme.spacing.sm;
+  const footerBottom = Math.max(insets.bottom, 12) + theme.spacing.md;
   const styles = useMemo(
     () => createStyles(theme, tabBarPaddingX, footerBottom),
     [theme, tabBarPaddingX, footerBottom],
@@ -123,7 +123,7 @@ function createStyles(
       flexGrow: 1,
       paddingHorizontal: horizontalPadding,
       paddingTop: t.spacing.md,
-      paddingBottom: footerBottom + 72,
+      paddingBottom: footerBottom + 80,
     },
     emptyState: {
       flex: 1,

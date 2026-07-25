@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiGet, apiPost, getApiErrorMessage } from '@/shared/services/api';
 import { useAppSelector } from '@/shared/store/hooks';
 import type { AiAnomaly, AiChatMessage, AiConversation, AiConversationSummary, AiInsight } from '@/shared/types';
 
-function visibleMessages(messages: AiChatMessage[]): AiChatMessage[] {
+function visibleMessages(messages: AiChatMessage[] | null | undefined): AiChatMessage[] {
+  if (!Array.isArray(messages)) return [];
   return messages.filter((m) => m.role === 'user' || m.role === 'assistant');
 }
 
@@ -16,8 +17,8 @@ export function useAiChat() {
   const [chatLoading, setChatLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | undefined>();
   const [messages, setMessages] = useState<AiChatMessage[]>([]);
-  const [historyLoaded, setHistoryLoaded] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
+  const seededFromId = useRef<string | null>(null);
   const clearChatError = useCallback(() => setChatError(null), []);
 
   const { data: insights, isLoading: insightsLoading } = useQuery({
@@ -34,7 +35,11 @@ export function useAiChat() {
     retry: false,
   });
 
-  const { data: conversationSummaries, isLoading: conversationsLoading } = useQuery({
+  const {
+    data: conversationSummaries,
+    isLoading: conversationsLoading,
+    isFetched: conversationsFetched,
+  } = useQuery({
     queryKey: ['ai-conversations'],
     queryFn: () => apiGet<AiConversationSummary[]>('/ai/conversations'),
     enabled: isPremium,
@@ -43,40 +48,39 @@ export function useAiChat() {
 
   const latestConversationId = conversationSummaries?.[0]?.id;
 
-  const { data: latestConversation, isLoading: conversationLoading } = useQuery({
+  const {
+    data: latestConversation,
+    isLoading: conversationLoading,
+    isFetched: conversationFetched,
+    isError: conversationError,
+  } = useQuery({
     queryKey: ['ai-conversation', latestConversationId],
     queryFn: () => apiGet<AiConversation>(`/ai/conversations/${latestConversationId}`),
-    enabled: isPremium && !!latestConversationId && !historyLoaded,
+    enabled: isPremium && !!latestConversationId,
     retry: false,
   });
 
   useEffect(() => {
-    if (!isPremium || conversationsLoading) return;
-    if (!latestConversationId) {
-      setHistoryLoaded(true);
-    }
-  }, [isPremium, conversationsLoading, latestConversationId]);
-
-  useEffect(() => {
-    if (!latestConversationId || historyLoaded) return;
-    if (latestConversation) {
-      setConversationId(latestConversation.id);
-      setMessages(visibleMessages(latestConversation.messages));
-      setHistoryLoaded(true);
-      return;
-    }
-    if (!conversationLoading) {
-      setHistoryLoaded(true);
-    }
-  }, [latestConversationId, latestConversation, conversationLoading, historyLoaded]);
-
-  useEffect(() => {
     if (!isPremium) {
-      setHistoryLoaded(false);
+      seededFromId.current = null;
       setConversationId(undefined);
       setMessages([]);
+      return;
     }
-  }, [isPremium]);
+    if (!latestConversation?.id) return;
+    if (seededFromId.current === latestConversation.id) return;
+
+    seededFromId.current = latestConversation.id;
+    setConversationId(latestConversation.id);
+    setMessages(visibleMessages(latestConversation.messages));
+  }, [isPremium, latestConversation]);
+
+  const historyLoading =
+    isPremium &&
+    (!conversationsFetched ||
+      conversationsLoading ||
+      (!!latestConversationId && !conversationFetched && !conversationError) ||
+      (!!latestConversationId && conversationLoading));
 
   const sendMessage = async (text?: string) => {
     const content = (text ?? message).trim();
@@ -92,8 +96,8 @@ export function useAiChat() {
         { message: userMsg.content, conversationId }
       );
       setConversationId(result.conversationId);
+      seededFromId.current = result.conversationId;
       setMessages(visibleMessages(result.messages));
-      setHistoryLoaded(true);
     } catch (err) {
       setMessages((prev) => prev.slice(0, -1));
       setChatError(getApiErrorMessage(err, 'Could not send message'));
@@ -103,9 +107,10 @@ export function useAiChat() {
   };
 
   const startNewConversation = () => {
+    seededFromId.current = null;
     setConversationId(undefined);
     setMessages([]);
-    setHistoryLoaded(true);
+    setChatError(null);
   };
 
   return {
@@ -119,7 +124,7 @@ export function useAiChat() {
     insightsLoading,
     anomalies,
     anomaliesLoading,
-    historyLoading: isPremium && !historyLoaded,
+    historyLoading,
     sendMessage,
     startNewConversation,
     chatError,

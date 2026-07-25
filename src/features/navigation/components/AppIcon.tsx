@@ -15,6 +15,7 @@ const ICONS = {
   search: { ios: 'magnifyingglass', android: 'search', web: 'search' },
   settings: { ios: 'gearshape.fill', android: 'settings', web: 'settings' },
   chevronRight: { ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' },
+  send: { ios: 'paperplane.fill', android: 'send', web: 'send' },
   chart: { ios: 'chart.bar.fill', android: 'bar_chart', web: 'bar_chart' },
   target: { ios: 'scope', android: 'track_changes', web: 'track_changes' },
   sparkles: { ios: 'sparkles', android: 'auto_awesome', web: 'auto_awesome' },

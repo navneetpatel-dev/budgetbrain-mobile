@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, Text, Pressable, TextInput, ActivityIndicator, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, Pressable, TextInput, ActivityIndicator, ScrollView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
@@ -12,6 +12,9 @@ const SUGGESTED_PROMPTS = [
   'How can I save more?',
   'Summarize my top categories',
 ];
+
+const COMPOSER_MIN_HEIGHT = 48;
+const SEND_SIZE = 36;
 
 interface AiChatInputProps {
   message: string;
@@ -33,12 +36,12 @@ export function AiChatInput({
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const { tabBarPaddingX } = useResponsive();
+  const bottomPad = Math.max(insets.bottom, 12) + theme.spacing.md;
   const styles = useMemo(
-    () => createStyles(theme, insets.bottom, tabBarPaddingX),
-    [theme, insets.bottom, tabBarPaddingX],
+    () => createStyles(theme, bottomPad, tabBarPaddingX),
+    [theme, bottomPad, tabBarPaddingX],
   );
-  const canSend = message.trim().length > 0;
-  const showActiveSend = canSend || loading;
+  const canSend = message.trim().length > 0 && !loading;
 
   return (
     <View style={styles.wrap}>
@@ -63,45 +66,45 @@ export function AiChatInput({
         </ScrollView>
       )}
 
-      <View style={styles.inputRow}>
-        <View style={styles.inputShell}>
-          <TextInput
-            value={message}
-            onChangeText={onChangeMessage}
-            placeholder="Ask your finance coach..."
-            placeholderTextColor={theme.colors.textTertiary}
-            multiline
-            style={styles.input}
-            accessibilityLabel="Chat message"
-          />
-        </View>
+      <View style={styles.composer}>
+        <TextInput
+          value={message}
+          onChangeText={onChangeMessage}
+          placeholder="Ask your finance coach..."
+          placeholderTextColor={theme.colors.textTertiary}
+          multiline
+          style={styles.input}
+          accessibilityLabel="Chat message"
+          editable={!loading}
+        />
         <Pressable
           onPress={() => onSend()}
-          disabled={!canSend || loading}
+          disabled={!canSend}
           style={({ pressed }) => [
             styles.sendWrap,
-            !showActiveSend && styles.sendDisabled,
-            pressed && showActiveSend && !loading && { opacity: 0.9 },
+            pressed && canSend && { opacity: 0.9 },
+            !canSend && !loading && styles.sendWrapDisabled,
           ]}
           accessibilityRole="button"
           accessibilityLabel="Send message"
+          accessibilityState={{ disabled: !canSend }}
         >
-          {showActiveSend ? (
+          {loading ? (
+            <View style={[styles.sendBtn, styles.sendBtnLoading]}>
+              <ActivityIndicator color={theme.colors.primary} size="small" />
+            </View>
+          ) : canSend ? (
             <LinearGradient
               colors={[theme.colors.primary, theme.colors.gradientEnd]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.sendBtn}
             >
-              {loading ? (
-                <ActivityIndicator color={theme.colors.onPrimary} size="small" />
-              ) : (
-                <AppIcon name="chevronRight" size={20} color={theme.colors.onPrimary} />
-              )}
+              <AppIcon name="send" size={16} color={theme.colors.onPrimary} />
             </LinearGradient>
           ) : (
             <View style={[styles.sendBtn, styles.sendBtnMuted]}>
-              <AppIcon name="chevronRight" size={20} color={theme.colors.textTertiary} />
+              <AppIcon name="send" size={16} color={theme.colors.textSecondary} />
             </View>
           )}
         </Pressable>
@@ -110,26 +113,27 @@ export function AiChatInput({
   );
 }
 
-function createStyles(t: ReturnType<typeof useTheme>, bottomInset: number, horizontalPadding: number) {
+function createStyles(t: ReturnType<typeof useTheme>, bottomPad: number, horizontalPadding: number) {
   return StyleSheet.create({
     wrap: {
       paddingTop: t.spacing.sm,
-      paddingBottom: bottomInset + t.spacing.sm,
+      paddingBottom: bottomPad,
       paddingHorizontal: horizontalPadding,
-      borderTopWidth: 1,
-      borderTopColor: t.isDark ? 'rgba(255,255,255,0.06)' : t.colors.borderSubtle,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: t.isDark ? 'rgba(255,255,255,0.08)' : t.colors.borderSubtle,
       backgroundColor: t.colors.background,
+      gap: t.spacing.sm,
     },
     prompts: {
-      gap: 6,
-      paddingBottom: 6,
+      gap: 8,
+      paddingBottom: 2,
     },
     promptChip: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
-      paddingHorizontal: 10,
-      paddingVertical: 6,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
       borderRadius: t.radii.full,
       backgroundColor: t.colors.primarySoft,
       borderWidth: 1,
@@ -140,39 +144,51 @@ function createStyles(t: ReturnType<typeof useTheme>, bottomInset: number, horiz
       color: t.colors.primary,
       fontWeight: '600',
     },
-    inputRow: {
+    composer: {
       flexDirection: 'row',
       alignItems: 'flex-end',
-      gap: t.spacing.sm,
-    },
-    inputShell: {
-      flex: 1,
-      minHeight: 44,
-      maxHeight: 100,
-      borderRadius: t.radii.lg,
+      minHeight: COMPOSER_MIN_HEIGHT,
+      maxHeight: 120,
+      paddingLeft: t.spacing.md,
+      paddingRight: 6,
+      paddingVertical: 6,
+      gap: 8,
+      borderRadius: 24,
       borderWidth: 1,
-      borderColor: t.isDark ? 'rgba(255,255,255,0.1)' : t.colors.border,
-      backgroundColor: t.isDark ? 'rgba(255,255,255,0.04)' : t.colors.inputBg,
-      justifyContent: 'center',
+      borderColor: t.isDark ? 'rgba(255,255,255,0.12)' : t.colors.border,
+      backgroundColor: t.isDark ? 'rgba(255,255,255,0.06)' : t.colors.inputBg,
     },
     input: {
-      paddingHorizontal: t.spacing.md,
-      paddingVertical: 10,
+      flex: 1,
       fontSize: 16,
+      lineHeight: 22,
       color: t.colors.text,
       maxHeight: 100,
+      paddingTop: Platform.OS === 'ios' ? 8 : 6,
+      paddingBottom: Platform.OS === 'ios' ? 8 : 6,
+      margin: 0,
+      textAlignVertical: 'center',
     },
-    sendWrap: {},
-    sendDisabled: { opacity: 0.55 },
+    sendWrap: {
+      marginBottom: 0,
+    },
+    sendWrapDisabled: {
+      opacity: 1,
+    },
     sendBtn: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
+      width: SEND_SIZE,
+      height: SEND_SIZE,
+      borderRadius: SEND_SIZE / 2,
       alignItems: 'center',
       justifyContent: 'center',
     },
     sendBtnMuted: {
-      backgroundColor: t.isDark ? 'rgba(255,255,255,0.06)' : t.colors.surfaceHover,
+      backgroundColor: t.isDark ? 'rgba(255,255,255,0.12)' : t.colors.surfaceHover,
+      borderWidth: 1,
+      borderColor: t.isDark ? 'rgba(255,255,255,0.14)' : t.colors.borderSubtle,
+    },
+    sendBtnLoading: {
+      backgroundColor: t.colors.primarySoft,
     },
   });
 }
