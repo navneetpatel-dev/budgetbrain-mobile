@@ -1,37 +1,37 @@
 {
   "expo": {
-    "name": "ExpenseFlow",
-    "slug": "expenseflow",
+    "name": "BudgetBrain",
+    "slug": "budgetbrain",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "expenseflow",
+    "scheme": "budgetbrain",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.expenseflow.mobile",
+      "bundleIdentifier": "app.budgetbrain.mobile",
       "associatedDomains": [
-        "applinks:expenseflow.app"
+        "applinks:budgetbrain.app"
       ]
     },
     "android": {
-      "package": "app.expenseflow.mobile",
+      "package": "app.budgetbrain.mobile",
       "intentFilters": [
         {
           "action": "VIEW",
           "autoVerify": true,
           "data": [
             {
-              "scheme": "expenseflow"
+              "scheme": "budgetbrain"
             },
             {
               "scheme": "https",
-              "host": "expenseflow.app",
+              "host": "budgetbrain.app",
               "pathPrefix": "/verify-email"
             },
             {
               "scheme": "https",
-              "host": "expenseflow.app",
+              "host": "budgetbrain.app",
               "pathPrefix": "/reset-password"
             }
           ],
@@ -80,13 +80,13 @@
       [
         "expo-local-authentication",
         {
-          "faceIDPermission": "Allow ExpenseFlow to use Face ID to unlock the app."
+          "faceIDPermission": "Allow BudgetBrain to use Face ID to unlock the app."
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow ExpenseFlow to attach receipt photos."
+          "photosPermission": "Allow BudgetBrain to attach receipt photos."
         }
       ],
       "expo-sharing",

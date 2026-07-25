@@ -24,7 +24,7 @@ export function useExportReports() {
     setLoading(true);
     try {
       const csv = await apiDownloadText('/reports/csv', buildParams());
-      await saveAndShareFile('expenseflow-report.csv', csv, 'text/csv');
+      await saveAndShareFile('budgetbrain-report.csv', csv, 'text/csv');
     } catch {
       Alert.alert('Error', 'Could not download CSV report');
     } finally {
@@ -43,7 +43,7 @@ export function useExportReports() {
     setLoading(true);
     try {
       const buffer = await apiDownloadBinary('/reports/pdf', buildParams());
-      await saveAndShareFile('expenseflow-report.pdf', buffer, 'application/pdf');
+      await saveAndShareFile('budgetbrain-report.pdf', buffer, 'application/pdf');
     } catch {
       Alert.alert('Error', 'Could not download PDF report');
     } finally {

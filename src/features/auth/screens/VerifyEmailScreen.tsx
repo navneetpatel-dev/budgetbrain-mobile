@@ -25,7 +25,7 @@ export function VerifyEmailScreen() {
         </>
       ) : (
         <>
-          <AuthInfoBanner message="Tap the button below to verify your BudgetBrain account." />
+          <AuthInfoBanner message="Tap the button below to verify your budgetbrain account." />
           {error ? <AuthErrorBanner message={error} /> : null}
           <Button title="Verify Email" onPress={handleVerify} loading={loading} size="lg" />
         </>

@@ -47,7 +47,7 @@ export async function registerForPushNotifications(): Promise<string | null> {
 
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
-      name: 'ExpenseFlow',
+      name: 'BudgetBrain',
       importance: Notifications.AndroidImportance.MAX,
     });
   }

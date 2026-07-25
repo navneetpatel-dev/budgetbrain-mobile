@@ -9,13 +9,13 @@ export interface ConfirmCopy {
 export const CONFIRM = {
   signOut: {
     title: 'Sign out?',
-    message: 'You will be signed out of BudgetBrain on this device. You can sign back in anytime.',
+    message: 'You will be signed out of budgetbrain on this device. You can sign back in anytime.',
     confirmLabel: 'Sign out',
     cancelLabel: 'Cancel',
   },
   deleteAccount: {
     title: 'Delete account?',
-    message: 'This permanently deletes your BudgetBrain account and all associated data, including transactions, budgets, and goals. This action cannot be undone.',
+    message: 'This permanently deletes your budgetbrain account and all associated data, including transactions, budgets, and goals. This action cannot be undone.',
     confirmLabel: 'Delete account',
     cancelLabel: 'Keep account',
     destructive: true,

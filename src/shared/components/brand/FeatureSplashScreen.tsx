@@ -52,7 +52,7 @@ export function FeatureSplashScreen() {
           <BrandMark size={44} color="#fff" strokeWidth={2.2} />
         </LinearGradient>
 
-        <Text style={[styles.title, { color: theme.colors.text }]}>BudgetBrain</Text>
+        <Text style={[styles.title, { color: theme.colors.text }]}>budgetbrain</Text>
         <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
           Smart budgeting for your financial goals
         </Text>

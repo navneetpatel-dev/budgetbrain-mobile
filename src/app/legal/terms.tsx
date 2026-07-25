@@ -14,12 +14,12 @@ export default function TermsScreen() {
     >
       <Text style={styles.section}>1. Acceptance of Terms</Text>
       <Text style={styles.body}>
-        By using ExpenseFlow, you agree to these Terms of Service. If you do not agree, please do not use the app.
+        By using BudgetBrain, you agree to these Terms of Service. If you do not agree, please do not use the app.
       </Text>
 
       <Text style={styles.section}>2. Service Description</Text>
       <Text style={styles.body}>
-        ExpenseFlow is a personal finance management application that helps you track expenses, income,
+        BudgetBrain is a personal finance management application that helps you track expenses, income,
         budgets, goals, and net worth. Premium features include AI insights, family accounts, and PDF reports.
       </Text>
 
@@ -43,13 +43,13 @@ export default function TermsScreen() {
 
       <Text style={styles.section}>6. Disclaimer</Text>
       <Text style={styles.body}>
-        ExpenseFlow provides financial tracking tools, not financial advice. AI insights are informational only.
+        BudgetBrain provides financial tracking tools, not financial advice. AI insights are informational only.
         We are not responsible for financial decisions made based on app data.
       </Text>
 
       <Text style={styles.section}>7. Contact</Text>
       <Text style={styles.body}>
-        For questions about these terms, contact us at support@expenseflow.app
+        For questions about these terms, contact us at support@budgetbrain.app
       </Text>
     </StackScrollScreen>
   );

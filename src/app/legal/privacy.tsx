@@ -14,7 +14,7 @@ export default function PrivacyScreen() {
     >
       <Text style={styles.section}>1. Information We Collect</Text>
       <Text style={styles.body}>
-        ExpenseFlow collects account information (email, name), financial transaction data you enter,
+        BudgetBrain collects account information (email, name), financial transaction data you enter,
         and device information for push notifications. We do not sell your personal data.
       </Text>
 
@@ -44,7 +44,7 @@ export default function PrivacyScreen() {
 
       <Text style={styles.section}>6. Contact</Text>
       <Text style={styles.body}>
-        For privacy-related inquiries, contact us at privacy@expenseflow.app
+        For privacy-related inquiries, contact us at privacy@budgetbrain.app
       </Text>
     </StackScrollScreen>
   );

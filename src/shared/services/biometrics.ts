@@ -6,7 +6,7 @@ export async function isBiometricAvailable(): Promise<boolean> {
   return compatible && enrolled;
 }
 
-export async function authenticateWithBiometrics(reason = 'Unlock ExpenseFlow'): Promise<boolean> {
+export async function authenticateWithBiometrics(reason = 'Unlock BudgetBrain'): Promise<boolean> {
   const available = await isBiometricAvailable();
   if (!available) return true;
 

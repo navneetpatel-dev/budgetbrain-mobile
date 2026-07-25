@@ -5,7 +5,7 @@ import authReducer from './authSlice';
 import settingsReducer from './settingsSlice';
 
 const persistConfig = {
-  key: 'expenseflow',
+  key: 'budgetbrain',
   storage: persistStorage,
   whitelist: ['settings'],
 };

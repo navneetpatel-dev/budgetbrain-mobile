@@ -25,12 +25,12 @@ npx expo start
 
 ### API URL
 
-Default: `http://localhost:3000/api/v1`
+Default: `http://localhost:8000/api/v1`
 
 On a **physical device**, set your machine's LAN IP in `.env`:
 
 ```
-EXPO_PUBLIC_API_URL=http://192.168.1.x:3000/api/v1
+EXPO_PUBLIC_API_URL=http://192.168.1.x:8000/api/v1
 ```
 
 ### Dev login
@@ -39,7 +39,7 @@ Seed the API first (`npm run db:seed` in the API repo):
 
 | Email | Password |
 |-------|----------|
-| `admin@expenseflow.app` | `Admin123!` |
+| `admin@budgetbrain.app` | `Admin123!` |
 
 Or use **Sign Up** to register a new account.
 

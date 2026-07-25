@@ -18,7 +18,7 @@ export function AppLockGate({ children }: Props) {
   if (biometricEnabled && isAuthenticated && locked) {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>BudgetBrain Locked</Text>
+        <Text style={styles.title}>budgetbrain Locked</Text>
         <Text style={styles.subtitle}>Authenticate to continue</Text>
       </View>
     );
