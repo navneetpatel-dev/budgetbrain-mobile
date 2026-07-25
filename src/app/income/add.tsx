@@ -64,7 +64,7 @@ export default function AddIncomeScreen() {
   };
 
   return (
-    <FormStackScreen eyebrow="INCOME" title="Add Income" subtitle="Record a new income entry">
+    <FormStackScreen eyebrow="Income" title="Add Income" subtitle="Record a new income entry">
       {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="Amount & date" subtitle="How much and when you received it">
         <Controller

@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { REHYDRATE } from 'redux-persist';
 import type { AccentPalette, ThemeMode } from '../theme/types';
-import { resolveAccent, resolveThemeMode } from '../theme/palettes';
+import { DEFAULT_ACCENT, resolveAccent, resolveThemeMode } from '../theme/palettes';
 
 interface SettingsState {
   theme: ThemeMode;
@@ -14,7 +14,7 @@ interface SettingsState {
 
 const initialState: SettingsState = {
   theme: 'system',
-  accent: 'indigo',
+  accent: DEFAULT_ACCENT,
   currency: 'INR',
   biometricEnabled: false,
   appLockPin: null,

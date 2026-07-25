@@ -23,7 +23,12 @@ import { useFloatingBlockGap } from '@/shared/hooks/useTabBarInset';
 import { useTheme } from '@/shared/theme';
 import { useAppSelector } from '@/shared/store/hooks';
 import { formatCurrency } from '@/shared/utils/currency';
+import { toSafePercent } from '@/shared/utils/number';
 import type { DashboardData } from '@/shared/types';
+
+interface NetWorthSummary {
+  summary: { netWorth: number; currency: string };
+}
 
 export default function DashboardScreen() {
   const router = useRouter();
@@ -37,6 +42,10 @@ export default function DashboardScreen() {
     queryKey: ['dashboard'],
     queryFn: () => apiGet<DashboardData>('/expenses/dashboard'),
   });
+  const { data: netWorthData } = useQuery({
+    queryKey: ['net-worth'],
+    queryFn: () => apiGet<NetWorthSummary>('/net-worth'),
+  });
 
   const { budgetWidgets, goalWidgets } = useDashboardWidgets(
     data?.budgets ?? [],
@@ -46,7 +55,14 @@ export default function DashboardScreen() {
   const summary = data?.summary;
   const currency = summary?.currency ?? user?.currency ?? 'INR';
   const transactions = data?.recentTransactions ?? [];
-  const goalsCount = data?.goals?.length ?? 0;
+  const goals = data?.goals ?? [];
+  const goalsCount = goals.length;
+  const goalsProgress = goalsCount
+    ? Math.round(goals.reduce((sum, g) => sum + toSafePercent(g.currentAmount, g.targetAmount), 0) / goalsCount)
+    : null;
+  const netWorthAmount = netWorthData?.summary
+    ? formatCurrency(netWorthData.summary.netWorth, netWorthData.summary.currency || currency)
+    : '—';
 
   return (
     <StickyHeaderScreen
@@ -86,15 +102,15 @@ export default function DashboardScreen() {
               />
               <SummaryCard
                 title="Goals"
-                amount={goalsCount > 0 ? String(goalsCount) : 'Start'}
-                subtitle={goalsCount > 0 ? `active goal${goalsCount !== 1 ? 's' : ''}` : 'Set a savings target'}
+                amount={goalsProgress != null ? `${goalsProgress}%` : '—'}
+                subtitle={goalsCount > 0 ? `${goalsCount} active goal${goalsCount !== 1 ? 's' : ''}` : 'Set a savings target'}
                 icon="goals"
                 color={theme.colors.primary}
                 onPress={() => router.push('/(tabs)/goals')}
               />
               <SummaryCard
                 title="Net Worth"
-                amount="View"
+                amount={netWorthAmount}
                 subtitle="Assets & liabilities"
                 icon="netWorth"
                 color={theme.colors.primary}

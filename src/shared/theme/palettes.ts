@@ -9,7 +9,7 @@ const ACCENT_PRIMARIES: Record<AccentPalette, { primary: string; gradientEnd: st
 };
 
 const VALID_ACCENTS = new Set<string>(Object.keys(ACCENT_PRIMARIES));
-export const DEFAULT_ACCENT: AccentPalette = 'indigo';
+export const DEFAULT_ACCENT: AccentPalette = 'ocean';
 
 export function resolveAccent(accent: unknown): AccentPalette {
   return typeof accent === 'string' && VALID_ACCENTS.has(accent) ? (accent as AccentPalette) : DEFAULT_ACCENT;
@@ -72,8 +72,8 @@ function buildDark(accent: AccentPalette): ThemeColors {
     dangerSoft: '#F8717122',
     warning: '#FBBF24',
     warningSoft: '#FBBF2422',
-    gradientStart: '#1a1f35',
-    gradientEnd: gradientEnd,
+    gradientStart: primary,
+    gradientEnd,
     tabBar: '#12182B',
     tabBarBorder: '#2A3555',
     overlay: 'rgba(0, 0, 0, 0.65)',

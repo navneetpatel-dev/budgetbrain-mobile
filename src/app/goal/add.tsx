@@ -25,7 +25,7 @@ export default function AddGoalScreen() {
   const goalType = watch('type');
 
   return (
-    <FormStackScreen eyebrow="GOAL" title="Create Goal" subtitle="Set a savings target">
+    <FormStackScreen eyebrow="Goal" title="Create Goal" subtitle="Set a savings target">
       {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="Goal details" subtitle="What are you saving for?">
         <Controller

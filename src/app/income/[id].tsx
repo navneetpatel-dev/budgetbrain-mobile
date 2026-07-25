@@ -30,14 +30,14 @@ export default function IncomeEditScreen() {
 
   if (isLoading || !income) {
     return (
-      <FormStackScreen eyebrow="INCOME" title="Income" subtitle="Loading details">
+      <FormStackScreen eyebrow="Income" title="Income" subtitle="Loading details">
         <DetailSkeleton />
       </FormStackScreen>
     );
   }
 
   return (
-    <FormStackScreen eyebrow="INCOME" title="Edit Income" subtitle="Update income entry">
+    <FormStackScreen eyebrow="Income" title="Edit Income" subtitle="Update income entry">
       {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="Income details">
         <Controller

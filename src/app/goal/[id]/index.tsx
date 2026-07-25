@@ -30,14 +30,14 @@ export default function GoalEditScreen() {
 
   if (isLoading || !goal) {
     return (
-      <FormStackScreen eyebrow="GOAL" title="Goal" subtitle="Loading details">
+      <FormStackScreen eyebrow="Goal" title="Goal" subtitle="Loading details">
         <DetailSkeleton />
       </FormStackScreen>
     );
   }
 
   return (
-    <FormStackScreen eyebrow="GOAL" title="Edit Goal" subtitle={goal.name}>
+    <FormStackScreen eyebrow="Goal" title="Edit Goal" subtitle={goal.name}>
       {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="Goal details">
         <Controller

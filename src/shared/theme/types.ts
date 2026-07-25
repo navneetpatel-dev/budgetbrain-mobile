@@ -37,7 +37,7 @@ export interface ThemeTypography {
   bodyMedium: { fontSize: number; fontWeight: '500'; fontFamily?: string };
   bodySemibold: { fontSize: number; fontWeight: '600'; fontFamily?: string };
   caption: { fontSize: number; fontWeight: '500'; fontFamily?: string };
-  label: { fontSize: number; fontWeight: '600'; letterSpacing: number; textTransform: 'uppercase'; fontFamily?: string };
+  label: { fontSize: number; fontWeight: '600'; letterSpacing: number; textTransform: 'none' | 'uppercase'; fontFamily?: string };
   amount: { fontSize: number; fontWeight: '700'; letterSpacing: number; fontFamily?: string };
   amountLg: { fontSize: number; fontWeight: '800'; letterSpacing: number; fontFamily?: string };
 }

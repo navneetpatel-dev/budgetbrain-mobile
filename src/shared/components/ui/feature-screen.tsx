@@ -681,11 +681,12 @@ function createHeaderStyles(t: AppTheme) {
     },
     textCol: { flex: 1, minWidth: 0 },
     eyebrow: {
-      fontSize: 10,
-      fontWeight: '700',
-      letterSpacing: 1.1,
+      fontSize: 12,
+      fontWeight: '600',
+      letterSpacing: 0.2,
       color: t.colors.textTertiary,
       marginBottom: 3,
+      textTransform: 'capitalize',
     },
     title: {
       ...t.typography.titleSm,
@@ -863,11 +864,12 @@ function createIntroStyles(t: AppTheme) {
   return StyleSheet.create({
     wrap: { marginBottom: t.spacing.md },
     eyebrow: {
-      fontSize: 10,
-      fontWeight: '700',
-      letterSpacing: 1.1,
+      fontSize: 12,
+      fontWeight: '600',
+      letterSpacing: 0.2,
       color: t.colors.textTertiary,
       marginBottom: 4,
+      textTransform: 'capitalize',
     },
     subtitle: {
       ...t.typography.bodyMedium,

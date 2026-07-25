@@ -39,7 +39,7 @@ export default function AddBudgetScreen() {
   const selectedCategory = watch('categoryId');
 
   return (
-    <FormStackScreen eyebrow="BUDGET" title="Create Budget" subtitle="Set a spending limit">
+    <FormStackScreen eyebrow="Budget" title="Create Budget" subtitle="Set a spending limit">
       {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="Budget details" subtitle="Name, type, and limit">
         <Controller

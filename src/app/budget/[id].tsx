@@ -28,14 +28,14 @@ export default function BudgetEditScreen() {
 
   if (isLoading || !budget) {
     return (
-      <FormStackScreen eyebrow="BUDGET" title="Budget" subtitle="Loading details">
+      <FormStackScreen eyebrow="Budget" title="Budget" subtitle="Loading details">
         <DetailSkeleton />
       </FormStackScreen>
     );
   }
 
   return (
-    <FormStackScreen eyebrow="BUDGET" title="Edit Budget" subtitle={budget.name}>
+    <FormStackScreen eyebrow="Budget" title="Edit Budget" subtitle={budget.name}>
       {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="Budget details">
         <Controller

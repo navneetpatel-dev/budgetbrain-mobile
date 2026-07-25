@@ -35,7 +35,7 @@ export default function GoalsScreen() {
         <FeatureHeader
           showBack
           onBack={goBack}
-          eyebrow="SAVE"
+          eyebrow="Save"
           title="Goals"
           subtitle={isLoading ? 'Loading…' : `${total} active goal${total !== 1 ? 's' : ''}`}
           actionIcon="add"

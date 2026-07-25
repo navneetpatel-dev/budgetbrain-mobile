@@ -34,7 +34,7 @@ export default function BudgetsScreen() {
         <FeatureHeader
           showBack
           onBack={goBack}
-          eyebrow="PLAN"
+          eyebrow="Plan"
           title="Budgets"
           subtitle={isLoading ? 'Loading…' : `${total} active`}
           actionIcon="add"

@@ -56,7 +56,7 @@ export default function ExpenseDetailScreen() {
 
   if (isLoading || !expense) {
     return (
-      <FormStackScreen eyebrow="EXPENSE" title="Expense" subtitle="Loading details">
+      <FormStackScreen eyebrow="Expense" title="Expense" subtitle="Loading details">
         <DetailSkeleton />
       </FormStackScreen>
     );
@@ -66,7 +66,7 @@ export default function ExpenseDetailScreen() {
 
   return (
     <FormStackScreen
-      eyebrow="EXPENSE"
+      eyebrow="Expense"
       title={editing ? 'Edit Expense' : 'Expense Details'}
       subtitle={expense.merchant ?? expense.category?.name ?? 'Transaction'}
     >

@@ -10,7 +10,7 @@ export default function NotFoundScreen() {
   return (
     <StackScrollScreen
       header={
-        <FeatureHeader variant="stack" showBack eyebrow="ERROR" title="Not Found" subtitle="This screen doesn't exist" />
+        <FeatureHeader variant="stack" showBack eyebrow="Error" title="Not Found" subtitle="This screen doesn't exist" />
       }
     >
       <Link href="/" style={styles.link}>

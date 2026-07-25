@@ -31,7 +31,7 @@ export default function OnboardingScreen() {
   const selectedCurrency = watch('currency');
 
   return (
-    <FormStackScreen eyebrow="WELCOME" title="Personalize" subtitle="Tell us a bit about yourself">
+    <FormStackScreen eyebrow="Welcome" title="Personalize" subtitle="Tell us a bit about yourself">
       {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="About you">
         <Controller

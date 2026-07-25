@@ -52,7 +52,7 @@ export default function IncomeScreen() {
         <FeatureHeader
           showBack
           onBack={goBack}
-          eyebrow="EARN"
+          eyebrow="Earn"
           title="Income"
           subtitle={
             isLoading

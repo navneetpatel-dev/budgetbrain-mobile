@@ -50,7 +50,7 @@ export default function AddExpenseScreen() {
   };
 
   return (
-    <FormStackScreen eyebrow="EXPENSE" title="Add Expense" subtitle="Log a new transaction">
+    <FormStackScreen eyebrow="Expense" title="Add Expense" subtitle="Log a new transaction">
       <FormSection title="Amount & details" subtitle="Core transaction info">
         <Controller
           control={control}

@@ -74,7 +74,7 @@ export default function NetWorthScreen() {
               end={{ x: 1, y: 1 }}
               style={StyleSheet.absoluteFill}
             />
-            <Text style={styles.heroLabel}>TOTAL NET WORTH</Text>
+            <Text style={styles.heroLabel}>Total net worth</Text>
             <Text style={styles.heroValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
               {formatCurrency(s.netWorth, currency)}
             </Text>
@@ -176,9 +176,9 @@ function createStyles(t: ReturnType<typeof useTheme>) {
       borderColor: t.colors.primary + '33',
     },
     heroLabel: {
-      fontSize: 10,
-      fontWeight: '700',
-      letterSpacing: 1,
+      fontSize: 12,
+      fontWeight: '600',
+      letterSpacing: 0.2,
       color: t.colors.textSecondary,
     },
     heroValue: {

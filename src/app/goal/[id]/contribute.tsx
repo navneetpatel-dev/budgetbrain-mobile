@@ -21,7 +21,7 @@ export default function ContributeGoalScreen() {
   });
 
   return (
-    <FormStackScreen eyebrow="GOAL" title="Contribute" subtitle="Add to your goal">
+    <FormStackScreen eyebrow="Goal" title="Contribute" subtitle="Add to your goal">
       {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="Contribution" subtitle="How much are you adding?">
         <Controller

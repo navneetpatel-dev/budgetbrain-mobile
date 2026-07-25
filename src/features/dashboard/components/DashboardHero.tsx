@@ -56,7 +56,7 @@ export function DashboardHero({
 
       <View style={styles.topRow}>
         <View style={styles.greetingBlock}>
-          <Text style={styles.eyebrow}>GOOD {getGreeting().toUpperCase()}</Text>
+          <Text style={styles.eyebrow}>Good {getGreeting()}</Text>
           <Text style={styles.name} numberOfLines={1}>
             {name}
           </Text>
@@ -151,10 +151,11 @@ function createStyles(t: AppTheme, inlineGap: number) {
     },
     greetingBlock: { flex: 1, minWidth: 0, paddingRight: t.spacing.sm },
     eyebrow: {
-      fontSize: 10,
-      fontWeight: '700',
-      letterSpacing: 1.2,
-      color: 'rgba(255,255,255,0.65)',
+      fontSize: 12,
+      fontWeight: '600',
+      letterSpacing: 0.2,
+      color: 'rgba(255,255,255,0.7)',
+      textTransform: 'capitalize',
     },
     name: {
       color: '#fff',
