@@ -29,8 +29,8 @@ export const typography: ThemeTypography = {
   bodySemibold: { fontSize: 15, fontWeight: '600', fontFamily: 'Inter_600SemiBold' },
   caption: { fontSize: 13, fontWeight: '500', fontFamily: 'Inter_500Medium' },
   label: { fontSize: 12, fontWeight: '600', letterSpacing: 0.2, textTransform: 'none', fontFamily: 'Inter_600SemiBold' },
-  amount: { fontSize: 22, fontWeight: '700', letterSpacing: -0.5, fontFamily: 'Inter_700Bold' },
-  amountLg: { fontSize: 32, fontWeight: '800', letterSpacing: -1, fontFamily: 'Inter_800ExtraBold' },
+  amount: { fontSize: 22, fontWeight: '700', letterSpacing: -0.5, fontFamily: 'Inter_700Bold', fontVariant: ['tabular-nums'] },
+  amountLg: { fontSize: 32, fontWeight: '700', letterSpacing: -1, fontFamily: 'Fraunces_700Bold', fontVariant: ['tabular-nums'] },
 };
 
 function getShadows(isDark: boolean, primary: string): ThemeShadows {

@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
 import { useScreenInsets } from '@/shared/hooks/useLayout';
-import { useTabBarInset, useFloatingBlockGap } from '@/shared/hooks/useTabBarInset';
+import { useTabBarInset } from '@/shared/hooks/useTabBarInset';
 import { ScreenSkeleton as ContentScreenSkeleton } from './skeleton';
 
 export type ScreenInset = 'tab' | 'stack' | 'none';
@@ -52,9 +52,8 @@ export function ScreenWrapper({
 } & Omit<ScrollViewProps, 'children' | 'contentContainerStyle' | 'refreshControl' | 'style'>) {
   const theme = useTheme();
   const { frame, sectionGap } = useScreenInsets();
-  const blockGap = useFloatingBlockGap();
   const bottomInset = useBottomInset(inset);
-  const contentGap = inset === 'tab' ? blockGap : sectionGap;
+  const contentGap = sectionGap;
 
   const bodyStyle = useMemo(
     () =>

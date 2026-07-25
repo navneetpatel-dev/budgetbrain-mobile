@@ -1,12 +1,14 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon';
+import { ActionSheet } from '@/shared/components/ui/ActionSheet';
 import { useTheme } from '@/shared/theme';
 import type { AppTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
+import { appHref } from '@/shared/utils/navigation';
 
 export interface CustomTabBarProps {
   state: { index: number; routes: { key: string; name: string }[] };
@@ -29,7 +31,6 @@ const TABS: TabConfig[] = [
   { route: 'settings', label: 'Profile', icon: 'profile' },
 ];
 
-/** Full-screen tab routes that hide the floating bottom bar */
 const HIDDEN_TAB_BAR_ROUTES = new Set(['ai']);
 
 function TabButton({
@@ -52,37 +53,17 @@ function TabButton({
       accessibilityRole="button"
       accessibilityState={isFocused ? { selected: true } : {}}
     >
-      {isFocused ? (
-        <LinearGradient
-          colors={[theme.colors.primary + '38', theme.colors.gradientEnd + '22']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.activeCapsule}
-        >
-          <View style={styles.activeIconRing}>
-            <AppIcon name={config.icon} size={21} color={theme.colors.primary} />
-          </View>
-        </LinearGradient>
-      ) : (
-        <View style={styles.iconIdle}>
-          <AppIcon name={config.icon} size={20} color={theme.colors.textTertiary} />
-        </View>
-      )}
-
+      <View style={styles.iconIdle}>
+        <AppIcon
+          name={config.icon}
+          size={22}
+          color={isFocused ? theme.colors.primary : theme.colors.textTertiary}
+        />
+      </View>
       <Text style={[styles.label, isFocused && styles.labelActive]} numberOfLines={1}>
         {config.label}
       </Text>
-
-      {isFocused ? (
-        <LinearGradient
-          colors={[theme.colors.primary, theme.colors.gradientEnd]}
-          start={{ x: 0, y: 0.5 }}
-          end={{ x: 1, y: 0.5 }}
-          style={styles.activeIndicator}
-        />
-      ) : (
-        <View style={styles.inactiveIndicator} />
-      )}
+      <View style={[styles.indicator, isFocused && { backgroundColor: theme.colors.primary }]} />
     </Pressable>
   );
 }
@@ -93,6 +74,7 @@ export function CustomTabBar({ state, navigation }: CustomTabBarProps) {
   const router = useRouter();
   const { tabBarBottomInset, tabBarPaddingX } = useResponsive();
   const styles = useMemo(() => createStyles(theme, tabBarPaddingX), [theme, tabBarPaddingX]);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const leftTabs = TABS.slice(0, 2);
   const rightTabs = TABS.slice(2);
@@ -113,51 +95,89 @@ export function CustomTabBar({ state, navigation }: CustomTabBarProps) {
   };
 
   return (
-    <View style={[styles.outer, { paddingBottom: Math.max(insets.bottom, tabBarBottomInset) }]}>
-      <View style={styles.bar}>
-        <View style={styles.side}>
-          {leftTabs.map((tab) => (
-            <TabButton
-              key={tab.route}
-              config={tab}
-              isFocused={state.routes[state.index]?.name === tab.route}
-              onPress={() => navigate(tab.route)}
-              styles={styles}
-              theme={theme}
-            />
-          ))}
-        </View>
+    <>
+      <View style={[styles.outer, { paddingBottom: Math.max(insets.bottom, tabBarBottomInset) }]}>
+        <View style={styles.bar}>
+          <View style={styles.side}>
+            {leftTabs.map((tab) => (
+              <TabButton
+                key={tab.route}
+                config={tab}
+                isFocused={state.routes[state.index]?.name === tab.route}
+                onPress={() => navigate(tab.route)}
+                styles={styles}
+                theme={theme}
+              />
+            ))}
+          </View>
 
-        <Pressable
-          onPress={() => router.push('/expense/add')}
-          style={({ pressed }) => [styles.fab, pressed && { transform: [{ scale: 0.94 }] }]}
-          accessibilityRole="button"
-          accessibilityLabel="Add expense"
-        >
-          <LinearGradient
-            colors={[theme.colors.primary, theme.colors.gradientEnd]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.fabGradient}
+          <Pressable
+            onPress={() => setSheetOpen(true)}
+            style={({ pressed }) => [styles.fab, pressed && { transform: [{ scale: 0.94 }] }]}
+            accessibilityRole="button"
+            accessibilityLabel="Create"
           >
-            <AppIcon name="add" size={28} color={theme.colors.onPrimary} />
-          </LinearGradient>
-        </Pressable>
+            <LinearGradient
+              colors={[theme.colors.primary, theme.colors.gradientEnd]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.fabGradient}
+            >
+              <AppIcon name="add" size={28} color={theme.colors.onPrimary} />
+            </LinearGradient>
+          </Pressable>
 
-        <View style={styles.side}>
-          {rightTabs.map((tab) => (
-            <TabButton
-              key={tab.route}
-              config={tab}
-              isFocused={state.routes[state.index]?.name === tab.route}
-              onPress={() => navigate(tab.route)}
-              styles={styles}
-              theme={theme}
-            />
-          ))}
+          <View style={styles.side}>
+            {rightTabs.map((tab) => (
+              <TabButton
+                key={tab.route}
+                config={tab}
+                isFocused={state.routes[state.index]?.name === tab.route}
+                onPress={() => navigate(tab.route)}
+                styles={styles}
+                theme={theme}
+              />
+            ))}
+          </View>
         </View>
       </View>
-    </View>
+
+      <ActionSheet
+        visible={sheetOpen}
+        title="Create"
+        onClose={() => setSheetOpen(false)}
+        items={[
+          {
+            id: 'expense',
+            label: 'Expense',
+            subtitle: 'Log a purchase or bill',
+            icon: 'expense',
+            onPress: () => router.push(appHref('/expense/add')),
+          },
+          {
+            id: 'income',
+            label: 'Income',
+            subtitle: 'Record money in',
+            icon: 'income',
+            onPress: () => router.push(appHref('/income/add')),
+          },
+          {
+            id: 'budget',
+            label: 'Budget',
+            subtitle: 'Set a spending limit',
+            icon: 'budgets',
+            onPress: () => router.push(appHref('/budget/add')),
+          },
+          {
+            id: 'goal',
+            label: 'Goal',
+            subtitle: 'Start a savings target',
+            icon: 'goals',
+            onPress: () => router.push(appHref('/goal/add')),
+          },
+        ]}
+      />
+    </>
   );
 }
 
@@ -199,17 +219,6 @@ function createStyles(t: AppTheme, tabBarPaddingX: number) {
       minHeight: 52,
     },
     tabPressed: { opacity: 0.88, transform: [{ scale: 0.97 }] },
-    activeCapsule: {
-      paddingHorizontal: 14,
-      paddingVertical: 7,
-      borderRadius: 18,
-      borderWidth: 1,
-      borderColor: t.colors.primary + '44',
-    },
-    activeIconRing: {
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
     iconIdle: {
       width: 36,
       height: 36,
@@ -226,17 +235,12 @@ function createStyles(t: AppTheme, tabBarPaddingX: number) {
       color: t.colors.primary,
       fontWeight: '700',
     },
-    activeIndicator: {
-      width: 18,
+    indicator: {
+      width: 16,
       height: 3,
       borderRadius: 2,
       marginTop: 1,
-    },
-    inactiveIndicator: {
-      width: 18,
-      height: 3,
-      marginTop: 1,
-      opacity: 0,
+      backgroundColor: 'transparent',
     },
     fab: {
       marginTop: -28,

@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState } from 'react';
 import {
   FlatList,
   FlatListProps,
@@ -21,6 +21,7 @@ import { useScreenInsets } from '@/shared/hooks/useLayout';
 import { ensureArray } from '@/shared/utils/listData';
 import { useFabBottom } from '@/shared/hooks/useFabBottom';
 import { ScreenWrapper } from '@/shared/components/ui/layout';
+import { ActionSheet } from '@/shared/components/ui/ActionSheet';
 
 /* ── Uniform back navigation ── */
 
@@ -361,23 +362,65 @@ export function OptionChips<T extends string>({
 }) {
   const theme = useTheme();
   const styles = useMemo(() => createChipStyles(theme), [theme]);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const useSelect = options.length > 4;
+
+  if (useSelect) {
+    return (
+      <View style={styles.container}>
+        <Pressable
+          onPress={disabled ? undefined : () => setSheetOpen(true)}
+          disabled={disabled}
+          style={({ pressed }) => [
+            styles.selectControl,
+            disabled && styles.chipDisabled,
+            pressed && !disabled && { opacity: 0.9 },
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel={getLabel(value)}
+        >
+          <Text style={styles.selectValue}>{getLabel(value)}</Text>
+          <AppIcon name="chevronRight" size={14} color={theme.colors.textTertiary} />
+        </Pressable>
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        <ActionSheet
+          visible={sheetOpen}
+          title="Choose option"
+          onClose={() => setSheetOpen(false)}
+          items={options.map((opt) => ({
+            id: opt,
+            label: getLabel(opt),
+            onPress: () => onChange(opt),
+          }))}
+        />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <View style={styles.grid}>
+      <View style={styles.segmented}>
         {options.map((opt) => {
           const selected = value === opt;
           const accent = getColor?.(opt) ?? theme.colors.primary;
           return (
-            <Chip
+            <Pressable
               key={opt}
-              label={getLabel(opt)}
-              selected={selected}
-              accent={accent}
-              onPress={() => onChange(opt)}
-              styles={styles}
+              onPress={disabled ? undefined : () => onChange(opt)}
               disabled={disabled}
-            />
+              style={({ pressed }) => [
+                styles.segment,
+                selected && { backgroundColor: accent + '22', borderColor: accent },
+                disabled && styles.chipDisabled,
+                pressed && !disabled && { opacity: 0.9 },
+              ]}
+              accessibilityRole="button"
+              accessibilityState={{ selected }}
+            >
+              <Text style={[styles.segmentText, selected && { color: accent, fontWeight: '700' }]}>
+                {getLabel(opt)}
+              </Text>
+            </Pressable>
           );
         })}
       </View>
@@ -401,34 +444,72 @@ export function OptionChipList({
 }) {
   const theme = useTheme();
   const styles = useMemo(() => createChipStyles(theme), [theme]);
-  const useScroll = items.length > 8;
+  const [sheetOpen, setSheetOpen] = useState(false);
   const safeItems = ensureArray<{ id: string; label: string; color?: string }>(items);
+  const useSelect = safeItems.length > 8;
+  const selectedItem = safeItems.find((i) => i.id === selectedId);
 
-  const content = safeItems.map((item) => {
-    const selected = selectedId === item.id;
-    const accent = item.color ?? theme.colors.primary;
+  if (useSelect) {
     return (
-      <Chip
-        key={item.id}
-        label={item.label}
-        selected={selected}
-        accent={accent}
-        onPress={() => onSelect(item.id)}
-        styles={styles}
-        disabled={disabled}
-      />
+      <View style={styles.container}>
+        <Pressable
+          onPress={disabled ? undefined : () => setSheetOpen(true)}
+          disabled={disabled}
+          style={({ pressed }) => [
+            styles.selectControl,
+            disabled && styles.chipDisabled,
+            pressed && !disabled && { opacity: 0.9 },
+          ]}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+            {selectedItem?.color ? (
+              <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: selectedItem.color }} />
+            ) : null}
+            <Text style={styles.selectValue}>{selectedItem?.label ?? 'Choose'}</Text>
+          </View>
+          <AppIcon name="chevronRight" size={14} color={theme.colors.textTertiary} />
+        </Pressable>
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        <ActionSheet
+          visible={sheetOpen}
+          title="Choose option"
+          onClose={() => setSheetOpen(false)}
+          items={safeItems.map((item) => ({
+            id: item.id,
+            label: item.label,
+            onPress: () => onSelect(item.id),
+          }))}
+        />
+      </View>
     );
-  });
+  }
 
   return (
     <View style={styles.container}>
-      {useScroll ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollRow}>
-          {content}
-        </ScrollView>
-      ) : (
-        <View style={styles.grid}>{content}</View>
-      )}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollRow}>
+        {safeItems.map((item) => {
+          const selected = selectedId === item.id;
+          const accent = item.color ?? theme.colors.primary;
+          return (
+            <Pressable
+              key={item.id}
+              onPress={disabled ? undefined : () => onSelect(item.id)}
+              disabled={disabled}
+              style={({ pressed }) => [
+                styles.chip,
+                selected && { backgroundColor: accent + '22', borderColor: accent },
+                disabled && styles.chipDisabled,
+                pressed && !disabled && { opacity: 0.9 },
+              ]}
+            >
+              <View style={[styles.colorDot, { backgroundColor: accent }]} />
+              <Text style={[styles.chipText, selected && { color: accent, fontWeight: '700' }]}>
+                {item.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
   );
@@ -800,13 +881,56 @@ function createChipStyles(t: AppTheme) {
     container: { marginBottom: t.spacing.lg },
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     scrollRow: { flexDirection: 'row', gap: 8, paddingVertical: 2 },
+    segmented: {
+      flexDirection: 'row',
+      borderRadius: t.radii.lg,
+      borderWidth: 1.5,
+      borderColor: t.isDark ? 'rgba(255,255,255,0.1)' : t.colors.borderSubtle,
+      overflow: 'hidden',
+      backgroundColor: t.isDark ? 'rgba(255,255,255,0.04)' : t.colors.surface,
+    },
+    segment: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 11,
+      paddingHorizontal: 6,
+      borderRightWidth: StyleSheet.hairlineWidth,
+      borderRightColor: t.isDark ? 'rgba(255,255,255,0.1)' : t.colors.borderSubtle,
+      borderWidth: 0,
+    },
+    segmentText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: t.colors.text,
+      textTransform: 'capitalize',
+      textAlign: 'center',
+    },
+    selectControl: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 14,
+      paddingVertical: 14,
+      borderRadius: t.radii.lg,
+      borderWidth: 1.5,
+      borderColor: t.isDark ? 'rgba(255,255,255,0.1)' : t.colors.borderSubtle,
+      backgroundColor: t.isDark ? 'rgba(255,255,255,0.04)' : t.colors.surface,
+    },
+    selectValue: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: t.colors.text,
+      textTransform: 'capitalize',
+      flex: 1,
+    },
     chip: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
       paddingHorizontal: 14,
       paddingVertical: 9,
-      borderRadius: t.radii.full,
+      borderRadius: t.radii.lg,
       borderWidth: 1.5,
       borderColor: t.isDark ? 'rgba(255,255,255,0.1)' : t.colors.borderSubtle,
       backgroundColor: t.isDark ? 'rgba(255,255,255,0.04)' : t.colors.surface,
@@ -817,6 +941,11 @@ function createChipStyles(t: AppTheme) {
       borderRadius: 8,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    colorDot: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
     },
     chipText: { fontSize: 13, fontWeight: '600', color: t.colors.text, textTransform: 'capitalize' },
     chipDisabled: { opacity: 0.5 },

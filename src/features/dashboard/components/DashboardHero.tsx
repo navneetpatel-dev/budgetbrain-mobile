@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { StyleSheet, View, Text, Pressable } from 'react-native';
+import { useEffect, useMemo, useRef } from 'react';
+import { StyleSheet, View, Text, Pressable, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,25 +7,26 @@ import { AppIcon, type AppIconName } from '@/features/navigation/components/AppI
 import { useTheme } from '@/shared/theme';
 import type { AppTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
+import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
+import { useCountUp } from '@/shared/hooks/useCountUp';
+import { formatCurrency } from '@/shared/utils/currency';
 import { appHref } from '@/shared/utils/navigation';
 
 type QuickAction = { label: string; icon: AppIconName; href: string };
 
 const QUICK_ACTIONS: QuickAction[] = [
-  { label: 'Expense', icon: 'expense', href: '/(tabs)/expenses' },
-  { label: 'Income', icon: 'income', href: '/(tabs)/income' },
-  { label: 'Budget', icon: 'budgets', href: '/(tabs)/budgets' },
-  { label: 'AI', icon: 'ai', href: '/(tabs)/ai' },
+  { label: 'Expense', icon: 'expense', href: '/expense/add' },
+  { label: 'Income', icon: 'income', href: '/income/add' },
 ];
 
 export function DashboardHero({
   name,
-  netSavings,
+  amount,
   currency,
   savingsRate,
 }: {
   name: string;
-  netSavings: string;
+  amount: number;
   currency: string;
   savingsRate?: number;
 }) {
@@ -33,8 +34,20 @@ export function DashboardHero({
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { tabBarPaddingX, inlineGap } = useResponsive();
+  const reducedMotion = useReducedMotion();
+  const animatedAmount = useCountUp(amount);
   const styles = useMemo(() => createStyles(theme, inlineGap), [theme, inlineGap]);
   const initial = name[0]?.toUpperCase() ?? '?';
+  const fade = useRef(new Animated.Value(reducedMotion ? 1 : 0)).current;
+
+  useEffect(() => {
+    if (reducedMotion) {
+      fade.setValue(1);
+      return;
+    }
+    fade.setValue(0);
+    Animated.timing(fade, { toValue: 1, duration: 380, useNativeDriver: true }).start();
+  }, [fade, reducedMotion, amount]);
 
   return (
     <View style={[styles.wrap, { paddingTop: insets.top + 8, paddingHorizontal: tabBarPaddingX }]}>
@@ -51,8 +64,6 @@ export function DashboardHero({
         style={StyleSheet.absoluteFill}
         pointerEvents="none"
       />
-      <View style={[styles.orb, styles.orbRight]} pointerEvents="none" />
-      <View style={[styles.orb, styles.orbLeft]} pointerEvents="none" />
 
       <View style={styles.topRow}>
         <View style={styles.greetingBlock}>
@@ -67,34 +78,24 @@ export function DashboardHero({
           accessibilityRole="button"
           accessibilityLabel="Open profile"
         >
-          <LinearGradient
-            colors={['rgba(255,255,255,0.45)', 'rgba(255,255,255,0.1)']}
-            style={styles.avatarRingGradient}
-          >
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{initial}</Text>
-            </View>
-          </LinearGradient>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{initial}</Text>
+          </View>
         </Pressable>
       </View>
 
-      <View style={styles.balanceCard}>
-        <View style={styles.balanceTop}>
-          <Text style={styles.balanceLabel}>Net savings</Text>
-          {savingsRate !== undefined && (
-            <View style={styles.ratePill}>
-              <AppIcon name="chart" size={10} color="rgba(255,255,255,0.9)" />
-              <Text style={styles.rateText}>{savingsRate}% saved</Text>
-            </View>
-          )}
-        </View>
+      <Animated.View style={{ opacity: fade }}>
+        <Text style={styles.balanceLabel}>Net savings</Text>
         <View style={styles.balanceRow}>
           <Text style={styles.balanceAmount} numberOfLines={1}>
-            {netSavings}
+            {formatCurrency(animatedAmount, currency)}
           </Text>
           <Text style={styles.balanceCurrency}>{currency}</Text>
         </View>
-      </View>
+        {savingsRate !== undefined ? (
+          <Text style={styles.rateText}>{Math.round(savingsRate)}% saved this month</Text>
+        ) : null}
+      </Animated.View>
 
       <View style={styles.actions}>
         {QUICK_ACTIONS.map((action) => (
@@ -106,11 +107,7 @@ export function DashboardHero({
               pressed && { opacity: 0.9, transform: [{ scale: 0.97 }] },
             ]}
           >
-            <AppIcon
-              name={action.icon}
-              size={15}
-              color="rgba(255,255,255,0.95)"
-            />
+            <AppIcon name={action.icon} size={15} color="rgba(255,255,255,0.95)" />
             <Text style={styles.actionLabel} numberOfLines={1}>
               {action.label}
             </Text>
@@ -131,23 +128,16 @@ function getGreeting() {
 function createStyles(t: AppTheme, inlineGap: number) {
   return StyleSheet.create({
     wrap: {
-      paddingBottom: t.spacing.md,
+      paddingBottom: t.spacing.lg,
       overflow: 'hidden',
       borderBottomLeftRadius: t.radii.xl,
       borderBottomRightRadius: t.radii.xl,
     },
-    orb: {
-      position: 'absolute',
-      borderRadius: 999,
-      backgroundColor: 'rgba(255,255,255,0.06)',
-    },
-    orbRight: { width: 130, height: 130, top: -35, right: -45 },
-    orbLeft: { width: 80, height: 80, bottom: 20, left: -25 },
     topRow: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginBottom: t.spacing.sm,
+      marginBottom: t.spacing.md,
     },
     greetingBlock: { flex: 1, minWidth: 0, paddingRight: t.spacing.sm },
     eyebrow: {
@@ -163,9 +153,9 @@ function createStyles(t: AppTheme, inlineGap: number) {
       fontWeight: '800',
       letterSpacing: -0.4,
       marginTop: 2,
+      fontFamily: 'Inter_800ExtraBold',
     },
-    avatarRing: { borderRadius: 999, padding: 2 },
-    avatarRingGradient: { borderRadius: 999, padding: 2 },
+    avatarRing: { borderRadius: 999 },
     avatar: {
       width: 40,
       height: 40,
@@ -173,28 +163,16 @@ function createStyles(t: AppTheme, inlineGap: number) {
       backgroundColor: 'rgba(255,255,255,0.16)',
       alignItems: 'center',
       justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.28)',
     },
     avatarText: { color: '#fff', fontSize: 16, fontWeight: '800' },
-    balanceCard: {
-      backgroundColor: 'rgba(255,255,255,0.1)',
-      borderRadius: t.radii.lg,
-      paddingHorizontal: t.spacing.md,
-      paddingVertical: t.spacing.sm + 2,
-      borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.14)',
-      marginBottom: t.spacing.sm,
-    },
-    balanceTop: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: 2,
-    },
     balanceLabel: {
       color: 'rgba(255,255,255,0.72)',
-      fontSize: 11,
+      fontSize: 12,
       fontWeight: '600',
       letterSpacing: 0.2,
+      marginBottom: 4,
     },
     balanceRow: {
       flexDirection: 'row',
@@ -203,43 +181,41 @@ function createStyles(t: AppTheme, inlineGap: number) {
     },
     balanceAmount: {
       color: '#fff',
-      fontSize: 28,
-      fontWeight: '800',
-      letterSpacing: -0.8,
+      fontSize: 34,
+      fontWeight: '700',
+      letterSpacing: -1,
       flexShrink: 1,
+      fontFamily: 'Fraunces_700Bold',
+      fontVariant: ['tabular-nums'],
     },
     balanceCurrency: {
       color: 'rgba(255,255,255,0.55)',
       fontSize: 12,
       fontWeight: '700',
     },
-    ratePill: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-      backgroundColor: 'rgba(255,255,255,0.12)',
-      paddingHorizontal: 8,
-      paddingVertical: 3,
-      borderRadius: t.radii.full,
+    rateText: {
+      color: 'rgba(255,255,255,0.72)',
+      fontSize: 12,
+      fontWeight: '600',
+      marginTop: 6,
+      marginBottom: t.spacing.md,
     },
-    rateText: { color: 'rgba(255,255,255,0.88)', fontSize: 10, fontWeight: '700' },
-    actions: { flexDirection: 'row', gap: inlineGap },
+    actions: { flexDirection: 'row', gap: inlineGap, marginTop: t.spacing.sm },
     actionBtn: {
       flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 5,
-      paddingVertical: 9,
-      paddingHorizontal: 4,
+      gap: 6,
+      paddingVertical: 11,
       borderRadius: t.radii.md,
-      backgroundColor: 'rgba(255,255,255,0.08)',
+      backgroundColor: 'rgba(255,255,255,0.1)',
       borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.1)',
+      borderColor: 'rgba(255,255,255,0.14)',
     },
     actionLabel: {
-      color: 'rgba(255,255,255,0.92)',
-      fontSize: 10,
+      color: 'rgba(255,255,255,0.95)',
+      fontSize: 13,
       fontWeight: '700',
     },
   });

@@ -54,10 +54,8 @@ export function TransactionItem({
       accessibilityRole={onPress ? 'button' : undefined}
       accessibilityLabel={`${transaction.merchant ?? transaction.category?.name ?? 'Transaction'}, ${formatDate(transaction.date)}`}
     >
-      <View style={[styles.icon, { backgroundColor: catColor + '20' }]}>
-        <Text style={[styles.iconText, { color: catColor }]}>
-          {transaction.category?.name?.[0]?.toUpperCase() ?? (isExpense ? 'E' : 'I')}
-        </Text>
+      <View style={[styles.icon, { backgroundColor: catColor + '18' }]}>
+        <View style={[styles.dot, { backgroundColor: catColor }]} />
       </View>
       <View style={styles.content}>
         <Text style={styles.merchant} numberOfLines={1}>
@@ -128,12 +126,12 @@ function createStyles(t: ReturnType<typeof useTheme>) {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    iconText: { fontWeight: '700', fontSize: 16 },
+    dot: { width: 10, height: 10, borderRadius: 5 },
     content: { flex: 1 },
     merchant: { ...t.typography.bodyMedium, color: t.colors.text, fontWeight: '600' },
     date: { ...t.typography.caption, color: t.colors.textTertiary, marginTop: 2 },
     amountCol: { alignItems: 'flex-end' },
-    amount: { ...t.typography.bodySemibold, fontSize: 15 },
+    amount: { ...t.typography.bodySemibold, fontSize: 15, fontVariant: ['tabular-nums'] },
     expense: { color: t.colors.danger },
     income: { color: t.colors.success },
     badge: {

@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
-import { StyleSheet, View, Text, Pressable, ViewStyle } from 'react-native';
+import { useEffect, useMemo, useRef } from 'react';
+import { Animated, StyleSheet, View, Text, Pressable, ViewStyle } from 'react-native';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import type { AppTheme } from '@/shared/theme';
+import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
 
 export function GroupedCard({
   children,
@@ -13,7 +14,6 @@ export function GroupedCard({
   children: React.ReactNode;
   title?: string;
   style?: ViewStyle;
-  /** Adds inner padding for form fields / buttons */
   padded?: boolean;
 }) {
   const theme = useTheme();
@@ -103,6 +103,20 @@ export function ProgressBar({
   const theme = useTheme();
   const fill = color ?? theme.colors.primary;
   const pct = Math.min(100, Math.max(0, progress));
+  const reducedMotion = useReducedMotion();
+  const width = useRef(new Animated.Value(reducedMotion ? pct : 0)).current;
+
+  useEffect(() => {
+    if (reducedMotion) {
+      width.setValue(pct);
+      return;
+    }
+    Animated.timing(width, {
+      toValue: pct,
+      duration: 500,
+      useNativeDriver: false,
+    }).start();
+  }, [pct, reducedMotion, width]);
 
   return (
     <View
@@ -110,14 +124,21 @@ export function ProgressBar({
       accessibilityRole="progressbar"
       accessibilityValue={{ min: 0, max: 100, now: pct }}
     >
-      <View style={{ width: `${pct}%`, height: '100%', backgroundColor: fill, borderRadius: height / 2 }} />
+      <Animated.View
+        style={{
+          width: width.interpolate({ inputRange: [0, 100], outputRange: ['0%', '100%'] }),
+          height: '100%',
+          backgroundColor: fill,
+          borderRadius: height / 2,
+        }}
+      />
     </View>
   );
 }
 
 function createGroupedStyles(t: AppTheme) {
   return StyleSheet.create({
-    wrapper: { marginBottom: t.spacing.section },
+    wrapper: { marginBottom: 0 },
     groupTitle: {
       fontSize: 12,
       fontWeight: '600',
@@ -165,6 +186,11 @@ function createRowStyles(t: AppTheme) {
     textCol: { flex: 1 },
     label: { ...t.typography.bodyMedium, color: t.colors.text },
     subtitle: { ...t.typography.caption, color: t.colors.textTertiary, marginTop: 2 },
-    value: { ...t.typography.caption, color: t.colors.textSecondary, fontWeight: '600' },
+    value: {
+      ...t.typography.caption,
+      color: t.colors.textSecondary,
+      fontWeight: '600',
+      fontVariant: ['tabular-nums'],
+    },
   });
 }

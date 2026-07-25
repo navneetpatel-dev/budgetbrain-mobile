@@ -19,9 +19,9 @@ import { TransactionItem, TransactionGroup } from '@/features/expenses/component
 import { CategoryChart } from '@/features/dashboard/components/CategoryChart';
 import { DashboardHero } from '@/features/dashboard/components/DashboardHero';
 import { useDashboardWidgets } from '@/features/dashboard/hooks/useDashboardWidgets';
-import { useFloatingBlockGap } from '@/shared/hooks/useTabBarInset';
 import { useTheme } from '@/shared/theme';
 import { useAppSelector } from '@/shared/store/hooks';
+import { useResponsive } from '@/shared/utils/responsive';
 import { formatCurrency } from '@/shared/utils/currency';
 import { toSafePercent } from '@/shared/utils/number';
 import type { DashboardData } from '@/shared/types';
@@ -35,8 +35,8 @@ export default function DashboardScreen() {
   const theme = useTheme();
   const user = useAppSelector((s) => s.auth.user);
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const blockGap = useFloatingBlockGap();
-  const sectionStyle = useMemo(() => ({ gap: blockGap }), [blockGap]);
+  const { sectionGap } = useResponsive();
+  const sectionStyle = useMemo(() => ({ gap: sectionGap }), [sectionGap]);
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['dashboard'],
@@ -69,7 +69,7 @@ export default function DashboardScreen() {
       header={
         <DashboardHero
           name={user?.name?.split(' ')[0] ?? 'there'}
-          netSavings={formatCurrency(summary?.netSavings ?? 0, currency)}
+          amount={Number(summary?.netSavings ?? 0) || 0}
           currency={currency}
           savingsRate={summary?.savingsRate}
         />
