@@ -14,8 +14,6 @@ import {
   DetailHero,
   DetailMetaList,
   FormErrorBanner,
-  FormInfoBanner,
-  FormSuccessBanner,
 } from '@/shared/components/ui';
 import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
 import { useExpenseDetail, type ExpenseForm } from '@/features/expenses/hooks/useExpenseDetail';
@@ -35,13 +33,14 @@ export default function ExpenseDetailScreen() {
     editing,
     setEditing,
     loading,
+    updating,
+    duplicating,
+    deleting,
     startEditing,
     update,
     duplicate,
     confirmDelete,
     submitError,
-    submitInfo,
-    submitSuccess,
   } = useExpenseDetail(id);
 
   const { data: categories } = useCategoryOptions();
@@ -70,8 +69,6 @@ export default function ExpenseDetailScreen() {
       subtitle={editing ? 'Update transaction' : expense.category?.name}
     >
       {submitError ? <FormErrorBanner message={submitError} /> : null}
-      {submitInfo ? <FormInfoBanner message={submitInfo} icon="link" /> : null}
-      {submitSuccess ? <FormSuccessBanner message={submitSuccess} /> : null}
 
       {!editing ? (
         <>
@@ -93,9 +90,9 @@ export default function ExpenseDetailScreen() {
             onPrimary={() => startEditing(reset)}
             secondaryTitle="Duplicate"
             onSecondary={duplicate}
-            secondaryLoading={loading}
+            secondaryLoading={duplicating}
             onDestructive={confirmDelete}
-            destructiveLoading={loading}
+            destructiveLoading={deleting}
           />
         </>
       ) : (
@@ -167,7 +164,7 @@ export default function ExpenseDetailScreen() {
           <FormActions
             primaryTitle="Save Changes"
             onPrimary={handleSubmit(update)}
-            primaryLoading={loading}
+            primaryLoading={updating}
             secondaryTitle="Cancel"
             onSecondary={() => setEditing(false)}
           />

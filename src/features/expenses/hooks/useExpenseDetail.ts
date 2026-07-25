@@ -17,19 +17,21 @@ export interface ExpenseForm {
   date: string;
 }
 
+type PendingAction = 'update' | 'duplicate' | 'delete' | null;
+
 export function useExpenseDetail(expenseId: string) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submitInfo, setSubmitInfo] = useState<string | null>(null);
-  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const clearFeedback = useCallback(() => {
     setSubmitError(null);
-    setSubmitInfo(null);
-    setSubmitSuccess(null);
   }, []);
+
+  const goHome = useCallback(() => {
+    router.dismissTo('/(tabs)');
+  }, [router]);
 
   const { data: expense, isLoading } = useQuery({
     queryKey: ['expense', expenseId],
@@ -52,7 +54,7 @@ export function useExpenseDetail(expenseId: string) {
   };
 
   const update = async (data: ExpenseForm) => {
-    setLoading(true);
+    setPendingAction('update');
     clearFeedback();
     const payload = {
       id: expenseId,
@@ -67,10 +69,10 @@ export function useExpenseDetail(expenseId: string) {
       if (!(await isOnline())) {
         queueOfflineAction('update', payload);
         setEditing(false);
-        setSubmitInfo('Changes will sync when you reconnect.');
         return;
       }
-      await apiPatch(`/expenses/${expenseId}`, payload);
+      const updated = await apiPatch<Transaction>(`/expenses/${expenseId}`, payload);
+      queryClient.setQueryData(['expense', expenseId], updated);
       queryClient.invalidateQueries({ queryKey: ['expense', expenseId] });
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
@@ -78,42 +80,42 @@ export function useExpenseDetail(expenseId: string) {
     } catch (err) {
       setSubmitError(getApiErrorMessage(err, 'Could not update expense'));
     } finally {
-      setLoading(false);
+      setPendingAction(null);
     }
   };
 
   const remove = async () => {
-    setLoading(true);
+    setPendingAction('delete');
     clearFeedback();
     try {
       if (!(await isOnline())) {
         queueOfflineAction('delete', { id: expenseId });
-        router.back();
+        goHome();
         return;
       }
       await apiDelete(`/expenses/${expenseId}`);
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      router.back();
+      goHome();
     } catch (err) {
       setSubmitError(getApiErrorMessage(err, 'Could not delete expense'));
     } finally {
-      setLoading(false);
+      setPendingAction(null);
     }
   };
 
   const duplicate = async () => {
-    setLoading(true);
+    setPendingAction('duplicate');
     clearFeedback();
     try {
       await apiPost(`/expenses/${expenseId}/duplicate`);
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      setSubmitSuccess('A copy of this expense was created.');
+      goHome();
     } catch (err) {
       setSubmitError(getApiErrorMessage(err, 'Could not duplicate expense'));
     } finally {
-      setLoading(false);
+      setPendingAction(null);
     }
   };
 
@@ -126,15 +128,16 @@ export function useExpenseDetail(expenseId: string) {
     isLoading,
     editing,
     setEditing,
-    loading,
+    loading: pendingAction !== null,
+    updating: pendingAction === 'update',
+    duplicating: pendingAction === 'duplicate',
+    deleting: pendingAction === 'delete',
     startEditing,
     update,
     remove,
     duplicate,
     confirmDelete,
     submitError,
-    submitInfo,
-    submitSuccess,
     clearFeedback,
   };
 }
