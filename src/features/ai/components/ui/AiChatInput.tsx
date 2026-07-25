@@ -6,6 +6,7 @@ import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { FormErrorBanner } from '@/shared/components/ui/FormErrorBanner';
 import { useTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
+import { maxLen } from '@/shared/validation/fieldLimits';
 
 const SUGGESTED_PROMPTS = [
   'Where did I overspend this month?',
@@ -73,7 +74,7 @@ export function AiChatInput({
           placeholder="Ask your finance coach..."
           placeholderTextColor={theme.colors.textTertiary}
           multiline
-          maxLength={4000}
+          maxLength={maxLen('aiMessage')}
           style={styles.input}
           accessibilityLabel="Chat message"
           editable={!loading}

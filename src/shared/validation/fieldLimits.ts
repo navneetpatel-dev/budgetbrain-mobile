@@ -1,5 +1,5 @@
 /**
- * Keep in sync with backend/src/validation/limits.ts + messages.ts
+ * Keep in sync with backend/src/validation/{limits,messages,fields}.ts
  * Frontend first gate; backend Zod is the authoritative gate (same copy).
  */
 
@@ -10,9 +10,10 @@ export const FieldLimits = {
   otp: { min: 6, max: 6 },
   country: { min: 1, max: 100 },
   currency: { min: 3, max: 3 },
+  avatarUrl: { min: 1, max: 500 },
   merchant: { min: 1, max: 255 },
   notes: { min: 1, max: 2000 },
-  search: { min: 1, max: 100 },
+  search: { min: 2, max: 100 },
   entityName: { min: 1, max: 255 },
   categoryName: { min: 1, max: 100 },
   icon: { min: 1, max: 50 },
@@ -23,19 +24,23 @@ export const FieldLimits = {
   inviteCode: { min: 6, max: 20 },
   subject: { min: 3, max: 255 },
   message: { min: 10, max: 5000 },
+  adminNotes: { min: 1, max: 5000 },
   aiMessage: { min: 1, max: 4000 },
   smsContent: { min: 10, max: 10000 },
   emailSubject: { min: 1, max: 255 },
   emailBody: { min: 10, max: 50000 },
   salaryRange: { min: 1, max: 50 },
+  financialGoal: { min: 1, max: 100 },
+  deviceName: { min: 1, max: 255 },
 } as const;
 
 export const MAX_MONEY_AMOUNT = 9_999_999_999_999.99;
+export const MAX_QUANTITY = 1_000_000_000;
+export const ALERT_THRESHOLD = { min: 1, max: 100 } as const;
 export const SUPPORTED_CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD'] as const;
 
 export type FieldLimitKey = keyof typeof FieldLimits;
 
-/** Same strings as backend ValidationMessages */
 export const ValidationMessages = {
   minChars: (min: number) => `Must be at least ${min} characters`,
   maxChars: (max: number) => `Must be at most ${max} characters`,
@@ -59,9 +64,24 @@ export const ValidationMessages = {
   amountMax: `Amount must be at most ${MAX_MONEY_AMOUNT}`,
   valueType: 'Value must be a number',
   valueFinite: 'Value must be a finite number',
+  valueMin: (min: number) => `Value must be at least ${min}`,
+  valueMax: (max: number) => `Value must be at most ${max}`,
+  quantityType: 'Quantity must be a number',
+  quantityFinite: 'Quantity must be a finite number',
+  quantityPositive: 'Quantity must be greater than zero',
+  quantityMax: `Quantity must be at most ${MAX_QUANTITY}`,
+  alertThresholdType: 'Alert threshold must be a number',
+  alertThresholdFinite: 'Alert threshold must be a finite number',
+  alertThresholdMin: `Alert threshold must be at least ${ALERT_THRESHOLD.min}`,
+  alertThresholdMax: `Alert threshold must be at most ${ALERT_THRESHOLD.max}`,
   inviteCodeInvalid: 'Invalid invite code',
   last4Invalid: 'Last 4 digits must be numeric',
   urlInvalid: 'Enter a valid URL',
+  urlMax: (max: number) => `URL must be at most ${max} characters`,
+  categoryRequired: 'Please select a category',
+  incomeSourceRequired: 'Select an income source',
+  financialGoalsMin: 'Please select at least one financial goal',
+  financialGoalsMax: 'Must be at most 20 financial goals',
 } as const;
 
 export function maxLen(key: FieldLimitKey): number {
@@ -79,7 +99,6 @@ function isValidIsoDate(value: string): boolean {
   return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
 }
 
-/** Imperative text check — same messages as backend requiredText. */
 export function validateText(key: FieldLimitKey, value: string | undefined | null): string | undefined {
   const { min, max } = FieldLimits[key];
   const v = (value ?? '').trim();
@@ -88,7 +107,6 @@ export function validateText(key: FieldLimitKey, value: string | undefined | nul
   return undefined;
 }
 
-/** Imperative optional text — same as backend optionalText. */
 export function validateOptionalText(
   key: FieldLimitKey,
   value: string | undefined | null
@@ -101,7 +119,6 @@ export function validateOptionalText(
   return undefined;
 }
 
-/** Positive money amount — same as backend amountField. */
 export function validateAmount(value: string | number | undefined | null): string | undefined {
   if (value === undefined || value === null || value === '') {
     return ValidationMessages.amountPositive;
@@ -114,7 +131,6 @@ export function validateAmount(value: string | number | undefined | null): strin
   return undefined;
 }
 
-/** Money value allowing zero (and optionally negative) — same as backend moneyValueField. */
 export function validateMoneyValue(
   value: string | number | undefined | null,
   opts?: { allowNegative?: boolean }
@@ -126,9 +142,32 @@ export function validateMoneyValue(
   if (Number.isNaN(n)) return ValidationMessages.valueType;
   if (!Number.isFinite(n)) return ValidationMessages.valueFinite;
   const min = opts?.allowNegative ? -MAX_MONEY_AMOUNT : 0;
-  if (n < min || n > MAX_MONEY_AMOUNT) {
-    return ValidationMessages.amountMax;
+  if (n < min) return ValidationMessages.valueMin(min);
+  if (n > MAX_MONEY_AMOUNT) return ValidationMessages.valueMax(MAX_MONEY_AMOUNT);
+  return undefined;
+}
+
+export function validateQuantity(value: string | number | undefined | null): string | undefined {
+  if (value === undefined || value === null || value === '') {
+    return ValidationMessages.quantityPositive;
   }
+  const n = typeof value === 'number' ? value : Number(value);
+  if (Number.isNaN(n)) return ValidationMessages.quantityType;
+  if (!Number.isFinite(n)) return ValidationMessages.quantityFinite;
+  if (n <= 0) return ValidationMessages.quantityPositive;
+  if (n > MAX_QUANTITY) return ValidationMessages.quantityMax;
+  return undefined;
+}
+
+export function validateAlertThreshold(value: string | number | undefined | null): string | undefined {
+  if (value === undefined || value === null || value === '') {
+    return undefined;
+  }
+  const n = typeof value === 'number' ? value : Number(value);
+  if (Number.isNaN(n)) return ValidationMessages.alertThresholdType;
+  if (!Number.isFinite(n)) return ValidationMessages.alertThresholdFinite;
+  if (n < ALERT_THRESHOLD.min) return ValidationMessages.alertThresholdMin;
+  if (n > ALERT_THRESHOLD.max) return ValidationMessages.alertThresholdMax;
   return undefined;
 }
 
@@ -138,6 +177,12 @@ export function validateDate(value: string | undefined | null): string | undefin
   if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return ValidationMessages.dateFormat;
   if (!isValidIsoDate(v)) return ValidationMessages.dateInvalid;
   return undefined;
+}
+
+export function validateOptionalDate(value: string | undefined | null): string | undefined {
+  const v = (value ?? '').trim();
+  if (!v) return undefined;
+  return validateDate(v);
 }
 
 export function validateInviteCode(value: string | undefined | null): string | undefined {
@@ -153,9 +198,6 @@ export function validateLast4(value: string | undefined | null): string | undefi
   return undefined;
 }
 
-/**
- * react-hook-form rules aligned with backend requiredText / optionalText messages.
- */
 export function textRules(key: FieldLimitKey, opts?: { required?: boolean }) {
   const { min, max } = FieldLimits[key];
   const minMsg = ValidationMessages.minChars(min);
@@ -173,23 +215,17 @@ export function textRules(key: FieldLimitKey, opts?: { required?: boolean }) {
   };
 }
 
-/** Optional field: only enforce min when non-empty; always enforce max. */
 export function optionalTextRules(key: FieldLimitKey) {
-  const { min, max } = FieldLimits[key];
+  const { max } = FieldLimits[key];
   return {
-    validate: (value: string | undefined) => {
-      const err = validateOptionalText(key, value);
-      return err ?? true;
-    },
+    validate: (value: string | undefined) => validateOptionalText(key, value) ?? true,
     maxLength: { value: max, message: ValidationMessages.maxChars(max) },
   };
 }
 
 export function amountRules(opts?: { required?: boolean }) {
   return {
-    ...(opts?.required !== false
-      ? { required: ValidationMessages.amountPositive }
-      : {}),
+    ...(opts?.required !== false ? { required: ValidationMessages.amountPositive } : {}),
     validate: (value: string | number | undefined) => {
       if (value === undefined || value === null || value === '') {
         return opts?.required === false ? true : ValidationMessages.amountPositive;
@@ -211,10 +247,40 @@ export function moneyValueRules(opts?: { allowNegative?: boolean; required?: boo
   };
 }
 
+export function quantityRules(opts?: { required?: boolean }) {
+  return {
+    ...(opts?.required !== false ? { required: ValidationMessages.quantityPositive } : {}),
+    validate: (value: string | number | undefined) => {
+      if (value === undefined || value === null || value === '') {
+        return opts?.required === false ? true : ValidationMessages.quantityPositive;
+      }
+      return validateQuantity(value) ?? true;
+    },
+  };
+}
+
+export function alertThresholdRules(opts?: { required?: boolean }) {
+  return {
+    ...(opts?.required ? { required: ValidationMessages.alertThresholdMin } : {}),
+    validate: (value: string | number | undefined) => {
+      if (value === undefined || value === null || value === '') {
+        return opts?.required ? ValidationMessages.alertThresholdMin : true;
+      }
+      return validateAlertThreshold(value) ?? true;
+    },
+  };
+}
+
 export function dateRules() {
   return {
     required: ValidationMessages.dateFormat,
     validate: (value: string | undefined) => validateDate(value) ?? true,
+  };
+}
+
+export function optionalDateRules() {
+  return {
+    validate: (value: string | undefined) => validateOptionalDate(value) ?? true,
   };
 }
 

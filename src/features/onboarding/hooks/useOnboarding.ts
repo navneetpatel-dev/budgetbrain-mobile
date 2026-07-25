@@ -3,6 +3,7 @@ import { apiPost, getApiErrorMessage } from '@/shared/services/api';
 import { setUser } from '@/shared/store/authSlice';
 import { useAppDispatch } from '@/shared/store/hooks';
 import type { User } from '@/shared/types';
+import { ValidationMessages } from '@/shared/validation/fieldLimits';
 
 export interface OnboardingForm {
   name: string;
@@ -31,7 +32,7 @@ export function useOnboarding() {
   const submit = async (data: OnboardingForm) => {
     setSubmitError(null);
     if (selectedGoals.length === 0) {
-      setSubmitError('Please select at least one financial goal');
+      setSubmitError(ValidationMessages.financialGoalsMin);
       return;
     }
 

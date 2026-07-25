@@ -8,6 +8,7 @@ import { useInfinitePaginatedList } from '@/shared/hooks/usePaginatedList';
 import { useTheme } from '@/shared/theme';
 import { useFabBottom } from '@/shared/hooks/useFabBottom';
 import type { Transaction } from '@/shared/types';
+import { FieldLimits, ValidationMessages, maxLen } from '@/shared/validation/fieldLimits';
 
 export default function SearchScreen() {
   const theme = useTheme();
@@ -16,7 +17,7 @@ export default function SearchScreen() {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [query, setQuery] = useState('');
 
-  const enabled = query.length >= 2;
+  const enabled = query.trim().length >= FieldLimits.search.min;
   const {
     items: results,
     total,
@@ -46,10 +47,11 @@ export default function SearchScreen() {
           footer={
             <Input
               value={query}
-              onChangeText={setQuery}
+              onChangeText={(v) => setQuery(v.slice(0, maxLen('search')))}
               placeholder="Type to search..."
               autoFocus
               leftIcon="search"
+              maxLength={maxLen('search')}
             />
           }
         />
@@ -64,8 +66,8 @@ export default function SearchScreen() {
       ListHeaderComponent={
         searching ? (
           <ListSkeleton count={6} variant="transaction" showHeader={false} safeAreaTop={false} />
-        ) : query.length < 2 ? (
-          <Text style={styles.hint}>Type at least 2 characters to search</Text>
+        ) : query.trim().length < FieldLimits.search.min ? (
+          <Text style={styles.hint}>{ValidationMessages.minChars(FieldLimits.search.min)}</Text>
         ) : null
       }
       ListFooterComponent={

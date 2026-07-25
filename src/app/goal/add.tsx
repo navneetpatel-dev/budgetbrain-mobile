@@ -12,7 +12,7 @@ import {
 import { useCreateGoal, type GoalForm } from '@/features/goals/hooks/useCreateGoal';
 import { GOAL_TYPES } from '@/shared/constants/config';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
-import { amountRules, textRules } from '@/shared/validation/fieldLimits';
+import { amountRules, optionalDateRules, textRules } from '@/shared/validation/fieldLimits';
 
 export default function AddGoalScreen() {
   const { amountLabel } = useUserCurrency();
@@ -60,8 +60,9 @@ export default function AddGoalScreen() {
         <Controller
           control={control}
           name="targetDate"
+          rules={optionalDateRules()}
           render={({ field: { onChange, value } }) => (
-            <DateInput label="Target date" value={value} onChange={onChange} disabled={loading} />
+            <DateInput label="Target date" value={value} onChange={onChange} error={errors.targetDate?.message} disabled={loading} />
           )}
         />
       </FormSection>

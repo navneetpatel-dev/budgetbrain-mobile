@@ -16,7 +16,7 @@ import { useCreateIncome, type IncomeForm } from '@/features/income/hooks/useCre
 import { INCOME_SOURCE_TYPES } from '@/shared/constants/config';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import type { IncomeSource } from '@/shared/types';
-import { amountRules, dateRules, textRules } from '@/shared/validation/fieldLimits';
+import { amountRules, dateRules, maxLen, optionalTextRules, textRules } from '@/shared/validation/fieldLimits';
 
 type SourceMode = 'existing' | 'new';
 
@@ -146,14 +146,17 @@ export default function AddIncomeScreen() {
         <Controller
           control={control}
           name="notes"
+          rules={optionalTextRules('notes')}
           render={({ field: { onChange, value } }) => (
             <Input
-              label="Notes" maxLength={2000}
+              label="Notes"
+              maxLength={maxLen('notes')}
               value={value}
               onChangeText={onChange}
               placeholder="Add any extra details..."
               multiline
               disabled={loading}
+              error={errors.notes?.message}
             />
           )}
         />

@@ -23,7 +23,7 @@ import { PAYMENT_METHODS } from '@/shared/constants/config';
 import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import { formatCurrency } from '@/shared/utils/currency';
-import { amountRules, dateRules, maxLen, textRules } from '@/shared/validation/fieldLimits';
+import { amountRules, dateRules, maxLen, optionalTextRules, textRules } from '@/shared/validation/fieldLimits';
 
 export default function ExpenseDetailScreen() {
   const theme = useTheme();
@@ -134,8 +134,9 @@ export default function ExpenseDetailScreen() {
             <Controller
               control={control}
               name="notes"
+              rules={optionalTextRules('notes')}
               render={({ field: { onChange, value } }) => (
-                <Input label="Notes" maxLength={2000} value={value} onChangeText={onChange} multiline placeholder="Optional notes" disabled={loading} />
+                <Input label="Notes" maxLength={maxLen('notes')} value={value} onChangeText={onChange} multiline placeholder="Optional notes" disabled={loading} error={errors.notes?.message} />
               )}
             />
           </FormSection>

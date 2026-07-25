@@ -9,7 +9,7 @@ import {
 } from '@/shared/components/ui';
 import { useContributeGoal, type ContributeForm } from '@/features/goals/hooks/useContributeGoal';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
-import { amountRules } from '@/shared/validation/fieldLimits';
+import { amountRules, maxLen, optionalTextRules } from '@/shared/validation/fieldLimits';
 
 export default function ContributeGoalScreen() {
   const { amountLabel } = useUserCurrency();
@@ -44,8 +44,9 @@ export default function ContributeGoalScreen() {
         <Controller
           control={control}
           name="notes"
+          rules={optionalTextRules('notes')}
           render={({ field: { onChange, value } }) => (
-            <Input label="Notes" value={value} onChangeText={onChange} placeholder="Optional note..." multiline disabled={loading} />
+            <Input label="Notes" maxLength={maxLen('notes')} value={value} onChangeText={onChange} placeholder="Optional note..." multiline disabled={loading} error={errors.notes?.message} />
           )}
         />
       </FormSection>

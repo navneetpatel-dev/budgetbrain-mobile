@@ -20,7 +20,7 @@ import { useFabBottom } from '@/shared/hooks/useFabBottom';
 import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import { useInvestments, INVESTMENT_TYPES } from '@/features/investments/hooks/useInvestments';
-import { amountRules, textRules } from '@/shared/validation/fieldLimits';
+import { amountRules, dateRules, maxLen, optionalTextRules, quantityRules, textRules } from '@/shared/validation/fieldLimits';
 
 export default function InvestmentsScreen() {
   const theme = useTheme();
@@ -89,8 +89,9 @@ export default function InvestmentsScreen() {
             <Controller
               control={control}
               name="symbol"
+              rules={optionalTextRules('symbol')}
               render={({ field: { onChange, value } }) => (
-                <Input label="Symbol" maxLength={20} value={value} onChangeText={onChange} placeholder="e.g. AAPL, INFY" helperText="Optional ticker symbol" />
+                <Input label="Symbol" maxLength={maxLen('symbol')} value={value} onChangeText={onChange} placeholder="e.g. AAPL, INFY" helperText="Optional ticker symbol" error={errors.symbol?.message} />
               )}
             />
             <Controller
@@ -104,8 +105,9 @@ export default function InvestmentsScreen() {
             <Controller
               control={control}
               name="purchaseDate"
+              rules={dateRules()}
               render={({ field: { onChange, value } }) => (
-                <DateInput label="Purchase date" value={value} onChange={onChange} />
+                <DateInput label="Purchase date" value={value} onChange={onChange} error={errors.purchaseDate?.message} />
               )}
             />
           </>
@@ -113,7 +115,7 @@ export default function InvestmentsScreen() {
         <Controller
           control={control}
           name="quantity"
-          rules={amountRules()}
+          rules={quantityRules()}
           render={({ field: { onChange, value } }) => (
             <Input label="Quantity" value={value} onChangeText={onChange} keyboardType="numeric" error={errors.quantity?.message} />
           )}

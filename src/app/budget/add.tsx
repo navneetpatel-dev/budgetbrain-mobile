@@ -13,7 +13,7 @@ import {
 import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
 import { useCreateBudget, type BudgetForm } from '@/features/budgets/hooks/useCreateBudget';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
-import { amountRules, textRules } from '@/shared/validation/fieldLimits';
+import { alertThresholdRules, amountRules, dateRules, textRules } from '@/shared/validation/fieldLimits';
 
 export default function AddBudgetScreen() {
   const { amountLabel } = useUserCurrency();
@@ -74,16 +74,18 @@ export default function AddBudgetScreen() {
         <Controller
           control={control}
           name="startDate"
+          rules={dateRules()}
           render={({ field: { onChange, value } }) => (
-            <DateInput label="Start date" value={value} onChange={onChange} disabled={loading} />
+            <DateInput label="Start date" value={value} onChange={onChange} error={errors.startDate?.message} disabled={loading} />
           )}
         />
 
         <Controller
           control={control}
           name="alertThreshold"
+          rules={alertThresholdRules()}
           render={({ field: { onChange, value } }) => (
-            <Input label="Alert threshold (%)" value={value} onChangeText={onChange} keyboardType="numeric" helperText="Notify when spending reaches this %" leftIcon="bell" disabled={loading} />
+            <Input label="Alert threshold (%)" value={value} onChangeText={onChange} keyboardType="numeric" helperText="Notify when spending reaches this %" leftIcon="bell" disabled={loading} error={errors.alertThreshold?.message} />
           )}
         />
 

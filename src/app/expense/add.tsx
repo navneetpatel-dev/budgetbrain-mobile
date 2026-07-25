@@ -16,13 +16,7 @@ import { useCreateExpense, type ExpenseForm } from '@/features/expenses/hooks/us
 import { useReceiptPicker } from '@/features/expenses/hooks/useReceiptPicker';
 import { PAYMENT_METHODS } from '@/shared/constants/config';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
-import {
-  amountRules,
-  dateRules,
-  maxLen,
-  optionalTextRules,
-  textRules,
-} from '@/shared/validation/fieldLimits';
+import { ValidationMessages, amountRules, dateRules, maxLen, optionalTextRules, textRules } from '@/shared/validation/fieldLimits';
 
 export default function AddExpenseScreen() {
   const { amountLabel } = useUserCurrency();
@@ -48,7 +42,7 @@ export default function AddExpenseScreen() {
 
   const onSubmit = async (data: ExpenseForm) => {
     if (!data.categoryId) {
-      setCategoryError('Please select a category');
+      setCategoryError(ValidationMessages.categoryRequired);
       return;
     }
     setCategoryError(undefined);

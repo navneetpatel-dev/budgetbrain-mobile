@@ -11,7 +11,7 @@ import {
 } from '@/shared/components/ui';
 import { useBudgetDetail, type BudgetForm } from '@/features/budgets/hooks/useBudgetDetail';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
-import { amountRules, textRules } from '@/shared/validation/fieldLimits';
+import { alertThresholdRules, amountRules, textRules } from '@/shared/validation/fieldLimits';
 
 export default function BudgetEditScreen() {
   const { amountLabel } = useUserCurrency();
@@ -53,8 +53,9 @@ export default function BudgetEditScreen() {
         <Controller
           control={control}
           name="alertThreshold"
+          rules={alertThresholdRules()}
           render={({ field: { onChange, value } }) => (
-            <Input label="Alert threshold (%)" value={value} onChangeText={onChange} keyboardType="numeric" helperText="Notify when spending reaches this %" leftIcon="bell" disabled={loading} />
+            <Input label="Alert threshold (%)" value={value} onChangeText={onChange} keyboardType="numeric" helperText="Notify when spending reaches this %" leftIcon="bell" disabled={loading} error={errors.alertThreshold?.message} />
           )}
         />
       </FormSection>

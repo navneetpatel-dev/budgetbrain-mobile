@@ -13,7 +13,7 @@ import {
 } from '@/shared/components/ui';
 import { useIncomeDetail, type IncomeForm } from '@/features/income/hooks/useIncomeDetail';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
-import { amountRules } from '@/shared/validation/fieldLimits';
+import { amountRules, dateRules, maxLen, optionalTextRules } from '@/shared/validation/fieldLimits';
 
 export default function IncomeEditScreen() {
   const { amountLabel } = useUserCurrency();
@@ -47,15 +47,17 @@ export default function IncomeEditScreen() {
         <Controller
           control={control}
           name="date"
+          rules={dateRules()}
           render={({ field: { onChange, value } }) => (
-            <DateInput label="Date" value={value} onChange={onChange} disabled={loading} />
+            <DateInput label="Date" value={value} onChange={onChange} error={errors.date?.message} disabled={loading} />
           )}
         />
         <Controller
           control={control}
           name="notes"
+          rules={optionalTextRules('notes')}
           render={({ field: { onChange, value } }) => (
-            <Input label="Notes" maxLength={2000} value={value} onChangeText={onChange} placeholder="Optional notes" multiline disabled={loading} />
+            <Input label="Notes" maxLength={maxLen('notes')} value={value} onChangeText={onChange} placeholder="Optional notes" multiline disabled={loading} error={errors.notes?.message} />
           )}
         />
       </FormSection>
