@@ -50,10 +50,12 @@ export function useTransactionParsing() {
   const clearEmailError = useCallback(() => setEmailError(null), []);
   const clearConfirmError = useCallback(() => setConfirmError(null), []);
 
-  const { data: pendingItems, total: pendingTotal, refetch: refetchPending } = usePaginatedList<
-    ParsedTransactionPending,
-    'pending'
-  >({
+  const {
+    data: pendingItems,
+    total: pendingTotal,
+    isLoading: pendingLoading,
+    refetch: refetchPending,
+  } = usePaginatedList<ParsedTransactionPending, 'pending'>({
     queryKey: ['integrations-pending'],
     url: '/integrations/pending',
     itemsKey: 'pending',
@@ -159,6 +161,7 @@ export function useTransactionParsing() {
     smsLoading,
     emailLoading,
     confirmLoading,
+    pendingLoading,
     parsed: parsedRecord,
     pendingItems: pendingItems.map(toParsedRecord),
     pendingTotal,

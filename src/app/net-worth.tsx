@@ -7,7 +7,7 @@ import { apiGet } from '@/shared/services/api';
 import {
   Card,
   SummaryCard,
-  ScreenSkeleton,
+  NetWorthSkeleton,
   StickyHeaderScreen,
   GroupedCard,
   ResponsiveGrid,
@@ -41,7 +41,7 @@ export default function NetWorthScreen() {
   });
 
   if (isLoading) {
-    return <ScreenSkeleton rows={5} />;
+    return <NetWorthSkeleton />;
   }
 
   const s = data?.summary;

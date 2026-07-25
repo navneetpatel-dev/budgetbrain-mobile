@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, Text, ActivityIndicator } from 'react-native';
-import { Button, Card, FormStackScreen, FormSection } from '@/shared/components/ui';
+import { StyleSheet, View, Text } from 'react-native';
+import { Button, Card, FormStackScreen, FormSection, SubscriptionSkeleton } from '@/shared/components/ui';
 import { useTheme } from '@/shared/theme';
 import { useSubscription } from '@/features/subscription/hooks/useSubscription';
 
@@ -12,7 +12,7 @@ export default function SubscriptionScreen() {
   return (
     <FormStackScreen eyebrow="PREMIUM" title="Upgrade" subtitle="Unlock AI, family accounts, and more" onBack={goBack}>
       {loadingOfferings ? (
-        <ActivityIndicator size="large" color={theme.colors.primary} style={styles.loader} />
+        <SubscriptionSkeleton />
       ) : packages.length > 0 ? (
         <FormSection title="Choose a plan" subtitle="Cancel anytime from App Store settings">
           {packages.map((pkg) => (
@@ -48,7 +48,6 @@ export default function SubscriptionScreen() {
 
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    loader: { marginVertical: 24 },
     planCard: { marginBottom: t.spacing.sm },
     planHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
     planName: { fontSize: 18, fontWeight: '700', color: t.colors.text },

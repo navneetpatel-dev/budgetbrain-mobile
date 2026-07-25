@@ -43,7 +43,7 @@ export default function IncomeScreen() {
   });
 
   if (isLoading) {
-    return <ListSkeleton count={4} />;
+    return <ListSkeleton count={4} variant="transaction" />;
   }
 
   const sourceCount = sources?.length ?? 0;

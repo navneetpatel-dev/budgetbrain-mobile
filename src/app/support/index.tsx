@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { StyleSheet, Text } from 'react-native';
 import { Controller } from 'react-hook-form';
-import { Button, Input, Card, StackScrollScreen, GroupedCard, FormSection, FormActions, FormErrorBanner, FormSuccessBanner } from '@/shared/components/ui';
+import { Button, Input, Card, StackScrollScreen, GroupedCard, FormSection, FormActions, FormErrorBanner, FormSuccessBanner, SupportSkeleton } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
 import { useSupportTickets } from '@/features/support/hooks/useSupportTickets';
@@ -9,7 +9,9 @@ import { useSupportTickets } from '@/features/support/hooks/useSupportTickets';
 export default function SupportScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const { loading, tickets, control, handleSubmit, errors, onSubmit, submitError, submitSuccess } = useSupportTickets();
+  const { loading, isLoading, tickets, control, handleSubmit, errors, onSubmit, submitError, submitSuccess } = useSupportTickets();
+
+  if (isLoading) return <SupportSkeleton />;
 
   return (
     <StackScrollScreen

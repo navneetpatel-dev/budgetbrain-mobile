@@ -9,6 +9,7 @@ import {
   FormSection,
   FormActions,
   FormErrorBanner,
+  ListSkeleton,
 } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
@@ -23,6 +24,7 @@ export default function IntegrationsScreen() {
     smsLoading,
     emailLoading,
     confirmLoading,
+    pendingLoading,
     parsed,
     pendingItems,
     pendingTotal,
@@ -42,6 +44,8 @@ export default function IntegrationsScreen() {
     confirmError,
     actionError,
   } = useTransactionParsing();
+
+  if (pendingLoading) return <ListSkeleton count={4} variant="transaction" />;
 
   return (
     <StackScrollScreen

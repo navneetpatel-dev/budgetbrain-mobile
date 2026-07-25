@@ -45,7 +45,7 @@ export default function InvestmentsScreen() {
   } = useInvestments();
 
   if (isLoading) {
-    return <ListSkeleton count={4} />;
+    return <ListSkeleton count={4} variant="account" />;
   }
 
   const items = data ?? [];

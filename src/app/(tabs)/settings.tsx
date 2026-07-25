@@ -15,6 +15,7 @@ import {
   OptionChips,
   FormActions,
   FormErrorBanner,
+  SettingsSkeleton,
 } from '@/shared/components/ui';
 import { ProfileHero } from '@/features/settings/components/ProfileHero';
 import { PremiumUpsellCard } from '@/features/settings/components/PremiumUpsellCard';
@@ -82,14 +83,16 @@ export default function SettingsScreen() {
     if (ok) setEditingProfile(false);
   };
 
+  if (!user) return <SettingsSkeleton />;
+
   return (
     <StickyHeaderScreen
       header={
         <ProfileHero
-          name={user?.name ?? 'User'}
-          email={user?.email}
-          role={user?.role}
-          currency={user?.currency}
+          name={user.name ?? 'User'}
+          email={user.email}
+          role={user.role}
+          currency={user.currency}
         />
       }
     >

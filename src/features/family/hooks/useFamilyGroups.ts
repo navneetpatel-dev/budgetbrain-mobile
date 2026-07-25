@@ -32,7 +32,7 @@ export function useFamilyGroups() {
     setJoinSuccess(null);
   }, []);
 
-  const { data: memberships } = usePaginatedList<FamilyMembership, 'memberships'>({
+  const { data: memberships, isLoading } = usePaginatedList<FamilyMembership, 'memberships'>({
     queryKey: ['family-groups'],
     url: '/family/groups',
     itemsKey: 'memberships',
@@ -75,6 +75,7 @@ export function useFamilyGroups() {
   return {
     isPremium,
     memberships,
+    isLoading,
     loading,
     groupForm,
     joinForm,

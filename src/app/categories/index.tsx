@@ -45,7 +45,7 @@ export default function CategoriesScreen() {
   } = useCategories();
 
   if (isLoading) {
-    return <ListSkeleton count={5} />;
+    return <ListSkeleton count={5} variant="category" />;
   }
 
   const items = data ?? [];

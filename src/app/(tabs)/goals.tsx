@@ -28,7 +28,7 @@ export default function GoalsScreen() {
   });
 
   if (isLoading) {
-    return <ListSkeleton count={3} />;
+    return <ListSkeleton count={3} variant="goal" />;
   }
 
   return (

@@ -39,7 +39,7 @@ export default function ExpensesScreen() {
     pageSize: 20,
   });
 
-  if (isLoading) return <ListSkeleton count={6} />;
+  if (isLoading) return <ListSkeleton count={6} variant="transaction" />;
 
   return (
     <StickyHeaderFlatScreen

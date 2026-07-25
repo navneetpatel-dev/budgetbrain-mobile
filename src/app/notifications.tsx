@@ -19,7 +19,7 @@ export default function NotificationsScreen() {
   } = useMarkNotificationRead();
 
   if (isLoading) {
-    return <ListSkeleton count={5} />;
+    return <ListSkeleton count={5} variant="notification" />;
   }
 
   const items = data ?? [];

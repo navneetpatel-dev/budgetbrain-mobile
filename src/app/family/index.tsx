@@ -12,6 +12,7 @@ import {
   FormErrorBanner,
   FormSuccessBanner,
   FormInfoBanner,
+  FamilySkeleton,
 } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
@@ -24,6 +25,7 @@ export default function FamilyScreen() {
   const {
     isPremium,
     memberships,
+    isLoading,
     loading,
     groupForm,
     joinForm,
@@ -55,6 +57,8 @@ export default function FamilyScreen() {
       </StackScrollScreen>
     );
   }
+
+  if (isLoading) return <FamilySkeleton />;
 
   const groups = memberships ?? [];
 
