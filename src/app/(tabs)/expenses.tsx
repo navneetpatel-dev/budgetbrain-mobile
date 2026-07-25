@@ -1,11 +1,11 @@
-import { ActivityIndicator, RefreshControl } from 'react-native';
+import { RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { appHref } from '@/shared/utils/navigation';
 import { TransactionItem, TransactionGroup } from '@/features/expenses/components/TransactionItem';
 import {
   EmptyState,
-  ScreenLoader,
   ListSkeleton,
+  ListRowsSkeleton,
   FeatureHeader,
   SearchField,
   HeaderIconButton,
@@ -75,9 +75,7 @@ export default function ExpensesScreen() {
       }}
       onEndReachedThreshold={0.4}
       ListFooterComponent={
-        isFetchingNextPage ? (
-          <ActivityIndicator size="small" color={theme.colors.primary} style={{ marginVertical: 16 }} />
-        ) : null
+        isFetchingNextPage ? <ListRowsSkeleton count={2} variant="transaction" /> : null
       }
       ListEmptyComponent={
         <EmptyState

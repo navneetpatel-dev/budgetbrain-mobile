@@ -13,8 +13,10 @@ import { useTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
 import { useScreenInsets } from '@/shared/hooks/useLayout';
 import { useTabBarInset, useFloatingBlockGap } from '@/shared/hooks/useTabBarInset';
+import { ScreenSkeleton as ContentScreenSkeleton } from './skeleton';
 
 export type ScreenInset = 'tab' | 'stack' | 'none';
+export { ScreenSkeleton } from './skeleton';
 
 function useBottomInset(inset: ScreenInset) {
   const theme = useTheme();
@@ -290,35 +292,9 @@ export function SummaryMetricsGrid({
   );
 }
 
+/** @deprecated Prefer content skeletons (ListSkeleton, DashboardSkeleton, etc.). */
 export function ScreenLoader() {
-  const theme = useTheme();
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.colors.background }}>
-      <View style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 3, borderColor: theme.colors.primarySoft, borderTopColor: theme.colors.primary }} />
-    </View>
-  );
-}
-
-export function ScreenSkeleton({ rows = 4 }: { rows?: number }) {
-  const theme = useTheme();
-  const insets = useSafeAreaInsets();
-  const { frame } = useScreenInsets();
-
-  return (
-    <View style={[{ flex: 1, backgroundColor: theme.colors.background, paddingTop: insets.top + theme.spacing.lg, gap: theme.spacing.md }, frame]}>
-      {Array.from({ length: rows }).map((_, i) => (
-        <View
-          key={i}
-          style={{
-            height: 72,
-            borderRadius: theme.radii.lg,
-            backgroundColor: theme.colors.surfaceHover,
-            opacity: 0.7,
-          }}
-        />
-      ))}
-    </View>
-  );
+  return <ContentScreenSkeleton rows={5} />;
 }
 
 export { RefreshControl };

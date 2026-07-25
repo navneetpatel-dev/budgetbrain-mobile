@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, RefreshControl, Text, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, RefreshControl, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { appHref } from '@/shared/utils/navigation';
 import { TransactionItem, TransactionGroup } from '@/features/expenses/components/TransactionItem';
@@ -7,6 +7,7 @@ import {
   Card,
   EmptyState,
   ListSkeleton,
+  ListRowsSkeleton,
   StickyHeaderFlatScreen,
 } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
@@ -87,9 +88,7 @@ export default function IncomeScreen() {
           </View>
         }
         ListFooterComponent={
-          isFetchingNextPage ? (
-            <ActivityIndicator size="small" color={theme.colors.primary} style={{ marginVertical: 16 }} />
-          ) : null
+          isFetchingNextPage ? <ListRowsSkeleton count={2} variant="transaction" /> : null
         }
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         ListEmptyComponent={

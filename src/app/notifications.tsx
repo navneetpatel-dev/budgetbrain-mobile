@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { StyleSheet, Text, RefreshControl, ActivityIndicator } from 'react-native';
-import { Card, EmptyState, ScreenLoader, ListSkeleton, StickyHeaderFlatScreen } from '@/shared/components/ui';
+import { StyleSheet, Text, RefreshControl } from 'react-native';
+import { Card, EmptyState, ListSkeleton, ListRowsSkeleton, StickyHeaderFlatScreen } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
 import { useMarkNotificationRead } from '@/features/notifications/hooks/useMarkNotificationRead';
@@ -44,9 +44,7 @@ export default function NotificationsScreen() {
       }}
       onEndReachedThreshold={0.4}
       ListFooterComponent={
-        isFetchingNextPage ? (
-          <ActivityIndicator size="small" color={theme.colors.primary} style={{ marginVertical: 16 }} />
-        ) : null
+        isFetchingNextPage ? <ListRowsSkeleton count={2} variant="notification" /> : null
       }
       ListEmptyComponent={
         <EmptyState title="No notifications" subtitle="You're all caught up" icon="bell" />

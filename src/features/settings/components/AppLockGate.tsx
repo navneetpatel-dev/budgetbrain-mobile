@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { useAppSelector } from '@/shared/store/hooks';
 import { useAppLock } from '@/features/settings/hooks/useAppLock';
+import { ColdStartSkeleton } from '@/shared/components/ui';
 import { useTheme } from '@/shared/theme';
 
 interface Props {
@@ -25,11 +26,7 @@ export function AppLockGate({ children }: Props) {
   }
 
   if (!checked && biometricEnabled) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.subtitle}>Verifying...</Text>
-      </View>
-    );
+    return <ColdStartSkeleton />;
   }
 
   return <>{children}</>;

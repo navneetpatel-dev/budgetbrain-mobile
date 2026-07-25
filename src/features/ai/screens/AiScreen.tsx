@@ -6,10 +6,9 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ScreenContainer } from '@/shared/components/ui';
+import { AiChatSkeleton, ScreenContainer } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
@@ -53,14 +52,7 @@ export function AiScreen() {
   }
 
   if (historyLoading) {
-    return (
-      <ScreenContainer padded={false} style={styles.root}>
-        <ProfileStackHeader screen="ai" subtitle="Ask about your finances" />
-        <View style={styles.loadingWrap}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-        </View>
-      </ScreenContainer>
-    );
+    return <AiChatSkeleton />;
   }
 
   const isEmpty = messages.length === 0 && !chatLoading;
@@ -157,6 +149,5 @@ function createStyles(
       maxWidth: 280,
     },
     messages: { gap: t.spacing.md },
-    loadingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   });
 }

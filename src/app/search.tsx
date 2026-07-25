@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
-import { StyleSheet, Text, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { appHref } from '@/shared/utils/navigation';
-import { Input, StackNavHeader, StickyHeaderFlatScreen, EmptyState, ListSkeleton } from '@/shared/components/ui';
+import { Input, StackNavHeader, StickyHeaderFlatScreen, EmptyState, ListSkeleton, ListRowsSkeleton } from '@/shared/components/ui';
 import { TransactionItem, TransactionGroup } from '@/features/expenses/components/TransactionItem';
 import { useInfinitePaginatedList } from '@/shared/hooks/usePaginatedList';
 import { useTheme } from '@/shared/theme';
@@ -69,9 +69,7 @@ export default function SearchScreen() {
         ) : null
       }
       ListFooterComponent={
-        isFetchingNextPage ? (
-          <ActivityIndicator size="small" color={theme.colors.primary} style={styles.loader} />
-        ) : null
+        isFetchingNextPage ? <ListRowsSkeleton count={2} variant="transaction" /> : null
       }
       ListEmptyComponent={
         enabled && !searching ? (
@@ -94,7 +92,6 @@ export default function SearchScreen() {
 
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    loader: { marginTop: 32 },
     hint: { textAlign: 'center', color: t.colors.textSecondary, marginTop: 32, fontSize: 14 },
   });
 }
