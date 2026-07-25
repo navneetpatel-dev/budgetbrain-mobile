@@ -1,15 +1,10 @@
-import { useMemo } from 'react';
-import { StyleSheet, Text } from 'react-native';
 import { Controller } from 'react-hook-form';
-import { Button, Input, Card, StackScrollScreen, GroupedCard, FormSection, FormActions, FormErrorBanner, FormSuccessBanner, SupportSkeleton } from '@/shared/components/ui';
+import { Button, Input, StackScrollScreen, GroupedCard, ListRow, FormSection, FormActions, FormErrorBanner, FormSuccessBanner, SupportSkeleton } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
-import { useTheme } from '@/shared/theme';
 import { useSupportTickets } from '@/features/support/hooks/useSupportTickets';
 import { FieldLimits, maxLen, textRules, ValidationMessages } from '@/shared/validation/fieldLimits';
 
 export default function SupportScreen() {
-  const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
   const { loading, isLoading, tickets, control, handleSubmit, errors, onSubmit, submitError, submitSuccess } = useSupportTickets();
 
   return (
@@ -57,13 +52,15 @@ export default function SupportScreen() {
           </FormSection>
 
           {tickets.length > 0 && (
-            <GroupedCard title="Your tickets" padded>
-              {tickets.map((t) => (
-                <Card key={t.id} style={styles.ticketCard}>
-                  <Text style={styles.ticketSubject}>{t.subject}</Text>
-                  <Text style={styles.ticketStatus}>{t.status.replace('_', ' ')}</Text>
-                  <Text style={styles.ticketDate}>{new Date(t.createdAt).toLocaleDateString()}</Text>
-                </Card>
+            <GroupedCard title="Your tickets">
+              {tickets.map((t, i) => (
+                <ListRow
+                  key={t.id}
+                  label={t.subject}
+                  subtitle={t.status.replace('_', ' ')}
+                  value={new Date(t.createdAt).toLocaleDateString()}
+                  isLast={i === tickets.length - 1}
+                />
               ))}
             </GroupedCard>
           )}
@@ -71,13 +68,4 @@ export default function SupportScreen() {
       )}
     </StackScrollScreen>
   );
-}
-
-function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    ticketCard: { marginBottom: 0 },
-    ticketSubject: { fontSize: 16, fontWeight: '600', color: t.colors.text },
-    ticketStatus: { fontSize: 13, color: t.colors.primary, marginTop: 4, textTransform: 'capitalize' },
-    ticketDate: { fontSize: 12, color: t.colors.textSecondary, marginTop: 4 },
-  });
 }

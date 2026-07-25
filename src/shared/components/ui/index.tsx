@@ -274,6 +274,11 @@ export function Input({
   );
 }
 
+/** Surface hierarchy (mobile + web):
+ *  - default: list items / dense rows (border, no shadow)
+ *  - elevated: SummaryCard metrics + primary panels (shadow, no border)
+ *  - outline / glass: specialty accents
+ *  GroupedCard always uses the default surface. */
 interface CardProps {
   children: React.ReactNode;
   style?: ViewStyle;

@@ -1,15 +1,15 @@
 import { useMemo } from 'react';
-import { StyleSheet, Text, RefreshControl, Pressable, View } from 'react-native';
+import { StyleSheet, Text, RefreshControl, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { apiGet } from '@/shared/services/api';
 import {
-  Card,
   SummaryCard,
   NetWorthSkeleton,
   StickyHeaderScreen,
   GroupedCard,
+  ListRow,
   ResponsiveGrid,
   EmptyState,
 } from '@/shared/components/ui';
@@ -111,18 +111,17 @@ export default function NetWorthScreen() {
             />
           ) : (
             <>
-              <GroupedCard title="Accounts" padded>
+              <GroupedCard title="Accounts">
                 {accounts.length ? (
-                  accounts.map((acc) => (
-                    <Pressable key={acc.id} onPress={() => router.push('/accounts')}>
-                      <Card style={styles.item}>
-                        <Text style={styles.itemName}>{acc.name}</Text>
-                        <Text style={styles.itemMeta}>{acc.type.replace('_', ' ')} · {acc.institution ?? '—'}</Text>
-                        <Text style={[styles.itemAmount, acc.type === 'credit_card' && styles.debt]}>
-                          {formatCurrency(Number(acc.balance), currency)}
-                        </Text>
-                      </Card>
-                    </Pressable>
+                  accounts.map((acc, i) => (
+                    <ListRow
+                      key={acc.id}
+                      label={acc.name}
+                      subtitle={`${acc.type.replace('_', ' ')} · ${acc.institution ?? '—'}`}
+                      value={formatCurrency(Number(acc.balance), currency)}
+                      onPress={() => router.push('/accounts')}
+                      isLast={i === accounts.length - 1}
+                    />
                   ))
                 ) : (
                   <EmptyState
@@ -135,19 +134,17 @@ export default function NetWorthScreen() {
                 )}
               </GroupedCard>
 
-              <GroupedCard title="Investments" padded>
+              <GroupedCard title="Investments">
                 {investments.length ? (
-                  investments.map((inv) => (
-                    <Pressable key={inv.id} onPress={() => router.push('/investments')}>
-                      <Card style={styles.item}>
-                        <Text style={styles.itemName}>{inv.name}</Text>
-                        <Text style={styles.itemMeta}>{inv.type.replace('_', ' ')}</Text>
-                        <Text style={styles.itemAmount}>{formatCurrency(inv.currentValue, currency)}</Text>
-                        <Text style={[styles.gainLoss, inv.gainLoss >= 0 ? styles.gain : styles.loss]}>
-                          {inv.gainLoss >= 0 ? '+' : ''}{formatCurrency(inv.gainLoss, currency)}
-                        </Text>
-                      </Card>
-                    </Pressable>
+                  investments.map((inv, i) => (
+                    <ListRow
+                      key={inv.id}
+                      label={inv.name}
+                      subtitle={`${inv.type.replace('_', ' ')} · ${inv.gainLoss >= 0 ? '+' : ''}${formatCurrency(inv.gainLoss, currency)}`}
+                      value={formatCurrency(inv.currentValue, currency)}
+                      onPress={() => router.push('/investments')}
+                      isLast={i === investments.length - 1}
+                    />
                   ))
                 ) : (
                   <EmptyState
@@ -196,13 +193,5 @@ function createStyles(t: ReturnType<typeof useTheme>) {
       marginTop: 4,
       fontWeight: '600',
     },
-    item: { marginBottom: 0 },
-    itemName: { ...t.typography.titleSm, color: t.colors.text },
-    itemMeta: { ...t.typography.caption, color: t.colors.textSecondary, marginTop: 2, textTransform: 'capitalize' },
-    itemAmount: { ...t.typography.amount, color: t.colors.text, marginTop: 6 },
-    debt: { color: t.colors.danger },
-    gainLoss: { ...t.typography.caption, marginTop: 4, fontWeight: '600' },
-    gain: { color: t.colors.success },
-    loss: { color: t.colors.danger },
   });
 }

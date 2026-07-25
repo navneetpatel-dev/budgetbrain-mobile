@@ -133,7 +133,6 @@ function createGroupedStyles(t: AppTheme) {
       borderWidth: 1,
       borderColor: t.colors.borderSubtle,
       overflow: 'hidden',
-      ...t.shadows.sm,
     },
     cardPadded: {
       padding: t.spacing.lg,

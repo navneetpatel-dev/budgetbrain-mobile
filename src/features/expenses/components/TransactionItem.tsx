@@ -95,7 +95,6 @@ export function TransactionGroup({ children }: { children: React.ReactNode }) {
           borderWidth: 1,
           borderColor: theme.colors.borderSubtle,
           overflow: 'hidden',
-          ...theme.shadows.sm,
         },
       }),
     [theme]

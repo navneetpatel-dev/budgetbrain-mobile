@@ -29,7 +29,7 @@ export function BudgetCard({
       : theme.colors.primary;
 
   return (
-    <Card variant="elevated" style={styles.budgetCard}>
+    <Card style={styles.budgetCard}>
       <View style={styles.budgetHeader}>
         <View style={styles.titleCol}>
           <Text style={styles.budgetName}>{budget.name}</Text>
