@@ -20,6 +20,7 @@ import { useFabBottom } from '@/shared/hooks/useFabBottom';
 import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import { useInvestments, INVESTMENT_TYPES } from '@/features/investments/hooks/useInvestments';
+import { amountRules, textRules } from '@/shared/validation/fieldLimits';
 
 export default function InvestmentsScreen() {
   const theme = useTheme();
@@ -73,9 +74,9 @@ export default function InvestmentsScreen() {
             <Controller
               control={control}
               name="name"
-              rules={{ required: 'Name is required' }}
+              rules={textRules('entityName')}
               render={({ field: { onChange, value } }) => (
-                <Input label="Investment name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="chart" />
+                <Input label="Investment name" value={value} onChangeText={onChange} maxLength={255} error={errors.name?.message} leftIcon="chart" />
               )}
             />
             <FormFieldLabel>Investment type</FormFieldLabel>
@@ -89,13 +90,13 @@ export default function InvestmentsScreen() {
               control={control}
               name="symbol"
               render={({ field: { onChange, value } }) => (
-                <Input label="Symbol" value={value} onChangeText={onChange} placeholder="e.g. AAPL, INFY" helperText="Optional ticker symbol" />
+                <Input label="Symbol" maxLength={20} value={value} onChangeText={onChange} placeholder="e.g. AAPL, INFY" helperText="Optional ticker symbol" />
               )}
             />
             <Controller
               control={control}
               name="purchasePrice"
-              rules={{ required: 'Purchase price is required' }}
+              rules={amountRules()}
               render={({ field: { onChange, value } }) => (
                 <Input label="Purchase price" value={value} onChangeText={onChange} keyboardType="numeric" error={errors.purchasePrice?.message} />
               )}
@@ -112,7 +113,7 @@ export default function InvestmentsScreen() {
         <Controller
           control={control}
           name="quantity"
-          rules={{ required: 'Quantity is required' }}
+          rules={amountRules()}
           render={({ field: { onChange, value } }) => (
             <Input label="Quantity" value={value} onChangeText={onChange} keyboardType="numeric" error={errors.quantity?.message} />
           )}
@@ -120,7 +121,7 @@ export default function InvestmentsScreen() {
         <Controller
           control={control}
           name="currentPrice"
-          rules={{ required: 'Current price is required' }}
+          rules={amountRules()}
           render={({ field: { onChange, value } }) => (
             <Input label="Current price" value={value} onChangeText={onChange} keyboardType="numeric" error={errors.currentPrice?.message} />
           )}

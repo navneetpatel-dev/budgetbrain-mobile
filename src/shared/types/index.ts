@@ -193,8 +193,14 @@ export interface DashboardData {
   categoryBreakdown: Array<{ categoryId: string; total: string; category?: Category }>;
 }
 
+export interface ApiErrorDetail {
+  message?: string;
+  path?: Array<string | number>;
+  code?: string;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   data: T;
-  error?: { message: string; code?: string };
+  error?: { message: string; code?: string; details?: ApiErrorDetail[] };
 }

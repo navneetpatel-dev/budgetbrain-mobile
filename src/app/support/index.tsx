@@ -29,7 +29,7 @@ export default function SupportScreen() {
         <Controller
           control={control}
           name="subject"
-          rules={textRules('subject', { required: 'Subject is required', label: 'Subject' })}
+          rules={textRules('subject')}
           render={({ field: { onChange, value } }) => (
             <Input label="Subject" value={value} onChangeText={onChange} maxLength={maxLen('subject')} error={errors.subject?.message} leftIcon="support" placeholder="Brief summary of your issue" disabled={loading} />
           )}
@@ -37,7 +37,7 @@ export default function SupportScreen() {
         <Controller
           control={control}
           name="message"
-          rules={textRules('message', { required: 'Message is required', label: 'Message' })}
+          rules={textRules('message')}
           render={({ field: { onChange, value } }) => (
             <Input
               label="Message"
@@ -47,7 +47,7 @@ export default function SupportScreen() {
               multiline
               error={errors.message?.message}
               placeholder="Describe what happened and how we can help..."
-              helperText="10–5000 characters"
+              helperText="Must be at least 10 characters"
               disabled={loading}
             />
           )}

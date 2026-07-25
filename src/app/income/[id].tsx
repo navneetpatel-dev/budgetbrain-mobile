@@ -13,6 +13,7 @@ import {
 } from '@/shared/components/ui';
 import { useIncomeDetail, type IncomeForm } from '@/features/income/hooks/useIncomeDetail';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
+import { amountRules } from '@/shared/validation/fieldLimits';
 
 export default function IncomeEditScreen() {
   const { amountLabel } = useUserCurrency();
@@ -38,7 +39,7 @@ export default function IncomeEditScreen() {
         <Controller
           control={control}
           name="amount"
-          rules={{ required: 'Amount is required' }}
+          rules={amountRules()}
           render={({ field: { onChange, value } }) => (
             <Input label={amountLabel('Amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} leftIcon="income" disabled={loading} />
           )}
@@ -54,7 +55,7 @@ export default function IncomeEditScreen() {
           control={control}
           name="notes"
           render={({ field: { onChange, value } }) => (
-            <Input label="Notes" value={value} onChangeText={onChange} placeholder="Optional notes" multiline disabled={loading} />
+            <Input label="Notes" maxLength={2000} value={value} onChangeText={onChange} placeholder="Optional notes" multiline disabled={loading} />
           )}
         />
       </FormSection>

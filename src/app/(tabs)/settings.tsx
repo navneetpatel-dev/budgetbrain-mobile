@@ -31,6 +31,7 @@ import { useAppSelector } from '@/shared/store/hooks';
 import { SUBSCRIPTION_PLANS, SUPPORTED_CURRENCIES } from '@/shared/constants/config';
 import { useTheme } from '@/shared/theme';
 import { PROFILE_FEATURE_LINKS, PROFILE_ACCOUNT_LINKS } from '@/features/settings/constants/profileLinks';
+import { maxLen, textRules } from '@/shared/validation/fieldLimits';
 
 export default function SettingsScreen() {
   const theme = useTheme();
@@ -176,17 +177,17 @@ export default function SettingsScreen() {
               <Controller
                 control={control}
                 name="name"
-                rules={{ required: 'Name is required', maxLength: { value: 255, message: 'Name must be at most 255 characters' } }}
+                rules={textRules('name')}
                 render={({ field: { onChange, value } }) => (
-                  <Input label="Name" value={value} onChangeText={onChange} maxLength={255} error={errors.name?.message} leftIcon="personFill" disabled={profileLoading} />
+                  <Input label="Name" value={value} onChangeText={onChange} maxLength={maxLen('name')} error={errors.name?.message} leftIcon="personFill" disabled={profileLoading} />
                 )}
               />
               <Controller
                 control={control}
                 name="country"
-                rules={{ required: 'Country is required', maxLength: { value: 100, message: 'Country must be at most 100 characters' } }}
+                rules={textRules('country')}
                 render={({ field: { onChange, value } }) => (
-                  <Input label="Country" value={value} onChangeText={onChange} maxLength={100} error={errors.country?.message} disabled={profileLoading} />
+                  <Input label="Country" value={value} onChangeText={onChange} maxLength={maxLen('country')} error={errors.country?.message} disabled={profileLoading} />
                 )}
               />
               <FormFieldLabel>Currency</FormFieldLabel>

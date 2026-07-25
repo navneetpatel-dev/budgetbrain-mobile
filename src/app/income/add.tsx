@@ -16,6 +16,7 @@ import { useCreateIncome, type IncomeForm } from '@/features/income/hooks/useCre
 import { INCOME_SOURCE_TYPES } from '@/shared/constants/config';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import type { IncomeSource } from '@/shared/types';
+import { amountRules, dateRules, textRules } from '@/shared/validation/fieldLimits';
 
 type SourceMode = 'existing' | 'new';
 
@@ -62,7 +63,7 @@ export default function AddIncomeScreen() {
         <Controller
           control={control}
           name="amount"
-          rules={{ required: 'Amount is required' }}
+          rules={amountRules()}
           render={({ field: { onChange, value } }) => (
             <Input
               label={amountLabel('Amount')}
@@ -80,7 +81,7 @@ export default function AddIncomeScreen() {
         <Controller
           control={control}
           name="date"
-          rules={{ required: 'Date is required' }}
+          rules={dateRules()}
           render={({ field: { onChange, value } }) => (
             <DateInput label="Date" value={value} onChange={onChange} error={errors.date?.message} disabled={loading} />
           )}
@@ -116,7 +117,7 @@ export default function AddIncomeScreen() {
             <Controller
               control={control}
               name="newSourceName"
-              rules={{ required: isNewSource ? 'Source name is required' : false }}
+              rules={isNewSource ? textRules('entityName') : undefined}
               render={({ field: { onChange, value } }) => (
                 <Input
                   label="Source name"
@@ -147,7 +148,7 @@ export default function AddIncomeScreen() {
           name="notes"
           render={({ field: { onChange, value } }) => (
             <Input
-              label="Notes"
+              label="Notes" maxLength={2000}
               value={value}
               onChangeText={onChange}
               placeholder="Add any extra details..."

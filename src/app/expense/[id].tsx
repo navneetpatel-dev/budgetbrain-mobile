@@ -23,6 +23,7 @@ import { PAYMENT_METHODS } from '@/shared/constants/config';
 import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import { formatCurrency } from '@/shared/utils/currency';
+import { amountRules, dateRules, maxLen, textRules } from '@/shared/validation/fieldLimits';
 
 export default function ExpenseDetailScreen() {
   const theme = useTheme();
@@ -88,7 +89,7 @@ export default function ExpenseDetailScreen() {
             <Controller
               control={control}
               name="amount"
-              rules={{ required: 'Amount is required' }}
+              rules={amountRules()}
               render={({ field: { onChange, value } }) => (
                 <Input label={amountLabel('Amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} leftIcon="expense" disabled={loading} />
               )}
@@ -96,15 +97,15 @@ export default function ExpenseDetailScreen() {
             <Controller
               control={control}
               name="merchant"
-              rules={{ required: 'Merchant is required' }}
+              rules={textRules('merchant')}
               render={({ field: { onChange, value } }) => (
-                <Input label="Merchant" value={value} onChangeText={onChange} error={errors.merchant?.message} leftIcon="activity" disabled={loading} />
+                <Input label="Merchant" maxLength={maxLen('merchant')} value={value} onChangeText={onChange} error={errors.merchant?.message} leftIcon="activity" disabled={loading} />
               )}
             />
             <Controller
               control={control}
               name="date"
-              rules={{ required: 'Date is required' }}
+              rules={dateRules()}
               render={({ field: { onChange, value } }) => (
                 <DateInput label="Date" value={value} onChange={onChange} error={errors.date?.message} disabled={loading} />
               )}
@@ -134,7 +135,7 @@ export default function ExpenseDetailScreen() {
               control={control}
               name="notes"
               render={({ field: { onChange, value } }) => (
-                <Input label="Notes" value={value} onChangeText={onChange} multiline placeholder="Optional notes" disabled={loading} />
+                <Input label="Notes" maxLength={2000} value={value} onChangeText={onChange} multiline placeholder="Optional notes" disabled={loading} />
               )}
             />
           </FormSection>

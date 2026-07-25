@@ -13,6 +13,7 @@ import {
 import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
 import { useCreateBudget, type BudgetForm } from '@/features/budgets/hooks/useCreateBudget';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
+import { amountRules, textRules } from '@/shared/validation/fieldLimits';
 
 export default function AddBudgetScreen() {
   const { amountLabel } = useUserCurrency();
@@ -44,7 +45,7 @@ export default function AddBudgetScreen() {
         <Controller
           control={control}
           name="name"
-          rules={{ required: 'Name is required' }}
+          rules={textRules('entityName')}
           render={({ field: { onChange, value } }) => (
             <Input label="Budget name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="budgets" placeholder="e.g. Groceries" disabled={loading} />
           )}
@@ -62,7 +63,7 @@ export default function AddBudgetScreen() {
         <Controller
           control={control}
           name="amount"
-          rules={{ required: 'Amount is required' }}
+          rules={amountRules()}
           render={({ field: { onChange, value } }) => (
             <Input label={amountLabel('Budget amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} leftIcon="wallet" placeholder="0.00" disabled={loading} />
           )}

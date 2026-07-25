@@ -1,37 +1,52 @@
-import { FieldLimits, textRules } from '../../../shared/validation/fieldLimits';
+import { FieldLimits, ValidationMessages, maxLen } from '../../../shared/validation/fieldLimits';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const authFieldRules = {
   email: {
-    ...textRules('email', { required: 'Email is required', label: 'Email' }),
-    pattern: { value: EMAIL_PATTERN, message: 'Enter a valid email address' },
+    required: ValidationMessages.emailRequired,
+    maxLength: { value: FieldLimits.email.max, message: ValidationMessages.emailMax },
+    pattern: { value: EMAIL_PATTERN, message: ValidationMessages.emailInvalid },
   },
   password: {
-    required: 'Password is required',
-    maxLength: {
-      value: FieldLimits.password.max,
-      message: `Password must be at most ${FieldLimits.password.max} characters`,
-    },
+    required: ValidationMessages.passwordRequired,
+    maxLength: { value: FieldLimits.password.max, message: ValidationMessages.passwordMax },
   },
   passwordMin8: {
-    ...textRules('password', { required: 'Password is required', label: 'Password' }),
+    required: ValidationMessages.passwordRequired,
+    minLength: { value: FieldLimits.password.min, message: ValidationMessages.passwordMin },
+    maxLength: { value: FieldLimits.password.max, message: ValidationMessages.passwordMax },
+    validate: (value: string) => {
+      if (!/[A-Za-z]/.test(value)) return ValidationMessages.passwordLetter;
+      if (!/[0-9]/.test(value)) return ValidationMessages.passwordNumber;
+      return true;
+    },
   },
   name: {
-    ...textRules('name', { required: 'Name is required', label: 'Name' }),
+    required: ValidationMessages.minChars(FieldLimits.name.min),
+    minLength: {
+      value: FieldLimits.name.min,
+      message: ValidationMessages.minChars(FieldLimits.name.min),
+    },
+    maxLength: {
+      value: FieldLimits.name.max,
+      message: ValidationMessages.maxChars(FieldLimits.name.max),
+    },
   },
   otp: {
-    ...textRules('otp', { required: 'Verification code is required', label: 'Code' }),
+    required: ValidationMessages.otpInvalid,
+    minLength: { value: 6, message: ValidationMessages.otpInvalid },
+    maxLength: { value: 6, message: ValidationMessages.otpInvalid },
+    pattern: { value: /^\d{6}$/, message: ValidationMessages.otpInvalid },
   },
 };
 
 export function confirmPasswordRule(password: string) {
   return {
-    required: 'Confirm your password',
-    maxLength: {
-      value: FieldLimits.password.max,
-      message: `Password must be at most ${FieldLimits.password.max} characters`,
-    },
-    validate: (value: string) => value === password || 'Passwords do not match',
+    required: ValidationMessages.passwordConfirmRequired,
+    maxLength: { value: FieldLimits.password.max, message: ValidationMessages.passwordMax },
+    validate: (value: string) => value === password || ValidationMessages.passwordMismatch,
   };
 }
+
+export { maxLen, ValidationMessages, FieldLimits };

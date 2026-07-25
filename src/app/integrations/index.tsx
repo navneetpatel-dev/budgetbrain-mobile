@@ -15,6 +15,7 @@ import { ProfileStackHeader } from '@/features/settings/components/ProfileStackH
 import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import { useTransactionParsing } from '@/features/integrations/hooks/useTransactionParsing';
+import { maxLen, textRules } from '@/shared/validation/fieldLimits';
 
 export default function IntegrationsScreen() {
   const theme = useTheme();
@@ -112,12 +113,13 @@ export default function IntegrationsScreen() {
         <Controller
           control={smsForm.control}
           name="content"
-          rules={{ required: 'SMS content is required', minLength: { value: 10, message: 'At least 10 characters' } }}
+          rules={textRules('smsContent')}
           render={({ field: { onChange, value } }) => (
             <Input
               label="SMS content"
               value={value}
               onChangeText={onChange}
+              maxLength={maxLen('smsContent')}
               multiline
               placeholder="Paste bank SMS here..."
               error={smsForm.formState.errors.content?.message}
@@ -134,20 +136,21 @@ export default function IntegrationsScreen() {
         <Controller
           control={emailForm.control}
           name="subject"
-          rules={{ required: 'Subject is required' }}
+          rules={textRules('emailSubject')}
           render={({ field: { onChange, value } }) => (
-            <Input label="Subject" value={value} onChangeText={onChange} error={emailForm.formState.errors.subject?.message} leftIcon="mail" disabled={emailLoading} />
+            <Input label="Subject" value={value} onChangeText={onChange} maxLength={maxLen('emailSubject')} error={emailForm.formState.errors.subject?.message} leftIcon="mail" disabled={emailLoading} />
           )}
         />
         <Controller
           control={emailForm.control}
           name="body"
-          rules={{ required: 'Body is required', minLength: { value: 10, message: 'At least 10 characters' } }}
+          rules={textRules('emailBody')}
           render={({ field: { onChange, value } }) => (
             <Input
               label="Email body"
               value={value}
               onChangeText={onChange}
+              maxLength={maxLen('emailBody')}
               multiline
               placeholder="Paste email body here..."
               error={emailForm.formState.errors.body?.message}

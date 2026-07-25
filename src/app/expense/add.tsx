@@ -16,6 +16,13 @@ import { useCreateExpense, type ExpenseForm } from '@/features/expenses/hooks/us
 import { useReceiptPicker } from '@/features/expenses/hooks/useReceiptPicker';
 import { PAYMENT_METHODS } from '@/shared/constants/config';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
+import {
+  amountRules,
+  dateRules,
+  maxLen,
+  optionalTextRules,
+  textRules,
+} from '@/shared/validation/fieldLimits';
 
 export default function AddExpenseScreen() {
   const { amountLabel } = useUserCurrency();
@@ -54,7 +61,7 @@ export default function AddExpenseScreen() {
         <Controller
           control={control}
           name="amount"
-          rules={{ required: 'Amount is required' }}
+          rules={amountRules()}
           render={({ field: { onChange, value } }) => (
             <Input
               label={amountLabel('Amount')}
@@ -72,16 +79,16 @@ export default function AddExpenseScreen() {
         <Controller
           control={control}
           name="merchant"
-          rules={{ required: 'Merchant is required', maxLength: { value: 255, message: 'Merchant must be at most 255 characters' } }}
+          rules={textRules('merchant')}
           render={({ field: { onChange, value } }) => (
-            <Input label="Merchant" value={value} onChangeText={onChange} maxLength={255} placeholder="e.g. Swiggy, Amazon" error={errors.merchant?.message} leftIcon="activity" disabled={loading} />
+            <Input label="Merchant" value={value} onChangeText={onChange} maxLength={maxLen('merchant')} placeholder="e.g. Swiggy, Amazon" error={errors.merchant?.message} leftIcon="activity" disabled={loading} />
           )}
         />
 
         <Controller
           control={control}
           name="date"
-          rules={{ required: 'Date is required' }}
+          rules={dateRules()}
           render={({ field: { onChange, value } }) => (
             <DateInput label="Date" value={value} onChange={onChange} error={errors.date?.message} disabled={loading} />
           )}
@@ -124,13 +131,13 @@ export default function AddExpenseScreen() {
         <Controller
           control={control}
           name="notes"
-          rules={{ maxLength: { value: 2000, message: 'Notes must be at most 2000 characters' } }}
+          rules={optionalTextRules('notes')}
           render={({ field: { onChange, value } }) => (
             <Input
               label="Notes"
               value={value}
               onChangeText={onChange}
-              maxLength={2000}
+              maxLength={maxLen('notes')}
               placeholder="Add any extra details..."
               multiline
               disabled={loading}

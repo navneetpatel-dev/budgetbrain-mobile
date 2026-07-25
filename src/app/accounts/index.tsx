@@ -19,6 +19,7 @@ import { useFabBottom } from '@/shared/hooks/useFabBottom';
 import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import { useAccounts, ACCOUNT_TYPES } from '@/features/accounts/hooks/useAccounts';
+import { moneyValueRules, optionalTextRules, last4Rules, textRules } from '@/shared/validation/fieldLimits';
 
 export default function AccountsScreen() {
   const theme = useTheme();
@@ -70,9 +71,9 @@ export default function AccountsScreen() {
         <Controller
           control={control}
           name="name"
-          rules={{ required: 'Name is required' }}
+          rules={textRules('entityName')}
           render={({ field: { onChange, value } }) => (
-            <Input label="Account name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="wallet" disabled={loading} />
+            <Input label="Account name" maxLength={255} value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="wallet" disabled={loading} />
           )}
         />
         {!editingId && (
@@ -88,15 +89,17 @@ export default function AccountsScreen() {
             <Controller
               control={control}
               name="institution"
+              rules={optionalTextRules('institution')}
               render={({ field: { onChange, value } }) => (
-                <Input label="Institution" value={value} onChangeText={onChange} placeholder="e.g. HDFC Bank" leftIcon="netWorth" disabled={loading} />
+                <Input label="Institution" maxLength={255} value={value} onChangeText={onChange} placeholder="e.g. HDFC Bank" leftIcon="netWorth" disabled={loading} error={errors.institution?.message} />
               )}
             />
             <Controller
               control={control}
               name="accountNumberLast4"
+              rules={last4Rules()}
               render={({ field: { onChange, value } }) => (
-                <Input label="Last 4 digits" value={value} onChangeText={onChange} keyboardType="number-pad" maxLength={4} helperText="Optional — for identification only" disabled={loading} />
+                <Input label="Last 4 digits" value={value} onChangeText={onChange} keyboardType="number-pad" maxLength={4} helperText="Optional — for identification only" disabled={loading} error={errors.accountNumberLast4?.message} />
               )}
             />
           </>
@@ -104,7 +107,7 @@ export default function AccountsScreen() {
         <Controller
           control={control}
           name="balance"
-          rules={{ required: 'Balance is required' }}
+          rules={moneyValueRules({ allowNegative: true })}
           render={({ field: { onChange, value } }) => (
             <Input label={amountLabel('Balance')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.balance?.message} leftIcon="wallet" disabled={loading} />
           )}

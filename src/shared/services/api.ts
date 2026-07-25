@@ -107,11 +107,14 @@ export async function apiDelete<T>(url: string): Promise<T> {
   return data.data;
 }
 
-/** Extract a user-facing message from axios / API errors */
+/** Extract a user-facing message from axios / API errors (prefers Zod field message). */
 export function getApiErrorMessage(err: unknown, fallback = 'Something went wrong'): string {
   if (axios.isAxiosError(err)) {
-    const apiMessage = (err.response?.data as ApiResponse<unknown> | undefined)?.error?.message;
-    if (apiMessage) return apiMessage;
+    const apiError = (err.response?.data as ApiResponse<unknown> | undefined)?.error;
+    const detailMessage = apiError?.details?.find((d) => d?.message)?.message;
+    if (apiError?.message && apiError.message !== 'Validation failed') return apiError.message;
+    if (detailMessage) return detailMessage;
+    if (apiError?.message) return apiError.message;
     if (err.code === 'ECONNABORTED') return 'Request timed out. Check your connection.';
     if (!err.response) {
       if (__DEV__) {

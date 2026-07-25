@@ -9,6 +9,7 @@ import {
 } from '@/shared/components/ui';
 import { useContributeGoal, type ContributeForm } from '@/features/goals/hooks/useContributeGoal';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
+import { amountRules } from '@/shared/validation/fieldLimits';
 
 export default function ContributeGoalScreen() {
   const { amountLabel } = useUserCurrency();
@@ -26,7 +27,7 @@ export default function ContributeGoalScreen() {
         <Controller
           control={control}
           name="amount"
-          rules={{ required: 'Amount is required' }}
+          rules={amountRules()}
           render={({ field: { onChange, value } }) => (
             <Input
               label={amountLabel('Amount')}

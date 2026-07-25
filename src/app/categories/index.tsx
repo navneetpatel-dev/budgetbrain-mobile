@@ -17,6 +17,7 @@ import { ProfileStackHeader } from '@/features/settings/components/ProfileStackH
 import { useFabBottom } from '@/shared/hooks/useFabBottom';
 import { useTheme } from '@/shared/theme';
 import { useCategories, COLORS_PRESET } from '@/features/categories/hooks/useCategories';
+import { maxLen, textRules } from '@/shared/validation/fieldLimits';
 
 export default function CategoriesScreen() {
   const theme = useTheme();
@@ -70,9 +71,9 @@ export default function CategoriesScreen() {
         <Controller
           control={control}
           name="name"
-          rules={{ required: 'Name is required', maxLength: { value: 100, message: 'Name must be at most 100 characters' } }}
+          rules={textRules('categoryName')}
           render={({ field: { onChange, value } }) => (
-            <Input label="Category name" value={value} onChangeText={onChange} maxLength={100} error={errors.name?.message} leftIcon="category" placeholder="e.g. Food, Travel" disabled={loading} />
+            <Input label="Category name" value={value} onChangeText={onChange} maxLength={maxLen('categoryName')} error={errors.name?.message} leftIcon="category" placeholder="e.g. Food, Travel" disabled={loading} />
           )}
         />
         <ColorPicker

@@ -73,6 +73,7 @@ export function AiChatInput({
           placeholder="Ask your finance coach..."
           placeholderTextColor={theme.colors.textTertiary}
           multiline
+          maxLength={4000}
           style={styles.input}
           accessibilityLabel="Chat message"
           editable={!loading}

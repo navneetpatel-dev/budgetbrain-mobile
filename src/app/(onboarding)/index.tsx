@@ -12,6 +12,7 @@ import {
 import { useOnboarding, type OnboardingForm } from '@/features/onboarding/hooks/useOnboarding';
 import { SUPPORTED_CURRENCIES, FINANCIAL_GOALS, SALARY_RANGES } from '@/shared/constants/config';
 import { getCurrencySymbol } from '@/shared/utils/currency';
+import { amountRules, textRules } from '@/shared/validation/fieldLimits';
 
 export default function OnboardingScreen() {
   const { loading, selectedGoals, toggleGoal, submit, submitError } = useOnboarding();
@@ -36,18 +37,18 @@ export default function OnboardingScreen() {
         <Controller
           control={control}
           name="name"
-          rules={{ required: 'Name is required' }}
+          rules={textRules('name')}
           render={({ field: { onChange, value } }) => (
-            <Input label="Your name" value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="personFill" placeholder="What should we call you?" disabled={loading} />
+            <Input label="Your name" value={value} onChangeText={onChange} maxLength={255} error={errors.name?.message} leftIcon="personFill" placeholder="What should we call you?" disabled={loading} />
           )}
         />
 
         <Controller
           control={control}
           name="country"
-          rules={{ required: 'Country is required' }}
+          rules={textRules('country')}
           render={({ field: { onChange, value } }) => (
-            <Input label="Country" value={value} onChangeText={onChange} error={errors.country?.message} disabled={loading} />
+            <Input label="Country" maxLength={100} value={value} onChangeText={onChange} error={errors.country?.message} disabled={loading} />
           )}
         />
 
@@ -70,7 +71,7 @@ export default function OnboardingScreen() {
         <Controller
           control={control}
           name="salaryRange"
-          rules={{ required: 'Select salary range' }}
+          rules={textRules('salaryRange')}
           render={({ field: { onChange, value } }) => (
             <OptionChips options={[...SALARY_RANGES]} value={value} onChange={onChange} error={errors.salaryRange?.message} disabled={loading} />
           )}
@@ -79,7 +80,7 @@ export default function OnboardingScreen() {
         <Controller
           control={control}
           name="monthlySavingsTarget"
-          rules={{ required: 'Savings target is required' }}
+          rules={amountRules()}
           render={({ field: { onChange, value } }) => (
             <Input
               label={`Monthly savings target (${getCurrencySymbol(selectedCurrency).trim()})`}
