@@ -19,6 +19,7 @@ import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import { formatCurrency } from '@/shared/utils/currency';
 import { amountRules, dateRules, maxLen, optionalTextRules } from '@/shared/validation/fieldLimits';
+import { DateBounds } from '@/shared/utils/dateBounds';
 
 export default function IncomeDetailScreen() {
   const theme = useTheme();
@@ -124,9 +125,20 @@ export default function IncomeDetailScreen() {
               control={control}
               name="date"
               rules={dateRules()}
-              render={({ field: { onChange, value } }) => (
-                <DateInput label="Date" value={value} onChange={onChange} error={errors.date?.message} disabled={loading} />
-              )}
+              render={({ field: { onChange, value } }) => {
+                const b = DateBounds.transaction(value);
+                return (
+                  <DateInput
+                    label="Date"
+                    value={value}
+                    onChange={onChange}
+                    error={errors.date?.message}
+                    disabled={loading}
+                    minimumDate={b.minimumDate}
+                    maximumDate={b.maximumDate}
+                  />
+                );
+              }}
             />
             <Controller
               control={control}

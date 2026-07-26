@@ -18,6 +18,7 @@ import { INCOME_SOURCE_TYPES } from '@/shared/constants/config';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import { useTheme } from '@/shared/theme';
 import type { IncomeSource } from '@/shared/types';
+import { DateBounds } from '@/shared/utils/dateBounds';
 import {
   amountRules,
   dateRules,
@@ -98,9 +99,20 @@ export default function AddIncomeScreen() {
           control={control}
           name="date"
           rules={dateRules()}
-          render={({ field: { onChange, value } }) => (
-            <DateInput label="Date" value={value} onChange={onChange} error={errors.date?.message} disabled={loading} />
-          )}
+          render={({ field: { onChange, value } }) => {
+            const b = DateBounds.transaction(value);
+            return (
+              <DateInput
+                label="Date"
+                value={value}
+                onChange={onChange}
+                error={errors.date?.message}
+                disabled={loading}
+                minimumDate={b.minimumDate}
+                maximumDate={b.maximumDate}
+              />
+            );
+          }}
         />
       </FormSection>
 

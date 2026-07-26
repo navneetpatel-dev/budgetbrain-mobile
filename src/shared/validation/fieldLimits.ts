@@ -61,6 +61,11 @@ export const ValidationMessages = {
   currencyInvalid: `Currency must be one of: ${SUPPORTED_CURRENCIES.join(', ')}`,
   dateFormat: 'Date must be YYYY-MM-DD',
   dateInvalid: 'Invalid date',
+  dateNotInFuture: 'Date cannot be in the future',
+  dateNotInPast: 'Date cannot be in the past',
+  dateTooFarInPast: 'Date is too far in the past',
+  dateTooFarInFuture: 'Date is too far in the future',
+  dateRangeOrder: 'Start date must be on or before end date',
   amountType: 'Amount must be a number',
   amountFinite: 'Amount must be a finite number',
   amountPositive: 'Amount must be greater than zero',
@@ -82,6 +87,8 @@ export const ValidationMessages = {
   urlInvalid: 'Enter a valid URL',
   urlMax: (max: number) => `URL must be at most ${max} characters`,
   categoryRequired: 'Please select a category',
+  endDateRequired: 'End date is required for custom budgets',
+  endDateBeforeStart: 'End date must be on or after start date',
   incomeSourceRequired: 'Select an income source',
   financialGoalsMin: 'Please select at least one financial goal',
   financialGoalsMax: 'Must be at most 20 financial goals',
@@ -190,6 +197,66 @@ export function validateOptionalDate(value: string | undefined | null): string |
   return validateDate(v);
 }
 
+export type DateBoundKind =
+  | 'transaction'
+  | 'investmentPurchase'
+  | 'goalTarget'
+  | 'budgetStart'
+  | 'budgetEnd'
+  | 'range';
+
+function todayLocalIso(): string {
+  const n = new Date();
+  const y = n.getFullYear();
+  const m = String(n.getMonth() + 1).padStart(2, '0');
+  const d = String(n.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function shiftYearsLocalIso(iso: string, years: number): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  const dt = new Date(y + years, m - 1, d);
+  const yy = dt.getFullYear();
+  const mm = String(dt.getMonth() + 1).padStart(2, '0');
+  const dd = String(dt.getDate()).padStart(2, '0');
+  return `${yy}-${mm}-${dd}`;
+}
+
+/** Format + feature bounds (mirrors backend date rules). */
+export function validateBoundedDate(
+  kind: DateBoundKind,
+  value: string | undefined | null,
+  opts?: { startDate?: string; optional?: boolean },
+): string | undefined {
+  const v = (value ?? '').trim();
+  if (!v) return opts?.optional ? undefined : ValidationMessages.dateFormat;
+  const formatErr = validateDate(v);
+  if (formatErr) return formatErr;
+
+  const today = todayLocalIso();
+  if (kind === 'transaction') {
+    if (v > today) return ValidationMessages.dateNotInFuture;
+    if (v < shiftYearsLocalIso(today, -10)) return ValidationMessages.dateTooFarInPast;
+  } else if (kind === 'investmentPurchase') {
+    if (v > today) return ValidationMessages.dateNotInFuture;
+    if (v < shiftYearsLocalIso(today, -50)) return ValidationMessages.dateTooFarInPast;
+  } else if (kind === 'goalTarget') {
+    if (v < today) return ValidationMessages.dateNotInPast;
+    if (v > shiftYearsLocalIso(today, 50)) return ValidationMessages.dateTooFarInFuture;
+  } else if (kind === 'budgetStart') {
+    if (v < shiftYearsLocalIso(today, -2)) return ValidationMessages.dateTooFarInPast;
+    if (v > shiftYearsLocalIso(today, 1)) return ValidationMessages.dateTooFarInFuture;
+  } else if (kind === 'budgetEnd') {
+    const start = (opts?.startDate ?? '').trim();
+    if (start && v < start) return ValidationMessages.endDateBeforeStart;
+    if (start && v > shiftYearsLocalIso(start, 5)) return ValidationMessages.dateTooFarInFuture;
+  } else if (kind === 'range') {
+    if (v > today) return ValidationMessages.dateNotInFuture;
+    if (v < shiftYearsLocalIso(today, -10)) return ValidationMessages.dateTooFarInPast;
+  }
+  return undefined;
+}
+
 export function validateInviteCode(value: string | undefined | null): string | undefined {
   const v = (value ?? '').trim();
   if (!/^[a-fA-F0-9]{6,20}$/.test(v)) return ValidationMessages.inviteCodeInvalid;
@@ -276,16 +343,17 @@ export function alertThresholdRules(opts?: { required?: boolean }) {
   };
 }
 
-export function dateRules() {
+export function dateRules(kind: DateBoundKind = 'transaction') {
   return {
     required: ValidationMessages.dateFormat,
-    validate: (value: string | undefined) => validateDate(value) ?? true,
+    validate: (value: string | undefined) => validateBoundedDate(kind, value) ?? true,
   };
 }
 
-export function optionalDateRules() {
+export function optionalDateRules(kind: DateBoundKind = 'goalTarget') {
   return {
-    validate: (value: string | undefined) => validateOptionalDate(value) ?? true,
+    validate: (value: string | undefined) =>
+      validateBoundedDate(kind, value, { optional: true }) ?? true,
   };
 }
 

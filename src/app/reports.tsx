@@ -1,9 +1,12 @@
 import { StackScrollScreen, FormSection, FormActions, Button, DateInput } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useExportReports } from '@/features/reports/hooks/useExportReports';
+import { DateBounds } from '@/shared/utils/dateBounds';
 
 export default function ReportsScreen() {
   const { startDate, setStartDate, endDate, setEndDate, loading, downloadCsv, downloadPdf } = useExportReports();
+  const fromBounds = DateBounds.rangeFrom(endDate, startDate);
+  const toBounds = DateBounds.rangeTo(startDate, endDate);
 
   return (
     <StackScrollScreen
@@ -15,8 +18,25 @@ export default function ReportsScreen() {
       }
     >
       <FormSection title="Date range" subtitle="Leave empty to export all transactions">
-        <DateInput label="Start date" value={startDate} onChange={setStartDate} disabled={loading} />
-        <DateInput label="End date" value={endDate} onChange={setEndDate} disabled={loading} />
+        <DateInput
+          label="Start date"
+          value={startDate}
+          onChange={(next) => {
+            setStartDate(next);
+            if (endDate && next && endDate < next) setEndDate(next);
+          }}
+          disabled={loading}
+          minimumDate={fromBounds.minimumDate}
+          maximumDate={fromBounds.maximumDate}
+        />
+        <DateInput
+          label="End date"
+          value={endDate}
+          onChange={setEndDate}
+          disabled={loading}
+          minimumDate={toBounds.minimumDate}
+          maximumDate={toBounds.maximumDate}
+        />
       </FormSection>
 
       <FormSection title="Download">

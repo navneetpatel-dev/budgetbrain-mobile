@@ -13,6 +13,7 @@ import { useCreateGoal, type GoalForm } from '@/features/goals/hooks/useCreateGo
 import { GOAL_TYPES } from '@/shared/constants/config';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import { amountRules, maxLen, optionalDateRules, textRules } from '@/shared/validation/fieldLimits';
+import { DateBounds } from '@/shared/utils/dateBounds';
 
 export default function AddGoalScreen() {
   const { amountLabel } = useUserCurrency();
@@ -61,9 +62,20 @@ export default function AddGoalScreen() {
           control={control}
           name="targetDate"
           rules={optionalDateRules()}
-          render={({ field: { onChange, value } }) => (
-            <DateInput label="Target date" value={value} onChange={onChange} error={errors.targetDate?.message} disabled={loading} />
-          )}
+          render={({ field: { onChange, value } }) => {
+            const b = DateBounds.goalTarget(value);
+            return (
+              <DateInput
+                label="Target date"
+                value={value}
+                onChange={onChange}
+                error={errors.targetDate?.message}
+                disabled={loading}
+                minimumDate={b.minimumDate}
+                maximumDate={b.maximumDate}
+              />
+            );
+          }}
         />
       </FormSection>
 

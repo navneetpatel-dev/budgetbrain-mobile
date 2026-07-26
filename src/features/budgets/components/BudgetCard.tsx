@@ -35,7 +35,9 @@ export function BudgetCard({
       <View style={styles.budgetHeader}>
         <View style={styles.titleCol}>
           <Text style={styles.budgetName}>{budget.name}</Text>
-          <Text style={styles.budgetType}>{budget.type}</Text>
+          <Text style={styles.budgetType}>
+            {`${budget.type.charAt(0).toUpperCase()}${budget.type.slice(1)}${budget.category?.name ? ` · ${budget.category.name}` : ''}`}
+          </Text>
         </View>
         <View style={styles.actions}>
           <Pressable
@@ -60,7 +62,6 @@ export function BudgetCard({
         {formatCurrency(spent, budget.currency)}{' '}
         <Text style={styles.budgetLimit}>/ {formatCurrency(Number(budget.amount), budget.currency)}</Text>
       </Text>
-      {budget.category && <Text style={styles.category}>{budget.category.name}</Text>}
       <ProgressBar progress={progress} color={fillColor} style={{ marginTop: 12 }} />
       <Text style={styles.alertText}>{progress}% used · alerts at {budget.alertThreshold}%</Text>
     </Card>
@@ -77,7 +78,6 @@ function createStyles(t: ReturnType<typeof useTheme>) {
     actions: { flexDirection: 'row', gap: 12 },
     budgetAmount: { ...t.typography.amount, color: t.colors.text },
     budgetLimit: { ...t.typography.bodyMedium, color: t.colors.textSecondary, fontWeight: '500' },
-    category: { ...t.typography.caption, color: t.colors.textSecondary, marginTop: 4 },
     alertText: { ...t.typography.caption, color: t.colors.textTertiary, marginTop: 8 },
   });
 }

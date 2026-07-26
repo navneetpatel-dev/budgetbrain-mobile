@@ -13,6 +13,7 @@ import type {
   TransactionListFilters,
   TransactionTypeFilter,
 } from '../utils/transactionFilters';
+import { DateBounds } from '@/shared/utils/dateBounds';
 import { FilterEntityPicker } from './FilterEntityPicker';
 
 const TYPE_OPTIONS: TransactionTypeFilter[] = ['all', 'expense', 'income'];
@@ -111,18 +112,38 @@ export function TransactionFilters({
       {filters.datePreset === 'custom' ? (
         <View style={styles.dateRow}>
           <View style={styles.dateField}>
-            <DateInput
-              label="From"
-              value={filters.startDate ?? ''}
-              onChange={(startDate) => patch({ startDate })}
-            />
+            {(() => {
+              const b = DateBounds.rangeFrom(filters.endDate, filters.startDate);
+              return (
+                <DateInput
+                  label="From"
+                  value={filters.startDate ?? ''}
+                  onChange={(startDate) => {
+                    const next = { startDate };
+                    if (filters.endDate && startDate && filters.endDate < startDate) {
+                      Object.assign(next, { endDate: startDate });
+                    }
+                    patch(next);
+                  }}
+                  minimumDate={b.minimumDate}
+                  maximumDate={b.maximumDate}
+                />
+              );
+            })()}
           </View>
           <View style={styles.dateField}>
-            <DateInput
-              label="To"
-              value={filters.endDate ?? ''}
-              onChange={(endDate) => patch({ endDate })}
-            />
+            {(() => {
+              const b = DateBounds.rangeTo(filters.startDate, filters.endDate);
+              return (
+                <DateInput
+                  label="To"
+                  value={filters.endDate ?? ''}
+                  onChange={(endDate) => patch({ endDate })}
+                  minimumDate={b.minimumDate}
+                  maximumDate={b.maximumDate}
+                />
+              );
+            })()}
           </View>
         </View>
       ) : null}

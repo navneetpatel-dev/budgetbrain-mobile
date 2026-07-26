@@ -956,7 +956,8 @@ function createIconBtnStyles(t: AppTheme, variant: 'soft' | 'solid') {
 
 function createChipStyles(t: AppTheme) {
   return StyleSheet.create({
-    container: { marginBottom: 0 },
+    /** Match Input field spacing so labels below chips are not cramped. */
+    container: { marginBottom: t.spacing.lg },
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     scrollRow: { flexDirection: 'row', gap: 8, paddingVertical: 2 },
     segmented: {

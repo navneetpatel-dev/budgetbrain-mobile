@@ -18,6 +18,7 @@ import { PAYMENT_METHODS } from '@/shared/constants/config';
 import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import { ValidationMessages, amountRules, dateRules, maxLen, optionalTextRules, textRules } from '@/shared/validation/fieldLimits';
+import { DateBounds, toIsoDate } from '@/shared/utils/dateBounds';
 
 export default function AddExpenseScreen() {
   const theme = useTheme();
@@ -34,7 +35,7 @@ export default function AddExpenseScreen() {
       notes: '',
       categoryId: '',
       paymentMethod: 'upi',
-      date: new Date().toISOString().split('T')[0],
+      date: toIsoDate(new Date()),
     },
   });
 
@@ -78,9 +79,20 @@ export default function AddExpenseScreen() {
           control={control}
           name="date"
           rules={dateRules()}
-          render={({ field: { onChange, value } }) => (
-            <DateInput label="Date" value={value} onChange={onChange} error={errors.date?.message} disabled={loading} />
-          )}
+          render={({ field: { onChange, value } }) => {
+            const b = DateBounds.transaction(value);
+            return (
+              <DateInput
+                label="Date"
+                value={value}
+                onChange={onChange}
+                error={errors.date?.message}
+                disabled={loading}
+                minimumDate={b.minimumDate}
+                maximumDate={b.maximumDate}
+              />
+            );
+          }}
         />
       </FormSection>
 

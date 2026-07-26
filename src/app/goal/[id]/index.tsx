@@ -24,6 +24,7 @@ import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import { formatCurrency } from '@/shared/utils/currency';
 import { toSafePercent } from '@/shared/utils/number';
 import { amountRules, maxLen, optionalDateRules, textRules } from '@/shared/validation/fieldLimits';
+import { DateBounds } from '@/shared/utils/dateBounds';
 
 export default function GoalDetailScreen() {
   const theme = useTheme();
@@ -152,9 +153,20 @@ export default function GoalDetailScreen() {
               control={control}
               name="targetDate"
               rules={optionalDateRules()}
-              render={({ field: { onChange, value } }) => (
-                <DateInput label="Target date" value={value} onChange={onChange} error={errors.targetDate?.message} disabled={loading} />
-              )}
+              render={({ field: { onChange, value } }) => {
+                const b = DateBounds.goalTarget(value);
+                return (
+                  <DateInput
+                    label="Target date"
+                    value={value}
+                    onChange={onChange}
+                    error={errors.targetDate?.message}
+                    disabled={loading}
+                    minimumDate={b.minimumDate}
+                    maximumDate={b.maximumDate}
+                  />
+                );
+              }}
             />
           </FormSection>
 

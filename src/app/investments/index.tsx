@@ -21,6 +21,7 @@ import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import { useInvestments, INVESTMENT_TYPES } from '@/features/investments/hooks/useInvestments';
 import { amountRules, dateRules, maxLen, optionalTextRules, quantityRules, textRules } from '@/shared/validation/fieldLimits';
+import { DateBounds } from '@/shared/utils/dateBounds';
 
 export default function InvestmentsScreen() {
   const theme = useTheme();
@@ -101,10 +102,20 @@ export default function InvestmentsScreen() {
             <Controller
               control={control}
               name="purchaseDate"
-              rules={dateRules()}
-              render={({ field: { onChange, value } }) => (
-                <DateInput label="Purchase date" value={value} onChange={onChange} error={errors.purchaseDate?.message} />
-              )}
+              rules={dateRules('investmentPurchase')}
+              render={({ field: { onChange, value } }) => {
+                const b = DateBounds.investmentPurchase(value);
+                return (
+                  <DateInput
+                    label="Purchase date"
+                    value={value}
+                    onChange={onChange}
+                    error={errors.purchaseDate?.message}
+                    minimumDate={b.minimumDate}
+                    maximumDate={b.maximumDate}
+                  />
+                );
+              }}
             />
           </>
         )}

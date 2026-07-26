@@ -45,7 +45,7 @@ export interface Transaction {
 export interface Budget {
   id: string;
   name: string;
-  type: 'monthly' | 'weekly' | 'category';
+  type: 'monthly' | 'weekly' | 'custom';
   amount: number;
   currency: string;
   categoryId: string | null;

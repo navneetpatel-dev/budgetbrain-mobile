@@ -94,7 +94,7 @@ export default function BudgetDetailScreen() {
 
   return (
     <FormStackScreen
-      eyebrow={`${budget.type} budget`}
+      eyebrow={`${budget.type.charAt(0).toUpperCase()}${budget.type.slice(1)} budget`}
       title={editing ? 'Edit Budget' : budget.name}
       subtitle={editing ? 'Update budget' : `${pct}% used`}
       onBack={editing ? exitEdit : goBack}
@@ -117,10 +117,11 @@ export default function BudgetDetailScreen() {
           </View>
           <DetailMetaList
             rows={[
-              { label: 'Type', value: budget.type },
+              { label: 'Period', value: `${budget.type.charAt(0).toUpperCase()}${budget.type.slice(1)}` },
+              { label: 'Category', value: budget.category?.name ?? 'All spending' },
               { label: 'Alert', value: `${budget.alertThreshold}%` },
               { label: 'Started', value: budget.startDate },
-              { label: 'Ends', value: budget.endDate ?? '' },
+              ...(budget.endDate ? [{ label: 'Ends', value: budget.endDate }] : []),
             ]}
           />
           <DetailActions

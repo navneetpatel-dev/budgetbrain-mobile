@@ -13,7 +13,10 @@ import {
 import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
 import { useCreateBudget, type BudgetForm } from '@/features/budgets/hooks/useCreateBudget';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
-import { alertThresholdRules, amountRules, dateRules, maxLen, textRules, ValidationMessages } from '@/shared/validation/fieldLimits';
+import { alertThresholdRules, amountRules, dateRules, maxLen, textRules, validateBoundedDate, ValidationMessages } from '@/shared/validation/fieldLimits';
+import { DateBounds, toIsoDate } from '@/shared/utils/dateBounds';
+
+const PERIODS = ['monthly', 'weekly', 'custom'] as const;
 
 export default function AddBudgetScreen() {
   const { amountLabel } = useUserCurrency();
@@ -22,25 +25,32 @@ export default function AddBudgetScreen() {
   const { data: categories } = useCategoryOptions();
 
   const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  const monthStart = toIsoDate(new Date(now.getFullYear(), now.getMonth(), 1));
 
   const { control, handleSubmit, setValue, watch, clearErrors, formState: { errors } } = useForm<BudgetForm>({
     defaultValues: {
       name: '',
       type: 'monthly',
       amount: '',
-      categoryId: '',
+      categoryId: '__all__',
       startDate: monthStart,
+      endDate: '',
       alertThreshold: '80',
     },
   });
 
   const budgetType = watch('type');
+  const startDateValue = watch('startDate');
+  const endDateValue = watch('endDate');
+  const categoryItems = [
+    { id: '__all__', label: 'All spending' },
+    ...(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined })),
+  ];
 
   return (
     <FormStackScreen eyebrow="Budget" title="Create Budget" subtitle="Set a spending limit">
       {submitError ? <FormErrorBanner message={submitError} /> : null}
-      <FormSection title="Budget details" subtitle="Name, type, and limit">
+      <FormSection title="Budget details" subtitle="Name, period, and limit">
         <Controller
           control={control}
           name="name"
@@ -50,15 +60,15 @@ export default function AddBudgetScreen() {
           )}
         />
 
-        <FormFieldLabel>Budget type</FormFieldLabel>
+        <FormFieldLabel>Period</FormFieldLabel>
         <OptionChips
-          options={['monthly', 'weekly', 'category'] as const}
+          options={PERIODS}
           value={budgetType}
           onChange={(v) => {
             setValue('type', v);
-            if (v !== 'category') clearErrors('categoryId');
+            if (v !== 'custom') clearErrors('endDate');
           }}
-          getLabel={(v) => (v === 'category' ? 'By category' : v.charAt(0).toUpperCase() + v.slice(1))}
+          getLabel={(v) => (v === 'custom' ? 'Custom' : v.charAt(0).toUpperCase() + v.slice(1))}
           disabled={loading}
         />
 
@@ -76,11 +86,55 @@ export default function AddBudgetScreen() {
         <Controller
           control={control}
           name="startDate"
-          rules={dateRules()}
-          render={({ field: { onChange, value } }) => (
-            <DateInput label="Start date" value={value} onChange={onChange} error={errors.startDate?.message} disabled={loading} />
-          )}
+          rules={dateRules('budgetStart')}
+          render={({ field: { onChange, value } }) => {
+            const b = DateBounds.budgetStart(value);
+            return (
+              <DateInput
+                label="Start date"
+                value={value}
+                onChange={(next) => {
+                  onChange(next);
+                  if (endDateValue && endDateValue < next) {
+                    setValue('endDate', next);
+                    clearErrors('endDate');
+                  }
+                }}
+                error={errors.startDate?.message}
+                disabled={loading}
+                minimumDate={b.minimumDate}
+                maximumDate={b.maximumDate}
+              />
+            );
+          }}
         />
+
+        {budgetType === 'custom' ? (
+          <Controller
+            control={control}
+            name="endDate"
+            rules={{
+              validate: (v, form) => {
+                if (!v) return ValidationMessages.endDateRequired;
+                return validateBoundedDate('budgetEnd', v, { startDate: form.startDate }) ?? true;
+              },
+            }}
+            render={({ field: { onChange, value } }) => {
+              const b = DateBounds.budgetEnd(startDateValue, value);
+              return (
+                <DateInput
+                  label="End date"
+                  value={value}
+                  onChange={onChange}
+                  error={errors.endDate?.message}
+                  disabled={loading}
+                  minimumDate={b.minimumDate}
+                  maximumDate={b.maximumDate}
+                />
+              );
+            }}
+          />
+        ) : null}
 
         <Controller
           control={control}
@@ -91,26 +145,20 @@ export default function AddBudgetScreen() {
           )}
         />
 
-        {budgetType === 'category' && (
-          <>
-            <FormFieldLabel>Category</FormFieldLabel>
-            <Controller
-              control={control}
-              name="categoryId"
-              shouldUnregister
-              rules={{ required: ValidationMessages.categoryRequired }}
-              render={({ field: { onChange, value } }) => (
-                <OptionChipList
-                  items={(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined }))}
-                  selectedId={value}
-                  onSelect={onChange}
-                  error={errors.categoryId?.message}
-                  disabled={loading}
-                />
-              )}
+        <FormFieldLabel>Category (optional)</FormFieldLabel>
+        <Controller
+          control={control}
+          name="categoryId"
+          render={({ field: { onChange, value } }) => (
+            <OptionChipList
+              items={categoryItems}
+              selectedId={value}
+              onSelect={onChange}
+              error={errors.categoryId?.message}
+              disabled={loading}
             />
-          </>
-        )}
+          )}
+        />
       </FormSection>
 
       <FormActions primaryTitle="Create Budget" onPrimary={handleSubmit(create)} primaryLoading={loading} />

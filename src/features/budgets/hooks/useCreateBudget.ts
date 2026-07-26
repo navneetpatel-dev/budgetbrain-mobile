@@ -8,10 +8,11 @@ import { ValidationMessages } from '@/shared/validation/fieldLimits';
 
 export interface BudgetForm {
   name: string;
-  type: 'monthly' | 'weekly' | 'category';
+  type: 'monthly' | 'weekly' | 'custom';
   amount: string;
   categoryId: string;
   startDate: string;
+  endDate: string;
   alertThreshold: string;
 }
 
@@ -24,9 +25,15 @@ export function useCreateBudget() {
 
   const create = async (data: BudgetForm) => {
     setSubmitError(null);
-    if (data.type === 'category' && !data.categoryId) {
-      setSubmitError(ValidationMessages.categoryRequired);
-      return;
+    if (data.type === 'custom') {
+      if (!data.endDate) {
+        setSubmitError(ValidationMessages.endDateRequired);
+        return;
+      }
+      if (data.endDate < data.startDate) {
+        setSubmitError(ValidationMessages.endDateBeforeStart);
+        return;
+      }
     }
     setLoading(true);
     try {
@@ -34,8 +41,9 @@ export function useCreateBudget() {
         name: data.name,
         type: data.type,
         amount: Number(data.amount),
-        categoryId: data.type === 'category' ? data.categoryId : undefined,
+        categoryId: !data.categoryId || data.categoryId === '__all__' ? undefined : data.categoryId,
         startDate: data.startDate,
+        endDate: data.type === 'custom' ? data.endDate : undefined,
         alertThreshold: Number(data.alertThreshold),
       });
       invalidateBudgetQueries(queryClient);

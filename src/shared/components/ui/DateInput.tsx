@@ -4,15 +4,7 @@ import DateTimePicker, { type DateTimePickerEvent } from '@react-native-communit
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
-
-function toIsoDate(date: Date) {
-  return date.toISOString().split('T')[0];
-}
-
-function parseIsoDate(value: string) {
-  const parsed = new Date(`${value}T12:00:00`);
-  return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
-}
+import { parseIsoDate, toIsoDate } from '@/shared/utils/dateBounds';
 
 function formatDisplayDate(value: string) {
   if (!value) return 'Select date';
