@@ -1,6 +1,5 @@
-import { Keyboard } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Input } from '@/shared/components/ui';
+import { Button, Input, OtpInput } from '@/shared/components/ui';
 import { AuthShell, AuthFooter, AuthInfoBanner, AuthErrorBanner } from '@/features/auth/components';
 import { authFieldRules } from '@/features/auth/utils/authValidation';
 import { maxLen } from '@/shared/validation/fieldLimits';
@@ -68,20 +67,13 @@ export function OtpLoginScreen() {
             name="otp"
             rules={authFieldRules.otp}
             render={({ field: { onChange, value } }) => (
-              <Input
+              <OtpInput
                 label="Verification code"
                 value={value}
-                onChangeText={onChange}
-                keyboardType="number-pad"
-                maxLength={maxLen('otp')}
-                placeholder="000000"
-                textContentType="oneTimeCode"
-                autoComplete="one-time-code"
-                returnKeyType="done"
-                blurOnSubmit
-                onSubmitEditing={Keyboard.dismiss}
-                error={errors.otp?.message}
+                onChange={onChange}
+                autoFocus
                 disabled={loading}
+                error={errors.otp?.message}
               />
             )}
           />

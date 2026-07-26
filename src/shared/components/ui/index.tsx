@@ -51,6 +51,7 @@ export {
 } from '@/shared/hooks/useLayout';
 export { GroupedCard, ListRow, ProgressBar } from './lists';
 export { DateInput } from './DateInput';
+export { OtpInput } from './OtpInput';
 export { DashedBorder } from './DashedBorder';
 export { FormModal } from './FormModal';
 export { ActionSheet } from './ActionSheet';
