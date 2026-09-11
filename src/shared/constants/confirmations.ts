@@ -48,6 +48,13 @@ export const CONFIRM = {
     cancelLabel: 'Cancel',
     destructive: true,
   },
+  deleteLoan: {
+    title: 'Delete loan?',
+    message: 'This loan and its payment history will be permanently removed. This action cannot be undone.',
+    confirmLabel: 'Delete',
+    cancelLabel: 'Cancel',
+    destructive: true,
+  },
   archiveCategory: (name: string): ConfirmCopy => ({
     title: 'Archive category?',
     message: `"${name}" will be archived and hidden from new transactions. You can restore it later if needed.`,

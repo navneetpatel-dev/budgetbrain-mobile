@@ -20,8 +20,10 @@ export function BudgetCard({
   const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
   const spent = budget.spent ?? 0;
-  const progress = toSafePercent(spent, budget.amount);
-  const overBudget = toSafeNumber(spent) > toSafeNumber(budget.amount);
+  const effectiveLimit = budget.effectiveAmount ?? budget.amount;
+  const rolloverAmount = budget.rolloverAmount ?? 0;
+  const progress = toSafePercent(spent, effectiveLimit);
+  const overBudget = toSafeNumber(spent) > toSafeNumber(effectiveLimit);
   const fillColor = overBudget
     ? theme.colors.danger
     : progress >= budget.alertThreshold
@@ -60,10 +62,15 @@ export function BudgetCard({
       </View>
       <Text style={styles.budgetAmount}>
         {formatCurrency(spent, budget.currency)}{' '}
-        <Text style={styles.budgetLimit}>/ {formatCurrency(Number(budget.amount), budget.currency)}</Text>
+        <Text style={styles.budgetLimit}>/ {formatCurrency(Number(effectiveLimit), budget.currency)}</Text>
       </Text>
       <ProgressBar progress={progress} color={fillColor} style={{ marginTop: 12 }} />
       <Text style={styles.alertText}>{progress}% used · alerts at {budget.alertThreshold}%</Text>
+      {budget.rollover && rolloverAmount !== 0 ? (
+        <Text style={styles.alertText}>
+          {rolloverAmount > 0 ? '+' : ''}{formatCurrency(rolloverAmount, budget.currency)} rolled over from last period
+        </Text>
+      ) : null}
     </Card>
   );
 }

@@ -9,6 +9,7 @@ export interface BudgetForm {
   name: string;
   amount: string;
   alertThreshold: string;
+  rollover: boolean;
 }
 
 export function useBudgetDetail(id: string) {
@@ -30,6 +31,7 @@ export function useBudgetDetail(id: string) {
         name: budget.name,
         amount: String(budget.amount),
         alertThreshold: String(budget.alertThreshold),
+        rollover: budget.rollover ?? false,
       });
     },
     [budget],
@@ -43,6 +45,7 @@ export function useBudgetDetail(id: string) {
         name: data.name,
         amount: Number(data.amount),
         alertThreshold: Number(data.alertThreshold),
+        rollover: data.rollover,
       });
       queryClient.setQueryData(['budget', id], updated);
       invalidateBudgetQueries(queryClient, id);

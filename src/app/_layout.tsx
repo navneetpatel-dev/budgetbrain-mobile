@@ -87,6 +87,12 @@ function RootNavigator() {
           <Stack.Screen name="income/[id]" />
           <Stack.Screen name="budget/[id]" />
           <Stack.Screen name="goal/[id]/index" />
+          <Stack.Screen name="subscriptions/index" />
+          <Stack.Screen name="recap" />
+          <Stack.Screen name="loan/index" />
+          <Stack.Screen name="loan/add" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="loan/[id]/index" />
+          <Stack.Screen name="loan/[id]/pay" options={{ presentation: 'modal' }} />
         </Stack>
         <ThemedStatusBar />
       </AppLockGate>

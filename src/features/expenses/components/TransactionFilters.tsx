@@ -15,6 +15,7 @@ import type {
 } from '../utils/transactionFilters';
 import { DateBounds } from '@/shared/utils/dateBounds';
 import { FilterEntityPicker } from './FilterEntityPicker';
+import { useExpenseTagSuggestions } from '../hooks/useExpenseTagSuggestions';
 
 const TYPE_OPTIONS: TransactionTypeFilter[] = ['all', 'expense', 'income'];
 const DATE_OPTIONS: DatePreset[] = ['all', 'this_month', 'last_30', 'custom'];
@@ -52,6 +53,7 @@ export function TransactionFilters({
 }: Props) {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const { suggestions: tagSuggestions } = useExpenseTagSuggestions();
   const showCategory = filters.type !== 'income';
   const showSource = filters.type !== 'expense';
   const showPayment = filters.type !== 'income';
@@ -165,6 +167,16 @@ export function TransactionFilters({
           value={filters.incomeSourceId}
           options={sourceOptions}
           onChange={(incomeSourceId) => patch({ incomeSourceId })}
+        />
+      ) : null}
+
+      {tagSuggestions.length > 0 ? (
+        <FilterEntityPicker
+          label="Tag"
+          allLabel="All tags"
+          value={filters.tag}
+          options={tagSuggestions.map((t) => ({ id: t, label: t }))}
+          onChange={(tag) => patch({ tag })}
         />
       ) : null}
 

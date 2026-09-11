@@ -1,3 +1,4 @@
+import { Text, View, Switch } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import {
   Input,
@@ -10,6 +11,7 @@ import {
   FormActions,
   FormErrorBanner,
 } from '@/shared/components/ui';
+import { useTheme } from '@/shared/theme';
 import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
 import { useCreateBudget, type BudgetForm } from '@/features/budgets/hooks/useCreateBudget';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
@@ -19,6 +21,7 @@ import { DateBounds, toIsoDate } from '@/shared/utils/dateBounds';
 const PERIODS = ['monthly', 'weekly', 'custom'] as const;
 
 export default function AddBudgetScreen() {
+  const theme = useTheme();
   const { amountLabel } = useUserCurrency();
   const { create, loading, submitError } = useCreateBudget();
 
@@ -36,6 +39,7 @@ export default function AddBudgetScreen() {
       startDate: monthStart,
       endDate: '',
       alertThreshold: '80',
+      rollover: false,
     },
   });
 
@@ -62,7 +66,7 @@ export default function AddBudgetScreen() {
 
         <FormFieldLabel>Period</FormFieldLabel>
         <OptionChips
-          options={PERIODS}
+          options={[...PERIODS]}
           value={budgetType}
           onChange={(v) => {
             setValue('type', v);
@@ -144,6 +148,24 @@ export default function AddBudgetScreen() {
             <Input label="Alert threshold (%)" value={value} onChangeText={onChange} keyboardType="numeric" helperText="Notify when spending reaches this %" leftIcon="bell" disabled={loading} error={errors.alertThreshold?.message} />
           )}
         />
+
+        {budgetType !== 'custom' ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: theme.spacing.lg }}>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 14, fontWeight: '600', color: theme.colors.text }}>Roll over unused amount</Text>
+              <Text style={{ fontSize: 12, color: theme.colors.textTertiary, marginTop: 2 }}>
+                Carry last period's leftover (or deficit) into this one
+              </Text>
+            </View>
+            <Controller
+              control={control}
+              name="rollover"
+              render={({ field: { onChange, value } }) => (
+                <Switch value={value} onValueChange={onChange} trackColor={{ true: theme.colors.primary }} disabled={loading} />
+              )}
+            />
+          </View>
+        ) : null}
 
         <FormFieldLabel>Category (optional)</FormFieldLabel>
         <Controller

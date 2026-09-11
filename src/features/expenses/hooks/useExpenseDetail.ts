@@ -16,6 +16,7 @@ export interface ExpenseForm {
   categoryId: string;
   paymentMethod: string;
   date: string;
+  tags: string[];
 }
 
 type PendingAction = 'update' | 'duplicate' | 'delete' | null;
@@ -50,6 +51,7 @@ export function useExpenseDetail(expenseId: string) {
       categoryId: expense.categoryId ?? '',
       paymentMethod: expense.paymentMethod ?? 'upi',
       date: expense.date,
+      tags: expense.tags ?? [],
     });
     setEditing(true);
   };
@@ -65,6 +67,7 @@ export function useExpenseDetail(expenseId: string) {
       categoryId: data.categoryId,
       paymentMethod: data.paymentMethod,
       date: data.date,
+      tags: data.tags,
     };
     try {
       if (!(await isOnline())) {
@@ -79,6 +82,7 @@ export function useExpenseDetail(expenseId: string) {
                 categoryId: payload.categoryId,
                 paymentMethod: payload.paymentMethod,
                 date: payload.date,
+                tags: payload.tags,
               }
             : prev,
         );

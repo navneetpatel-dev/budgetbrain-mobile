@@ -16,6 +16,7 @@ export interface ExpenseForm {
   categoryId: string;
   paymentMethod: string;
   date: string;
+  tags: string[];
 }
 
 export type CreateExpenseResult =
@@ -40,6 +41,7 @@ export function useCreateExpense() {
       categoryId: data.categoryId,
       paymentMethod: data.paymentMethod,
       date: data.date,
+      tags: data.tags?.length ? data.tags : undefined,
     };
 
     setLoading(true);

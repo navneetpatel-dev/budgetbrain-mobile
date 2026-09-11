@@ -14,6 +14,7 @@ export type TransactionListFilters = {
   datePreset: DatePreset;
   startDate?: string;
   endDate?: string;
+  tag?: string;
 };
 
 export const DEFAULT_TRANSACTION_FILTERS: TransactionListFilters = {
@@ -56,6 +57,7 @@ export function toExpenseListParams(filters: TransactionListFilters): Record<str
   if (filters.categoryId) params.categoryId = filters.categoryId;
   if (filters.incomeSourceId) params.incomeSourceId = filters.incomeSourceId;
   if (filters.paymentMethod) params.paymentMethod = filters.paymentMethod;
+  if (filters.tag) params.tag = filters.tag;
 
   const range = resolveDateRange(filters);
   if (range.startDate) params.startDate = range.startDate;
@@ -70,6 +72,7 @@ export function countActiveFilters(filters: TransactionListFilters): number {
   if (filters.incomeSourceId) n += 1;
   if (filters.paymentMethod) n += 1;
   if (filters.datePreset !== 'all') n += 1;
+  if (filters.tag) n += 1;
   return n;
 }
 

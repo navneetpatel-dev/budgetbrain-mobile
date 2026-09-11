@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Text, View } from 'react-native';
+import { Text, View, Switch } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { Href } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
@@ -42,7 +42,7 @@ export default function BudgetDetailScreen() {
   const editFromViewRef = useRef(false);
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<BudgetForm>({
-    defaultValues: { name: '', amount: '', alertThreshold: '80' },
+    defaultValues: { name: '', amount: '', alertThreshold: '80', rollover: false },
   });
 
   useEffect(() => {
@@ -87,7 +87,8 @@ export default function BudgetDetailScreen() {
   }
 
   const spent = Number(budget.spent ?? 0);
-  const limit = Number(budget.amount);
+  const rolloverAmount = Number(budget.rolloverAmount ?? 0);
+  const limit = Number(budget.effectiveAmount ?? budget.amount);
   const pct = toSafePercent(spent, limit);
   const alertAt = budget.alertThreshold ?? 80;
   const barColor = pct >= 100 ? theme.colors.danger : pct >= alertAt ? theme.colors.warning : theme.colors.success;
@@ -122,6 +123,12 @@ export default function BudgetDetailScreen() {
               { label: 'Alert', value: `${budget.alertThreshold}%` },
               { label: 'Started', value: budget.startDate },
               ...(budget.endDate ? [{ label: 'Ends', value: budget.endDate }] : []),
+              ...(budget.rollover && rolloverAmount !== 0
+                ? [{
+                    label: 'Rollover',
+                    value: `${rolloverAmount > 0 ? '+' : ''}${formatCurrency(rolloverAmount, budget.currency)} from last period`,
+                  }]
+                : []),
             ]}
           />
           <DetailActions
@@ -170,6 +177,18 @@ export default function BudgetDetailScreen() {
                 <Input label="Alert threshold (%)" value={value} onChangeText={onChange} keyboardType="numeric" helperText="Notify when spending reaches this %" leftIcon="bell" disabled={loading} error={errors.alertThreshold?.message} />
               )}
             />
+            {budget.type !== 'custom' ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Text style={{ fontSize: 14, fontWeight: '600', color: theme.colors.text }}>Roll over unused amount</Text>
+                <Controller
+                  control={control}
+                  name="rollover"
+                  render={({ field: { onChange, value } }) => (
+                    <Switch value={value} onValueChange={onChange} trackColor={{ true: theme.colors.primary }} disabled={loading} />
+                  )}
+                />
+              </View>
+            ) : null}
           </FormSection>
 
           <FormActions

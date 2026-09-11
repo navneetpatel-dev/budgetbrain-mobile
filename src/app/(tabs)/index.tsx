@@ -15,6 +15,7 @@ import {
   StickyHeaderScreen,
   DashboardContentSkeleton,
 } from '@/shared/components/ui';
+import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { TransactionItem, TransactionGroup } from '@/features/expenses/components/TransactionItem';
 import { CategoryChart } from '@/features/dashboard/components/CategoryChart';
 import { DashboardHero } from '@/features/dashboard/components/DashboardHero';
@@ -68,6 +69,8 @@ export default function DashboardScreen() {
   const netWorthAmount = netWorthData?.summary
     ? formatCurrency(netWorthData.summary.netWorth, netWorthData.summary.currency || currency)
     : '—';
+  const noSpendStreak = data?.noSpendStreak ?? 0;
+  const upcomingBills = data?.upcomingBills ?? [];
 
   return (
     <StickyHeaderScreen
@@ -132,6 +135,19 @@ export default function DashboardScreen() {
               />
             </SummaryMetricsGrid>
           </ScreenSection>
+
+          {noSpendStreak > 0 && (
+            <ScreenSection style={sectionStyle}>
+              <Card variant="elevated" style={styles.streakCard}>
+                <View style={styles.streakIconWrap}>
+                  <AppIcon name="sparkles" size={18} color={theme.colors.warning} />
+                </View>
+                <Text style={styles.streakText}>
+                  {noSpendStreak}-day no-spend streak — keep it going!
+                </Text>
+              </Card>
+            </ScreenSection>
+          )}
 
           <ScreenSection style={sectionStyle}>
             <SectionHeader
@@ -226,6 +242,35 @@ export default function DashboardScreen() {
             </ScreenSection>
           )}
 
+          {upcomingBills.length > 0 && (
+            <ScreenSection style={sectionStyle}>
+              <SectionHeader
+                title="Upcoming Bills"
+                action="See all"
+                onAction={() => router.push('/subscriptions')}
+              />
+              <Card variant="elevated" style={styles.listCard}>
+                {upcomingBills.map((bill, i) => (
+                  <View
+                    key={bill.id}
+                    style={[
+                      styles.widgetRow,
+                      i === 0 && styles.widgetRowFirst,
+                      i === upcomingBills.length - 1 && styles.widgetRowLast,
+                      i < upcomingBills.length - 1 && styles.widgetDivider,
+                    ]}
+                  >
+                    <View style={styles.widgetHeader}>
+                      <Text style={styles.widgetName} numberOfLines={1}>{bill.merchant}</Text>
+                      <Text style={styles.widgetPct}>{formatCurrency(bill.amount, bill.currency)}</Text>
+                    </View>
+                    <Text style={styles.widgetMeta}>Due {bill.nextDueDate}</Text>
+                  </View>
+                ))}
+              </Card>
+            </ScreenSection>
+          )}
+
           <ScreenSection style={sectionStyle}>
             <SectionHeader
               title="Recent Activity"
@@ -270,6 +315,26 @@ function createStyles(t: ReturnType<typeof useTheme>) {
     listCard: {
       padding: 0,
       overflow: 'hidden',
+    },
+    streakCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingVertical: 12,
+    },
+    streakIconWrap: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: t.colors.warning + '18',
+    },
+    streakText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: t.colors.text,
+      flex: 1,
     },
     widgetRow: {
       paddingHorizontal: t.spacing.lg,

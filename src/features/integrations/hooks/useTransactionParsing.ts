@@ -2,7 +2,8 @@ import { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { apiPost, getApiErrorMessage } from '@/shared/services/api';
+import * as DocumentPicker from 'expo-document-picker';
+import { api, apiPost, getApiErrorMessage } from '@/shared/services/api';
 import { invalidateMoneyQueries } from '@/shared/services/queryInvalidation';
 import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
@@ -20,7 +21,7 @@ export interface EmailForm {
 
 export interface ParsedRecord {
   id: string;
-  source: 'sms' | 'email';
+  source: 'sms' | 'email' | 'csv';
   parsedAmount: number;
   parsedMerchant: string | null;
   confidence: number;
@@ -41,6 +42,8 @@ export function useTransactionParsing() {
   const queryClient = useQueryClient();
   const [smsLoading, setSmsLoading] = useState(false);
   const [emailLoading, setEmailLoading] = useState(false);
+  const [csvLoading, setCsvLoading] = useState(false);
+  const [csvError, setCsvError] = useState<string | null>(null);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [categoryId, setCategoryIdState] = useState('');
@@ -130,6 +133,35 @@ export function useTransactionParsing() {
     }
   };
 
+  const uploadCsv = async () => {
+    setCsvError(null);
+    const result = await DocumentPicker.getDocumentAsync({
+      type: ['text/csv', 'text/comma-separated-values', 'application/vnd.ms-excel'],
+      copyToCacheDirectory: true,
+    });
+    if (result.canceled || !result.assets?.[0]) return;
+    const asset = result.assets[0];
+
+    setCsvLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', {
+        uri: asset.uri,
+        name: asset.name ?? 'statement.csv',
+        type: asset.mimeType ?? 'text/csv',
+      } as unknown as Blob);
+
+      await api.post('/integrations/csv', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      await refetchPending();
+    } catch (err) {
+      setCsvError(getApiErrorMessage(err, 'Could not import CSV file'));
+    } finally {
+      setCsvLoading(false);
+    }
+  };
+
   const confirmParsed = async () => {
     setConfirmError(null);
     if (!parsedRecord) return;
@@ -170,6 +202,9 @@ export function useTransactionParsing() {
   return {
     smsLoading,
     emailLoading,
+    csvLoading,
+    csvError,
+    uploadCsv,
     confirmLoading,
     pendingLoading,
     parsed: parsedRecord,

@@ -14,6 +14,7 @@ export interface BudgetForm {
   startDate: string;
   endDate: string;
   alertThreshold: string;
+  rollover: boolean;
 }
 
 export function useCreateBudget() {
@@ -45,6 +46,7 @@ export function useCreateBudget() {
         startDate: data.startDate,
         endDate: data.type === 'custom' ? data.endDate : undefined,
         alertThreshold: Number(data.alertThreshold),
+        rollover: data.type === 'custom' ? false : data.rollover,
       });
       invalidateBudgetQueries(queryClient);
       router.back();

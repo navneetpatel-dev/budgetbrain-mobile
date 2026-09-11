@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, Pressable, ScrollView } from 'react-native';
 import { Controller } from 'react-hook-form';
 import {
   Input,
+  Button,
   StackScrollScreen,
   FormFieldLabel,
   OptionChipList,
@@ -24,6 +25,9 @@ export default function IntegrationsScreen() {
   const {
     smsLoading,
     emailLoading,
+    csvLoading,
+    csvError,
+    uploadCsv,
     confirmLoading,
     pendingLoading,
     parsed,
@@ -56,6 +60,11 @@ export default function IntegrationsScreen() {
         />
       }
     >
+      <FormSection title="Import CSV statement" subtitle="Upload a bank or card statement export">
+        {csvError ? <FormErrorBanner message={csvError} /> : null}
+        <Button title="Choose CSV file" variant="outline" onPress={uploadCsv} loading={csvLoading} />
+      </FormSection>
+
       {pendingLoading ? <ListRowsSkeleton count={4} variant="transaction" /> : null}
       {!pendingLoading && pendingTotal > 0 ? (
         <FormSection title="Pending review" subtitle={`${pendingTotal} item${pendingTotal !== 1 ? 's' : ''} awaiting confirmation`}>

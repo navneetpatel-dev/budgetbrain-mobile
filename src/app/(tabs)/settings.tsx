@@ -19,6 +19,7 @@ import {
 import { ProfileHero } from '@/features/settings/components/ProfileHero';
 import { ThemePicker } from '@/features/settings/components/ThemePicker';
 import { useBiometricToggle } from '@/features/settings/hooks/useBiometricToggle';
+import { useDigestPreference } from '@/features/settings/hooks/useDigestPreference';
 import { useDeleteAccount } from '@/features/settings/hooks/useDeleteAccount';
 import { useEditProfile, type ProfileForm } from '@/features/settings/hooks/useEditProfile';
 import { useLogout } from '@/features/settings/hooks/useLogout';
@@ -41,6 +42,7 @@ export default function SettingsScreen() {
   const deleteAccount = useDeleteAccount();
   const { save: saveProfile, loading: profileLoading, submitError: profileError, clearSubmitError } = useEditProfile();
   const { type: biometricType, supported: biometricSupported, enabled: biometricEnabled, toggle: toggleBiometric } = useBiometricToggle();
+  const { enabled: digestEnabled, toggle: toggleDigest } = useDigestPreference();
   const testPush = usePushTest();
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<ProfileForm>({
@@ -131,6 +133,17 @@ export default function SettingsScreen() {
               value={biometricEnabled}
               onValueChange={toggleBiometric}
               disabled={!biometricSupported}
+              trackColor={{ true: theme.colors.primary }}
+            />
+          </View>
+          <View style={styles.switchRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.switchLabel}>Weekly spending digest</Text>
+              <Text style={styles.switchHint}>Get a summary notification every Monday</Text>
+            </View>
+            <Switch
+              value={digestEnabled}
+              onValueChange={toggleDigest}
               trackColor={{ true: theme.colors.primary }}
             />
           </View>

@@ -19,6 +19,9 @@ import {
 } from '@/shared/components/ui';
 import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
 import { useExpenseDetail, type ExpenseForm } from '@/features/expenses/hooks/useExpenseDetail';
+import { useExpenseTagSuggestions } from '@/features/expenses/hooks/useExpenseTagSuggestions';
+import { TagInput } from '@/features/expenses/components/TagInput';
+import { SplitExpenseSection } from '@/features/family/components/SplitExpenseSection';
 import { PAYMENT_METHODS } from '@/shared/constants/config';
 import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
@@ -49,9 +52,10 @@ export default function ExpenseDetailScreen() {
   } = useExpenseDetail(id);
 
   const { data: categories } = useCategoryOptions();
+  const { suggestions: tagSuggestions } = useExpenseTagSuggestions();
 
   const { control, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<ExpenseForm>({
-    defaultValues: { amount: '', merchant: '', notes: '', categoryId: '', paymentMethod: 'upi', date: '' },
+    defaultValues: { amount: '', merchant: '', notes: '', categoryId: '', paymentMethod: 'upi', date: '', tags: [] },
   });
 
   const selectedPayment = watch('paymentMethod');
@@ -102,6 +106,7 @@ export default function ExpenseDetailScreen() {
               { label: 'Date', value: expense.date },
               { label: 'Payment', value: expense.paymentMethod?.replace(/_/g, ' ') ?? '' },
               { label: 'Notes', value: expense.notes ?? '' },
+              { label: 'Tags', value: expense.tags?.length ? expense.tags.join(', ') : '' },
             ]}
           />
           <DetailActions
@@ -113,6 +118,9 @@ export default function ExpenseDetailScreen() {
             onDestructive={confirmDelete}
             destructiveLoading={deleting}
           />
+          {expense.type === 'expense' ? (
+            <SplitExpenseSection transactionId={expense.id} amount={Number(expense.amount)} currency={expense.currency} />
+          ) : null}
         </>
       ) : (
         <>
@@ -180,6 +188,13 @@ export default function ExpenseDetailScreen() {
                 )}
               />
             </View>
+            <Controller
+              control={control}
+              name="tags"
+              render={({ field: { onChange, value } }) => (
+                <TagInput value={value} onChange={onChange} suggestions={tagSuggestions} disabled={loading} />
+              )}
+            />
           </FormSection>
 
           <FormSection title="Notes">

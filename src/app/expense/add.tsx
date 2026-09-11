@@ -1,4 +1,5 @@
-import { View } from 'react-native';
+import { useEffect } from 'react';
+import { Text, View } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import {
   Input,
@@ -14,6 +15,9 @@ import {
 import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
 import { useCreateExpense, type ExpenseForm } from '@/features/expenses/hooks/useCreateExpense';
 import { useReceiptPicker } from '@/features/expenses/hooks/useReceiptPicker';
+import { useCategorySuggestion } from '@/features/expenses/hooks/useCategorySuggestion';
+import { useExpenseTagSuggestions } from '@/features/expenses/hooks/useExpenseTagSuggestions';
+import { TagInput } from '@/features/expenses/components/TagInput';
 import { PAYMENT_METHODS } from '@/shared/constants/config';
 import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
@@ -25,6 +29,8 @@ export default function AddExpenseScreen() {
   const { amountLabel } = useUserCurrency();
   const { create, loading } = useCreateExpense();
   const { receipt, pick, clear } = useReceiptPicker();
+  const { suggestedCategoryId, suggest } = useCategorySuggestion();
+  const { suggestions: tagSuggestions } = useExpenseTagSuggestions();
 
   const { data: categories } = useCategoryOptions();
 
@@ -36,10 +42,23 @@ export default function AddExpenseScreen() {
       categoryId: '',
       paymentMethod: 'upi',
       date: toIsoDate(new Date()),
+      tags: [],
     },
   });
 
   const selectedPayment = watch('paymentMethod');
+  const currentCategoryId = watch('categoryId');
+
+  const onMerchantBlur = async (merchant: string) => {
+    if (currentCategoryId) return;
+    await suggest(merchant);
+  };
+
+  useEffect(() => {
+    if (suggestedCategoryId && !currentCategoryId) {
+      setValue('categoryId', suggestedCategoryId);
+    }
+  }, [suggestedCategoryId, currentCategoryId, setValue]);
 
   const onSubmit = async (data: ExpenseForm) => {
     await create(data, receipt);
@@ -70,8 +89,21 @@ export default function AddExpenseScreen() {
           control={control}
           name="merchant"
           rules={textRules('merchant')}
-          render={({ field: { onChange, value } }) => (
-            <Input label="Merchant" value={value} onChangeText={onChange} maxLength={maxLen('merchant')} placeholder="e.g. Swiggy, Amazon" error={errors.merchant?.message} leftIcon="activity" disabled={loading} />
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              label="Merchant"
+              value={value}
+              onChangeText={onChange}
+              onBlur={() => {
+                onBlur();
+                void onMerchantBlur(value);
+              }}
+              maxLength={maxLen('merchant')}
+              placeholder="e.g. Swiggy, Amazon"
+              error={errors.merchant?.message}
+              leftIcon="activity"
+              disabled={loading}
+            />
           )}
         />
 
@@ -108,6 +140,11 @@ export default function AddExpenseScreen() {
 
         <View style={{ marginTop: theme.spacing.lg }}>
           <FormFieldLabel>Category</FormFieldLabel>
+          {suggestedCategoryId && currentCategoryId === suggestedCategoryId ? (
+            <Text style={{ fontSize: 12, fontWeight: '600', color: theme.colors.primary, marginBottom: 8 }}>
+              Suggested from your history with this merchant
+            </Text>
+          ) : null}
           <Controller
             control={control}
             name="categoryId"
@@ -120,6 +157,16 @@ export default function AddExpenseScreen() {
                 error={errors.categoryId?.message}
                 disabled={loading}
               />
+            )}
+          />
+        </View>
+
+        <View style={{ marginTop: theme.spacing.lg }}>
+          <Controller
+            control={control}
+            name="tags"
+            render={({ field: { onChange, value } }) => (
+              <TagInput value={value} onChange={onChange} suggestions={tagSuggestions} disabled={loading} />
             )}
           />
         </View>

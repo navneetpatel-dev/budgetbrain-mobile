@@ -42,3 +42,28 @@ export function invalidateCategoryConsumers(queryClient: QueryClient) {
   void queryClient.invalidateQueries({ queryKey: ['search'] });
   void queryClient.invalidateQueries({ queryKey: ['budgets'] });
 }
+
+export function invalidateLoanQueries(queryClient: QueryClient, loanId?: string) {
+  void queryClient.invalidateQueries({ queryKey: ['loans'] });
+  if (loanId) {
+    void queryClient.invalidateQueries({ queryKey: ['loan', loanId] });
+  }
+}
+
+export function removeLoanDetail(queryClient: QueryClient, loanId: string) {
+  void queryClient.removeQueries({ queryKey: ['loan', loanId] });
+}
+
+export function invalidateRecurringQueries(queryClient: QueryClient) {
+  void queryClient.invalidateQueries({ queryKey: ['recurring-series'] });
+  void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+}
+
+export function invalidateFamilyQueries(queryClient: QueryClient, groupId?: string) {
+  void queryClient.invalidateQueries({ queryKey: ['family-groups'] });
+  if (groupId) {
+    void queryClient.invalidateQueries({ queryKey: ['family-members', groupId] });
+    void queryClient.invalidateQueries({ queryKey: ['family-balances', groupId] });
+    void queryClient.invalidateQueries({ queryKey: ['family-splits', groupId] });
+  }
+}
