@@ -684,6 +684,7 @@ export function FormStackScreen({
   title,
   subtitle,
   icon,
+  showBack = true,
   onBack,
   refreshControl,
   children,
@@ -692,6 +693,7 @@ export function FormStackScreen({
   title: string;
   subtitle?: string;
   icon?: AppIconName;
+  showBack?: boolean;
   onBack?: () => void;
   refreshControl?: React.ReactElement<RefreshControlProps>;
   children: React.ReactNode;
@@ -704,7 +706,7 @@ export function FormStackScreen({
       header={
         <FeatureHeader
           variant="stack"
-          showBack
+          showBack={showBack}
           onBack={onBack}
           icon={icon}
           eyebrow={eyebrow}

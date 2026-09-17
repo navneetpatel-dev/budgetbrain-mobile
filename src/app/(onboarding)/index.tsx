@@ -9,19 +9,21 @@ import {
   FormActions,
   FormErrorBanner,
 } from '@/shared/components/ui';
+import { useAppSelector } from '@/shared/store/hooks';
 import { useOnboarding, type OnboardingForm } from '@/features/onboarding/hooks/useOnboarding';
 import { SUPPORTED_CURRENCIES, FINANCIAL_GOALS, SALARY_RANGES } from '@/shared/constants/config';
 import { getCurrencySymbol } from '@/shared/utils/currency';
 import { amountRules, maxLen, textRules, ValidationMessages } from '@/shared/validation/fieldLimits';
 
 export default function OnboardingScreen() {
+  const user = useAppSelector((s) => s.auth.user);
   const { loading, submit, submitError } = useOnboarding();
 
   const { control, handleSubmit, watch, formState: { errors } } = useForm<OnboardingForm>({
     defaultValues: {
-      name: '',
-      country: 'India',
-      currency: 'INR',
+      name: user?.name || '',
+      country: user?.country || 'India',
+      currency: user?.currency || 'INR',
       financialGoals: [],
       salaryRange: '',
       monthlySavingsTarget: '',
@@ -31,7 +33,12 @@ export default function OnboardingScreen() {
   const selectedCurrency = watch('currency');
 
   return (
-    <FormStackScreen eyebrow="Welcome" title="Personalize" subtitle="Tell us a bit about yourself">
+    <FormStackScreen
+      eyebrow="Welcome"
+      title="Personalize"
+      subtitle="Tell us a bit about yourself"
+      showBack={false}
+    >
       {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="About you">
         <Controller
