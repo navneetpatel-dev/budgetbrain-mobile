@@ -8,6 +8,7 @@ import {
   TextInput,
   TextInputProps,
   ViewStyle,
+  Platform,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -160,6 +161,13 @@ export function Button({
   ];
 
   if (isPrimary) {
+    const webGradientStyle =
+      Platform.OS === 'web'
+        ? ({
+          backgroundImage: `linear-gradient(135deg, ${theme.colors.gradientStart}, ${theme.colors.gradientEnd})`,
+        } as unknown as ViewStyle)
+        : undefined;
+
     return (
       <Pressable
         onPress={onPress}
@@ -171,20 +179,35 @@ export function Button({
         accessibilityState={{ disabled: isDisabled, busy: !!loading }}
         style={[
           styles.button,
+          styles.primary,
           styles.gradientWrap,
           size === 'lg' && styles.buttonLg,
           size === 'lg' && styles.buttonLgWrap,
+          webGradientStyle,
           disabled && !loading && styles.disabled,
         ]}
       >
-        <LinearGradient
-          colors={[theme.colors.primary, theme.colors.gradientEnd]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={StyleSheet.absoluteFill}
-          pointerEvents="none"
-        />
-        <Animated.View style={[spring.style, { width: '100%', alignItems: 'center', justifyContent: 'center' }]}>
+        {Platform.OS !== 'web' ? (
+          <LinearGradient
+            colors={[theme.colors.primary, theme.colors.gradientEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+            pointerEvents="none"
+          />
+        ) : null}
+        <Animated.View
+          style={[
+            spring.style,
+            {
+              width: '100%',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1,
+              position: 'relative',
+            },
+          ]}
+        >
           {inner}
         </Animated.View>
       </Pressable>
