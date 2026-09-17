@@ -117,7 +117,7 @@ function SocialButton({
 
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    container: { marginTop: t.spacing.lg },
+    container: { marginTop: 0 },
     row: { flexDirection: 'row', gap: t.spacing.sm },
   });
 }

@@ -58,7 +58,7 @@ function createStyles(t: ReturnType<typeof useTheme>, centered: boolean) {
       flexDirection: 'row',
       justifyContent: centered ? 'center' : 'flex-start',
       alignItems: 'center',
-      marginTop: t.spacing.xl,
+      marginTop: 0,
       flexWrap: 'wrap',
       gap: 4,
     },

@@ -1,10 +1,14 @@
-import { useLocalSearchParams } from 'expo-router';
+import { useMemo } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { Button, Input } from '@/shared/components/ui';
-import { AuthShell, AuthFooter, AuthSuccessBanner, AuthErrorBanner } from '@/features/auth/components';
+import { AuthShell, AuthSuccessBanner, AuthErrorBanner } from '@/features/auth/components';
 import { authFieldRules, confirmPasswordRule } from '@/features/auth/utils/authValidation';
 import { maxLen } from '@/shared/validation/fieldLimits';
 import { useResetPassword } from '@/features/auth/hooks';
+import { useTheme } from '@/shared/theme';
+import { appHref } from '@/shared/utils/navigation';
 
 interface ResetForm {
   password: string;
@@ -12,6 +16,9 @@ interface ResetForm {
 }
 
 export function ResetPasswordScreen() {
+  const router = useRouter();
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const { token } = useLocalSearchParams<{ token?: string }>();
   const { resetPassword, loading, done, error, clearError } = useResetPassword(token);
   const { control, handleSubmit, watch, formState: { errors } } = useForm<ResetForm>({
@@ -25,15 +32,29 @@ export function ResetPasswordScreen() {
     void resetPassword(data.password);
   };
 
+  const handleBackToSignIn = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace(appHref('/(auth)/login'));
+    }
+  };
+
   return (
     <AuthShell
       tagline={done ? 'You can now sign in with your new password.' : 'Choose a strong password you haven\'t used before.'}
       panelTitle="New password"
       backHref="/(auth)/login"
-      footer={<AuthFooter linkText="Back to Sign In" href="/(auth)/login" />}
     >
       {done ? (
-        <AuthSuccessBanner message="Your password has been reset successfully." />
+        <View style={styles.actions}>
+          <AuthSuccessBanner message="Your password has been reset successfully." />
+          <Button
+            title="Back to Sign In"
+            onPress={handleBackToSignIn}
+            size="lg"
+          />
+        </View>
       ) : (
         <>
           <Controller
@@ -73,9 +94,27 @@ export function ResetPasswordScreen() {
             )}
           />
           {error ? <AuthErrorBanner message={error} /> : null}
-          <Button title="Update Password" onPress={handleSubmit(onSubmit)} loading={loading} disabled={!token} size="lg" />
+          <View style={styles.actions}>
+            <Button title="Update Password" onPress={handleSubmit(onSubmit)} loading={loading} disabled={!token} size="lg" />
+            <Button
+              title="Back to Sign In"
+              onPress={handleBackToSignIn}
+              variant="outline"
+              size="lg"
+              disabled={loading}
+            />
+          </View>
         </>
       )}
     </AuthShell>
   );
+}
+
+function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    actions: {
+      gap: t.spacing.md,
+      marginTop: t.spacing.xs,
+    },
+  });
 }

@@ -146,7 +146,8 @@ function createStyles(t: ReturnType<typeof useTheme>) {
     },
     footer: {
       marginTop: t.spacing.lg,
-      paddingTop: t.spacing.md,
+      paddingTop: 0,
+      alignItems: 'center',
     },
   });
 }
