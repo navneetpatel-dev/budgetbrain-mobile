@@ -20,7 +20,7 @@ export function OtpLoginScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { loading, otpSent, error, info, clearError, requestOtp, verifyOtp } = useOtpLogin();
-  const { control, handleSubmit, formState: { errors } } = useForm<OtpForm>({
+  const { control, handleSubmit, getValues, formState: { errors } } = useForm<OtpForm>({
     defaultValues: { email: '', otp: '' },
   });
 
@@ -32,6 +32,14 @@ export function OtpLoginScreen() {
   const onSubmit = (data: OtpForm) => {
     clearError();
     void verifyOtp(data.email, data.otp);
+  };
+
+  const handleOtpComplete = (code: string) => {
+    const email = getValues('email');
+    if (email && code.length === 6) {
+      clearError();
+      void verifyOtp(email, code);
+    }
   };
 
   const handleBackToSignIn = () => {
@@ -95,6 +103,7 @@ export function OtpLoginScreen() {
                 label="Verification code"
                 value={value}
                 onChange={onChange}
+                onComplete={handleOtpComplete}
                 autoFocus
                 disabled={loading}
                 error={errors.otp?.message}
@@ -102,7 +111,7 @@ export function OtpLoginScreen() {
             )}
           />
           <Button title="Verify & Sign In" onPress={handleSubmit(onSubmit)} loading={loading} size="lg" />
-          <Button title="Resend code" onPress={handleRequestOtp} variant="ghost" loading={loading} />
+          <Button title="Resend code" onPress={handleRequestOtp} variant="ghost" size="lg" loading={loading} />
           <Button
             title="Back to Sign In"
             onPress={handleBackToSignIn}

@@ -175,12 +175,17 @@ export function Button({
           disabled && !loading && styles.disabled,
         ]}
       >
-        <Animated.View style={spring.style}>
+        <Animated.View style={[spring.style, { width: '100%', alignSelf: 'stretch' }]}>
           <LinearGradient
             colors={[theme.colors.primary, theme.colors.gradientEnd]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={[styles.button, styles.primaryGradient, size === 'lg' && styles.buttonLg, size === 'lg' && styles.buttonLgInner]}
+            style={[
+              styles.button,
+              styles.primaryGradient,
+              size === 'lg' && styles.buttonLg,
+              { width: '100%', alignSelf: 'stretch' },
+            ]}
           >
             {inner}
           </LinearGradient>
@@ -200,7 +205,9 @@ export function Button({
       accessibilityState={{ disabled: isDisabled, busy: !!loading }}
       style={[...pressableStyle, size === 'lg' && styles.buttonLgWrap]}
     >
-      <Animated.View style={spring.style}>{inner}</Animated.View>
+      <Animated.View style={[spring.style, { width: '100%', alignItems: 'center', justifyContent: 'center' }]}>
+        {inner}
+      </Animated.View>
     </Pressable>
   );
 }
@@ -711,10 +718,16 @@ function createButtonStyles(t: AppTheme) {
     },
     buttonLg: { paddingVertical: 16, borderRadius: t.radii.lg },
     buttonLgWrap: { width: '100%', alignSelf: 'stretch', borderRadius: t.radii.lg },
-    buttonLgInner: { width: '100%' },
-    gradientWrap: { borderRadius: t.radii.md, overflow: 'hidden', alignSelf: 'stretch' },
-    primaryGradient: { backgroundColor: 'transparent' },
-    buttonInner: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    buttonLgInner: { width: '100%', alignSelf: 'stretch' },
+    gradientWrap: {
+      borderRadius: t.radii.md,
+      overflow: 'hidden',
+      alignSelf: 'stretch',
+      width: '100%',
+      backgroundColor: t.colors.primary,
+    },
+    primaryGradient: { backgroundColor: 'transparent', width: '100%', alignSelf: 'stretch' },
+    buttonInner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%' },
     primary: { backgroundColor: t.colors.primary },
     secondary: { backgroundColor: t.colors.surfaceHover },
     outline: {

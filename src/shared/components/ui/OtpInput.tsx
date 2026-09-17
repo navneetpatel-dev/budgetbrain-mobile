@@ -19,6 +19,7 @@ export function OtpInput({
   label = 'Verification code',
   value,
   onChange,
+  onComplete,
   error,
   disabled,
   autoFocus,
@@ -26,6 +27,7 @@ export function OtpInput({
   label?: string;
   value: string;
   onChange: (value: string) => void;
+  onComplete?: (code: string) => void;
   error?: string;
   disabled?: boolean;
   autoFocus?: boolean;
@@ -59,8 +61,12 @@ export function OtpInput({
       next[cursor] = ch;
       cursor += 1;
     }
-    onChange(next.join('').slice(0, OTP_LENGTH));
+    const code = next.join('').slice(0, OTP_LENGTH);
+    onChange(code);
     focusAt(Math.min(cursor, OTP_LENGTH - 1));
+    if (code.length === OTP_LENGTH && onComplete) {
+      onComplete(code);
+    }
   };
 
   const onChangeText = (index: number, text: string) => {
@@ -73,8 +79,16 @@ export function OtpInput({
     const digit = onlyDigits(text).slice(-1);
     const next = [...digits];
     next[index] = digit;
-    onChange(next.join('').slice(0, OTP_LENGTH));
-    if (digit && index < OTP_LENGTH - 1) focusAt(index + 1);
+    const code = next.join('').slice(0, OTP_LENGTH);
+    onChange(code);
+    if (digit) {
+      if (index < OTP_LENGTH - 1) {
+        focusAt(index + 1);
+      }
+      if (code.length === OTP_LENGTH && onComplete) {
+        onComplete(code);
+      }
+    }
   };
 
   const onKeyPress = (
@@ -82,18 +96,29 @@ export function OtpInput({
     e: NativeSyntheticEvent<TextInputKeyPressEventData>,
   ) => {
     if (disabled) return;
-    if (e.nativeEvent.key !== 'Backspace') return;
-    if (digits[index]) {
+    const key = e.nativeEvent.key;
+    if (key === 'Backspace' || key === 'Delete') {
       const next = [...digits];
-      next[index] = '';
-      onChange(next.join(''));
+      if (next[index]) {
+        // Current box has digit: clear it and move to previous box
+        next[index] = '';
+        onChange(next.join(''));
+        if (index > 0) {
+          focusAt(index - 1);
+        }
+      } else if (index > 0) {
+        // Current box is empty: clear previous box and focus it
+        next[index - 1] = '';
+        onChange(next.join(''));
+        focusAt(index - 1);
+      }
       return;
     }
-    if (index > 0) {
-      const next = [...digits];
-      next[index - 1] = '';
-      onChange(next.join(''));
+
+    if (key === 'ArrowLeft' && index > 0) {
       focusAt(index - 1);
+    } else if (key === 'ArrowRight' && index < OTP_LENGTH - 1) {
+      focusAt(index + 1);
     }
   };
 
@@ -111,7 +136,7 @@ export function OtpInput({
             keyboardType="number-pad"
             textContentType={index === 0 ? 'oneTimeCode' : 'none'}
             autoComplete={index === 0 ? 'one-time-code' : 'off'}
-            maxLength={index === 0 ? OTP_LENGTH : 1}
+            maxLength={OTP_LENGTH}
             editable={!disabled}
             selectTextOnFocus
             style={[
