@@ -1,3 +1,6 @@
+import { useCallback } from 'react';
+import { BackHandler } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { Controller, useForm } from 'react-hook-form';
 import {
   Input,
@@ -11,6 +14,7 @@ import {
 } from '@/shared/components/ui';
 import { useAppSelector } from '@/shared/store/hooks';
 import { useOnboarding, type OnboardingForm } from '@/features/onboarding/hooks/useOnboarding';
+import { useLogout } from '@/features/settings/hooks/useLogout';
 import { SUPPORTED_CURRENCIES, FINANCIAL_GOALS, SALARY_RANGES } from '@/shared/constants/config';
 import { getCurrencySymbol } from '@/shared/utils/currency';
 import { amountRules, maxLen, textRules, ValidationMessages } from '@/shared/validation/fieldLimits';
@@ -18,6 +22,16 @@ import { amountRules, maxLen, textRules, ValidationMessages } from '@/shared/val
 export default function OnboardingScreen() {
   const user = useAppSelector((s) => s.auth.user);
   const { loading, submit, submitError } = useOnboarding();
+  const handleLogout = useLogout();
+
+  // Prevent back navigation via Android hardware back button
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => true;
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () => subscription.remove();
+    }, [])
+  );
 
   const { control, handleSubmit, watch, formState: { errors } } = useForm<OnboardingForm>({
     defaultValues: {
@@ -130,7 +144,13 @@ export default function OnboardingScreen() {
         />
       </FormSection>
 
-      <FormActions primaryTitle="Get Started" onPrimary={handleSubmit(submit)} primaryLoading={loading} />
+      <FormActions
+        primaryTitle="Get Started"
+        onPrimary={handleSubmit(submit)}
+        primaryLoading={loading}
+        secondaryTitle="Sign Out"
+        onSecondary={handleLogout}
+      />
     </FormStackScreen>
   );
 }

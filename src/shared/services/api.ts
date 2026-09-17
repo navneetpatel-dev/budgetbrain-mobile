@@ -83,6 +83,17 @@ api.interceptors.response.use(
       }
     }
 
+    const code = (error.response?.data as { error?: { code?: string } })?.error?.code;
+    if (error.response?.status === 403 && code === 'ONBOARDING_REQUIRED') {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { router } = require('expo-router');
+        router.replace('/(onboarding)');
+      } catch {
+        /* proceed */
+      }
+    }
+
     return Promise.reject(error);
   }
 );
