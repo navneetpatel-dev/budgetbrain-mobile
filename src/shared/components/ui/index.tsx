@@ -710,7 +710,7 @@ function createButtonStyles(t: AppTheme) {
       justifyContent: 'center',
     },
     buttonLg: { paddingVertical: 16, borderRadius: t.radii.lg },
-    buttonLgWrap: { width: '100%', borderRadius: t.radii.lg },
+    buttonLgWrap: { width: '100%', alignSelf: 'stretch', borderRadius: t.radii.lg },
     buttonLgInner: { width: '100%' },
     gradientWrap: { borderRadius: t.radii.md, overflow: 'hidden', alignSelf: 'stretch' },
     primaryGradient: { backgroundColor: 'transparent' },
