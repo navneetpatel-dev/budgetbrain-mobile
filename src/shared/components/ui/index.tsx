@@ -170,25 +170,22 @@ export function Button({
         accessibilityLabel={busyLabel}
         accessibilityState={{ disabled: isDisabled, busy: !!loading }}
         style={[
+          styles.button,
           styles.gradientWrap,
+          size === 'lg' && styles.buttonLg,
           size === 'lg' && styles.buttonLgWrap,
           disabled && !loading && styles.disabled,
         ]}
       >
-        <Animated.View style={[spring.style, { width: '100%', alignSelf: 'stretch' }]}>
-          <LinearGradient
-            colors={[theme.colors.primary, theme.colors.gradientEnd]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[
-              styles.button,
-              styles.primaryGradient,
-              size === 'lg' && styles.buttonLg,
-              { width: '100%', alignSelf: 'stretch' },
-            ]}
-          >
-            {inner}
-          </LinearGradient>
+        <LinearGradient
+          colors={[theme.colors.primary, theme.colors.gradientEnd]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+        <Animated.View style={[spring.style, { width: '100%', alignItems: 'center', justifyContent: 'center' }]}>
+          {inner}
         </Animated.View>
       </Pressable>
     );
@@ -722,6 +719,7 @@ function createButtonStyles(t: AppTheme) {
     gradientWrap: {
       borderRadius: t.radii.md,
       overflow: 'hidden',
+      position: 'relative',
       alignSelf: 'stretch',
       width: '100%',
       backgroundColor: t.colors.primary,
