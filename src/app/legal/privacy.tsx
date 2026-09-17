@@ -52,7 +52,7 @@ export default function PrivacyScreen() {
 
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    section: { fontSize: 16, fontWeight: '700', color: t.colors.text, marginTop: 8, marginBottom: 8 },
-    body: { fontSize: 14, color: t.colors.textSecondary, lineHeight: 22 },
+    section: { ...t.typography.titleSm, color: t.colors.text, marginTop: t.spacing.sm, marginBottom: t.spacing.sm },
+    body: { ...t.typography.bodyMedium, color: t.colors.textSecondary },
   });
 }

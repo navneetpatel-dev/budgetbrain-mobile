@@ -80,6 +80,7 @@ export function ListRow({
       <Pressable
         onPress={onPress}
         style={({ pressed }) => [styles.row, !isLast && styles.rowBorder, pressed && styles.rowPressed]}
+        accessibilityRole="button"
       >
         {content}
       </Pressable>

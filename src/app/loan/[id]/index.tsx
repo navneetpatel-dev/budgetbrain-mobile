@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Text, View } from 'react-native';
+import { RefreshControl, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { Href } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
@@ -15,6 +15,7 @@ import {
   DetailMetaList,
   ProgressBar,
   FormErrorBanner,
+  FormSuccessBanner,
   useStackBack,
 } from '@/shared/components/ui';
 import { useLoanDetail, type LoanEditForm } from '@/features/loans/hooks/useLoanDetail';
@@ -29,8 +30,9 @@ export default function LoanDetailScreen() {
   const goBack = useStackBack('/loan' as Href);
   const { id, edit } = useLocalSearchParams<{ id: string; edit?: string }>();
   const openedInEdit = edit === '1' || edit === 'true';
-  const { loan, isLoading, isError, refetch, loading, save, populateForm, confirmDelete, submitError } = useLoanDetail(id);
+  const { loan, isLoading, isError, refetch, isRefetching, loading, save, populateForm, confirmDelete, submitError } = useLoanDetail(id);
   const [editing, setEditing] = useState(openedInEdit);
+  const [justSaved, setJustSaved] = useState(false);
   const editFromViewRef = useRef(false);
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<LoanEditForm>({
@@ -87,7 +89,11 @@ export default function LoanDetailScreen() {
       title={editing ? 'Edit Loan' : loan.name}
       subtitle={editing ? 'Update loan' : loan.closed ? 'Paid off' : `${pct}% paid off`}
       onBack={editing ? exitEdit : goBack}
+      refreshControl={
+        editing ? undefined : <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
+      }
     >
+      {justSaved ? <FormSuccessBanner message="Loan updated" /> : null}
       {submitError ? <FormErrorBanner message={submitError} /> : null}
 
       {!editing ? (
@@ -98,12 +104,12 @@ export default function LoanDetailScreen() {
           />
           <View style={{ marginBottom: theme.spacing.lg }}>
             <ProgressBar progress={pct} color={loan.closed ? theme.colors.success : theme.colors.primary} />
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
-              <Text style={{ fontSize: 12, fontWeight: '500', color: theme.colors.textTertiary }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: theme.spacing.xs }}>
+              <Text style={{ ...theme.typography.caption, color: theme.colors.textTertiary }}>
                 {pct}% paid off
               </Text>
               {loan.closed ? (
-                <Text style={{ fontSize: 12, fontWeight: '600', color: theme.colors.success }}>Done</Text>
+                <Text style={{ ...theme.typography.caption, fontWeight: '600', color: theme.colors.success }}>Done</Text>
               ) : null}
             </View>
           </View>
@@ -167,6 +173,8 @@ export default function LoanDetailScreen() {
               if (await save(data)) {
                 editFromViewRef.current = false;
                 setEditing(false);
+                setJustSaved(true);
+                setTimeout(() => setJustSaved(false), 2500);
               }
             })}
             primaryLoading={loading}

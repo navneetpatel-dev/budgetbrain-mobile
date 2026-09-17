@@ -1,5 +1,8 @@
 import { SymbolView } from 'expo-symbols';
 import { Platform, View, type StyleProp, type ViewStyle } from 'react-native';
+import { useTheme } from '@/shared/theme';
+
+export type AppIconSize = number | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 const ICONS = {
   home: { ios: 'house.fill', android: 'home', web: 'home' },
@@ -58,14 +61,17 @@ export function AppIcon({
   style,
 }: {
   name: AppIconName;
-  size?: number;
+  size?: AppIconSize;
   color: string;
   style?: StyleProp<ViewStyle>;
 }) {
+  const theme = useTheme();
+  const resolvedSize = typeof size === 'number' ? size : theme.iconSizes[size];
+
   return (
     <View
       style={[
-        { width: size, height: size, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+        { width: resolvedSize, height: resolvedSize, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
         style,
       ]}
     >
@@ -76,8 +82,8 @@ export function AppIcon({
           web: ICONS[name].web,
         }}
         tintColor={color}
-        size={size}
-        style={{ width: size, height: size }}
+        size={resolvedSize}
+        style={{ width: resolvedSize, height: resolvedSize }}
         {...(Platform.OS === 'ios' ? { weight: 'semibold' as const } : {})}
       />
     </View>

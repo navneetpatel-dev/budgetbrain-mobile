@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { StyleSheet, Text, View, Pressable } from 'react-native';
+import { RefreshControl, StyleSheet, Text, View, Pressable } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import {
   Input,
@@ -12,6 +12,7 @@ import {
   FormSection,
   FormActions,
   FormErrorBanner,
+  FormSuccessBanner,
   EmptyState,
   ListRowsSkeleton,
 } from '@/shared/components/ui';
@@ -33,7 +34,8 @@ export default function SubscriptionsScreen() {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { amountLabel } = useUserCurrency();
   const [showAdd, setShowAdd] = useState(false);
-  const { data: series, isLoading, refetch } = useRecurringSeries();
+  const [justSaved, setJustSaved] = useState(false);
+  const { data: series, isLoading, isRefetching, refetch } = useRecurringSeries();
   const { data: categories } = useCategoryOptions();
   const { create, loading: creating, submitError } = useCreateRecurringSeries();
   const { dismiss, remove, pendingId } = useRecurringSeriesActions();
@@ -51,6 +53,8 @@ export default function SubscriptionsScreen() {
     if (await create(data)) {
       reset({ merchant: '', categoryId: '', amount: '', cadence: 'monthly', nextDueDate: toIsoDate(new Date()) });
       setShowAdd(false);
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 2500);
     }
   };
 
@@ -66,7 +70,9 @@ export default function SubscriptionsScreen() {
           }
         />
       }
+      refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />}
     >
+      {justSaved ? <FormSuccessBanner message="Subscription added" /> : null}
       {isLoading ? <ListRowsSkeleton count={3} variant="transaction" /> : null}
 
       {!isLoading && active.length === 0 ? (
@@ -192,11 +198,11 @@ function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     card: { marginBottom: t.spacing.sm },
     cardRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    merchant: { fontSize: 15, fontWeight: '700', color: t.colors.text },
-    meta: { fontSize: 12, color: t.colors.textSecondary, marginTop: 4, textTransform: 'capitalize' },
+    merchant: { ...t.typography.bodySemibold, fontWeight: '700', color: t.colors.text },
+    meta: { ...t.typography.caption, marginTop: 4, textTransform: 'capitalize', color: t.colors.textSecondary },
     actions: { gap: 8, alignItems: 'flex-end' },
-    actionText: { fontSize: 12, fontWeight: '700', color: t.colors.primary },
+    actionText: { ...t.typography.caption, fontWeight: '700', color: t.colors.primary },
     addRow: { paddingVertical: 10 },
-    addRowText: { fontSize: 14, fontWeight: '600', color: t.colors.primary },
+    addRowText: { ...t.typography.bodySemibold, color: t.colors.primary },
   });
 }

@@ -25,7 +25,7 @@ export function useSupportTickets() {
     setSubmitSuccess(null);
   }, []);
 
-  const { data: tickets, isLoading, refetch } = usePaginatedList<SupportTicket, 'tickets'>({
+  const { data: tickets, isLoading, isRefetching, refetch } = usePaginatedList<SupportTicket, 'tickets'>({
     queryKey: ['support-tickets'],
     url: '/support',
     itemsKey: 'tickets',
@@ -53,6 +53,8 @@ export function useSupportTickets() {
   return {
     loading,
     isLoading,
+    isRefetching,
+    refetch,
     tickets,
     control,
     handleSubmit,

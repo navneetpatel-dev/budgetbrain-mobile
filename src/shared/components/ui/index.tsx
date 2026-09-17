@@ -9,11 +9,13 @@ import {
   TextInputProps,
   ViewStyle,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/shared/theme';
 import type { AppTheme } from '@/shared/theme';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon';
 import { getLoadingLabel } from '@/shared/utils/buttonLoadingLabel';
+import { useSpringPress } from '@/shared/hooks/useSpringPress';
 
 export { Screen, ScreenContainer, ScreenLoader, ScreenSkeleton, ResponsiveGrid, SummaryMetricsGrid, StickyHeaderScreen, ScreenWrapper } from './layout';
 export {
@@ -83,6 +85,7 @@ export function Button({
 }: ButtonProps) {
   const theme = useTheme();
   const styles = useMemo(() => createButtonStyles(theme), [theme]);
+  const spring = useSpringPress();
   const isPrimary = variant === 'primary';
   const isOutline = variant === 'outline';
   const isGhost = variant === 'ghost';
@@ -135,7 +138,7 @@ export function Button({
     </View>
   );
 
-  const pressableStyle = ({ pressed }: { pressed: boolean }) => [
+  const pressableStyle = [
     styles.button,
     size === 'lg' && styles.buttonLg,
     !isPrimary && isSecondary && styles.secondary,
@@ -144,32 +147,34 @@ export function Button({
     !isPrimary && isGhost && styles.ghost,
     isDangerGhost && styles.dangerGhost,
     disabled && !loading && styles.disabled,
-    pressed && !isDisabled && styles.pressed,
   ];
 
   if (isPrimary) {
     return (
       <Pressable
         onPress={onPress}
+        onPressIn={spring.onPressIn}
+        onPressOut={spring.onPressOut}
         disabled={isDisabled}
         accessibilityRole="button"
         accessibilityLabel={busyLabel}
         accessibilityState={{ disabled: isDisabled, busy: !!loading }}
-        style={({ pressed }) => [
+        style={[
           styles.gradientWrap,
           size === 'lg' && styles.buttonLgWrap,
-          pressed && !isDisabled && styles.pressed,
           disabled && !loading && styles.disabled,
         ]}
       >
-        <LinearGradient
-          colors={[theme.colors.primary, theme.colors.gradientEnd]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[styles.button, styles.primaryGradient, size === 'lg' && styles.buttonLg, size === 'lg' && styles.buttonLgInner]}
-        >
-          {inner}
-        </LinearGradient>
+        <Animated.View style={spring.style}>
+          <LinearGradient
+            colors={[theme.colors.primary, theme.colors.gradientEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.button, styles.primaryGradient, size === 'lg' && styles.buttonLg, size === 'lg' && styles.buttonLgInner]}
+          >
+            {inner}
+          </LinearGradient>
+        </Animated.View>
       </Pressable>
     );
   }
@@ -177,16 +182,15 @@ export function Button({
   return (
     <Pressable
       onPress={onPress}
+      onPressIn={spring.onPressIn}
+      onPressOut={spring.onPressOut}
       disabled={isDisabled}
       accessibilityRole="button"
       accessibilityLabel={busyLabel}
       accessibilityState={{ disabled: isDisabled, busy: !!loading }}
-      style={({ pressed }) => [
-        ...pressableStyle({ pressed }),
-        size === 'lg' && styles.buttonLgWrap,
-      ]}
+      style={[...pressableStyle, size === 'lg' && styles.buttonLgWrap]}
     >
-      {inner}
+      <Animated.View style={spring.style}>{inner}</Animated.View>
     </Pressable>
   );
 }
@@ -335,6 +339,7 @@ interface SummaryCardProps {
 export function SummaryCard({ title, amount, color, subtitle, icon, onPress }: SummaryCardProps) {
   const theme = useTheme();
   const styles = useMemo(() => createSummaryStyles(theme), [theme]);
+  const spring = useSpringPress();
   const tint = color ?? theme.colors.text;
 
   const content = (
@@ -355,8 +360,16 @@ export function SummaryCard({ title, amount, color, subtitle, icon, onPress }: S
 
   if (onPress) {
     return (
-      <Pressable onPress={onPress} style={({ pressed }) => [styles.summaryPressable, pressed && { opacity: 0.9 }]}>
-        <Card variant="elevated" style={styles.summaryCard}>{content}</Card>
+      <Pressable
+        onPress={onPress}
+        onPressIn={spring.onPressIn}
+        onPressOut={spring.onPressOut}
+        style={styles.summaryPressable}
+        accessibilityRole="button"
+      >
+        <Animated.View style={spring.style}>
+          <Card variant="elevated" style={styles.summaryCard}>{content}</Card>
+        </Animated.View>
       </Pressable>
     );
   }
@@ -393,7 +406,12 @@ export function EmptyState({
       <Text style={styles.emptyTitle}>{title}</Text>
       {subtitle && <Text style={styles.emptySubtitle}>{subtitle}</Text>}
       {action && onAction && (
-        <Pressable onPress={onAction} style={({ pressed }) => [pressed && { opacity: 0.9 }]}>
+        <Pressable
+          onPress={onAction}
+          style={({ pressed }) => [pressed && { opacity: 0.9 }]}
+          accessibilityRole="button"
+          accessibilityLabel={action}
+        >
           <LinearGradient
             colors={[theme.colors.primary, theme.colors.gradientEnd]}
             start={{ x: 0, y: 0 }}
@@ -433,7 +451,7 @@ export function SectionHeader({
     <View style={styles.row}>
       <Text style={styles.title}>{title}</Text>
       {action && onAction && (
-        <Pressable onPress={onAction} hitSlop={8}>
+        <Pressable onPress={onAction} hitSlop={8} accessibilityRole="button" accessibilityLabel={action}>
           <Text style={styles.action}>{action}</Text>
         </Pressable>
       )}
@@ -504,9 +522,7 @@ export function DetailHero({
           paddingHorizontal: theme.spacing.md,
         },
         amount: {
-          fontSize: 36,
-          fontWeight: '800',
-          letterSpacing: -1,
+          ...theme.typography.amountLg,
           color: amountColor ?? theme.colors.text,
         },
         title: {
@@ -700,7 +716,6 @@ function createButtonStyles(t: AppTheme) {
     dangerGhost: { backgroundColor: 'transparent' },
     ghost: { backgroundColor: t.colors.primarySoft },
     disabled: { opacity: 0.5 },
-    pressed: { opacity: 0.88, transform: [{ scale: 0.98 }] },
     text: { ...t.typography.bodySemibold, color: t.colors.text },
     primaryText: { color: t.colors.onPrimary },
     secondaryText: { color: t.colors.text },

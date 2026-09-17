@@ -27,6 +27,11 @@ export function useExpenseDetail(expenseId: string) {
   const [editing, setEditing] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [justSaved, setJustSaved] = useState(false);
+  const flashSaved = useCallback(() => {
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 2500);
+  }, []);
   const clearFeedback = useCallback(() => {
     setSubmitError(null);
   }, []);
@@ -35,7 +40,7 @@ export function useExpenseDetail(expenseId: string) {
     router.dismissTo('/(tabs)');
   }, [router]);
 
-  const { data: expense, isLoading, isError, refetch } = useQuery({
+  const { data: expense, isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ['expense', expenseId],
     queryFn: () => apiGet<Transaction>(`/expenses/${expenseId}`),
     enabled: !!expenseId,
@@ -87,6 +92,7 @@ export function useExpenseDetail(expenseId: string) {
             : prev,
         );
         setEditing(false);
+        flashSaved();
         return;
       }
       const updated = await apiPatch<Transaction>(`/expenses/${expenseId}`, payload);
@@ -94,6 +100,7 @@ export function useExpenseDetail(expenseId: string) {
       void queryClient.invalidateQueries({ queryKey: ['expense', expenseId] });
       invalidateMoneyQueries(queryClient);
       setEditing(false);
+      flashSaved();
     } catch (err) {
       setSubmitError(getApiErrorMessage(err, 'Could not update expense'));
     } finally {
@@ -146,8 +153,10 @@ export function useExpenseDetail(expenseId: string) {
     isLoading,
     isError,
     refetch,
+    isRefetching,
     editing,
     setEditing,
+    justSaved,
     loading: pendingAction !== null,
     updating: pendingAction === 'update',
     duplicating: pendingAction === 'duplicate',

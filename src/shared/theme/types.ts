@@ -30,16 +30,42 @@ export interface ThemeColors {
 }
 
 export interface ThemeTypography {
-  display: { fontSize: number; fontWeight: '700' | '800'; letterSpacing: number; fontFamily?: string };
-  title: { fontSize: number; fontWeight: '700'; letterSpacing: number; fontFamily?: string };
-  titleSm: { fontSize: number; fontWeight: '600'; fontFamily?: string };
-  body: { fontSize: number; fontWeight: '400'; fontFamily?: string };
-  bodyMedium: { fontSize: number; fontWeight: '500'; fontFamily?: string };
-  bodySemibold: { fontSize: number; fontWeight: '600'; fontFamily?: string };
-  caption: { fontSize: number; fontWeight: '500'; fontFamily?: string };
-  label: { fontSize: number; fontWeight: '600'; letterSpacing: number; textTransform: 'none' | 'uppercase'; fontFamily?: string };
-  amount: { fontSize: number; fontWeight: '700'; letterSpacing: number; fontFamily?: string; fontVariant?: Array<'tabular-nums'> };
-  amountLg: { fontSize: number; fontWeight: '700' | '800'; letterSpacing: number; fontFamily?: string; fontVariant?: Array<'tabular-nums'> };
+  display: { fontSize: number; fontWeight: '700' | '800'; letterSpacing: number; fontFamily?: string; lineHeight: number };
+  title: { fontSize: number; fontWeight: '700'; letterSpacing: number; fontFamily?: string; lineHeight: number };
+  titleSm: { fontSize: number; fontWeight: '600'; fontFamily?: string; lineHeight: number };
+  body: { fontSize: number; fontWeight: '400'; fontFamily?: string; lineHeight: number };
+  bodyMedium: { fontSize: number; fontWeight: '500'; fontFamily?: string; lineHeight: number };
+  bodySemibold: { fontSize: number; fontWeight: '600'; fontFamily?: string; lineHeight: number };
+  caption: { fontSize: number; fontWeight: '500'; fontFamily?: string; lineHeight: number };
+  label: { fontSize: number; fontWeight: '600'; letterSpacing: number; textTransform: 'none' | 'uppercase'; fontFamily?: string; lineHeight: number };
+  amount: { fontSize: number; fontWeight: '700'; letterSpacing: number; fontFamily?: string; fontVariant?: Array<'tabular-nums'>; lineHeight: number };
+  amountLg: { fontSize: number; fontWeight: '700' | '800'; letterSpacing: number; fontFamily?: string; fontVariant?: Array<'tabular-nums'>; lineHeight: number };
+}
+
+/** Motion durations (ms) and spring config — shared "feel" spec with the web app's Framer Motion tokens. */
+export interface ThemeMotionDurations {
+  fast: number;
+  base: number;
+  slow: number;
+}
+
+export interface ThemeMotionSpring {
+  damping: number;
+  stiffness: number;
+}
+
+export interface ThemeMotion {
+  duration: ThemeMotionDurations;
+  spring: ThemeMotionSpring;
+}
+
+/** Named icon size scale, in px — passed to AppIcon's `size` prop alongside raw numbers. */
+export interface ThemeIconSizes {
+  xs: number;
+  sm: number;
+  md: number;
+  lg: number;
+  xl: number;
 }
 
 export interface ThemeSpacing {
@@ -75,5 +101,7 @@ export interface AppTheme {
   spacing: ThemeSpacing;
   radii: ThemeRadii;
   shadows: ThemeShadows;
+  motion: ThemeMotion;
+  iconSizes: ThemeIconSizes;
   isDark: boolean;
 }

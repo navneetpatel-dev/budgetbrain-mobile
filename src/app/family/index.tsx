@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { StyleSheet, Text, View, Pressable } from 'react-native';
+import { RefreshControl, StyleSheet, Text, View, Pressable } from 'react-native';
 import { Controller } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -59,12 +59,12 @@ function GroupBalances({ groupId, currency }: { groupId: string; currency: strin
 
         return (
           <View key={i} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-            <Text style={{ fontSize: 13, color: theme.colors.textSecondary, flex: 1 }}>
+            <Text style={{ ...theme.typography.caption, color: theme.colors.textSecondary, flex: 1 }}>
               {nameFor(b.fromUserId)} owes {nameFor(b.toUserId)} {formatCurrency(b.amount, currency)}
             </Text>
             {matchingSplitIds.length > 0 ? (
               <Pressable onPress={() => settleMany(matchingSplitIds)} disabled={isSettling} hitSlop={8}>
-                <Text style={{ fontSize: 12, fontWeight: '700', color: theme.colors.primary }}>
+                <Text style={{ ...theme.typography.caption, fontWeight: '700', color: theme.colors.primary }}>
                   {isSettling ? 'Settling…' : 'Settle up'}
                 </Text>
               </Pressable>
@@ -82,6 +82,8 @@ export default function FamilyScreen() {
   const {
     memberships,
     isLoading,
+    isRefetching,
+    refetch,
     loading,
     groupForm,
     joinForm,
@@ -104,6 +106,7 @@ export default function FamilyScreen() {
           subtitle="Manage groups and invite members"
         />
       }
+      refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />}
     >
       {isLoading ? <FamilySkeleton /> : null}
       {!isLoading && groups.length > 0 && (

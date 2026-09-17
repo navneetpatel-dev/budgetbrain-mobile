@@ -1,11 +1,14 @@
+import { RefreshControl } from 'react-native';
 import { Controller } from 'react-hook-form';
 import { Button, Input, StackScrollScreen, GroupedCard, ListRow, FormSection, FormActions, FormErrorBanner, FormSuccessBanner, SupportSkeleton } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useSupportTickets } from '@/features/support/hooks/useSupportTickets';
+import { useTheme } from '@/shared/theme';
 import { FieldLimits, maxLen, textRules, ValidationMessages } from '@/shared/validation/fieldLimits';
 
 export default function SupportScreen() {
-  const { loading, isLoading, tickets, control, handleSubmit, errors, onSubmit, submitError, submitSuccess } = useSupportTickets();
+  const theme = useTheme();
+  const { loading, isLoading, isRefetching, refetch, tickets, control, handleSubmit, errors, onSubmit, submitError, submitSuccess } = useSupportTickets();
 
   return (
     <StackScrollScreen
@@ -14,6 +17,9 @@ export default function SupportScreen() {
           screen="support"
           subtitle="Describe your issue and we will get back to you"
         />
+      }
+      refreshControl={
+        <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
       }
     >
       {isLoading ? <SupportSkeleton /> : null}

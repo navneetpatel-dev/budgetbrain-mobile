@@ -7,6 +7,7 @@ import {
   FormSection,
   FormActions,
   FormErrorBanner,
+  FormSuccessBanner,
   useStackBack,
 } from '@/shared/components/ui';
 import { useContributeGoal, type ContributeForm } from '@/features/goals/hooks/useContributeGoal';
@@ -17,7 +18,8 @@ export default function ContributeGoalScreen() {
   const { amountLabel } = useUserCurrency();
   const { id } = useLocalSearchParams<{ id: string }>();
   const goBack = useStackBack(`/goal/${id}` as Href);
-  const { contribute, loading, submitError } = useContributeGoal(id);
+  const { contribute, loading, submitError, justSaved } = useContributeGoal(id);
+  const disabled = loading || justSaved;
 
   const { control, handleSubmit, formState: { errors } } = useForm<ContributeForm>({
     defaultValues: { amount: '', notes: '' },
@@ -25,6 +27,7 @@ export default function ContributeGoalScreen() {
 
   return (
     <FormStackScreen eyebrow="Goal" title="Contribute" subtitle="Add to your goal" onBack={goBack}>
+      {justSaved ? <FormSuccessBanner message="Contribution added" /> : null}
       {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="Contribution" subtitle="How much are you adding?">
         <Controller
@@ -40,7 +43,7 @@ export default function ContributeGoalScreen() {
               error={errors.amount?.message}
               leftIcon="goals"
               placeholder="0.00"
-              disabled={loading}
+              disabled={disabled}
             />
           )}
         />
@@ -49,7 +52,7 @@ export default function ContributeGoalScreen() {
           name="notes"
           rules={optionalTextRules('notes')}
           render={({ field: { onChange, value } }) => (
-            <Input label="Notes" maxLength={maxLen('notes')} value={value} onChangeText={onChange} placeholder="Optional note..." multiline disabled={loading} error={errors.notes?.message} />
+            <Input label="Notes" maxLength={maxLen('notes')} value={value} onChangeText={onChange} placeholder="Optional note..." multiline disabled={disabled} error={errors.notes?.message} />
           )}
         />
       </FormSection>

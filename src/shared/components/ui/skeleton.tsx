@@ -3,12 +3,18 @@ import { Animated, Easing, View, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/shared/theme';
 import { useScreenInsets } from '@/shared/hooks/useLayout';
+import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
 
 /* ── Shimmer ── */
 
 function useShimmer() {
   const anim = useRef(new Animated.Value(0)).current;
+  const reducedMotion = useReducedMotion();
   useEffect(() => {
+    if (reducedMotion) {
+      anim.setValue(0);
+      return;
+    }
     const loop = Animated.loop(
       Animated.timing(anim, {
         toValue: 1,
@@ -19,7 +25,7 @@ function useShimmer() {
     );
     loop.start();
     return () => loop.stop();
-  }, [anim]);
+  }, [anim, reducedMotion]);
   return anim;
 }
 

@@ -31,6 +31,9 @@ export function ThemePicker({
             key={m.id}
             onPress={() => onModeChange(m.id)}
             style={[styles.modeBtn, mode === m.id && styles.modeBtnActive]}
+            accessibilityRole="button"
+            accessibilityLabel={`${m.label} theme`}
+            accessibilityState={{ selected: mode === m.id }}
           >
             <AppIcon name={m.icon} size={20} color={mode === m.id ? theme.colors.primary : theme.colors.textSecondary} />
             <Text style={[styles.modeLabel, mode === m.id && styles.modeLabelActive]}>{m.label}</Text>
@@ -45,6 +48,9 @@ export function ThemePicker({
             key={a.id}
             onPress={() => onAccentChange(a.id)}
             style={[styles.accentBtn, accent === a.id && styles.accentBtnActive]}
+            accessibilityRole="button"
+            accessibilityLabel={`${a.label} accent`}
+            accessibilityState={{ selected: accent === a.id }}
           >
             <View style={[styles.swatch, { backgroundColor: a.swatch }]}>
               {accent === a.id && <View style={styles.swatchCheck} />}

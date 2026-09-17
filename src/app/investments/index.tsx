@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, Pressable, Text } from 'react-native';
+import { RefreshControl, StyleSheet, View, Pressable, Text } from 'react-native';
 import { Controller } from 'react-hook-form';
 import {
   Input,
@@ -31,6 +31,8 @@ export default function InvestmentsScreen() {
   const {
     data,
     isLoading,
+    isRefetching,
+    refetch,
     showForm,
     setShowForm,
     editingId,
@@ -148,6 +150,7 @@ export default function InvestmentsScreen() {
         data={isLoading ? [] : items}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingBottom: fabBottom + 72 }}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />}
         ListEmptyComponent={
           isLoading ? (
             <ListRowsSkeleton count={4} variant="account" />

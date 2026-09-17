@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
 import { Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import { parseIsoDate, toIsoDate } from '@/shared/utils/dateBounds';
+import { useSheetEnterAnimation } from '@/shared/hooks/useSheetEnterAnimation';
 
 function formatDisplayDate(value: string) {
   if (!value) return 'Select date';
@@ -38,6 +40,7 @@ export function DateInput({
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [showPicker, setShowPicker] = useState(false);
   const [focused, setFocused] = useState(false);
+  const sheetAnim = useSheetEnterAnimation(showPicker, 'sheet');
 
   const handleChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
     if (Platform.OS === 'android') {
@@ -86,9 +89,9 @@ export function DateInput({
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
       {Platform.OS === 'ios' ? (
-        <Modal visible={showPicker} transparent animationType="slide" onRequestClose={closePicker}>
+        <Modal visible={showPicker} transparent animationType="fade" onRequestClose={closePicker}>
           <Pressable style={styles.sheetBackdrop} onPress={closePicker} />
-          <View style={[styles.sheet, { paddingBottom: insets.bottom + 12 }]}>
+          <Animated.View style={[styles.sheet, { paddingBottom: insets.bottom + 12 }, sheetAnim]}>
             <View style={styles.sheetHandle} />
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>{label ?? 'Select date'}</Text>
@@ -105,7 +108,7 @@ export function DateInput({
               maximumDate={maximumDate}
               themeVariant={theme.isDark ? 'dark' : 'light'}
             />
-          </View>
+          </Animated.View>
         </Modal>
       ) : (
         showPicker && (

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Text, View } from 'react-native';
+import { RefreshControl, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { Href } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
@@ -16,6 +16,7 @@ import {
   DetailMetaList,
   ProgressBar,
   FormErrorBanner,
+  FormSuccessBanner,
   useStackBack,
 } from '@/shared/components/ui';
 import { useGoalDetail, type GoalForm } from '@/features/goals/hooks/useGoalDetail';
@@ -33,8 +34,9 @@ export default function GoalDetailScreen() {
   const { amountLabel } = useUserCurrency();
   const { id, edit } = useLocalSearchParams<{ id: string; edit?: string }>();
   const openedInEdit = edit === '1' || edit === 'true';
-  const { goal, isLoading, isError, refetch, loading, save, populateForm, confirmDelete, submitError } = useGoalDetail(id);
+  const { goal, isLoading, isError, refetch, isRefetching, loading, save, populateForm, confirmDelete, submitError } = useGoalDetail(id);
   const [editing, setEditing] = useState(openedInEdit);
+  const [justSaved, setJustSaved] = useState(false);
   /** True only when Edit was tapped from the view screen (not list → ?edit=1). */
   const editFromViewRef = useRef(false);
 
@@ -91,7 +93,11 @@ export default function GoalDetailScreen() {
       title={editing ? 'Edit Goal' : goal.name}
       subtitle={editing ? 'Update goal' : `${pct}% achieved`}
       onBack={editing ? exitEdit : goBack}
+      refreshControl={
+        editing ? undefined : <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
+      }
     >
+      {justSaved ? <FormSuccessBanner message="Goal updated" /> : null}
       {submitError ? <FormErrorBanner message={submitError} /> : null}
 
       {!editing ? (
@@ -105,12 +111,12 @@ export default function GoalDetailScreen() {
               progress={pct}
               color={pct >= 100 ? theme.colors.success : theme.colors.primary}
             />
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
-              <Text style={{ fontSize: 12, fontWeight: '500', color: theme.colors.textTertiary }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: theme.spacing.xs }}>
+              <Text style={{ ...theme.typography.caption, color: theme.colors.textTertiary }}>
                 {pct}% achieved
               </Text>
               {pct >= 100 ? (
-                <Text style={{ fontSize: 12, fontWeight: '600', color: theme.colors.success }}>Done</Text>
+                <Text style={{ ...theme.typography.caption, fontWeight: '600', color: theme.colors.success }}>Done</Text>
               ) : null}
             </View>
           </View>
@@ -176,6 +182,8 @@ export default function GoalDetailScreen() {
               if (await save(data)) {
                 editFromViewRef.current = false;
                 setEditing(false);
+                setJustSaved(true);
+                setTimeout(() => setJustSaved(false), 2500);
               }
             })}
             primaryLoading={loading}

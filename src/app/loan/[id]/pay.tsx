@@ -7,6 +7,7 @@ import {
   FormSection,
   FormActions,
   FormErrorBanner,
+  FormSuccessBanner,
   useStackBack,
 } from '@/shared/components/ui';
 import { usePayLoan, type PayLoanForm } from '@/features/loans/hooks/usePayLoan';
@@ -17,7 +18,8 @@ export default function PayLoanScreen() {
   const { amountLabel } = useUserCurrency();
   const { id } = useLocalSearchParams<{ id: string }>();
   const goBack = useStackBack(`/loan/${id}` as Href);
-  const { pay, loading, submitError } = usePayLoan(id);
+  const { pay, loading, submitError, justSaved } = usePayLoan(id);
+  const disabled = loading || justSaved;
 
   const { control, handleSubmit, formState: { errors } } = useForm<PayLoanForm>({
     defaultValues: { amount: '', notes: '' },
@@ -25,6 +27,7 @@ export default function PayLoanScreen() {
 
   return (
     <FormStackScreen eyebrow="Loan" title="Record Payment" subtitle="Reduce your remaining balance" onBack={goBack}>
+      {justSaved ? <FormSuccessBanner message="Payment recorded" /> : null}
       {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="Payment" subtitle="How much did you pay?">
         <Controller
@@ -40,7 +43,7 @@ export default function PayLoanScreen() {
               error={errors.amount?.message}
               leftIcon="wallet"
               placeholder="0.00"
-              disabled={loading}
+              disabled={disabled}
             />
           )}
         />
@@ -49,7 +52,7 @@ export default function PayLoanScreen() {
           name="notes"
           rules={optionalTextRules('notes')}
           render={({ field: { onChange, value } }) => (
-            <Input label="Notes" maxLength={maxLen('notes')} value={value} onChangeText={onChange} placeholder="Optional note..." multiline disabled={loading} error={errors.notes?.message} />
+            <Input label="Notes" maxLength={maxLen('notes')} value={value} onChangeText={onChange} placeholder="Optional note..." multiline disabled={disabled} error={errors.notes?.message} />
           )}
         />
       </FormSection>

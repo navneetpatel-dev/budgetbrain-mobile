@@ -18,7 +18,7 @@ export function useBudgetDetail(id: string) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const clearSubmitError = useCallback(() => setSubmitError(null), []);
 
-  const { data: budget, isLoading, isError, refetch } = useQuery({
+  const { data: budget, isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ['budget', id],
     queryFn: () => apiGet<Budget>(`/budgets/${id}`),
     enabled: !!id,
@@ -63,6 +63,7 @@ export function useBudgetDetail(id: string) {
     isLoading,
     isError,
     refetch,
+    isRefetching,
     loading,
     save,
     populateForm,

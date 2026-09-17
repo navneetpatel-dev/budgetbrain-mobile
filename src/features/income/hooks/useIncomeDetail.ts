@@ -27,7 +27,7 @@ export function useIncomeDetail(id: string) {
     router.dismissTo('/(tabs)');
   }, [router]);
 
-  const { data: income, isLoading, isError, refetch } = useQuery({
+  const { data: income, isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ['income', id],
     queryFn: () => apiGet<Transaction>(`/income/${id}`),
     enabled: !!id,
@@ -98,6 +98,7 @@ export function useIncomeDetail(id: string) {
     isLoading,
     isError,
     refetch,
+    isRefetching,
     loading: pendingAction !== null,
     updating: pendingAction === 'update',
     duplicating: pendingAction === 'duplicate',

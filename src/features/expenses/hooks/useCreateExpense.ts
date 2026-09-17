@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { apiPost } from '@/shared/services/api';
+import axios from 'axios';
+import { apiPost, getApiErrorMessage } from '@/shared/services/api';
 import { invalidateMoneyQueries } from '@/shared/services/queryInvalidation';
 import { uploadReceipt } from '@/features/expenses/services/receipts';
 import { queueOfflineAction, isOnline } from '@/shared/services/offlineSync';
@@ -23,12 +24,18 @@ export type CreateExpenseResult =
   | { ok: true; offline: boolean }
   | { ok: false; error: 'validation' | 'offline' | 'unknown' };
 
+/** How long the success confirmation stays visible before navigating back. */
+const SAVE_CONFIRM_DELAY_MS = 900;
+
 export function useCreateExpense() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [justSaved, setJustSaved] = useState(false);
 
   const create = async (data: ExpenseForm, receipt?: Receipt | null): Promise<CreateExpenseResult> => {
+    setSubmitError(null);
     if (!data.categoryId) {
       return { ok: false, error: 'validation' };
     }
@@ -63,17 +70,33 @@ export function useCreateExpense() {
 
       trackEvent('expense_created', { amount: payload.amount, hasReceipt: !!receipt });
       invalidateMoneyQueries(queryClient);
-      router.back();
+      setJustSaved(true);
+      setTimeout(() => router.back(), SAVE_CONFIRM_DELAY_MS);
       return { ok: true, offline: false };
-    } catch {
-      queueOfflineAction('create', payload);
-      invalidateMoneyQueries(queryClient);
-      router.back();
-      return { ok: false, error: 'offline' };
+    } catch (err) {
+      // No response at all (device thought it was online but the request never reached the
+      // server) is the one case still worth silently queueing for offline sync. Any error the
+      // server actually returned (validation, auth, 5xx) is a real failure the user needs to see.
+      const isGenuineNetworkFailure = axios.isAxiosError(err) && !err.response;
+      if (isGenuineNetworkFailure) {
+        queueOfflineAction('create', payload);
+        invalidateMoneyQueries(queryClient);
+        router.back();
+        return { ok: true, offline: true };
+      }
+
+      setSubmitError(getApiErrorMessage(err, 'Could not save expense'));
+      return { ok: false, error: 'unknown' };
     } finally {
       setLoading(false);
     }
   };
 
-  return { create, loading };
+  return {
+    create,
+    loading,
+    submitError,
+    clearSubmitError: () => setSubmitError(null),
+    justSaved,
+  };
 }

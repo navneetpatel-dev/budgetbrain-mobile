@@ -10,11 +10,14 @@ export interface ContributeForm {
   notes: string;
 }
 
+const SAVE_CONFIRM_DELAY_MS = 900;
+
 export function useContributeGoal(goalId: string) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [justSaved, setJustSaved] = useState(false);
   const clearSubmitError = useCallback(() => setSubmitError(null), []);
 
   const contribute = async (data: ContributeForm) => {
@@ -29,7 +32,8 @@ export function useContributeGoal(goalId: string) {
         queryClient.setQueryData(['goal', goalId], result.goal);
       }
       invalidateGoalQueries(queryClient, goalId);
-      router.back();
+      setJustSaved(true);
+      setTimeout(() => router.back(), SAVE_CONFIRM_DELAY_MS);
     } catch (err) {
       setSubmitError(getApiErrorMessage(err, 'Could not add contribution'));
     } finally {
@@ -37,5 +41,5 @@ export function useContributeGoal(goalId: string) {
     }
   };
 
-  return { contribute, loading, submitError, clearSubmitError };
+  return { contribute, loading, submitError, clearSubmitError, justSaved };
 }

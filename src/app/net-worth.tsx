@@ -176,9 +176,7 @@ function createStyles(t: ReturnType<typeof useTheme>) {
       borderColor: t.colors.primary + '33',
     },
     heroLabel: {
-      fontSize: 12,
-      fontWeight: '600',
-      letterSpacing: 0.2,
+      ...t.typography.label,
       color: t.colors.textSecondary,
     },
     heroValue: {

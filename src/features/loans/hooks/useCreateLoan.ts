@@ -16,11 +16,14 @@ export interface LoanForm {
   notes: string;
 }
 
+const SAVE_CONFIRM_DELAY_MS = 900;
+
 export function useCreateLoan() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [justSaved, setJustSaved] = useState(false);
   const clearSubmitError = useCallback(() => setSubmitError(null), []);
 
   const create = async (data: LoanForm) => {
@@ -38,7 +41,8 @@ export function useCreateLoan() {
         notes: data.notes || undefined,
       });
       invalidateLoanQueries(queryClient);
-      router.back();
+      setJustSaved(true);
+      setTimeout(() => router.back(), SAVE_CONFIRM_DELAY_MS);
     } catch (err) {
       setSubmitError(getApiErrorMessage(err, 'Could not create loan'));
     } finally {
@@ -46,5 +50,5 @@ export function useCreateLoan() {
     }
   };
 
-  return { create, loading, submitError, clearSubmitError };
+  return { create, loading, submitError, clearSubmitError, justSaved };
 }

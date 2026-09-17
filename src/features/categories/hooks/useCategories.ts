@@ -25,7 +25,7 @@ export function useCategories() {
   const clearSubmitError = useCallback(() => setSubmitError(null), []);
   const clearListError = useCallback(() => setListError(null), []);
 
-  const { data, isLoading } = usePaginatedList<Category, 'categories'>({
+  const { data, isLoading, isRefetching, refetch } = usePaginatedList<Category, 'categories'>({
     queryKey: ['categories'],
     url: '/categories',
     itemsKey: 'categories',
@@ -100,6 +100,8 @@ export function useCategories() {
   return {
     data,
     isLoading,
+    isRefetching,
+    refetch,
     editingId,
     showForm,
     setShowForm,

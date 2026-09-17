@@ -8,6 +8,7 @@ import {
   FormSection,
   FormActions,
   FormErrorBanner,
+  FormSuccessBanner,
 } from '@/shared/components/ui';
 import { useCreateGoal, type GoalForm } from '@/features/goals/hooks/useCreateGoal';
 import { GOAL_TYPES } from '@/shared/constants/config';
@@ -17,7 +18,8 @@ import { DateBounds } from '@/shared/utils/dateBounds';
 
 export default function AddGoalScreen() {
   const { amountLabel } = useUserCurrency();
-  const { create, loading, submitError } = useCreateGoal();
+  const { create, loading, submitError, justSaved } = useCreateGoal();
+  const disabled = loading || justSaved;
 
   const { control, handleSubmit, setValue, watch, formState: { errors } } = useForm<GoalForm>({
     defaultValues: { name: '', type: 'emergency_fund', targetAmount: '', targetDate: '' },
@@ -27,6 +29,7 @@ export default function AddGoalScreen() {
 
   return (
     <FormStackScreen eyebrow="Goal" title="Create Goal" subtitle="Set a savings target">
+      {justSaved ? <FormSuccessBanner message="Goal created" /> : null}
       {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="Goal details" subtitle="What are you saving for?">
         <Controller
@@ -34,7 +37,7 @@ export default function AddGoalScreen() {
           name="name"
           rules={textRules('entityName')}
           render={({ field: { onChange, value } }) => (
-            <Input label="Goal name" maxLength={maxLen('entityName')} value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="goals" placeholder="e.g. Emergency fund" disabled={loading} />
+            <Input label="Goal name" maxLength={maxLen('entityName')} value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="goals" placeholder="e.g. Emergency fund" disabled={disabled} />
           )}
         />
 
@@ -44,7 +47,7 @@ export default function AddGoalScreen() {
           value={goalType}
           onChange={(v) => setValue('type', v)}
           getLabel={(v) => GOAL_TYPES.find((t) => t.value === v)?.label ?? v}
-          disabled={loading}
+          disabled={disabled}
         />
 
         <Controller
@@ -52,7 +55,7 @@ export default function AddGoalScreen() {
           name="targetAmount"
           rules={amountRules()}
           render={({ field: { onChange, value } }) => (
-            <Input label={amountLabel('Target amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.targetAmount?.message} leftIcon="wallet" placeholder="0.00" disabled={loading} />
+            <Input label={amountLabel('Target amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.targetAmount?.message} leftIcon="wallet" placeholder="0.00" disabled={disabled} />
           )}
         />
       </FormSection>
@@ -70,7 +73,7 @@ export default function AddGoalScreen() {
                 value={value}
                 onChange={onChange}
                 error={errors.targetDate?.message}
-                disabled={loading}
+                disabled={disabled}
                 minimumDate={b.minimumDate}
                 maximumDate={b.maximumDate}
               />

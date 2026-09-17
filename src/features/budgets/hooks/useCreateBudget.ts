@@ -17,11 +17,15 @@ export interface BudgetForm {
   rollover: boolean;
 }
 
+/** How long the success confirmation stays visible before navigating back. */
+const SAVE_CONFIRM_DELAY_MS = 900;
+
 export function useCreateBudget() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [justSaved, setJustSaved] = useState(false);
   const clearSubmitError = useCallback(() => setSubmitError(null), []);
 
   const create = async (data: BudgetForm) => {
@@ -49,7 +53,8 @@ export function useCreateBudget() {
         rollover: data.type === 'custom' ? false : data.rollover,
       });
       invalidateBudgetQueries(queryClient);
-      router.back();
+      setJustSaved(true);
+      setTimeout(() => router.back(), SAVE_CONFIRM_DELAY_MS);
     } catch (err) {
       setSubmitError(getApiErrorMessage(err, 'Could not create budget'));
     } finally {
@@ -57,5 +62,5 @@ export function useCreateBudget() {
     }
   };
 
-  return { create, loading, submitError, clearSubmitError };
+  return { create, loading, submitError, clearSubmitError, justSaved };
 }

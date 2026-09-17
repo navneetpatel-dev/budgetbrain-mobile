@@ -21,7 +21,7 @@ export function useGoalDetail(id: string) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const clearSubmitError = useCallback(() => setSubmitError(null), []);
 
-  const { data: goal, isLoading, isError, refetch } = useQuery({
+  const { data: goal, isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ['goal', id],
     queryFn: () => apiGet<Goal>(`/goals/${id}`),
     enabled: !!id,
@@ -81,6 +81,7 @@ export function useGoalDetail(id: string) {
     isLoading,
     isError,
     refetch,
+    isRefetching,
     loading,
     save,
     populateForm,

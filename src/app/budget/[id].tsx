@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Text, View, Switch } from 'react-native';
+import { RefreshControl, Text, View, Switch } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { Href } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
@@ -15,6 +15,7 @@ import {
   DetailMetaList,
   ProgressBar,
   FormErrorBanner,
+  FormSuccessBanner,
   useStackBack,
 } from '@/shared/components/ui';
 import { useBudgetDetail, type BudgetForm } from '@/features/budgets/hooks/useBudgetDetail';
@@ -34,10 +35,11 @@ export default function BudgetDetailScreen() {
   const { amountLabel } = useUserCurrency();
   const { id, edit } = useLocalSearchParams<{ id: string; edit?: string }>();
   const openedInEdit = edit === '1' || edit === 'true';
-  const { budget, isLoading, isError, refetch, loading, save, populateForm, submitError } = useBudgetDetail(id);
+  const { budget, isLoading, isError, refetch, isRefetching, loading, save, populateForm, submitError } = useBudgetDetail(id);
   const { deleteBudget } = useDeleteBudget();
   const [editing, setEditing] = useState(openedInEdit);
   const [deleting, setDeleting] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
   /** True only when Edit was tapped from the view screen (not list → ?edit=1). */
   const editFromViewRef = useRef(false);
 
@@ -99,7 +101,11 @@ export default function BudgetDetailScreen() {
       title={editing ? 'Edit Budget' : budget.name}
       subtitle={editing ? 'Update budget' : `${pct}% used`}
       onBack={editing ? exitEdit : goBack}
+      refreshControl={
+        editing ? undefined : <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
+      }
     >
+      {justSaved ? <FormSuccessBanner message="Budget updated" /> : null}
       {submitError ? <FormErrorBanner message={submitError} /> : null}
 
       {!editing ? (
@@ -110,8 +116,8 @@ export default function BudgetDetailScreen() {
           />
           <View style={{ marginBottom: theme.spacing.lg }}>
             <ProgressBar progress={pct} color={barColor} />
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
-              <Text style={{ fontSize: 12, fontWeight: '500', color: theme.colors.textTertiary }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: theme.spacing.xs }}>
+              <Text style={{ ...theme.typography.caption, color: theme.colors.textTertiary }}>
                 {pct}% used
               </Text>
             </View>
@@ -179,7 +185,7 @@ export default function BudgetDetailScreen() {
             />
             {budget.type !== 'custom' ? (
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Text style={{ fontSize: 14, fontWeight: '600', color: theme.colors.text }}>Roll over unused amount</Text>
+                <Text style={{ ...theme.typography.bodySemibold, color: theme.colors.text }}>Roll over unused amount</Text>
                 <Controller
                   control={control}
                   name="rollover"
@@ -197,6 +203,8 @@ export default function BudgetDetailScreen() {
               if (await save(data)) {
                 editFromViewRef.current = false;
                 setEditing(false);
+                setJustSaved(true);
+                setTimeout(() => setJustSaved(false), 2500);
               }
             })}
             primaryLoading={loading}

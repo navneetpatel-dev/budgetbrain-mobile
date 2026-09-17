@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { RefreshControl } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import {
@@ -13,6 +14,7 @@ import {
   DetailHero,
   DetailMetaList,
   FormErrorBanner,
+  FormSuccessBanner,
 } from '@/shared/components/ui';
 import { useIncomeDetail, type IncomeForm } from '@/features/income/hooks/useIncomeDetail';
 import { useTheme } from '@/shared/theme';
@@ -30,6 +32,7 @@ export default function IncomeDetailScreen() {
     isLoading,
     isError,
     refetch,
+    isRefetching,
     loading,
     updating,
     duplicating,
@@ -41,6 +44,7 @@ export default function IncomeDetailScreen() {
     submitError,
   } = useIncomeDetail(id);
   const [editing, setEditing] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<IncomeForm>({
     defaultValues: { amount: '', notes: '', date: '' },
@@ -79,7 +83,11 @@ export default function IncomeDetailScreen() {
       eyebrow="Income"
       title={editing ? 'Edit Income' : title}
       subtitle={editing ? 'Update income entry' : income.date}
+      refreshControl={
+        editing ? undefined : <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
+      }
     >
+      {justSaved ? <FormSuccessBanner message="Income updated" /> : null}
       {submitError ? <FormErrorBanner message={submitError} /> : null}
 
       {!editing ? (
@@ -153,7 +161,11 @@ export default function IncomeDetailScreen() {
           <FormActions
             primaryTitle="Save Changes"
             onPrimary={handleSubmit(async (data) => {
-              if (await save(data)) setEditing(false);
+              if (await save(data)) {
+                setEditing(false);
+                setJustSaved(true);
+                setTimeout(() => setJustSaved(false), 2500);
+              }
             })}
             primaryLoading={updating}
             secondaryTitle="Cancel"

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Share, StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, Share, StyleSheet, Text, View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { apiGet } from '@/shared/services/api';
 import { Button, Card, ScreenLoader, StackScrollScreen } from '@/shared/components/ui';
@@ -14,7 +14,7 @@ export default function RecapScreen() {
   const { format } = useUserCurrency();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isRefetching, refetch } = useQuery({
     queryKey: ['recap'],
     queryFn: () => apiGet<MonthlyRecap>('/reports/recap'),
   });
@@ -32,7 +32,10 @@ export default function RecapScreen() {
   };
 
   return (
-    <StackScrollScreen header={<ProfileStackHeader screen="recap" subtitle="Your monthly highlights" />}>
+    <StackScrollScreen
+      header={<ProfileStackHeader screen="recap" subtitle="Your monthly highlights" />}
+      refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />}
+    >
       {isLoading || !data ? (
         <ScreenLoader />
       ) : (
@@ -73,12 +76,12 @@ export default function RecapScreen() {
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     hero: { alignItems: 'center', paddingVertical: t.spacing.xl, marginBottom: t.spacing.lg },
-    heroLabel: { fontSize: 13, fontWeight: '600', color: t.colors.textSecondary },
-    heroAmount: { fontSize: 34, fontWeight: '800', color: t.colors.text, marginTop: 6 },
+    heroLabel: { ...t.typography.caption, fontWeight: '600', color: t.colors.textSecondary },
+    heroAmount: { ...t.typography.amountLg, color: t.colors.text, marginTop: t.spacing.xs },
     grid: { gap: t.spacing.sm, marginBottom: t.spacing.xl },
     tile: { marginBottom: 0 },
-    tileLabel: { fontSize: 12, fontWeight: '600', color: t.colors.textTertiary },
-    tileValue: { fontSize: 16, fontWeight: '700', color: t.colors.text, marginTop: 4 },
-    tileSub: { fontSize: 13, color: t.colors.textSecondary, marginTop: 2 },
+    tileLabel: { ...t.typography.label, color: t.colors.textTertiary },
+    tileValue: { ...t.typography.bodySemibold, fontWeight: '700', color: t.colors.text, marginTop: t.spacing.xs },
+    tileSub: { ...t.typography.caption, color: t.colors.textSecondary, marginTop: 2 },
   });
 }

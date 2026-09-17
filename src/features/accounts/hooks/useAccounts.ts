@@ -28,7 +28,7 @@ export function useAccounts() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const clearSubmitError = useCallback(() => setSubmitError(null), []);
 
-  const { data, isLoading } = usePaginatedList<FinancialAccount, 'accounts'>({
+  const { data, isLoading, isRefetching, refetch } = usePaginatedList<FinancialAccount, 'accounts'>({
     queryKey: ['accounts'],
     url: '/accounts',
     itemsKey: 'accounts',
@@ -89,6 +89,8 @@ export function useAccounts() {
   return {
     data,
     isLoading,
+    isRefetching,
+    refetch,
     showForm,
     setShowForm,
     editingId,

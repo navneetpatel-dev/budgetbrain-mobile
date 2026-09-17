@@ -22,7 +22,7 @@ export function useLoanDetail(id: string) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const clearSubmitError = useCallback(() => setSubmitError(null), []);
 
-  const { data: loan, isLoading, isError, refetch } = useQuery({
+  const { data: loan, isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ['loan', id],
     queryFn: () => apiGet<Loan>(`/loans/${id}`),
     enabled: !!id,
@@ -84,6 +84,7 @@ export function useLoanDetail(id: string) {
     isLoading,
     isError,
     refetch,
+    isRefetching,
     loading,
     save,
     populateForm,

@@ -65,6 +65,7 @@ export function useTransactionParsing() {
     data: pendingItems,
     total: pendingTotal,
     isLoading: pendingLoading,
+    isRefetching: pendingRefetching,
     refetch: refetchPending,
   } = usePaginatedList<ParsedTransactionPending, 'pending'>({
     queryKey: ['integrations-pending'],
@@ -207,6 +208,8 @@ export function useTransactionParsing() {
     uploadCsv,
     confirmLoading,
     pendingLoading,
+    pendingRefetching,
+    refetchPending,
     parsed: parsedRecord,
     pendingItems: pendingItems.map(toParsedRecord),
     pendingTotal,

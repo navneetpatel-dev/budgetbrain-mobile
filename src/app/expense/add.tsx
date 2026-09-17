@@ -11,6 +11,8 @@ import {
   FormSection,
   ImageUploadField,
   FormActions,
+  FormErrorBanner,
+  FormSuccessBanner,
 } from '@/shared/components/ui';
 import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
 import { useCreateExpense, type ExpenseForm } from '@/features/expenses/hooks/useCreateExpense';
@@ -27,7 +29,8 @@ import { DateBounds, toIsoDate } from '@/shared/utils/dateBounds';
 export default function AddExpenseScreen() {
   const theme = useTheme();
   const { amountLabel } = useUserCurrency();
-  const { create, loading } = useCreateExpense();
+  const { create, loading, submitError, justSaved } = useCreateExpense();
+  const disabled = loading || justSaved;
   const { receipt, pick, clear } = useReceiptPicker();
   const { suggestedCategoryId, suggest } = useCategorySuggestion();
   const { suggestions: tagSuggestions } = useExpenseTagSuggestions();
@@ -66,6 +69,8 @@ export default function AddExpenseScreen() {
 
   return (
     <FormStackScreen eyebrow="Expense" title="Add Expense" subtitle="Log a new transaction">
+      {justSaved ? <FormSuccessBanner message="Expense saved" /> : null}
+      {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="Amount & details" subtitle="Core transaction info">
         <Controller
           control={control}
@@ -80,7 +85,7 @@ export default function AddExpenseScreen() {
               error={errors.amount?.message}
               leftIcon="expense"
               placeholder="0.00"
-              disabled={loading}
+              disabled={disabled}
             />
           )}
         />
@@ -102,7 +107,7 @@ export default function AddExpenseScreen() {
               placeholder="e.g. Swiggy, Amazon"
               error={errors.merchant?.message}
               leftIcon="activity"
-              disabled={loading}
+              disabled={disabled}
             />
           )}
         />
@@ -119,7 +124,7 @@ export default function AddExpenseScreen() {
                 value={value}
                 onChange={onChange}
                 error={errors.date?.message}
-                disabled={loading}
+                disabled={disabled}
                 minimumDate={b.minimumDate}
                 maximumDate={b.maximumDate}
               />
@@ -135,13 +140,13 @@ export default function AddExpenseScreen() {
           value={selectedPayment}
           onChange={(v) => setValue('paymentMethod', v)}
           getLabel={(v) => PAYMENT_METHODS.find((p) => p.value === v)?.label ?? v}
-          disabled={loading}
+          disabled={disabled}
         />
 
         <View style={{ marginTop: theme.spacing.lg }}>
           <FormFieldLabel>Category</FormFieldLabel>
           {suggestedCategoryId && currentCategoryId === suggestedCategoryId ? (
-            <Text style={{ fontSize: 12, fontWeight: '600', color: theme.colors.primary, marginBottom: 8 }}>
+            <Text style={{ ...theme.typography.caption, fontWeight: '600', color: theme.colors.primary, marginBottom: 8 }}>
               Suggested from your history with this merchant
             </Text>
           ) : null}
@@ -155,7 +160,7 @@ export default function AddExpenseScreen() {
                 selectedId={value}
                 onSelect={onChange}
                 error={errors.categoryId?.message}
-                disabled={loading}
+                disabled={disabled}
               />
             )}
           />
@@ -166,7 +171,7 @@ export default function AddExpenseScreen() {
             control={control}
             name="tags"
             render={({ field: { onChange, value } }) => (
-              <TagInput value={value} onChange={onChange} suggestions={tagSuggestions} disabled={loading} />
+              <TagInput value={value} onChange={onChange} suggestions={tagSuggestions} disabled={disabled} />
             )}
           />
         </View>
@@ -179,7 +184,7 @@ export default function AddExpenseScreen() {
           imageUri={receipt?.uri}
           onPick={pick}
           onRemove={clear}
-          disabled={loading}
+          disabled={disabled}
         />
 
         <Controller
@@ -194,7 +199,7 @@ export default function AddExpenseScreen() {
               maxLength={maxLen('notes')}
               placeholder="Add any extra details..."
               multiline
-              disabled={loading}
+              disabled={disabled}
             />
           )}
         />

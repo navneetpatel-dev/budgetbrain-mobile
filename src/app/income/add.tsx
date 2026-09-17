@@ -11,6 +11,7 @@ import {
   FormSection,
   FormActions,
   FormErrorBanner,
+  FormSuccessBanner,
 } from '@/shared/components/ui';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import { useCreateIncome, type IncomeForm } from '@/features/income/hooks/useCreateIncome';
@@ -33,7 +34,8 @@ type SourceMode = 'existing' | 'new';
 export default function AddIncomeScreen() {
   const theme = useTheme();
   const { amountLabel } = useUserCurrency();
-  const { create, loading, submitError } = useCreateIncome();
+  const { create, loading, submitError, justSaved } = useCreateIncome();
+  const disabled = loading || justSaved;
   const [sourceMode, setSourceMode] = useState<SourceMode>('new');
   const modeInitialized = useRef(false);
 
@@ -75,6 +77,7 @@ export default function AddIncomeScreen() {
 
   return (
     <FormStackScreen eyebrow="Income" title="Add Income" subtitle="Record a new income entry">
+      {justSaved ? <FormSuccessBanner message="Income saved" /> : null}
       {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="Amount & date" subtitle="How much and when you received it">
         <Controller
@@ -90,7 +93,7 @@ export default function AddIncomeScreen() {
               error={errors.amount?.message}
               leftIcon="income"
               placeholder="0.00"
-              disabled={loading}
+              disabled={disabled}
             />
           )}
         />
@@ -107,7 +110,7 @@ export default function AddIncomeScreen() {
                 value={value}
                 onChange={onChange}
                 error={errors.date?.message}
-                disabled={loading}
+                disabled={disabled}
                 minimumDate={b.minimumDate}
                 maximumDate={b.maximumDate}
               />
@@ -126,7 +129,7 @@ export default function AddIncomeScreen() {
             clearErrors(['incomeSourceId', 'newSourceName']);
           }}
           getLabel={(v) => (v === 'existing' ? 'Existing source' : 'New source')}
-          disabled={loading}
+          disabled={disabled}
         />
 
         {!isNewSource ? (
@@ -142,17 +145,16 @@ export default function AddIncomeScreen() {
                   selectedId={value}
                   onSelect={onChange}
                   error={errors.incomeSourceId?.message}
-                  disabled={loading}
+                  disabled={disabled}
                 />
               )}
             />
           ) : (
             <Text
               style={{
+                ...theme.typography.caption,
                 color: errors.incomeSourceId ? theme.colors.danger : theme.colors.textSecondary,
-                fontSize: 13,
                 marginBottom: theme.spacing.sm,
-                fontWeight: errors.incomeSourceId ? '500' : '400',
               }}
             >
               {errors.incomeSourceId?.message ?? emptySourcesMessage}
@@ -174,7 +176,7 @@ export default function AddIncomeScreen() {
                   placeholder="e.g. Salary, Freelance"
                   error={errors.newSourceName?.message}
                   leftIcon="wallet"
-                  disabled={loading}
+                  disabled={disabled}
                 />
               )}
             />
@@ -184,7 +186,7 @@ export default function AddIncomeScreen() {
               value={newSourceType}
               onChange={(v) => setValue('newSourceType', v)}
               getLabel={(v) => INCOME_SOURCE_TYPES.find((t) => t.value === v)?.label ?? v}
-              disabled={loading}
+              disabled={disabled}
             />
           </>
         )}
@@ -203,7 +205,7 @@ export default function AddIncomeScreen() {
               onChangeText={onChange}
               placeholder="Add any extra details..."
               multiline
-              disabled={loading}
+              disabled={disabled}
               error={errors.notes?.message}
             />
           )}

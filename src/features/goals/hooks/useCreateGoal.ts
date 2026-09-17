@@ -12,11 +12,14 @@ export interface GoalForm {
   targetDate: string;
 }
 
+const SAVE_CONFIRM_DELAY_MS = 900;
+
 export function useCreateGoal() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [justSaved, setJustSaved] = useState(false);
   const clearSubmitError = useCallback(() => setSubmitError(null), []);
 
   const create = async (data: GoalForm) => {
@@ -30,7 +33,8 @@ export function useCreateGoal() {
         targetDate: data.targetDate || undefined,
       });
       invalidateGoalQueries(queryClient);
-      router.back();
+      setJustSaved(true);
+      setTimeout(() => router.back(), SAVE_CONFIRM_DELAY_MS);
     } catch (err) {
       setSubmitError(getApiErrorMessage(err, 'Could not create goal'));
     } finally {
@@ -38,5 +42,5 @@ export function useCreateGoal() {
     }
   };
 
-  return { create, loading, submitError, clearSubmitError };
+  return { create, loading, submitError, clearSubmitError, justSaved };
 }

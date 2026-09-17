@@ -10,6 +10,7 @@ import {
   FormSection,
   FormActions,
   FormErrorBanner,
+  FormSuccessBanner,
 } from '@/shared/components/ui';
 import { useTheme } from '@/shared/theme';
 import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
@@ -23,7 +24,8 @@ const PERIODS = ['monthly', 'weekly', 'custom'] as const;
 export default function AddBudgetScreen() {
   const theme = useTheme();
   const { amountLabel } = useUserCurrency();
-  const { create, loading, submitError } = useCreateBudget();
+  const { create, loading, submitError, justSaved } = useCreateBudget();
+  const disabled = loading || justSaved;
 
   const { data: categories } = useCategoryOptions();
 
@@ -53,6 +55,7 @@ export default function AddBudgetScreen() {
 
   return (
     <FormStackScreen eyebrow="Budget" title="Create Budget" subtitle="Set a spending limit">
+      {justSaved ? <FormSuccessBanner message="Budget created" /> : null}
       {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="Budget details" subtitle="Name, period, and limit">
         <Controller
@@ -60,7 +63,7 @@ export default function AddBudgetScreen() {
           name="name"
           rules={textRules('entityName')}
           render={({ field: { onChange, value } }) => (
-            <Input label="Budget name" maxLength={maxLen('entityName')} value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="budgets" placeholder="e.g. Groceries" disabled={loading} />
+            <Input label="Budget name" maxLength={maxLen('entityName')} value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="budgets" placeholder="e.g. Groceries" disabled={disabled} />
           )}
         />
 
@@ -73,7 +76,7 @@ export default function AddBudgetScreen() {
             if (v !== 'custom') clearErrors('endDate');
           }}
           getLabel={(v) => (v === 'custom' ? 'Custom' : v.charAt(0).toUpperCase() + v.slice(1))}
-          disabled={loading}
+          disabled={disabled}
         />
 
         <Controller
@@ -81,7 +84,7 @@ export default function AddBudgetScreen() {
           name="amount"
           rules={amountRules()}
           render={({ field: { onChange, value } }) => (
-            <Input label={amountLabel('Budget amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} leftIcon="wallet" placeholder="0.00" disabled={loading} />
+            <Input label={amountLabel('Budget amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} leftIcon="wallet" placeholder="0.00" disabled={disabled} />
           )}
         />
       </FormSection>
@@ -105,7 +108,7 @@ export default function AddBudgetScreen() {
                   }
                 }}
                 error={errors.startDate?.message}
-                disabled={loading}
+                disabled={disabled}
                 minimumDate={b.minimumDate}
                 maximumDate={b.maximumDate}
               />
@@ -131,7 +134,7 @@ export default function AddBudgetScreen() {
                   value={value}
                   onChange={onChange}
                   error={errors.endDate?.message}
-                  disabled={loading}
+                  disabled={disabled}
                   minimumDate={b.minimumDate}
                   maximumDate={b.maximumDate}
                 />
@@ -145,15 +148,15 @@ export default function AddBudgetScreen() {
           name="alertThreshold"
           rules={alertThresholdRules()}
           render={({ field: { onChange, value } }) => (
-            <Input label="Alert threshold (%)" value={value} onChangeText={onChange} keyboardType="numeric" helperText="Notify when spending reaches this %" leftIcon="bell" disabled={loading} error={errors.alertThreshold?.message} />
+            <Input label="Alert threshold (%)" value={value} onChangeText={onChange} keyboardType="numeric" helperText="Notify when spending reaches this %" leftIcon="bell" disabled={disabled} error={errors.alertThreshold?.message} />
           )}
         />
 
         {budgetType !== 'custom' ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: theme.spacing.lg }}>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 14, fontWeight: '600', color: theme.colors.text }}>Roll over unused amount</Text>
-              <Text style={{ fontSize: 12, color: theme.colors.textTertiary, marginTop: 2 }}>
+              <Text style={{ ...theme.typography.bodySemibold, color: theme.colors.text }}>Roll over unused amount</Text>
+              <Text style={{ ...theme.typography.caption, color: theme.colors.textTertiary, marginTop: theme.spacing.xs / 2 }}>
                 Carry last period's leftover (or deficit) into this one
               </Text>
             </View>
@@ -161,7 +164,7 @@ export default function AddBudgetScreen() {
               control={control}
               name="rollover"
               render={({ field: { onChange, value } }) => (
-                <Switch value={value} onValueChange={onChange} trackColor={{ true: theme.colors.primary }} disabled={loading} />
+                <Switch value={value} onValueChange={onChange} trackColor={{ true: theme.colors.primary }} disabled={disabled} />
               )}
             />
           </View>
@@ -177,7 +180,7 @@ export default function AddBudgetScreen() {
               selectedId={value}
               onSelect={onChange}
               error={errors.categoryId?.message}
-              disabled={loading}
+              disabled={disabled}
             />
           )}
         />

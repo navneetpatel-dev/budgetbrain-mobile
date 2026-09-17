@@ -14,11 +14,14 @@ export interface IncomeForm {
   newSourceType: string;
 }
 
+const SAVE_CONFIRM_DELAY_MS = 900;
+
 export function useCreateIncome() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [justSaved, setJustSaved] = useState(false);
   const clearSubmitError = useCallback(() => setSubmitError(null), []);
 
   const create = async (data: IncomeForm, showNewSource: boolean) => {
@@ -44,7 +47,8 @@ export function useCreateIncome() {
       });
 
       invalidateMoneyQueries(queryClient);
-      router.back();
+      setJustSaved(true);
+      setTimeout(() => router.back(), SAVE_CONFIRM_DELAY_MS);
     } catch (err) {
       setSubmitError(getApiErrorMessage(err, 'Could not save income'));
     } finally {
@@ -52,5 +56,5 @@ export function useCreateIncome() {
     }
   };
 
-  return { create, loading, submitError, clearSubmitError };
+  return { create, loading, submitError, clearSubmitError, justSaved };
 }

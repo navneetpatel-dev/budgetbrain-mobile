@@ -98,6 +98,6 @@ export default function SearchScreen() {
 
 function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    hint: { textAlign: 'center', color: t.colors.textSecondary, marginTop: 32, fontSize: 14 },
+    hint: { ...t.typography.bodyMedium, textAlign: 'center', color: t.colors.textSecondary, marginTop: t.spacing.xxl },
   });
 }

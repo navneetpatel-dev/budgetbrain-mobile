@@ -118,6 +118,8 @@ export function DashboardHero({
               styles.actionBtn,
               pressed && { opacity: 0.9, transform: [{ scale: 0.97 }] },
             ]}
+            accessibilityRole="button"
+            accessibilityLabel={action.label}
           >
             <AppIcon name={action.icon} size={15} color="rgba(255,255,255,0.95)" />
             <Text style={styles.actionLabel} numberOfLines={1}>

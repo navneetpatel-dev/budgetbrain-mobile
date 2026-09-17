@@ -8,6 +8,7 @@ import {
   FormSection,
   FormActions,
   FormErrorBanner,
+  FormSuccessBanner,
 } from '@/shared/components/ui';
 import { useCreateLoan, type LoanForm } from '@/features/loans/hooks/useCreateLoan';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
@@ -23,7 +24,8 @@ const LOAN_TYPES = [
 
 export default function AddLoanScreen() {
   const { amountLabel } = useUserCurrency();
-  const { create, loading, submitError } = useCreateLoan();
+  const { create, loading, submitError, justSaved } = useCreateLoan();
+  const disabled = loading || justSaved;
 
   const { control, handleSubmit, setValue, watch, formState: { errors } } = useForm<LoanForm>({
     defaultValues: {
@@ -42,6 +44,7 @@ export default function AddLoanScreen() {
 
   return (
     <FormStackScreen eyebrow="Loan" title="Add Loan" subtitle="Track a debt or repayment">
+      {justSaved ? <FormSuccessBanner message="Loan added" /> : null}
       {submitError ? <FormErrorBanner message={submitError} /> : null}
       <FormSection title="Loan details" subtitle="What are you paying off?">
         <Controller
@@ -49,7 +52,7 @@ export default function AddLoanScreen() {
           name="name"
           rules={textRules('entityName')}
           render={({ field: { onChange, value } }) => (
-            <Input label="Loan name" maxLength={maxLen('entityName')} value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="wallet" placeholder="e.g. Car loan" disabled={loading} />
+            <Input label="Loan name" maxLength={maxLen('entityName')} value={value} onChangeText={onChange} error={errors.name?.message} leftIcon="wallet" placeholder="e.g. Car loan" disabled={disabled} />
           )}
         />
 
@@ -59,7 +62,7 @@ export default function AddLoanScreen() {
           value={loanType}
           onChange={(v) => setValue('type', v)}
           getLabel={(v) => LOAN_TYPES.find((t) => t.value === v)?.label ?? v}
-          disabled={loading}
+          disabled={disabled}
         />
 
         <Controller
@@ -67,7 +70,7 @@ export default function AddLoanScreen() {
           name="principal"
           rules={amountRules()}
           render={({ field: { onChange, value } }) => (
-            <Input label={amountLabel('Principal amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.principal?.message} leftIcon="wallet" placeholder="0.00" disabled={loading} />
+            <Input label={amountLabel('Principal amount')} value={value} onChangeText={onChange} keyboardType="numeric" error={errors.principal?.message} leftIcon="wallet" placeholder="0.00" disabled={disabled} />
           )}
         />
       </FormSection>
@@ -77,14 +80,14 @@ export default function AddLoanScreen() {
           control={control}
           name="interestRate"
           render={({ field: { onChange, value } }) => (
-            <Input label="Interest rate (%)" value={value} onChangeText={onChange} keyboardType="numeric" placeholder="e.g. 9.5" disabled={loading} />
+            <Input label="Interest rate (%)" value={value} onChangeText={onChange} keyboardType="numeric" placeholder="e.g. 9.5" disabled={disabled} />
           )}
         />
         <Controller
           control={control}
           name="emiAmount"
           render={({ field: { onChange, value } }) => (
-            <Input label={amountLabel('Monthly EMI')} value={value} onChangeText={onChange} keyboardType="numeric" placeholder="0.00" disabled={loading} />
+            <Input label={amountLabel('Monthly EMI')} value={value} onChangeText={onChange} keyboardType="numeric" placeholder="0.00" disabled={disabled} />
           )}
         />
         <Controller
@@ -99,7 +102,7 @@ export default function AddLoanScreen() {
                 value={value}
                 onChange={onChange}
                 error={errors.startDate?.message}
-                disabled={loading}
+                disabled={disabled}
                 minimumDate={b.minimumDate}
                 maximumDate={b.maximumDate}
               />
@@ -110,7 +113,7 @@ export default function AddLoanScreen() {
           control={control}
           name="dueDayOfMonth"
           render={({ field: { onChange, value } }) => (
-            <Input label="Due day of month" value={value} onChangeText={onChange} keyboardType="numeric" placeholder="e.g. 5" helperText="Day of the month payment is due (1-31)" disabled={loading} />
+            <Input label="Due day of month" value={value} onChangeText={onChange} keyboardType="numeric" placeholder="e.g. 5" helperText="Day of the month payment is due (1-31)" disabled={disabled} />
           )}
         />
         <Controller
@@ -118,7 +121,7 @@ export default function AddLoanScreen() {
           name="notes"
           rules={optionalTextRules('notes')}
           render={({ field: { onChange, value } }) => (
-            <Input label="Notes" value={value} onChangeText={onChange} maxLength={maxLen('notes')} multiline placeholder="Optional note..." disabled={loading} />
+            <Input label="Notes" value={value} onChangeText={onChange} maxLength={maxLen('notes')} multiline placeholder="Optional note..." disabled={disabled} />
           )}
         />
       </FormSection>

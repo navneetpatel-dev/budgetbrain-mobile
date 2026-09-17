@@ -1,4 +1,4 @@
-import { View } from 'react-native';
+import { RefreshControl, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import {
@@ -16,6 +16,7 @@ import {
   DetailHero,
   DetailMetaList,
   FormErrorBanner,
+  FormSuccessBanner,
 } from '@/shared/components/ui';
 import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
 import { useExpenseDetail, type ExpenseForm } from '@/features/expenses/hooks/useExpenseDetail';
@@ -38,8 +39,10 @@ export default function ExpenseDetailScreen() {
     isLoading,
     isError,
     refetch,
+    isRefetching,
     editing,
     setEditing,
+    justSaved,
     loading,
     updating,
     duplicating,
@@ -90,7 +93,11 @@ export default function ExpenseDetailScreen() {
       eyebrow="Expense"
       title={editing ? 'Edit Expense' : title}
       subtitle={editing ? 'Update transaction' : expense.category?.name}
+      refreshControl={
+        editing ? undefined : <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
+      }
     >
+      {justSaved ? <FormSuccessBanner message="Expense updated" /> : null}
       {submitError ? <FormErrorBanner message={submitError} /> : null}
 
       {!editing ? (

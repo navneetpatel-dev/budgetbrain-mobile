@@ -33,7 +33,7 @@ export function useInvestments() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const clearSubmitError = useCallback(() => setSubmitError(null), []);
 
-  const { data, isLoading } = usePaginatedList<Investment, 'investments'>({
+  const { data, isLoading, isRefetching, refetch } = usePaginatedList<Investment, 'investments'>({
     queryKey: ['investments'],
     url: '/investments',
     itemsKey: 'investments',
@@ -116,6 +116,8 @@ export function useInvestments() {
   return {
     data,
     isLoading,
+    isRefetching,
+    refetch,
     showForm,
     setShowForm,
     editingId,

@@ -3,6 +3,7 @@ import {
   FlatList,
   FlatListProps,
   Pressable,
+  RefreshControlProps,
   ScrollView,
   ScrollViewProps,
   StyleSheet,
@@ -250,7 +251,7 @@ export function SearchField({
 
   return (
     <View style={styles.row}>
-      <Pressable onPress={onPress} style={styles.field}>
+      <Pressable onPress={onPress} style={styles.field} accessibilityRole="button" accessibilityLabel={placeholder}>
         <AppIcon name="search" size={17} color={theme.colors.textTertiary} />
         <Text style={styles.placeholder}>{placeholder}</Text>
       </Pressable>
@@ -513,6 +514,8 @@ export function OptionChipList({
             disabled && styles.chipDisabled,
             pressed && !disabled && { opacity: 0.9 },
           ]}
+          accessibilityRole="button"
+          accessibilityLabel={selectedItem?.label ?? 'Choose'}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
             {selectedItem?.color ? (
@@ -554,6 +557,8 @@ export function OptionChipList({
                 disabled && styles.chipDisabled,
                 pressed && !disabled && { opacity: 0.9 },
               ]}
+              accessibilityRole="button"
+              accessibilityState={{ selected }}
             >
               <View style={[styles.colorDot, { backgroundColor: accent }]} />
               <Text style={[styles.chipText, selected && { color: accent, fontWeight: '700' }]}>
@@ -652,11 +657,13 @@ export function StackScrollScreen({
   children,
   contentContainerStyle,
   keyboardShouldPersistTaps = 'handled',
+  refreshControl,
 }: {
   header: React.ReactNode;
   children: React.ReactNode;
   contentContainerStyle?: ViewStyle;
   keyboardShouldPersistTaps?: ScrollViewProps['keyboardShouldPersistTaps'];
+  refreshControl?: React.ReactElement<RefreshControlProps>;
 }) {
   return (
     <ScreenWrapper
@@ -664,6 +671,7 @@ export function StackScrollScreen({
       inset="stack"
       contentContainerStyle={contentContainerStyle}
       keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+      refreshControl={refreshControl}
     >
       {children}
     </ScreenWrapper>
@@ -677,6 +685,7 @@ export function FormStackScreen({
   subtitle,
   icon,
   onBack,
+  refreshControl,
   children,
 }: {
   eyebrow?: string;
@@ -684,6 +693,7 @@ export function FormStackScreen({
   subtitle?: string;
   icon?: AppIconName;
   onBack?: () => void;
+  refreshControl?: React.ReactElement<RefreshControlProps>;
   children: React.ReactNode;
 }) {
   const theme = useTheme();
@@ -703,6 +713,7 @@ export function FormStackScreen({
         />
       }
       contentContainerStyle={{ paddingTop: theme.spacing.sm }}
+      refreshControl={refreshControl}
     >
       <View style={styles.body}>{children}</View>
     </StackScrollScreen>
@@ -815,9 +826,7 @@ function createHeaderStyles(t: AppTheme) {
     },
     textCol: { flex: 1, minWidth: 0 },
     eyebrow: {
-      fontSize: 12,
-      fontWeight: '600',
-      letterSpacing: 0.2,
+      ...t.typography.label,
       color: t.colors.textTertiary,
       marginBottom: 3,
       textTransform: 'capitalize',
@@ -980,8 +989,7 @@ function createChipStyles(t: AppTheme) {
       borderWidth: 0,
     },
     segmentText: {
-      fontSize: 12,
-      fontWeight: '600',
+      ...t.typography.label,
       color: t.colors.text,
       textAlign: 'center',
     },
@@ -997,8 +1005,7 @@ function createChipStyles(t: AppTheme) {
       backgroundColor: t.isDark ? 'rgba(255,255,255,0.04)' : t.colors.surface,
     },
     selectValue: {
-      fontSize: 15,
-      fontWeight: '600',
+      ...t.typography.bodySemibold,
       color: t.colors.text,
       textTransform: 'capitalize',
       flex: 1,
@@ -1072,9 +1079,7 @@ function createIntroStyles(t: AppTheme) {
   return StyleSheet.create({
     wrap: { marginBottom: t.spacing.md },
     eyebrow: {
-      fontSize: 12,
-      fontWeight: '600',
-      letterSpacing: 0.2,
+      ...t.typography.label,
       color: t.colors.textTertiary,
       marginBottom: 4,
       textTransform: 'capitalize',

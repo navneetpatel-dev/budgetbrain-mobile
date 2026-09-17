@@ -10,11 +10,14 @@ export interface PayLoanForm {
   notes: string;
 }
 
+const SAVE_CONFIRM_DELAY_MS = 900;
+
 export function usePayLoan(loanId: string) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [justSaved, setJustSaved] = useState(false);
   const clearSubmitError = useCallback(() => setSubmitError(null), []);
 
   const pay = async (data: PayLoanForm) => {
@@ -29,7 +32,8 @@ export function usePayLoan(loanId: string) {
         queryClient.setQueryData(['loan', loanId], result.loan);
       }
       invalidateLoanQueries(queryClient, loanId);
-      router.back();
+      setJustSaved(true);
+      setTimeout(() => router.back(), SAVE_CONFIRM_DELAY_MS);
     } catch (err) {
       setSubmitError(getApiErrorMessage(err, 'Could not record payment'));
     } finally {
@@ -37,5 +41,5 @@ export function usePayLoan(loanId: string) {
     }
   };
 
-  return { pay, loading, submitError, clearSubmitError };
+  return { pay, loading, submitError, clearSubmitError, justSaved };
 }

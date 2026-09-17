@@ -1,9 +1,11 @@
 import { useMemo } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import type { AppTheme } from '@/shared/theme';
+import { useSheetEnterAnimation } from '@/shared/hooks/useSheetEnterAnimation';
 
 export type ActionSheetItem = {
   id: string;
@@ -28,10 +30,12 @@ export function ActionSheet({
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const sheetAnim = useSheetEnterAnimation(visible, 'sheet');
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose} accessibilityRole="button" accessibilityLabel="Dismiss">
+        <Animated.View style={sheetAnim}>
         <Pressable
           style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 16) }]}
           onPress={(e) => e.stopPropagation()}
@@ -91,6 +95,7 @@ export function ActionSheet({
             <Text style={styles.cancelText}>Cancel</Text>
           </Pressable>
         </Pressable>
+        </Animated.View>
       </Pressable>
     </Modal>
   );

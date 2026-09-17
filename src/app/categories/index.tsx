@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, Pressable, Text } from 'react-native';
+import { RefreshControl, StyleSheet, View, Pressable, Text } from 'react-native';
 import { Controller } from 'react-hook-form';
 import {
   Input,
@@ -27,6 +27,8 @@ export default function CategoriesScreen() {
   const {
     data,
     isLoading,
+    isRefetching,
+    refetch,
     editingId,
     showForm,
     setShowForm,
@@ -93,6 +95,7 @@ export default function CategoriesScreen() {
         data={isLoading ? [] : items}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingBottom: fabBottom + 72 }}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />}
         ListHeaderComponent={listError ? <FormErrorBanner message={listError} /> : null}
         ListEmptyComponent={
           isLoading ? (

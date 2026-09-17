@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { StyleSheet, Text, View, Pressable, ScrollView } from 'react-native';
+import { RefreshControl, StyleSheet, Text, View, Pressable, ScrollView } from 'react-native';
 import { Controller } from 'react-hook-form';
 import {
   Input,
@@ -30,6 +30,8 @@ export default function IntegrationsScreen() {
     uploadCsv,
     confirmLoading,
     pendingLoading,
+    pendingRefetching,
+    refetchPending,
     parsed,
     pendingItems,
     pendingTotal,
@@ -59,6 +61,7 @@ export default function IntegrationsScreen() {
           subtitle="Paste SMS or email receipts to auto-extract expenses"
         />
       }
+      refreshControl={<RefreshControl refreshing={pendingRefetching} onRefresh={refetchPending} tintColor={theme.colors.primary} />}
     >
       <FormSection title="Import CSV statement" subtitle="Upload a bank or card statement export">
         {csvError ? <FormErrorBanner message={csvError} /> : null}
@@ -189,9 +192,9 @@ function createStyles(t: ReturnType<typeof useTheme>) {
       borderColor: t.colors.primary,
       backgroundColor: t.colors.primarySoft,
     },
-    pendingChipText: { fontSize: 13, fontWeight: '600', color: t.colors.textSecondary },
+    pendingChipText: { ...t.typography.caption, fontWeight: '600', color: t.colors.textSecondary },
     pendingChipTextSelected: { color: t.colors.primary },
-    confirmDetail: { fontSize: 18, fontWeight: '700', color: t.colors.text },
-    confirmMeta: { fontSize: 13, color: t.colors.textSecondary, marginBottom: t.spacing.sm },
+    confirmDetail: { ...t.typography.titleSm, color: t.colors.text },
+    confirmMeta: { ...t.typography.caption, color: t.colors.textSecondary, marginBottom: t.spacing.sm },
   });
 }
