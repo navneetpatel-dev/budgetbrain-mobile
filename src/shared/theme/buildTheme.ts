@@ -24,7 +24,9 @@ export const radii: ThemeRadii = {
   sm: 8,
   md: 12,
   lg: 16,
+  card: 20,
   xl: 24,
+  nav: 28,
   full: 999,
 };
 

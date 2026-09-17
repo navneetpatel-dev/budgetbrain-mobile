@@ -118,12 +118,12 @@ export function CustomTabBar({ state, navigation }: CustomTabBarProps) {
             accessibilityLabel="Create"
           >
             <LinearGradient
-              colors={[theme.colors.primary, theme.colors.gradientEnd]}
+              colors={[theme.colors.ocean, theme.colors.primary, theme.colors.violet]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.fabGradient}
             >
-              <AppIcon name="add" size={28} color={theme.colors.onPrimary} />
+              <AppIcon name="add" size={26} color="#FFFFFF" />
             </LinearGradient>
           </Pressable>
 

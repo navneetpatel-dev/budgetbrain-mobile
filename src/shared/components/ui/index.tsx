@@ -61,6 +61,16 @@ export type { ActionSheetItem } from './ActionSheet';
 export { FormErrorBanner } from './FormErrorBanner';
 export { FormSuccessBanner } from './FormSuccessBanner';
 export { FormInfoBanner } from './FormInfoBanner';
+export { AppHeaderBar } from './AppHeaderBar';
+export { RingGauge } from './RingGauge';
+export { SegmentedMacroBar } from './SegmentedMacroBar';
+export type { MacroCategoryItem } from './SegmentedMacroBar';
+export { FilterChipsRail } from './FilterChipsRail';
+export type { FilterChipItem } from './FilterChipsRail';
+export { CashFlowHero } from './CashFlowHero';
+export { BentoCard } from './BentoCard';
+export { StreakBanner } from './StreakBanner';
+export { ToggleSwitch } from './ToggleSwitch';
 
 interface ButtonProps {
   title: string;

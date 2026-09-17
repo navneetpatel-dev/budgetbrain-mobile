@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { StyleSheet, View, Text, Pressable } from 'react-native';
-import { AppIcon } from '@/features/navigation/components/AppIcon';
+import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
 import type { Transaction } from '@/shared/types';
@@ -22,10 +22,22 @@ function formatDate(dateStr: string) {
 
     if (d.toDateString() === today.toDateString()) return 'Today';
     if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
-    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+    return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
   } catch {
     return dateStr;
   }
+}
+
+function getCategoryIcon(name?: string, isExpense?: boolean): AppIconName {
+  if (!isExpense) return 'income';
+  const lower = (name ?? '').toLowerCase();
+  if (lower.includes('food') || lower.includes('dine') || lower.includes('cafe')) return 'activity';
+  if (lower.includes('groc') || lower.includes('market')) return 'activity';
+  if (lower.includes('transit') || lower.includes('uber') || lower.includes('travel') || lower.includes('car')) return 'activity';
+  if (lower.includes('bill') || lower.includes('util') || lower.includes('electric')) return 'sparkles';
+  if (lower.includes('tech') || lower.includes('apple') || lower.includes('gadget') || lower.includes('device')) return 'sparkles';
+  if (lower.includes('entertain') || lower.includes('stream') || lower.includes('movie')) return 'sparkles';
+  return 'expense';
 }
 
 export function TransactionItem({
@@ -39,7 +51,9 @@ export function TransactionItem({
   const styles = useMemo(() => createStyles(theme), [theme]);
   const isExpense = transaction.type === 'expense';
   const accent =
-    (isExpense ? transaction.category?.color : undefined) ?? theme.colors.primary;
+    (isExpense ? transaction.category?.color : undefined) ??
+    (isExpense ? theme.colors.rose : theme.colors.secondary);
+
   const formattedAmount = formatCurrency(Number(transaction.amount), transaction.currency);
   const title = isExpense
     ? (transaction.merchant ?? transaction.category?.name ?? 'Expense')
@@ -48,7 +62,12 @@ export function TransactionItem({
   const entityLabel = isExpense
     ? transaction.category?.name
     : transaction.incomeSource?.name;
-  const a11yMeta = entityLabel ? `${dateLabel}, ${entityLabel}` : dateLabel;
+
+  const paymentLabel = transaction.paymentMethod
+    ? transaction.paymentMethod.toUpperCase()
+    : 'Card';
+
+  const iconName = getCategoryIcon(entityLabel ?? title, isExpense);
 
   return (
     <Pressable
@@ -61,54 +80,65 @@ export function TransactionItem({
         pressed && styles.pressed,
       ]}
       accessibilityRole={onPress ? 'button' : undefined}
-      accessibilityLabel={`${title}, ${a11yMeta}`}
+      accessibilityLabel={`${title}, ${formattedAmount}`}
     >
-      <View style={[styles.icon, { backgroundColor: accent + '18' }]}>
-        <View style={[styles.dot, { backgroundColor: accent }]} />
+      {/* 44px Rounded Icon Pod with Corner Glyph Badge */}
+      <View style={[styles.iconPod, { backgroundColor: accent + '1E' }]}>
+        <AppIcon
+          name={iconName}
+          size={20}
+          color={accent}
+        />
+        <View style={styles.cornerBadge}>
+          <AppIcon
+            name={isExpense ? 'wallet' : 'checkmark'}
+            size={9}
+            color={theme.colors.textSecondary}
+          />
+        </View>
       </View>
+
+      {/* Title & Metadata */}
       <View style={styles.content}>
-        <Text style={styles.merchant} numberOfLines={1}>
-          {title}
-        </Text>
-        <View style={styles.metaRow}>
-          <Text style={styles.date} numberOfLines={1}>
-            {dateLabel}
+        <View style={styles.titleRow}>
+          <Text style={styles.merchant} numberOfLines={1}>
+            {title}
           </Text>
           {entityLabel ? (
-            <View
-              style={[
-                styles.entityChip,
-                { backgroundColor: accent + '18', borderColor: accent + '44' },
-              ]}
-            >
-              <Text style={[styles.entityChipText, { color: accent }]} numberOfLines={1}>
+            <View style={[styles.entityTag, { backgroundColor: theme.colors.surfaceHover }]}>
+              <Text style={styles.entityTagText} numberOfLines={1}>
                 {entityLabel}
               </Text>
             </View>
           ) : null}
         </View>
-      </View>
-      <View style={styles.trailing}>
-        <View style={styles.amountRow}>
-          <Text style={[styles.amount, isExpense ? styles.expense : styles.income]}>
-            {isExpense ? '−' : '+'}
-            {formattedAmount}
+
+        <View style={styles.metaRow}>
+          <Text style={styles.paymentMethod} numberOfLines={1}>
+            {paymentLabel}
           </Text>
-          {onPress ? <AppIcon name="chevronRight" size={15} color={theme.colors.textTertiary} /> : null}
+          <View style={styles.metaDivider} />
+          <Text style={styles.date} numberOfLines={1}>
+            {dateLabel}
+          </Text>
         </View>
-        {showBadge ? (
-          <View
-            style={[
-              styles.badge,
-              isExpense ? styles.badgeExpense : styles.badgeIncome,
-              onPress ? styles.badgeWithChevron : null,
-            ]}
-          >
-            <Text style={[styles.badgeText, isExpense ? styles.badgeTextExpense : styles.badgeTextIncome]}>
-              {isExpense ? 'Expense' : 'Income'}
-            </Text>
-          </View>
-        ) : null}
+      </View>
+
+      {/* Trailing Tabular Amount & Subtitle */}
+      <View style={styles.trailing}>
+        <Text style={[styles.amount, isExpense ? styles.expense : styles.income]} numberOfLines={1}>
+          {isExpense ? '−' : '+'}
+          {formattedAmount}
+        </Text>
+        <Text
+          style={[
+            styles.statusSub,
+            !isExpense && { color: theme.colors.secondary },
+          ]}
+          numberOfLines={1}
+        >
+          {isExpense ? 'Completed' : 'Verified'}
+        </Text>
       </View>
     </Pressable>
   );
@@ -122,10 +152,11 @@ export function TransactionGroup({ children }: { children: React.ReactNode }) {
       StyleSheet.create({
         group: {
           backgroundColor: theme.colors.surface,
-          borderRadius: theme.radii.xl,
+          borderRadius: theme.radii.card,
           borderWidth: 1,
           borderColor: theme.colors.borderSubtle,
           overflow: 'hidden',
+          ...theme.shadows.sm,
         },
       }),
     [theme]
@@ -138,11 +169,11 @@ function createStyles(t: ReturnType<typeof useTheme>) {
     container: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: 18,
-      paddingHorizontal: t.spacing.lg,
-      gap: 14,
+      paddingVertical: 14,
+      paddingHorizontal: t.spacing.md,
+      gap: 12,
       backgroundColor: t.colors.surface,
-      minHeight: 88,
+      minHeight: 72,
     },
     first: {},
     last: {
@@ -152,78 +183,99 @@ function createStyles(t: ReturnType<typeof useTheme>) {
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: t.colors.borderSubtle,
     },
-    pressed: { backgroundColor: t.colors.surfaceHover },
-    icon: {
-      width: 48,
-      height: 48,
+    pressed: {
+      backgroundColor: t.colors.surfaceHover,
+    },
+    iconPod: {
+      width: 44,
+      height: 44,
       borderRadius: 14,
       alignItems: 'center',
       justifyContent: 'center',
+      position: 'relative',
     },
-    dot: { width: 12, height: 12, borderRadius: 6 },
-    content: { flex: 1, minWidth: 0, gap: 6 },
+    cornerBadge: {
+      position: 'absolute',
+      bottom: -2,
+      right: -2,
+      width: 16,
+      height: 16,
+      borderRadius: 8,
+      backgroundColor: t.colors.surfaceElevated,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: t.colors.borderSubtle,
+    },
+    content: {
+      flex: 1,
+      minWidth: 0,
+      gap: 4,
+    },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
     merchant: {
       fontSize: 15,
       fontWeight: '600',
-      letterSpacing: -0.1,
+      letterSpacing: -0.2,
       color: t.colors.text,
+      flexShrink: 1,
+    },
+    entityTag: {
+      paddingHorizontal: 6,
+      paddingVertical: 1.5,
+      borderRadius: 6,
+    },
+    entityTagText: {
+      fontSize: 10,
+      fontWeight: '600',
+      color: t.colors.textSecondary,
     },
     metaRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      flexWrap: 'wrap',
-      gap: 8,
+      gap: 6,
+    },
+    paymentMethod: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: t.colors.textTertiary,
+    },
+    metaDivider: {
+      width: 3,
+      height: 3,
+      borderRadius: 1.5,
+      backgroundColor: t.colors.textTertiary,
     },
     date: {
       fontSize: 12,
       fontWeight: '500',
       color: t.colors.textTertiary,
     },
-    entityChip: {
-      maxWidth: '70%',
-      paddingHorizontal: 9,
-      paddingVertical: 3,
-      borderRadius: t.radii.full,
-      borderWidth: 1,
-    },
-    entityChipText: {
-      fontSize: 11,
-      fontWeight: '600',
-    },
     trailing: {
       alignItems: 'flex-end',
       justifyContent: 'center',
-      gap: 5,
-      minWidth: 84,
-    },
-    amountRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'flex-end',
-      gap: 8,
+      gap: 3,
     },
     amount: {
       fontSize: 15,
-      fontWeight: '600',
-      letterSpacing: -0.1,
-      textAlign: 'right',
+      fontWeight: '700',
+      letterSpacing: -0.2,
       fontVariant: ['tabular-nums'],
     },
-    expense: { color: t.colors.danger },
-    income: { color: t.colors.success },
-    badge: {
-      paddingHorizontal: 9,
-      paddingVertical: 3,
-      borderRadius: t.radii.full,
-      alignSelf: 'flex-end',
+    expense: {
+      color: t.colors.text,
     },
-    badgeWithChevron: {
-      marginRight: 23,
+    income: {
+      color: t.colors.secondary,
     },
-    badgeExpense: { backgroundColor: t.colors.dangerSoft },
-    badgeIncome: { backgroundColor: t.colors.successSoft },
-    badgeText: { fontSize: 10, fontWeight: '600', textAlign: 'center' },
-    badgeTextExpense: { color: t.colors.danger },
-    badgeTextIncome: { color: t.colors.success },
+    statusSub: {
+      fontSize: 11,
+      color: t.colors.textTertiary,
+      fontWeight: '500',
+    },
   });
 }

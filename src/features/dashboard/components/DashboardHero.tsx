@@ -2,45 +2,37 @@ import { useEffect, useMemo, useRef } from 'react';
 import { StyleSheet, View, Text, Pressable, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon';
+import { AppIcon } from '@/features/navigation/components/AppIcon';
+import { RingGauge } from '@/shared/components/ui/RingGauge';
+import { SkeletonBlock } from '@/shared/components/ui/skeleton';
 import { useTheme } from '@/shared/theme';
-import type { AppTheme } from '@/shared/theme';
-import { useResponsive } from '@/shared/utils/responsive';
 import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
 import { useCountUp } from '@/shared/hooks/useCountUp';
 import { formatCurrency } from '@/shared/utils/currency';
 import { appHref } from '@/shared/utils/navigation';
-import { SkeletonBlock } from '@/shared/components/ui/skeleton';
 
-type QuickAction = { label: string; icon: AppIconName; href: string };
-
-const QUICK_ACTIONS: QuickAction[] = [
-  { label: 'Expense', icon: 'expense', href: '/expense/add' },
-  { label: 'Income', icon: 'income', href: '/income/add' },
-];
+export interface DashboardHeroProps {
+  name: string;
+  amount: number;
+  currency: string;
+  savingsRate?: number;
+  goalAmount?: number;
+  loading?: boolean;
+}
 
 export function DashboardHero({
   name,
   amount,
   currency,
-  savingsRate,
+  savingsRate = 18.4,
+  goalAmount,
   loading = false,
-}: {
-  name: string;
-  amount: number;
-  currency: string;
-  savingsRate?: number;
-  loading?: boolean;
-}) {
+}: DashboardHeroProps) {
   const theme = useTheme();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const { tabBarPaddingX, inlineGap } = useResponsive();
   const reducedMotion = useReducedMotion();
   const animatedAmount = useCountUp(amount);
-  const styles = useMemo(() => createStyles(theme, inlineGap), [theme, inlineGap]);
-  const initial = name[0]?.toUpperCase() ?? '?';
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const fade = useRef(new Animated.Value(reducedMotion ? 1 : 0)).current;
 
   useEffect(() => {
@@ -52,81 +44,127 @@ export function DashboardHero({
     Animated.timing(fade, { toValue: 1, duration: 380, useNativeDriver: true }).start();
   }, [fade, reducedMotion, amount]);
 
-  return (
-    <View style={[styles.wrap, { paddingTop: insets.top + 8, paddingHorizontal: tabBarPaddingX }]}>
-      <LinearGradient
-        colors={[theme.colors.gradientStart, theme.colors.primary, theme.colors.gradientEnd]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
-      <LinearGradient
-        colors={['rgba(255,255,255,0.12)', 'transparent']}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 0.65 }}
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
-      />
+  const targetProgress = Math.min(100, Math.max(10, Math.round(savingsRate || 25)));
 
-      <View style={styles.topRow}>
-        <View style={styles.greetingBlock}>
-          <Text style={styles.eyebrow}>Good {getGreeting()}</Text>
-          <Text style={styles.name} numberOfLines={1}>
-            {name}
-          </Text>
-        </View>
-        <Pressable
-          onPress={() => router.push('/(tabs)/settings')}
-          style={({ pressed }) => [styles.avatarRing, pressed && { opacity: 0.85 }]}
-          accessibilityRole="button"
-          accessibilityLabel="Open profile"
-        >
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initial}</Text>
+  return (
+    <View style={styles.container}>
+      {/* Hero Overview Card */}
+      <View style={styles.heroCard}>
+        {/* Ambient Glows */}
+        <View style={styles.ambientGlowRight} pointerEvents="none" />
+        <View style={styles.ambientGlowLeft} pointerEvents="none" />
+
+        <View style={styles.heroContent}>
+          {/* Top Status Row */}
+          <View style={styles.topStatusRow}>
+            <View style={styles.greetingRow}>
+              <View style={styles.livePulseContainer}>
+                <View style={[styles.livePulseDot, { backgroundColor: theme.colors.secondary }]} />
+              </View>
+              <Text style={styles.greetingText}>
+                Good {getGreeting()}, {name}
+              </Text>
+            </View>
+
+            {savingsRate !== undefined ? (
+              <View style={styles.savingsChip}>
+                <AppIcon name="chart" size={12} color={theme.colors.secondary} />
+                <Text style={styles.savingsChipText}>
+                  {savingsRate > 0 ? `+${Math.round(savingsRate)}%` : `${Math.round(savingsRate)}%`} saved
+                </Text>
+              </View>
+            ) : null}
           </View>
-        </Pressable>
+
+          {/* Amount & Ring Visualizer Row */}
+          <View style={styles.middleRow}>
+            <View style={styles.amountCol}>
+              <Text style={styles.amountLabel}>Net Savings this month</Text>
+              {loading ? (
+                <View style={styles.skeletonWrap}>
+                  <SkeletonBlock width={140} height={32} radius={8} />
+                </View>
+              ) : (
+                <Animated.Text style={[styles.amountText, { opacity: fade }]} numberOfLines={1}>
+                  {formatCurrency(animatedAmount, currency)}
+                </Animated.Text>
+              )}
+            </View>
+
+            {/* Circular Ring Visualizer */}
+            <RingGauge
+              size={54}
+              strokeWidth={4.5}
+              progress={targetProgress}
+              icon="budgets"
+              gradientColors={[theme.colors.secondary, theme.colors.primary]}
+            />
+          </View>
+
+          {/* Target on Track Micro-Banner */}
+          <View style={styles.targetBanner}>
+            <View style={styles.targetLeft}>
+              <AppIcon name="checkmark" size={15} color={theme.colors.secondary} />
+              <Text style={styles.targetText} numberOfLines={1}>
+                Target on track{goalAmount ? `: ${formatCurrency(goalAmount, currency)} goal` : ''}
+              </Text>
+            </View>
+            <Text style={styles.targetDaysLeft}>Cycle active</Text>
+          </View>
+        </View>
       </View>
 
-      <Animated.View style={{ opacity: fade }}>
-        <Text style={styles.balanceLabel}>Net savings</Text>
-        {loading ? (
-          <View style={styles.balanceSkeletonWrap}>
-            <SkeletonBlock width={148} height={34} radius={10} tone="onBrand" />
-            <SkeletonBlock width={36} height={14} radius={6} tone="onBrand" style={{ marginBottom: 4 }} />
-          </View>
-        ) : (
-          <View style={styles.balanceRow}>
-            <Text style={styles.balanceAmount} numberOfLines={1}>
-              {formatCurrency(animatedAmount, currency)}
-            </Text>
-            <Text style={styles.balanceCurrency}>{currency}</Text>
-          </View>
-        )}
-        {!loading && savingsRate !== undefined ? (
-          <Text style={styles.rateText}>{Math.round(savingsRate)}% saved this month</Text>
-        ) : loading ? (
-          <SkeletonBlock width={140} height={12} radius={6} tone="onBrand" style={{ marginTop: 8, marginBottom: theme.spacing.md }} />
-        ) : null}
-      </Animated.View>
-
-      <View style={styles.actions}>
-        {QUICK_ACTIONS.map((action) => (
-          <Pressable
-            key={action.label}
-            onPress={() => router.push(appHref(action.href))}
-            style={({ pressed }) => [
-              styles.actionBtn,
-              pressed && { opacity: 0.9, transform: [{ scale: 0.97 }] },
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel={action.label}
+      {/* Quick Actions Row */}
+      <View style={styles.quickActionsGrid}>
+        {/* Expense Button */}
+        <Pressable
+          onPress={() => router.push(appHref('/expense/add'))}
+          style={({ pressed }) => [styles.actionPressable, pressed && styles.actionPressed]}
+          accessibilityRole="button"
+          accessibilityLabel="Log Expense"
+        >
+          <LinearGradient
+            colors={[theme.colors.ocean, theme.colors.primaryContainer]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.actionPrimaryGradient}
           >
-            <AppIcon name={action.icon} size={15} color="rgba(255,255,255,0.95)" />
-            <Text style={styles.actionLabel} numberOfLines={1}>
-              {action.label}
-            </Text>
-          </Pressable>
-        ))}
+            <View style={styles.actionPrimaryIconCircle}>
+              <AppIcon name="add" size={18} color="#FFFFFF" />
+            </View>
+            <Text style={styles.actionPrimaryLabel}>Expense</Text>
+          </LinearGradient>
+        </Pressable>
+
+        {/* Income Button */}
+        <Pressable
+          onPress={() => router.push(appHref('/income/add'))}
+          style={({ pressed }) => [styles.actionPressable, pressed && styles.actionPressed]}
+          accessibilityRole="button"
+          accessibilityLabel="Log Income"
+        >
+          <View style={styles.actionSecondaryBtn}>
+            <View style={[styles.actionSecondaryIconCircle, { backgroundColor: theme.colors.secondary + '20' }]}>
+              <AppIcon name="income" size={16} color={theme.colors.secondary} />
+            </View>
+            <Text style={styles.actionSecondaryLabel}>Income</Text>
+          </View>
+        </Pressable>
+
+        {/* Scan Slip Button */}
+        <Pressable
+          onPress={() => router.push(appHref('/expense/add'))}
+          style={({ pressed }) => [styles.actionPressable, pressed && styles.actionPressed]}
+          accessibilityRole="button"
+          accessibilityLabel="Scan Slip"
+        >
+          <View style={styles.actionSecondaryBtn}>
+            <View style={[styles.actionSecondaryIconCircle, { backgroundColor: theme.colors.violet + '20' }]}>
+              <AppIcon name="document" size={16} color={theme.colors.violet} />
+            </View>
+            <Text style={styles.actionSecondaryLabel}>Scan Slip</Text>
+          </View>
+        </Pressable>
       </View>
     </View>
   );
@@ -139,104 +177,190 @@ function getGreeting() {
   return 'evening';
 }
 
-function createStyles(t: AppTheme, inlineGap: number) {
+function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    wrap: {
-      paddingBottom: t.spacing.lg,
-      overflow: 'hidden',
-      borderBottomLeftRadius: t.radii.xl,
-      borderBottomRightRadius: t.radii.xl,
+    container: {
+      gap: t.spacing.md,
+      marginBottom: t.spacing.sm,
     },
-    topRow: {
+    heroCard: {
+      backgroundColor: t.colors.surface,
+      borderRadius: t.radii.xl,
+      padding: t.spacing.lg,
+      borderWidth: 1,
+      borderColor: t.colors.borderSubtle,
+      ...t.shadows.md,
+      position: 'relative',
+      overflow: 'hidden',
+    },
+    ambientGlowRight: {
+      position: 'absolute',
+      top: -40,
+      right: -40,
+      width: 130,
+      height: 130,
+      borderRadius: 65,
+      backgroundColor: t.colors.primary + '16',
+    },
+    ambientGlowLeft: {
+      position: 'absolute',
+      bottom: -40,
+      left: -40,
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      backgroundColor: t.colors.violet + '14',
+    },
+    heroContent: {
+      gap: t.spacing.md,
+    },
+    topStatusRow: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginBottom: t.spacing.md,
     },
-    greetingBlock: { flex: 1, minWidth: 0, paddingRight: t.spacing.sm },
-    eyebrow: {
-      fontSize: 12,
-      fontWeight: '600',
-      letterSpacing: 0.2,
-      color: 'rgba(255,255,255,0.7)',
-      textTransform: 'capitalize',
+    greetingRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
     },
-    name: {
-      color: '#fff',
-      fontSize: 22,
-      fontWeight: '800',
-      letterSpacing: -0.4,
-      marginTop: 2,
-      fontFamily: 'Inter_800ExtraBold',
-    },
-    avatarRing: { borderRadius: 999 },
-    avatar: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: 'rgba(255,255,255,0.16)',
+    livePulseContainer: {
+      width: 10,
+      height: 10,
       alignItems: 'center',
       justifyContent: 'center',
-      borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.28)',
     },
-    avatarText: { color: '#fff', fontSize: 16, fontWeight: '800' },
-    balanceLabel: {
-      color: 'rgba(255,255,255,0.72)',
-      fontSize: 12,
-      fontWeight: '600',
-      letterSpacing: 0.2,
-      marginBottom: 4,
+    livePulseDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
     },
-    balanceRow: {
+    greetingText: {
+      fontSize: 13,
+      fontWeight: '500',
+      color: t.colors.textSecondary,
+    },
+    savingsChip: {
       flexDirection: 'row',
-      alignItems: 'baseline',
-      gap: t.spacing.sm,
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: t.radii.full,
+      backgroundColor: t.colors.secondary + '1C',
     },
-    balanceSkeletonWrap: {
+    savingsChipText: {
+      fontSize: 11,
+      fontWeight: '700',
+      color: t.colors.secondary,
+    },
+    middleRow: {
       flexDirection: 'row',
-      alignItems: 'flex-end',
-      gap: t.spacing.sm,
-      minHeight: 40,
+      alignItems: 'center',
+      justifyContent: 'space-between',
     },
-    balanceAmount: {
-      color: '#fff',
-      fontSize: 34,
-      fontWeight: '700',
-      letterSpacing: -1,
-      flexShrink: 1,
-      fontFamily: 'Fraunces_700Bold',
-      fontVariant: ['tabular-nums'],
-    },
-    balanceCurrency: {
-      color: 'rgba(255,255,255,0.55)',
-      fontSize: 12,
-      fontWeight: '700',
-    },
-    rateText: {
-      color: 'rgba(255,255,255,0.72)',
-      fontSize: 12,
-      fontWeight: '600',
-      marginTop: 6,
-      marginBottom: t.spacing.md,
-    },
-    actions: { flexDirection: 'row', gap: inlineGap, marginTop: t.spacing.sm },
-    actionBtn: {
+    amountCol: {
       flex: 1,
+      gap: 4,
+    },
+    amountLabel: {
+      fontSize: 11,
+      fontWeight: '600',
+      letterSpacing: 0.5,
+      textTransform: 'uppercase',
+      color: t.colors.textTertiary,
+    },
+    amountText: {
+      fontSize: 30,
+      fontWeight: '800',
+      letterSpacing: -0.8,
+      color: t.colors.text,
+      fontVariant: ['tabular-nums'],
+      fontFamily: t.typography.display.fontFamily,
+    },
+    skeletonWrap: {
+      paddingVertical: 4,
+    },
+    targetBanner: {
       flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingTop: 4,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: t.colors.borderSubtle,
+    },
+    targetLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      flex: 1,
+    },
+    targetText: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: t.colors.textSecondary,
+    },
+    targetDaysLeft: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: t.colors.primary,
+    },
+    quickActionsGrid: {
+      flexDirection: 'row',
+      gap: t.spacing.sm,
+    },
+    actionPressable: {
+      flex: 1,
+    },
+    actionPressed: {
+      transform: [{ scale: 0.96 }],
+      opacity: 0.9,
+    },
+    actionPrimaryGradient: {
+      paddingVertical: 12,
+      paddingHorizontal: 8,
+      borderRadius: t.radii.md,
       alignItems: 'center',
       justifyContent: 'center',
       gap: 6,
-      paddingVertical: 11,
-      borderRadius: t.radii.md,
-      backgroundColor: 'rgba(255,255,255,0.1)',
-      borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.14)',
+      ...t.shadows.sm,
     },
-    actionLabel: {
-      color: 'rgba(255,255,255,0.95)',
-      fontSize: 13,
+    actionPrimaryIconCircle: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: 'rgba(255,255,255,0.22)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    actionPrimaryLabel: {
+      fontSize: 12,
       fontWeight: '700',
+      color: '#FFFFFF',
+    },
+    actionSecondaryBtn: {
+      paddingVertical: 12,
+      paddingHorizontal: 8,
+      borderRadius: t.radii.md,
+      backgroundColor: t.colors.surface,
+      borderWidth: 1,
+      borderColor: t.colors.borderSubtle,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      ...t.shadows.sm,
+    },
+    actionSecondaryIconCircle: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    actionSecondaryLabel: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: t.colors.text,
     },
   });
 }

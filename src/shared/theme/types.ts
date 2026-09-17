@@ -8,7 +8,13 @@ export interface ThemeColors {
   onPrimary: string;
   background: string;
   backgroundElevated: string;
+  surfaceElevated: string;
   surface: string;
+  surfaceContainerLow: string;
+  surfaceContainerHigh: string;
+  surfaceContainerHighest: string;
+  surfaceBright: string;
+  primaryContainer: string;
   surfaceHover: string;
   border: string;
   borderSubtle: string;
@@ -21,6 +27,13 @@ export interface ThemeColors {
   dangerSoft: string;
   warning: string;
   warningSoft: string;
+  secondary: string;
+  secondaryFixed: string;
+  secondaryContainer: string;
+  violet: string;
+  rose: string;
+  emerald: string;
+  ocean: string;
   gradientStart: string;
   gradientEnd: string;
   tabBar: string;
@@ -83,7 +96,9 @@ export interface ThemeRadii {
   sm: number;
   md: number;
   lg: number;
+  card: number;
   xl: number;
+  nav: number;
   full: number;
 }
 
