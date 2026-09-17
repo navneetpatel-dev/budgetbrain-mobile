@@ -6,10 +6,12 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AiChatSkeleton, ScreenContainer } from '@/shared/components/ui';
-import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
+import { LinearGradient } from 'expo-linear-gradient';
+import { AiChatSkeleton, AppHeaderBar } from '@/shared/components/ui';
+import { BrandMark } from '@/shared/components/brand/BrandMark';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
@@ -52,13 +54,23 @@ export function AiScreen() {
   const isEmpty = messages.length === 0 && !chatLoading;
 
   return (
-    <ScreenContainer padded={false} style={styles.root}>
-      <ProfileStackHeader
-        screen="ai"
-        subtitle="Ask about your finances"
-        actionIcon={messages.length > 0 ? 'add' : undefined}
-        actionLabel="New conversation"
-        onAction={messages.length > 0 ? startNewConversation : undefined}
+    <View style={styles.root}>
+      <AppHeaderBar
+        title="BudgetBrain"
+        subtitle="AI Financial Intelligence"
+        rightAction={
+          messages.length > 0 ? (
+            <Pressable
+              onPress={startNewConversation}
+              style={({ pressed }) => [styles.newChatBtn, pressed && { opacity: 0.75 }]}
+              accessibilityRole="button"
+              accessibilityLabel="Start new conversation"
+            >
+              <AppIcon name="add" size={16} color={theme.colors.primary} />
+              <Text style={styles.newChatText}>New Chat</Text>
+            </Pressable>
+          ) : undefined
+        }
       />
 
       <KeyboardAvoidingView
@@ -73,14 +85,40 @@ export function AiScreen() {
           keyboardShouldPersistTaps="handled"
         >
           {isEmpty ? (
-            <View style={styles.emptyState}>
-              <View style={styles.emptyIcon}>
-                <AppIcon name="ai" size={32} color={theme.colors.primary} />
+            <View style={styles.emptyContainer}>
+              {/* Glowing Aura Neural Card */}
+              <View style={styles.heroAuraCard}>
+                <LinearGradient
+                  colors={['rgba(14, 165, 233, 0.12)', 'rgba(139, 92, 246, 0.08)', 'transparent']}
+                  start={{ x: 0.5, y: 0 }}
+                  end={{ x: 0.5, y: 1 }}
+                  style={StyleSheet.absoluteFill}
+                  pointerEvents="none"
+                />
+                <View style={styles.brandMarkWrapper}>
+                  <BrandMark size={56} />
+                </View>
+                <Text style={styles.heroTitle}>Autonomous Financial Intelligence</Text>
+                <Text style={styles.heroSubtitle}>
+                  Ask anything about your spending habits, cashflow trends, budget limits, or receive actionable wealth optimization tips.
+                </Text>
+
+                {/* Quick Feature Pills */}
+                <View style={styles.capabilityRow}>
+                  <View style={styles.capabilityPill}>
+                    <AppIcon name="shield" size={13} color={theme.colors.secondary} />
+                    <Text style={styles.capabilityText}>Budget Guard</Text>
+                  </View>
+                  <View style={styles.capabilityPill}>
+                    <AppIcon name="trendingUp" size={13} color={theme.colors.primary} />
+                    <Text style={styles.capabilityText}>Run-rate Analysis</Text>
+                  </View>
+                  <View style={styles.capabilityPill}>
+                    <AppIcon name="sparkles" size={13} color={theme.colors.violet} />
+                    <Text style={styles.capabilityText}>Smart Forecasts</Text>
+                  </View>
+                </View>
               </View>
-              <Text style={styles.emptyTitle}>How can I help?</Text>
-              <Text style={styles.emptySubtitle}>
-                Ask about spending, savings, budgets, or get personalized tips from your data.
-              </Text>
             </View>
           ) : (
             <View style={styles.messages}>
@@ -101,7 +139,7 @@ export function AiScreen() {
           error={chatError}
         />
       </KeyboardAvoidingView>
-    </ScreenContainer>
+    </View>
   );
 }
 
@@ -111,37 +149,94 @@ function createStyles(
   footerBottom: number,
 ) {
   return StyleSheet.create({
-    root: { flex: 1 },
+    root: {
+      flex: 1,
+      backgroundColor: t.colors.background,
+    },
     flex: { flex: 1 },
+    newChatBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      backgroundColor: t.isDark ? 'rgba(14, 165, 233, 0.12)' : t.colors.primarySoft,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: t.colors.primary + '33',
+    },
+    newChatText: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: t.colors.primary,
+    },
     scrollContent: {
       flexGrow: 1,
       paddingHorizontal: horizontalPadding,
       paddingTop: t.spacing.md,
       paddingBottom: footerBottom + 80,
     },
-    emptyState: {
+    emptyContainer: {
       flex: 1,
-      alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: 48,
-      gap: t.spacing.md,
+      paddingVertical: t.spacing.xl,
     },
-    emptyIcon: {
-      width: 64,
-      height: 64,
-      borderRadius: 32,
+    heroAuraCard: {
+      position: 'relative',
+      backgroundColor: t.colors.surfaceContainer ?? t.colors.surface,
+      borderRadius: t.radii.card ?? 20,
+      padding: 24,
       alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: t.colors.primarySoft,
+      borderWidth: 1,
+      borderColor: t.isDark ? 'rgba(255,255,255,0.06)' : t.colors.borderSubtle,
+      overflow: 'hidden',
     },
-    emptyTitle: { ...t.typography.titleSm, color: t.colors.text, fontWeight: '700' },
-    emptySubtitle: {
+    brandMarkWrapper: {
+      marginBottom: 16,
+    },
+    heroTitle: {
+      ...t.typography.titleSm,
+      fontSize: 18,
+      fontWeight: '800',
+      color: t.colors.text,
+      textAlign: 'center',
+      letterSpacing: -0.3,
+      marginBottom: 8,
+    },
+    heroSubtitle: {
       ...t.typography.bodyMedium,
       color: t.colors.textSecondary,
       textAlign: 'center',
-      lineHeight: 22,
-      maxWidth: 280,
+      lineHeight: 21,
+      fontSize: 13,
+      maxWidth: 300,
+      marginBottom: 20,
     },
-    messages: { gap: t.spacing.md },
+    capabilityRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'center',
+      gap: 8,
+    },
+    capabilityPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      backgroundColor: t.isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: t.isDark ? 'rgba(255,255,255,0.06)' : 'transparent',
+    },
+    capabilityText: {
+      fontSize: 11,
+      fontWeight: '600',
+      color: t.colors.textSecondary,
+    },
+    messages: {
+      gap: t.spacing.md,
+      paddingVertical: t.spacing.sm,
+    },
   });
 }

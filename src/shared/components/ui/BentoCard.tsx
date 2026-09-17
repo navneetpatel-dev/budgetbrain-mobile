@@ -7,32 +7,41 @@ import { useSpringPress } from '@/shared/hooks/useSpringPress';
 
 export interface BentoCardProps {
   title: string;
-  amount: string;
+  amount?: string;
+  value?: string;
+  subtitle?: string;
   badgeText?: string;
   badgeColor?: string;
   icon: AppIconName;
   iconColor?: string;
+  accentColor?: string;
   onPress?: () => void;
+  style?: any;
 }
 
 export function BentoCard({
   title,
   amount,
+  value,
+  subtitle,
   badgeText,
   badgeColor,
   icon,
   iconColor,
+  accentColor,
   onPress,
+  style,
 }: BentoCardProps) {
   const theme = useTheme();
   const spring = useSpringPress();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
-  const tint = iconColor ?? theme.colors.primary;
+  const displayAmount = amount ?? value ?? '';
+  const tint = iconColor ?? accentColor ?? theme.colors.primary;
   const tagColor = badgeColor ?? tint;
 
   const content = (
-    <View style={styles.card}>
+    <View style={[styles.card, style]}>
       <View style={styles.topRow}>
         <View style={[styles.iconPod, { backgroundColor: tint + '1C' }]}>
           <AppIcon name={icon} size={16} color={tint} />
@@ -46,9 +55,16 @@ export function BentoCard({
         <Text style={styles.title} numberOfLines={1}>
           {title}
         </Text>
-        <Text style={styles.amount} numberOfLines={1}>
-          {amount}
-        </Text>
+        {displayAmount ? (
+          <Text style={styles.amount} numberOfLines={1}>
+            {displayAmount}
+          </Text>
+        ) : null}
+        {subtitle ? (
+          <Text style={styles.subtitle} numberOfLines={1}>
+            {subtitle}
+          </Text>
+        ) : null}
       </View>
     </View>
   );
@@ -119,6 +135,12 @@ function createStyles(t: ReturnType<typeof useTheme>) {
       letterSpacing: -0.4,
       color: t.colors.text,
       fontVariant: ['tabular-nums'],
+    },
+    subtitle: {
+      fontSize: 11,
+      fontWeight: '500',
+      color: t.colors.textSecondary,
+      marginTop: 1,
     },
   });
 }

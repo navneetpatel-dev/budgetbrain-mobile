@@ -50,6 +50,9 @@ const ICONS = {
   apple: { ios: 'apple.logo', android: 'phone_iphone', web: 'phone_iphone' },
   eye: { ios: 'eye', android: 'visibility', web: 'visibility' },
   eyeSlash: { ios: 'eye.slash', android: 'visibility_off', web: 'visibility_off' },
+  trendingUp: { ios: 'chart.line.uptrend.xyaxis', android: 'trending_up', web: 'trending_up' },
+  reports: { ios: 'doc.text.fill', android: 'assessment', web: 'assessment' },
+  info: { ios: 'info.circle.fill', android: 'info', web: 'info' },
 } as const;
 
 export type AppIconName = keyof typeof ICONS;

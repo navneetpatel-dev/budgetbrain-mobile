@@ -793,7 +793,7 @@ function createHeaderStyles(t: AppTheme) {
       paddingBottom: t.spacing.sm,
       borderBottomWidth: 1,
       borderBottomColor: t.isDark ? 'rgba(255,255,255,0.06)' : t.colors.borderSubtle,
-      backgroundColor: t.colors.background,
+      backgroundColor: t.colors.surfaceContainerLow ?? t.colors.background,
     },
     mainRow: {
       flexDirection: 'row',
@@ -864,7 +864,7 @@ function createStackNavStyles(t: AppTheme) {
       paddingBottom: 10,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: t.isDark ? 'rgba(255,255,255,0.08)' : t.colors.borderSubtle,
-      backgroundColor: t.colors.background,
+      backgroundColor: t.colors.surfaceContainerLow ?? t.colors.background,
     },
     row: {
       flexDirection: 'row',

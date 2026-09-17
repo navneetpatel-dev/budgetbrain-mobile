@@ -803,11 +803,11 @@ function createInputStyles(t: AppTheme) {
 function createCardStyles(t: AppTheme) {
   return StyleSheet.create({
     card: {
-      backgroundColor: t.colors.surface,
-      borderRadius: t.radii.lg,
+      backgroundColor: t.colors.surfaceContainer ?? t.colors.surface,
+      borderRadius: t.radii.card ?? 20,
       padding: t.spacing.lg,
       borderWidth: 1,
-      borderColor: t.colors.borderSubtle,
+      borderColor: t.isDark ? 'rgba(255,255,255,0.06)' : t.colors.borderSubtle,
     },
     elevated: { ...t.shadows.md, borderColor: 'transparent' },
     outline: { backgroundColor: 'transparent', borderColor: t.colors.border },

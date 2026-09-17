@@ -10,6 +10,7 @@ export interface ThemeColors {
   backgroundElevated: string;
   surfaceElevated: string;
   surface: string;
+  surfaceContainer: string;
   surfaceContainerLow: string;
   surfaceContainerHigh: string;
   surfaceContainerHighest: string;

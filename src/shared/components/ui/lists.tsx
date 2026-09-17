@@ -149,10 +149,10 @@ function createGroupedStyles(t: AppTheme) {
       marginLeft: t.spacing.xs,
     },
     card: {
-      backgroundColor: t.colors.surface,
-      borderRadius: t.radii.lg,
+      backgroundColor: t.colors.surfaceContainer ?? t.colors.surface,
+      borderRadius: t.radii.card ?? 20,
       borderWidth: 1,
-      borderColor: t.colors.borderSubtle,
+      borderColor: t.isDark ? 'rgba(255,255,255,0.06)' : t.colors.borderSubtle,
       overflow: 'hidden',
     },
     cardPadded: {
@@ -174,9 +174,9 @@ function createRowStyles(t: AppTheme) {
     },
     rowBorder: {
       borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: t.colors.borderSubtle,
+      borderBottomColor: t.isDark ? 'rgba(255,255,255,0.06)' : t.colors.borderSubtle,
     },
-    rowPressed: { backgroundColor: t.colors.surfaceHover },
+    rowPressed: { backgroundColor: t.colors.surfaceHover ?? (t.isDark ? 'rgba(255,255,255,0.06)' : t.colors.surfaceHover) },
     iconWrap: {
       width: 36,
       height: 36,
