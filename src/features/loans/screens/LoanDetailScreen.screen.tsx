@@ -21,7 +21,6 @@ import {
 import { useLoanDetail, type LoanEditForm } from '@/features/loans/hooks/useLoanDetail';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
-import { toSafePercent } from '@/shared/utils/number';
 import { maxLen, optionalTextRules, textRules } from '@/shared/validation/fieldLimits';
 
 export function LoanDetailScreen() {
@@ -80,8 +79,8 @@ export function LoanDetailScreen() {
     );
   }
 
-  const paidOff = Number(loan.principal) - Number(loan.remainingBalance);
-  const pct = toSafePercent(paidOff, loan.principal);
+  // Server-computed — never derive from principal/remainingBalance client-side.
+  const pct = loan.paidPercentage ?? 0;
 
   return (
     <FormStackScreen

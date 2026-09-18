@@ -24,7 +24,6 @@ import { confirmDeleteBudget } from '@/features/budgets/services/confirmations';
 import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import { formatCurrency } from '@/shared/utils/currency';
-import { toSafePercent } from '@/shared/utils/number';
 import { alertThresholdRules, amountRules, maxLen, textRules } from '@/shared/validation/fieldLimits';
 import { showAlert } from '@/shared/utils/confirmations';
 
@@ -91,7 +90,8 @@ export function BudgetDetailScreen() {
   const spent = Number(budget.spent ?? 0);
   const rolloverAmount = Number(budget.rolloverAmount ?? 0);
   const limit = Number(budget.effectiveAmount ?? budget.amount);
-  const pct = toSafePercent(spent, limit);
+  // Server-computed (0-100, capped) — never derive from spent/limit client-side.
+  const pct = budget.spentPercentage ?? 0;
   const alertAt = budget.alertThreshold ?? 80;
   const barColor = pct >= 100 ? theme.colors.danger : pct >= alertAt ? theme.colors.warning : theme.colors.success;
 

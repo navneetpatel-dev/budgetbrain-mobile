@@ -6,7 +6,7 @@ import { Card, ProgressBar } from '@/shared/components/ui';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
-import { toSafePercent, toSafeNumber } from '@/shared/utils/number';
+import { toSafeNumber } from '@/shared/utils/number';
 import type { Budget } from '@/shared/types';
 import { createStyles } from './BudgetCard.styles';
 
@@ -23,7 +23,8 @@ export function BudgetCard({
   const spent = budget.spent ?? 0;
   const effectiveLimit = budget.effectiveAmount ?? budget.amount;
   const rolloverAmount = budget.rolloverAmount ?? 0;
-  const progress = toSafePercent(spent, effectiveLimit);
+  // Server-computed (0-100, capped) — never derive from spent/effectiveLimit client-side.
+  const progress = budget.spentPercentage ?? 0;
   const remaining = Math.max(0, Number(effectiveLimit) - spent);
   const isCritical = progress >= budget.alertThreshold || toSafeNumber(spent) > toSafeNumber(effectiveLimit);
 

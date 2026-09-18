@@ -123,6 +123,7 @@ export function useExpensesScreen() {
   const {
     items: transactions,
     total,
+    summary,
     isLoading,
     isError,
     isRefetching,
@@ -146,21 +147,13 @@ export function useExpensesScreen() {
     pageSize: FILTER_PICKER_FETCH_LIMIT,
   });
 
-  // Calculate quick metrics for Cash Flow Hero from current page items
-  const { totalSpent, totalEarned, currentCurrency } = useMemo(() => {
-    let spent = 0;
-    let earned = 0;
-    let curr = 'INR';
-    transactions.forEach((tx) => {
-      curr = tx.currency || curr;
-      const amt = Number(tx.amount) || 0;
-      if (tx.type === 'expense') {
-        spent += amt;
-      } else {
-        earned += amt;
-      }
-    });
-    return { totalSpent: spent, totalEarned: earned, currentCurrency: curr };
+  // Cash Flow Hero metrics: server-computed SUM for the active filter set (`summary`),
+  // never a client-side reduce over `transactions` — that only reflects loaded pages and
+  // would silently undercount once a filter matches more than one page of results.
+  const totalSpent = (summary as { totalExpense?: number } | undefined)?.totalExpense ?? 0;
+  const totalEarned = (summary as { totalIncome?: number } | undefined)?.totalIncome ?? 0;
+  const currentCurrency = useMemo(() => {
+    return transactions[0]?.currency || 'INR';
   }, [transactions]);
 
   // Filter chips rail config

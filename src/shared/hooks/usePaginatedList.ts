@@ -70,10 +70,15 @@ export function useInfinitePaginatedList<T>(config: {
   );
 
   const total = query.data?.pages[0]?.total as number | undefined;
+  // Server-computed aggregate for the active filter set (e.g. expense/income totals),
+  // distinct from `total` (item count) — only present on endpoints that return one.
+  // Never derive this by summing `items`: that only reflects the currently-loaded pages.
+  const summary = query.data?.pages[0]?.summary as Record<string, unknown> | undefined;
 
   return {
     items,
     total: total ?? items.length,
+    summary,
     isLoading: query.isLoading,
     isError: query.isError,
     isRefetching: query.isRefetching,

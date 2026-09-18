@@ -6,7 +6,6 @@ import { Card, ProgressBar } from '@/shared/components/ui';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
-import { toSafePercent } from '@/shared/utils/number';
 import type { Loan } from '@/shared/types';
 import { createStyles } from './LoanCard.styles';
 
@@ -14,8 +13,8 @@ export function LoanCard({ loan, onDelete }: { loan: Loan; onDelete: () => void 
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
-  const paidOff = Number(loan.principal) - Number(loan.remainingBalance);
-  const progress = toSafePercent(paidOff, loan.principal);
+  // Server-computed — never derive from principal/remainingBalance client-side.
+  const progress = loan.paidPercentage ?? 0;
   const openLoan = () => router.push(appHref(`/loan/${loan.id}`));
 
   return (

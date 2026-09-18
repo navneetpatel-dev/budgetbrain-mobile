@@ -58,6 +58,8 @@ export interface Budget {
   rolloverAmount?: number;
   effectiveAmount?: number;
   spent?: number;
+  /** Server-computed (0-100, capped) — never derive from spent/effectiveAmount client-side. */
+  spentPercentage?: number;
   category?: Category;
 }
 
@@ -76,6 +78,10 @@ export interface Loan {
   notes: string | null;
   closed: boolean;
   payments?: LoanPayment[];
+  /** Server-computed (principal - remainingBalance) — never derive client-side. */
+  amountPaid?: number;
+  /** Server-computed (0-100, capped) — never derive from principal/remainingBalance client-side. */
+  paidPercentage?: number;
 }
 
 export interface LoanPayment {
@@ -254,6 +260,8 @@ export interface PaginationMeta {
 
 export interface PaginatedTransactions extends PaginationMeta {
   transactions: Transaction[];
+  /** Server-computed SUM for the active filter set — never derive from loaded items client-side. */
+  summary: { totalExpense: number; totalIncome: number };
 }
 
 export type PaginatedList<K extends string, T> = PaginationMeta & Record<K, T[]>;
