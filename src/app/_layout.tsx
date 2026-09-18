@@ -13,6 +13,7 @@ import { AppLockGate } from '@/features/settings/components/AppLockGate';
 import { initAnalytics, resetAnalytics } from '@/shared/services/analytics';
 import { initMonitoring } from '@/shared/services/monitoring';
 import { initOfflineSync } from '@/shared/services/offlineSync';
+import { initPurchases, loginPurchasesUser, logoutPurchasesUser } from '@/shared/services/purchases';
 import { addNotificationResponseListener, resolveNotificationDeepLink } from '@/shared/services/notifications';
 import { appHref } from '@/shared/utils/navigation';
 import { ThemeProvider, useTheme } from '@/shared/theme';
@@ -26,6 +27,7 @@ import { PreferencesHydrator } from '@/features/settings/components/PreferencesH
 initAnalytics();
 initMonitoring();
 initQueryPersistence();
+initPurchases();
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function FontGate({ children }: { children: React.ReactNode }) {
@@ -65,8 +67,11 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isAuthenticated) {
       resetAnalytics();
+      logoutPurchasesUser();
+    } else if (user?.id) {
+      loginPurchasesUser(user.id);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user?.id]);
 
   if (isLoading) return <ColdStartSkeleton />;
 

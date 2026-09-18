@@ -6,10 +6,15 @@ import {
   Pressable,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
+import type { PurchasesPackage } from 'react-native-purchases';
 import { useTheme } from '@/shared/theme';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { createStyles } from './PaywallModal.styles';
+import { usePaywallOfferings } from '../hooks/usePaywallOfferings';
+import { useEntitlement } from '../hooks/useEntitlement';
+import { purchasePackage, restorePurchases } from '@/shared/services/purchases';
 
 export interface PaywallModalProps {
   visible: boolean;
@@ -27,21 +32,74 @@ export function PaywallModal({
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [selectedPlan, setSelectedPlan] = useState<PlanType>('yearly');
+  const [purchasing, setPurchasing] = useState(false);
+  const { refreshEntitlement } = useEntitlement();
+  const { monthly, annual, lifetime, loading, purchasesAvailable } = usePaywallOfferings(visible);
 
-  const handlePurchase = () => {
-    Alert.alert(
-      'BudgetBrain Pro',
-      'In-app purchases are powered by RevenueCat. Apple & Google Play Store billing will connect in production builds.',
-      [{ text: 'OK', onPress: onClose }],
-    );
+  const packageForPlan: Record<PlanType, PurchasesPackage | null> = {
+    monthly,
+    yearly: annual,
+    lifetime,
+  };
+  const selectedPackage = packageForPlan[selectedPlan];
+
+  const priceFor = (plan: PlanType, fallback: string) =>
+    packageForPlan[plan]?.product.priceString ?? fallback;
+
+  const handlePurchase = async () => {
+    if (!purchasesAvailable) {
+      Alert.alert(
+        'Not available yet',
+        'In-app purchases aren’t configured on this build yet. Please try again later.',
+      );
+      return;
+    }
+    if (!selectedPackage) {
+      Alert.alert(
+        'Plan unavailable',
+        'This plan isn’t available right now. Please try another plan or check back shortly.',
+      );
+      return;
+    }
+    setPurchasing(true);
+    const result = await purchasePackage(selectedPackage);
+    if (result.status === 'success') {
+      const entitled = await refreshEntitlement();
+      setPurchasing(false);
+      Alert.alert(
+        entitled ? 'Welcome to Pro' : 'Purchase complete',
+        entitled
+          ? 'Your premium features are now unlocked.'
+          : 'Your purchase went through. It may take a moment to reflect — reopen this screen if it still shows locked.',
+        [{ text: 'OK', onPress: onClose }],
+      );
+    } else if (result.status === 'cancelled') {
+      setPurchasing(false);
+    } else {
+      setPurchasing(false);
+      Alert.alert('Purchase failed', result.message);
+    }
   };
 
-  const handleRestore = () => {
-    Alert.alert(
-      'Restore Purchases',
-      'Checking your active subscriptions...',
-      [{ text: 'OK' }],
-    );
+  const handleRestore = async () => {
+    setPurchasing(true);
+    const result = await restorePurchases();
+    if (result.status === 'success') {
+      const entitled = await refreshEntitlement();
+      setPurchasing(false);
+      Alert.alert(
+        entitled ? 'Purchases restored' : 'Restore complete',
+        entitled
+          ? 'Your premium access has been restored.'
+          : 'No active premium purchase was found on this account.',
+        entitled ? [{ text: 'OK', onPress: onClose }] : [{ text: 'OK' }],
+      );
+    } else if (result.status === 'cancelled') {
+      setPurchasing(false);
+    } else {
+      setPurchasing(false);
+      Alert.alert('Restore failed', result.message);
+    }
   };
 
   return (
@@ -129,7 +187,7 @@ export function PaywallModal({
                   </View>
                 </View>
                 <View>
-                  <Text style={styles.planPrice}>₹1,499</Text>
+                  <Text style={styles.planPrice}>{priceFor('yearly', '₹1,499')}</Text>
                   <Text style={styles.planSubtext}>/ year</Text>
                 </View>
               </Pressable>
@@ -155,7 +213,7 @@ export function PaywallModal({
                   </View>
                 </View>
                 <View>
-                  <Text style={styles.planPrice}>₹199</Text>
+                  <Text style={styles.planPrice}>{priceFor('monthly', '₹199')}</Text>
                   <Text style={styles.planSubtext}>/ month</Text>
                 </View>
               </Pressable>
@@ -182,7 +240,7 @@ export function PaywallModal({
                   </View>
                 </View>
                 <View>
-                  <Text style={styles.planPrice}>₹3,999</Text>
+                  <Text style={styles.planPrice}>{priceFor('lifetime', '₹3,999')}</Text>
                   <Text style={styles.planSubtext}>one-time</Text>
                 </View>
               </Pressable>
@@ -191,20 +249,25 @@ export function PaywallModal({
             {/* CTA */}
             <Pressable
               onPress={handlePurchase}
+              disabled={purchasing || loading}
               style={({ pressed }) => [
                 styles.ctaButton,
-                pressed && { opacity: 0.9 },
+                (pressed || purchasing || loading) && { opacity: 0.7 },
               ]}
             >
-              <Text style={styles.ctaText}>
-                {selectedPlan === 'lifetime'
-                  ? 'Get Lifetime Access'
-                  : 'Start 7-Day Free Trial'}
-              </Text>
+              {purchasing ? (
+                <ActivityIndicator color={theme.colors.onPrimary} />
+              ) : (
+                <Text style={styles.ctaText}>
+                  {selectedPlan === 'lifetime'
+                    ? 'Get Lifetime Access'
+                    : 'Start 7-Day Free Trial'}
+                </Text>
+              )}
             </Pressable>
 
             {/* Restore */}
-            <Pressable onPress={handleRestore} style={styles.restoreBtn}>
+            <Pressable onPress={handleRestore} style={styles.restoreBtn} disabled={purchasing}>
               <Text style={styles.restoreText}>Restore Purchases</Text>
             </Pressable>
 
