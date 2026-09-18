@@ -17,7 +17,11 @@ export function useAuthBootstrap() {
           const profile = await apiGet<User>('/users/me');
           dispatch(setUser(profile));
           identifyUser(profile.id, { email: profile.email, role: profile.role });
-          registerForPushNotifications().catch(() => {});
+          // Ask for push permission once the user has real context (post-onboarding),
+          // not on a brand-new account's very first authenticated screen.
+          if (profile.onboardingCompleted) {
+            registerForPushNotifications().catch(() => {});
+          }
         } else {
           dispatch(setLoading(false));
         }

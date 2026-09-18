@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
@@ -13,6 +13,8 @@ import { AppLockGate } from '@/features/settings/components/AppLockGate';
 import { initAnalytics, resetAnalytics } from '@/shared/services/analytics';
 import { initMonitoring } from '@/shared/services/monitoring';
 import { initOfflineSync } from '@/shared/services/offlineSync';
+import { addNotificationResponseListener, resolveNotificationDeepLink } from '@/shared/services/notifications';
+import { appHref } from '@/shared/utils/navigation';
 import { ThemeProvider, useTheme } from '@/shared/theme';
 import { useFontBootstrap } from '@/shared/hooks/useFontBootstrap';
 import { useAuthBootstrap } from '@/shared/hooks/useAuthBootstrap';
@@ -44,6 +46,18 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     const unsubscribe = initOfflineSync();
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let subscription: { remove: () => void } | undefined;
+    addNotificationResponseListener((response) => {
+      const data = response.notification.request.content.data as Record<string, unknown> | undefined;
+      router.push(appHref(resolveNotificationDeepLink(data)));
+    }).then((sub) => {
+      subscription = sub;
+    });
+    return () => subscription?.remove();
+  }, [isAuthenticated]);
 
   useAuthBootstrap();
   useAuthNavigation(isAuthenticated, isLoading, user);
@@ -89,6 +103,7 @@ function RootNavigator() {
           <Stack.Screen name="budget/[id]" />
           <Stack.Screen name="goal/[id]/index" />
           <Stack.Screen name="subscriptions/index" />
+          <Stack.Screen name="devices/index" />
           <Stack.Screen name="recap" />
           <Stack.Screen name="loan/index" />
           <Stack.Screen name="loan/add" options={{ presentation: 'modal' }} />

@@ -64,6 +64,35 @@ export async function registerForPushNotifications(): Promise<string | null> {
   return token;
 }
 
+/**
+ * Maps a tapped push notification's `data` payload to the screen it should open,
+ * per requirements.md's 5 trigger types. `data.type` is the `NotificationType` enum
+ * value the backend now includes in every push payload (see
+ * backend/src/shared/modules/notifications/service/notification.service.ts).
+ */
+export function resolveNotificationDeepLink(data: Record<string, unknown> | undefined): string {
+  const type = data?.type as string | undefined;
+  switch (type) {
+    case 'budget_exceeded':
+      return data?.budgetId ? `/budget/${String(data.budgetId)}` : '/(tabs)/budgets';
+    case 'goal_achieved':
+      return data?.goalId ? `/goal/${String(data.goalId)}` : '/(tabs)/goals';
+    case 'subscription_renewal':
+      // No dedicated "my BudgetBrain plan" screen exists yet (confirmed gap, step 13) —
+      // Settings is the closest real destination until a paywall/plan screen is built.
+      return '/(tabs)/settings';
+    case 'daily_reminder':
+      return '/expense/add';
+    case 'bill_due':
+    case 'recurring_expense':
+      return data?.transactionId ? `/expense/${String(data.transactionId)}` : '/subscriptions';
+    case 'weekly_digest':
+      return '/recap';
+    default:
+      return '/notifications';
+  }
+}
+
 export async function addNotificationListener(
   callback: (notification: import('expo-notifications').Notification) => void
 ) {
