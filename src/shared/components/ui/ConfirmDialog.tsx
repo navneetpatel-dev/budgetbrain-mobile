@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useTheme } from '@/shared/theme';
-import type { AppTheme } from '@/shared/theme';
 import { useSheetEnterAnimation } from '@/shared/hooks/useSheetEnterAnimation';
 import { Button } from './index';
 import type { ConfirmCopy } from '@/shared/constants/confirmations';
+import { createStyles } from './ConfirmDialog.styles';
 
 export function ConfirmDialog({
   open,
@@ -59,34 +59,4 @@ export function ConfirmDialog({
       </Pressable>
     </Modal>
   );
-}
-
-function createStyles(t: AppTheme) {
-  return StyleSheet.create({
-    overlay: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: t.spacing.xl,
-      backgroundColor: t.colors.overlay,
-    },
-    card: {
-      width: '100%',
-      maxWidth: 420,
-      padding: t.spacing.xl,
-      borderWidth: 1,
-      backgroundColor: t.colors.surface,
-      borderRadius: t.radii.xl,
-      borderColor: t.colors.borderSubtle,
-      ...t.shadows.lg,
-    },
-    title: { ...t.typography.titleSm, color: t.colors.text },
-    message: {
-      ...t.typography.bodyMedium,
-      color: t.colors.textSecondary,
-      marginTop: t.spacing.md,
-      marginBottom: t.spacing.lg,
-    },
-    actions: { gap: t.spacing.sm },
-  });
 }

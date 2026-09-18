@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import { useSpringPress } from '@/shared/hooks/useSpringPress';
+import { createStyles } from './BentoCard.styles';
 
 export interface BentoCardProps {
   title: string;
@@ -85,62 +86,4 @@ export function BentoCard({
   }
 
   return content;
-}
-
-function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    pressable: {
-      flex: 1,
-      minWidth: '47%',
-    },
-    card: {
-      flex: 1,
-      backgroundColor: t.colors.surface,
-      borderRadius: t.radii.card,
-      padding: t.spacing.md,
-      borderWidth: 1,
-      borderColor: t.colors.borderSubtle,
-      ...t.shadows.sm,
-      minHeight: 116,
-      justifyContent: 'space-between',
-    },
-    topRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-    iconPod: {
-      width: 32,
-      height: 32,
-      borderRadius: 10,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    badgeText: {
-      fontSize: 12,
-      fontWeight: '600',
-    },
-    bottomBlock: {
-      marginTop: 8,
-      gap: 2,
-    },
-    title: {
-      fontSize: 12,
-      fontWeight: '500',
-      color: t.colors.textTertiary,
-    },
-    amount: {
-      fontSize: 20,
-      fontWeight: '700',
-      letterSpacing: -0.4,
-      color: t.colors.text,
-      fontVariant: ['tabular-nums'],
-    },
-    subtitle: {
-      fontSize: 11,
-      fontWeight: '500',
-      color: t.colors.textSecondary,
-      marginTop: 1,
-    },
-  });
 }
