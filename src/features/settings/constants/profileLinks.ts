@@ -18,6 +18,7 @@ export const PROFILE_ACCOUNT_LINKS: { label: string; href: string; icon: AppIcon
   { label: 'Family Groups', href: '/family', icon: 'family' },
   { label: 'Integrations', href: '/integrations', icon: 'link' },
   { label: 'Notifications', href: '/notifications', icon: 'bell' },
+  { label: 'Devices', href: '/devices', icon: 'devices' },
   { label: 'Support', href: '/support', icon: 'support' },
   { label: 'Privacy Policy', href: '/legal/privacy', icon: 'document' },
   { label: 'Terms of Service', href: '/legal/terms', icon: 'document' },

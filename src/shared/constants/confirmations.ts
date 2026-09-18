@@ -62,4 +62,11 @@ export const CONFIRM = {
     cancelLabel: 'Cancel',
     destructive: true,
   }),
+  revokeDevice: (deviceName: string): ConfirmCopy => ({
+    title: 'Sign out this device?',
+    message: `"${deviceName}" will be signed out immediately and must sign in again to access your account.`,
+    confirmLabel: 'Sign out device',
+    cancelLabel: 'Cancel',
+    destructive: true,
+  }),
 } as const;

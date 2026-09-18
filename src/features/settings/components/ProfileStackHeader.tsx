@@ -18,7 +18,8 @@ export type ProfileScreenKey =
   | 'privacy'
   | 'terms'
   | 'loans'
-  | 'subscriptions';
+  | 'subscriptions'
+  | 'devices';
 
 const PROFILE_SCREEN_TITLES: Record<ProfileScreenKey, string> = {
   goals: 'Goals',
@@ -38,6 +39,7 @@ const PROFILE_SCREEN_TITLES: Record<ProfileScreenKey, string> = {
   terms: 'Terms of Service',
   loans: 'Loans & Debts',
   subscriptions: 'Subscriptions',
+  devices: 'Devices',
 };
 
 /** Single compact header wrapper for every screen linked from Profile */

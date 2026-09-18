@@ -3,7 +3,7 @@ import { REHYDRATE } from 'redux-persist';
 import type { AccentPalette, ThemeMode } from '../theme/types';
 import { DEFAULT_ACCENT, resolveAccent, resolveThemeMode } from '../theme/palettes';
 
-interface SettingsState {
+export interface SettingsState {
   theme: ThemeMode;
   accent: AccentPalette;
   currency: string;
@@ -37,6 +37,12 @@ const settingsSlice = createSlice({
     setBiometricEnabled(state, action: PayloadAction<boolean>) {
       state.biometricEnabled = action.payload;
     },
+    /**
+     * In-memory reactivity flag only ("is a PIN currently set"). The PIN value itself
+     * must be written to `shared/services/secureStorage.ts` (expo-secure-store) by the
+     * caller, not persisted here — `shared/store/index.ts`'s `settingsSecurityTransform`
+     * strips this field before it ever reaches AsyncStorage-backed redux-persist.
+     */
     setAppLockPin(state, action: PayloadAction<string | null>) {
       state.appLockPin = action.payload;
     },

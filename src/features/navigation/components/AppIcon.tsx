@@ -53,6 +53,7 @@ const ICONS = {
   trendingUp: { ios: 'chart.line.uptrend.xyaxis', android: 'trending_up', web: 'trending_up' },
   reports: { ios: 'doc.text.fill', android: 'assessment', web: 'assessment' },
   info: { ios: 'info.circle.fill', android: 'info', web: 'info' },
+  devices: { ios: 'iphone', android: 'devices', web: 'devices' },
 } as const;
 
 export type AppIconName = keyof typeof ICONS;
