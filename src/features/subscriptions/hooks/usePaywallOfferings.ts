@@ -36,6 +36,7 @@ export function usePaywallOfferings(visible: boolean): PaywallOfferings {
   }, [purchasesAvailable]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- standard async data-fetch-on-visible pattern; `load` sets loading state before its network call.
     if (visible) load();
   }, [visible, load]);
 

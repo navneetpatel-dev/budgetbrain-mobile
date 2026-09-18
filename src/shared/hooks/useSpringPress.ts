@@ -17,9 +17,11 @@ export function useSpringPress(targetScale = 0.96) {
   const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   const onPressIn = () => {
+    // eslint-disable-next-line react-hooks/immutability -- Reanimated SharedValue.value mutation is the documented idiomatic pattern, not a React state mutation.
     scale.value = reducedMotion ? targetScale : withSpring(targetScale, theme.motion.spring);
   };
   const onPressOut = () => {
+    // eslint-disable-next-line react-hooks/immutability -- see justification above.
     scale.value = reducedMotion ? 1 : withSpring(1, theme.motion.spring);
   };
 

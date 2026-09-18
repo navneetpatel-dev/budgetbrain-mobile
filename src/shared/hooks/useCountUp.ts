@@ -8,9 +8,16 @@ export function useCountUp(target: number, durationMs = 700): number {
   const fromRef = useRef(target);
   const rafRef = useRef<ReturnType<typeof requestAnimationFrame> | number>(0);
 
+  const skipAnimation = reducedMotion || !Number.isFinite(target);
+
+  // Adjust state during render (React's documented pattern for syncing state to a
+  // prop change) instead of scheduling a redundant extra render via setState-in-effect.
+  if (skipAnimation && value !== target) {
+    setValue(target);
+  }
+
   useEffect(() => {
-    if (reducedMotion || !Number.isFinite(target)) {
-      setValue(target);
+    if (skipAnimation) {
       fromRef.current = target;
       return;
     }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Animated, Easing, View, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/shared/theme';
@@ -8,7 +8,7 @@ import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
 /* ── Shimmer ── */
 
 function useShimmer() {
-  const anim = useRef(new Animated.Value(0)).current;
+  const [anim] = useState(() => new Animated.Value(0));
   const reducedMotion = useReducedMotion();
   useEffect(() => {
     if (reducedMotion) {

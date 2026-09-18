@@ -27,6 +27,7 @@ export function useAppLock(
 
   useEffect(() => {
     if (isLockActive) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- must run after mount to gate the initial screen before the async biometrics prompt (a native API call, not computable during render) fires below.
       setLocked(true);
       if (biometricEnabled) {
         unlockWithBiometrics();

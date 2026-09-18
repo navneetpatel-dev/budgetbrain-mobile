@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Animated, View, Text, Pressable, ViewStyle } from 'react-native';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
@@ -105,7 +105,7 @@ export function ProgressBar({
   const fill = color ?? theme.colors.primary;
   const pct = Math.min(100, Math.max(0, progress));
   const reducedMotion = useReducedMotion();
-  const width = useRef(new Animated.Value(reducedMotion ? pct : 0)).current;
+  const [width] = useState(() => new Animated.Value(reducedMotion ? pct : 0));
 
   useEffect(() => {
     if (reducedMotion) {

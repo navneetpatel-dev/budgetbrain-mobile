@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiGet, apiPost, getApiErrorMessage } from '@/shared/services/api';
@@ -41,7 +41,9 @@ export function useAiChat() {
   const messagesCountRef = useRef(0);
   const clearChatError = useCallback(() => setChatError(null), []);
 
-  messagesCountRef.current = messages.length;
+  useEffect(() => {
+    messagesCountRef.current = messages.length;
+  }, [messages.length]);
 
   const { data: insights, isLoading: insightsLoading } = useQuery({
     queryKey: ['ai-insights'],

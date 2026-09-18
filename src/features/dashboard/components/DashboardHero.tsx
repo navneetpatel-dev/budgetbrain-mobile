@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { View, Text, Pressable, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -34,7 +34,7 @@ export function DashboardHero({
   const reducedMotion = useReducedMotion();
   const animatedAmount = useCountUp(amount);
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const fade = useRef(new Animated.Value(reducedMotion ? 1 : 0)).current;
+  const [fade] = useState(() => new Animated.Value(reducedMotion ? 1 : 0));
 
   useEffect(() => {
     if (reducedMotion) {

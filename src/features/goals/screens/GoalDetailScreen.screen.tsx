@@ -178,6 +178,7 @@ export function GoalDetailScreen() {
 
           <FormActions
             primaryTitle="Save Changes"
+            // eslint-disable-next-line react-hooks/refs -- the ref write below runs inside this submit callback (invoked on press via handleSubmit), never during render.
             onPrimary={handleSubmit(async (data) => {
               if (await save(data)) {
                 editFromViewRef.current = false;
