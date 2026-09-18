@@ -7,7 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import { store, persistor } from '@/shared/store';
-import { queryClient } from '@/shared/services/queryClient';
+import { initQueryPersistence, queryClient } from '@/shared/services/queryClient';
 import { useAppSelector } from '@/shared/store/hooks';
 import { AppLockGate } from '@/features/settings/components/AppLockGate';
 import { initAnalytics, resetAnalytics } from '@/shared/services/analytics';
@@ -23,6 +23,7 @@ import { PreferencesHydrator } from '@/features/settings/components/PreferencesH
 
 initAnalytics();
 initMonitoring();
+initQueryPersistence();
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function FontGate({ children }: { children: React.ReactNode }) {
