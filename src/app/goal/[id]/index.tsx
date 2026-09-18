@@ -23,7 +23,6 @@ import { useGoalDetail, type GoalForm } from '@/features/goals/hooks/useGoalDeta
 import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import { formatCurrency } from '@/shared/utils/currency';
-import { toSafePercent } from '@/shared/utils/number';
 import { amountRules, maxLen, optionalDateRules, textRules } from '@/shared/validation/fieldLimits';
 import { DateBounds } from '@/shared/utils/dateBounds';
 
@@ -85,7 +84,8 @@ export default function GoalDetailScreen() {
     );
   }
 
-  const pct = toSafePercent(goal.currentAmount, goal.targetAmount);
+  // Server-computed — do not derive from currentAmount/targetAmount client-side (MOBILE doc §12).
+  const pct = goal.progressPercentage;
 
   return (
     <FormStackScreen

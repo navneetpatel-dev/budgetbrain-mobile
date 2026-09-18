@@ -6,7 +6,6 @@ import { appHref } from '@/shared/utils/navigation';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
-import { toSafePercent } from '@/shared/utils/number';
 import type { Goal } from '@/shared/types';
 import { createStyles } from './GoalCard.styles';
 
@@ -20,8 +19,9 @@ export function GoalCard({
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
-  const progress = toSafePercent(goal.currentAmount, goal.targetAmount);
-  const isCompleted = progress >= 100;
+  // Server-computed — do not derive from currentAmount/targetAmount client-side (MOBILE doc §12).
+  const progress = goal.progressPercentage;
+  const isCompleted = goal.completedAt != null;
 
   const openGoal = () => router.push(appHref(`/goal/${goal.id}`));
   const contribute = () => router.push(appHref(`/goal/${goal.id}/contribute`));

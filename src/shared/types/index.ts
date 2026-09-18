@@ -263,6 +263,9 @@ export interface Goal {
   currentAmount: number;
   currency: string;
   targetDate: string | null;
+  /** Server-computed (0-100, capped) — never derive this from targetAmount/currentAmount client-side. */
+  progressPercentage: number;
+  completedAt: string | null;
 }
 
 export interface DashboardData {

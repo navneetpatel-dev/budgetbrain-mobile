@@ -17,9 +17,10 @@ export function useDashboardWidgets(budgets: Budget[] | undefined, goals: Goal[]
   const goalWidgets = useMemo(
     () =>
       (goals ?? []).map((goal) => {
+        // progressPercentage is server-computed (MOBILE doc §12) — do not re-derive it here.
         const current = goal.currentAmount;
         const target = goal.targetAmount;
-        return { goal, current, target, progress: toSafePercent(current, target) };
+        return { goal, current, target, progress: goal.progressPercentage };
       }),
     [goals],
   );
