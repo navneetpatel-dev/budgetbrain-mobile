@@ -203,11 +203,14 @@ export interface AiInsight {
   summary: { current: number; previous: number; changePercent: number };
 }
 
+/** Matches backend/src/shared/ai/anomalyDetection.engine.ts's DetectedAnomaly shape exactly. */
 export interface AiAnomaly {
-  id: string;
-  amount: number;
-  merchant: string | null;
-  date: string;
+  type: 'spending_spike' | 'duplicate_expense' | 'subscription_cost_increase';
+  transactionId?: string;
+  recurringSeriesId?: string;
+  merchant?: string;
+  amount?: number;
+  severity: 'low' | 'medium' | 'high';
   reason: string;
 }
 

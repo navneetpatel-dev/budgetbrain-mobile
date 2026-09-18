@@ -96,5 +96,17 @@ export function createStyles(
       gap: t.spacing.md,
       paddingVertical: t.spacing.sm,
     },
+    insightsSection: {
+      gap: t.spacing.sm,
+      marginTop: t.spacing.lg,
+    },
+    sectionLabel: {
+      ...t.typography.caption,
+      fontWeight: '700',
+      color: t.colors.textTertiary,
+      textTransform: 'uppercase',
+      letterSpacing: 0.4,
+      marginBottom: 2,
+    },
   });
 }

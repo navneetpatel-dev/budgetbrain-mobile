@@ -16,12 +16,23 @@ import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
 import { useAiChat } from '@/features/ai/hooks/useAiChat';
+import { formatCurrency } from '@/shared/utils/currency';
 import {
   AiChatBubble,
   AiTypingIndicator,
   AiChatInput,
+  AiInsightCard,
+  AiAnomalyCard,
+  AiAnomalyClear,
 } from '@/features/ai/components';
 import { createStyles } from './AiScreen.styles';
+
+function anomalyMeta(anomaly: { merchant?: string; amount?: number }, currency: string): string {
+  const parts: string[] = [];
+  if (anomaly.merchant) parts.push(anomaly.merchant);
+  if (typeof anomaly.amount === 'number') parts.push(formatCurrency(anomaly.amount, currency));
+  return parts.join(' · ');
+}
 
 export function AiScreen() {
   const theme = useTheme();
@@ -34,6 +45,7 @@ export function AiScreen() {
   );
   const scrollRef = useRef<ScrollView>(null);
   const {
+    currency,
     message,
     setMessage,
     chatLoading,
@@ -42,6 +54,8 @@ export function AiScreen() {
     sendMessage,
     startNewConversation,
     chatError,
+    insights,
+    anomalies,
   } = useAiChat();
 
   useEffect(() => {
@@ -119,6 +133,31 @@ export function AiScreen() {
                     <Text style={styles.capabilityText}>Smart Forecasts</Text>
                   </View>
                 </View>
+              </View>
+
+              {insights && insights.insights.length > 0 && (
+                <View style={styles.insightsSection}>
+                  <Text style={styles.sectionLabel}>Spending Insights</Text>
+                  {insights.insights.map((text, i) => (
+                    <AiInsightCard key={i} text={text} />
+                  ))}
+                </View>
+              )}
+
+              <View style={styles.insightsSection}>
+                <Text style={styles.sectionLabel}>Anomaly Detection</Text>
+                {anomalies && anomalies.anomalies.length > 0 ? (
+                  anomalies.anomalies.map((a, i) => (
+                    <AiAnomalyCard
+                      key={a.transactionId ?? a.recurringSeriesId ?? i}
+                      type={a.type}
+                      reason={a.reason}
+                      meta={anomalyMeta(a, currency)}
+                    />
+                  ))
+                ) : (
+                  <AiAnomalyClear />
+                )}
               </View>
             </View>
           ) : (

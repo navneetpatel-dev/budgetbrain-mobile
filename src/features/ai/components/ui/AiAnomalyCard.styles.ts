@@ -21,7 +21,8 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
       backgroundColor: t.colors.warning + '22',
     },
     body: { flex: 1 },
-    reason: { ...t.typography.bodyMedium, fontWeight: '600', color: t.colors.text },
+    label: { ...t.typography.caption, fontWeight: '700', color: t.colors.warning, textTransform: 'uppercase' },
+    reason: { ...t.typography.bodyMedium, fontWeight: '600', color: t.colors.text, marginTop: 2 },
     meta: { ...t.typography.caption, color: t.colors.textSecondary, marginTop: 4 },
   });
 }
