@@ -11,6 +11,9 @@ import {
   getStoredAppLockPin,
   setStoredAppLockPin,
   clearStoredAppLockPin,
+  getPinLockoutSecondsRemaining,
+  recordFailedPinAttempt,
+  resetPinAttempts,
 } from '@/shared/services/secureStorage';
 import { useAppDispatch } from '@/shared/store/hooks';
 import { setAppLockPin } from '@/shared/store/settingsSlice';
@@ -44,15 +47,42 @@ export function PinPadModal({
   const [pin, setPin] = useState('');
   const [firstPin, setFirstPin] = useState('');
   const [error, setError] = useState<string | null>(null);
+  /** Seconds remaining in an escalating lockout after repeated wrong-PIN guesses
+   * (persisted in secure storage so it survives an app kill, not just this component). */
+  const [lockoutSeconds, setLockoutSeconds] = useState(0);
 
   useEffect(() => {
     if (visible) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- resets the modal's transient step/pin state on open; a key-remount restructure would need to touch both of this modal's call sites, an accepted tradeoff for one extra render pass in this security-sensitive flow.
       setStep(0);
       setPin('');
       setFirstPin('');
       setError(null);
+      getPinLockoutSecondsRemaining().then(setLockoutSeconds);
     }
   }, [visible, mode]);
+
+  const isLockedOut = lockoutSeconds > 0;
+
+  useEffect(() => {
+    if (!isLockedOut) return;
+    const id = setInterval(() => {
+      setLockoutSeconds((s) => Math.max(0, s - 1));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [isLockedOut]);
+
+  /** Verifies a 4-digit guess against the stored PIN, applying/clearing the lockout counter. */
+  const verifyPin = useCallback(async (guess: string): Promise<boolean> => {
+    const stored = await getStoredAppLockPin();
+    if (stored === guess) {
+      await resetPinAttempts();
+      return true;
+    }
+    const seconds = await recordFailedPinAttempt();
+    setLockoutSeconds(seconds);
+    return false;
+  }, []);
 
   const getTitle = () => {
     if (mode === 'unlock') return 'Enter PIN to Unlock';
@@ -86,7 +116,7 @@ export function PinPadModal({
 
   const handleDigit = useCallback(
     async (digit: string) => {
-      if (pin.length >= 4) return;
+      if (pin.length >= 4 || lockoutSeconds > 0) return;
       const next = pin + digit;
       setPin(next);
       setError(null);
@@ -94,16 +124,14 @@ export function PinPadModal({
       if (next.length === 4) {
         // Evaluate completion of current step
         if (mode === 'unlock') {
-          const stored = await getStoredAppLockPin();
-          if (stored === next) {
+          if (await verifyPin(next)) {
             onSuccess();
           } else {
             setError('Incorrect PIN. Try again.');
             setPin('');
           }
         } else if (mode === 'remove') {
-          const stored = await getStoredAppLockPin();
-          if (stored === next) {
+          if (await verifyPin(next)) {
             await clearStoredAppLockPin();
             dispatch(setAppLockPin(null));
             onSuccess();
@@ -132,8 +160,7 @@ export function PinPadModal({
           }
         } else if (mode === 'change') {
           if (step === 0) {
-            const stored = await getStoredAppLockPin();
-            if (stored === next) {
+            if (await verifyPin(next)) {
               setPin('');
               setStep(1);
             } else {
@@ -160,7 +187,7 @@ export function PinPadModal({
         }
       }
     },
-    [pin, mode, step, firstPin, dispatch, onSuccess, onClose],
+    [pin, mode, step, firstPin, lockoutSeconds, verifyPin, dispatch, onSuccess, onClose],
   );
 
   const handleBackspace = () => {
@@ -199,7 +226,13 @@ export function PinPadModal({
           <Text style={styles.title}>{getTitle()}</Text>
           <Text style={styles.subtitle}>{getSubtitle()}</Text>
 
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          {lockoutSeconds > 0 ? (
+            <Text style={styles.errorText}>
+              Too many incorrect attempts. Try again in {lockoutSeconds}s.
+            </Text>
+          ) : error ? (
+            <Text style={styles.errorText}>{error}</Text>
+          ) : null}
 
           {/* Dots Indicator */}
           <View style={styles.dotsContainer}>
@@ -215,12 +248,13 @@ export function PinPadModal({
           </View>
 
           {/* Keypad Grid */}
-          <View style={styles.keypadGrid}>
+          <View style={[styles.keypadGrid, lockoutSeconds > 0 && { opacity: 0.4 }]}>
             <View style={styles.keypadRow}>
               {['1', '2', '3'].map((d) => (
                 <Pressable
                   key={d}
                   onPress={() => handleDigit(d)}
+                  disabled={lockoutSeconds > 0}
                   style={({ pressed }) => [
                     styles.keyButton,
                     pressed && styles.keyButtonPressed,
@@ -236,6 +270,7 @@ export function PinPadModal({
                 <Pressable
                   key={d}
                   onPress={() => handleDigit(d)}
+                  disabled={lockoutSeconds > 0}
                   style={({ pressed }) => [
                     styles.keyButton,
                     pressed && styles.keyButtonPressed,
@@ -251,6 +286,7 @@ export function PinPadModal({
                 <Pressable
                   key={d}
                   onPress={() => handleDigit(d)}
+                  disabled={lockoutSeconds > 0}
                   style={({ pressed }) => [
                     styles.keyButton,
                     pressed && styles.keyButtonPressed,
@@ -264,6 +300,7 @@ export function PinPadModal({
             <View style={styles.keypadRow}>
               <Pressable
                 onPress={handleClear}
+                disabled={lockoutSeconds > 0}
                 style={({ pressed }) => [
                   styles.keyButton,
                   pressed && styles.keyButtonPressed,
@@ -274,6 +311,7 @@ export function PinPadModal({
 
               <Pressable
                 onPress={() => handleDigit('0')}
+                disabled={lockoutSeconds > 0}
                 style={({ pressed }) => [
                   styles.keyButton,
                   pressed && styles.keyButtonPressed,
