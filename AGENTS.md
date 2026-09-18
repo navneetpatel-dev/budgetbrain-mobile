@@ -136,12 +136,6 @@ When touching a feature, colocate new code in the correct layer rather than mixi
 
 ---
 
-## Testing
-
-Each feature that has tests keeps one flat `__tests__/` folder colocated at `src/features/<domain>/__tests__/` (or `src/shared/<layer>/__tests__/` for shared code) — no nested subfolders inside it. Name files `<thing>.test.ts` (or `.test.tsx` for component tests), matching the name of the module under test. Run with `npm test` (Jest, `jest-expo` preset).
-
----
-
 ## Shared UI design system
 
 Use these from `@/shared/components/ui` for consistent screen styling:
@@ -158,3 +152,16 @@ Use these from `@/shared/components/ui` for consistent screen styling:
 | `ScreenIntro` | Eyebrow + subtitle under native stack headers |
 | `GroupedCard` | Sectioned card groups with uppercase titles |
 | `EmptyState` | Empty lists with gradient CTA |
+
+---
+
+## Testing
+
+- Runner: Jest (`jest-expo` preset) + `@testing-library/react-native`. Run with `npm test`.
+- Colocation: one flat `__tests__/` folder per feature (e.g. `src/features/expenses/__tests__/`) or under `src/shared/__tests__/` — no nested subfolders inside `__tests__/`.
+- Naming: `<thing>.test.ts` (or `.test.tsx` for component/screen tests) — mirror the name of the file under test.
+- Prioritize tests for `hooks/` (state/orchestration) and `utils/` (pure functions) — that is where the real logic lives once the dot-suffix layering is in place. `.component.tsx`/`.screen.tsx` files are thin composition and lower priority for unit coverage.
+
+## Verification gate
+
+Before considering any change done: `npm run typecheck`, `npm run lint`, `npm test`, and — for anything visual or gesture-related — a device/simulator pass (`npx expo start`, iOS and Android). Do not suppress a lint rule or skip a failing test to get green; fix the root cause.
