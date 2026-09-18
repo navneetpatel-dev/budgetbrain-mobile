@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { View, Text } from 'react-native';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
+import { createStyles, createClearStyles } from './AiAnomalyCard.styles';
 
 export function AiAnomalyCard({
   reason,
@@ -41,54 +42,4 @@ export function AiAnomalyClear() {
       </View>
     </View>
   );
-}
-
-function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    card: {
-      flexDirection: 'row',
-      gap: 12,
-      padding: t.spacing.lg,
-      borderRadius: t.radii.lg,
-      backgroundColor: t.colors.warningSoft,
-      borderWidth: 1,
-      borderColor: t.colors.warning + '33',
-    },
-    iconWrap: {
-      width: 32,
-      height: 32,
-      borderRadius: 10,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: t.colors.warning + '22',
-    },
-    body: { flex: 1 },
-    reason: { ...t.typography.bodyMedium, fontWeight: '600', color: t.colors.text },
-    meta: { ...t.typography.caption, color: t.colors.textSecondary, marginTop: 4 },
-  });
-}
-
-function createClearStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    wrap: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-      padding: t.spacing.lg,
-      borderRadius: t.radii.lg,
-      backgroundColor: t.colors.successSoft,
-      borderWidth: 1,
-      borderColor: t.colors.success + '33',
-    },
-    iconWrap: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: t.colors.success + '22',
-    },
-    title: { ...t.typography.bodySemibold, color: t.colors.text },
-    subtitle: { ...t.typography.caption, color: t.colors.textSecondary, marginTop: 2 },
-  });
 }

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, ActivityIndicator } from 'react-native';
 // import { Platform } from 'react-native';
 // import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useSocialAuth } from '@/features/auth/hooks/useSocialAuth';
@@ -7,6 +7,7 @@ import { AuthDivider } from '@/features/auth/components/ui/AuthDivider';
 import { AuthErrorBanner } from '@/features/auth/components/ui/AuthErrorBanner';
 import { getLoadingLabel } from '@/shared/utils/buttonLoadingLabel';
 import { useTheme } from '@/shared/theme';
+import { markStyles, createStyles, createBtnStyles } from './SocialAuthButtons.styles';
 
 function GoogleMark() {
   return (
@@ -15,18 +16,6 @@ function GoogleMark() {
     </View>
   );
 }
-
-const markStyles = StyleSheet.create({
-  circle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  g: { fontSize: 13, fontWeight: '700', color: '#4285F4' },
-});
 
 
 export function SocialAuthButtons({ disabled: formDisabled }: { disabled?: boolean }) {
@@ -113,31 +102,4 @@ function SocialButton({
       )}
     </Pressable>
   );
-}
-
-function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    container: { marginTop: 0 },
-    row: { flexDirection: 'row', gap: t.spacing.sm },
-  });
-}
-
-function createBtnStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    btn: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 10,
-      paddingVertical: 14,
-      borderRadius: t.radii.lg,
-      backgroundColor: t.colors.surface,
-      borderWidth: 1,
-      borderColor: t.colors.border,
-    },
-    btnDisabled: { opacity: 0.5 },
-    btnPressed: { opacity: 0.88 },
-    label: { ...t.typography.bodySemibold, fontSize: 15, color: t.colors.text },
-  });
 }
