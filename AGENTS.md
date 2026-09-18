@@ -165,3 +165,7 @@ Use these from `@/shared/components/ui` for consistent screen styling:
 ## Verification gate
 
 Before considering any change done: `npm run typecheck`, `npm run lint`, `npm test`, and — for anything visual or gesture-related — a device/simulator pass (`npx expo start`, iOS and Android). Do not suppress a lint rule or skip a failing test to get green; fix the root cause.
+
+## Design tokens
+
+`src/shared/theme/` (`palettes.ts`, `buildTheme.ts`, `types.ts`) is this project's tokens layer — the equivalent of `shared/styles/tokens/` in the generic structure docs. It already covers all five token categories (color, spacing, type, radius/`radii`, elevation/`shadows`), centrally, per accent palette and light/dark mode. Do not create a second `styles/tokens/` folder or a parallel token system — extend `theme/` in place.

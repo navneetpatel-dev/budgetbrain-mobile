@@ -90,7 +90,12 @@ export function RingGauge({
         </Svg>
         {/* Tactical center glyph node */}
         <View style={styles.semiCenterNode} pointerEvents="none">
-          <View style={[styles.semiIconBadge, { backgroundColor: theme.colors.primaryContainer }]}>
+          <View
+            style={[
+              styles.semiIconBadge,
+              { backgroundColor: theme.colors.primaryContainer, shadowColor: theme.colors.primary },
+            ]}
+          >
             <AppIcon name={icon} size={22} color="#FFFFFF" />
           </View>
           {centerText ? (

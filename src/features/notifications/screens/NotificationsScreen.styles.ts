@@ -29,7 +29,7 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
     },
     unreadCard: {
       borderColor: t.colors.primary + '40',
-      backgroundColor: t.isDark ? 'rgba(14, 165, 233, 0.05)' : '#F0F9FF',
+      backgroundColor: t.colors.primarySoft,
     },
     iconCol: {
       paddingTop: 2,

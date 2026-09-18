@@ -21,7 +21,8 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#0EA5E9',
+    // shadowColor is theme-accent-dependent (multiple accent palettes exist) — applied
+    // as an inline override from RingGauge.tsx (theme.colors.primary), not hardcoded here.
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35,
     shadowRadius: 8,
