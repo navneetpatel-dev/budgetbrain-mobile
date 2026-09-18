@@ -102,6 +102,16 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
       color: t.colors.textSecondary,
       textTransform: 'capitalize',
     },
+    memberActionsRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    memberRoleAction: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: t.colors.primary,
+    },
     memberRemoveBtn: {
       paddingHorizontal: 8,
       paddingVertical: 4,

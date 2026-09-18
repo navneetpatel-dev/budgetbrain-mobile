@@ -83,4 +83,11 @@ export const CONFIRM = {
     cancelLabel: 'Cancel',
     destructive: true,
   }),
+  transferFamilyOwnership: (name: string): ConfirmCopy => ({
+    title: 'Transfer ownership?',
+    message: `"${name}" will become the new owner of this group, and you will be demoted to admin. This cannot be undone by you alone.`,
+    confirmLabel: 'Transfer',
+    cancelLabel: 'Cancel',
+    destructive: true,
+  }),
 } as const;

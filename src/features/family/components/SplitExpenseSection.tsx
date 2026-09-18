@@ -37,8 +37,11 @@ export function SplitExpenseSection({
   const [created, setCreated] = useState<SplitParticipant[] | null>(null);
   const [settledIds, setSettledIds] = useState<Set<string>>(new Set());
 
-  const groups = memberships ?? [];
+  const writableGroups = (memberships ?? []).filter((g) => g.role !== 'read_only');
+  const groups = writableGroups;
   const activeGroupId = groupId ?? groups[0]?.groupId ?? null;
+  const activeRole = groups.find((g) => g.groupId === activeGroupId)?.role;
+  const canSettle = activeRole !== 'read_only';
   const { settle: settleSplit, settlingId } = useSettleSplit(activeGroupId ?? undefined);
 
   const { data: membersData } = useQuery({
@@ -129,11 +132,11 @@ export function SplitExpenseSection({
                   </Text>
                   {settledIds.has(row.id) ? (
                     <Text style={styles.settledText}>Settled</Text>
-                  ) : (
+                  ) : canSettle ? (
                     <Pressable onPress={() => settle(row.id)}>
                       <Text style={styles.settleAction}>Mark settled</Text>
                     </Pressable>
-                  )}
+                  ) : null}
                 </View>
               ))}
             </View>

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { RefreshControl, Text, View, Pressable } from 'react-native';
 import { Controller } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -11,12 +11,13 @@ import {
   FormErrorBanner,
   FormSuccessBanner,
   FamilySkeleton,
+  ActionSheet,
 } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
 import { useFamilyGroups } from '@/features/family/hooks/useFamilyGroups';
 import { useSettleSplit } from '@/features/family/hooks/useSettleSplit';
-import { apiGet, apiDelete } from '@/shared/services/api';
+import { apiGet, apiDelete, apiPatch } from '@/shared/services/api';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import { formatCurrency } from '@/shared/utils/currency';
 import { useAppSelector } from '@/shared/store/hooks';
@@ -26,7 +27,7 @@ import { CONFIRM } from '@/shared/constants/confirmations';
 import type { FamilyBalance, FamilyMemberWithUser, SplitWithTransaction } from '@/shared/types';
 import { createStyles } from './FamilyScreen.styles';
 
-function GroupBalances({ groupId, currency }: { groupId: string; currency: string }) {
+function GroupBalances({ groupId, currency, userRole }: { groupId: string; currency: string; userRole: string }) {
   const theme = useTheme();
   const currentUserId = useAppSelector((s) => s.auth.user?.id);
   const { data } = useQuery({
@@ -43,6 +44,7 @@ function GroupBalances({ groupId, currency }: { groupId: string; currency: strin
     itemsKey: 'splits',
   });
   const { settleMany, settlingId, error: settleError } = useSettleSplit(groupId);
+  const canSettle = userRole !== 'read_only';
 
   const balances = data?.balances ?? [];
   const members = membersData?.members ?? [];
@@ -65,7 +67,7 @@ function GroupBalances({ groupId, currency }: { groupId: string; currency: strin
             <Text style={{ ...theme.typography.caption, color: theme.colors.textSecondary, flex: 1 }}>
               {nameFor(b.fromUserId)} owes {nameFor(b.toUserId)} {formatCurrency(b.amount, currency)}
             </Text>
-            {matchingSplitIds.length > 0 ? (
+            {matchingSplitIds.length > 0 && canSettle ? (
               <Pressable onPress={() => settleMany(matchingSplitIds)} disabled={isSettling} hitSlop={8}>
                 <Text style={{ ...theme.typography.caption, fontWeight: '700', color: theme.colors.primary }}>
                   {isSettling ? 'Settling…' : 'Settle up'}
@@ -98,6 +100,8 @@ function GroupMembersList({
     queryFn: () => apiGet<{ members: FamilyMemberWithUser[] }>(`/family/groups/${groupId}/members`),
   });
 
+  const [roleSheetMember, setRoleSheetMember] = useState<FamilyMemberWithUser | null>(null);
+
   const members = data?.members ?? [];
   const isOwnerOrAdmin = userRole === 'owner' || userRole === 'admin';
 
@@ -107,6 +111,19 @@ function GroupMembersList({
       void queryClient.invalidateQueries({ queryKey: ['family-members', groupId] });
       void queryClient.invalidateQueries({ queryKey: ['family-groups'] });
     });
+  };
+
+  const applyRoleChange = (member: FamilyMemberWithUser, newRole: 'admin' | 'contributor' | 'read_only' | 'owner') => {
+    const run = async () => {
+      await apiPatch(`/family/groups/${groupId}/members/${member.userId}`, { role: newRole });
+      void queryClient.invalidateQueries({ queryKey: ['family-members', groupId] });
+      void queryClient.invalidateQueries({ queryKey: ['family-groups'] });
+    };
+    if (newRole === 'owner') {
+      showConfirmation(CONFIRM.transferFamilyOwnership(member.user.name ?? 'Member'), run);
+    } else {
+      void run();
+    }
   };
 
   const handleDeleteGroup = () => {
@@ -120,10 +137,11 @@ function GroupMembersList({
     <View style={styles.membersSection}>
       <Text style={styles.membersSectionTitle}>Members ({members.length})</Text>
       {members.map((member) => {
+        const isSelf = member.userId === currentUserId;
         const canRemove =
-          isOwnerOrAdmin &&
-          member.userId !== currentUserId &&
-          (userRole === 'owner' || member.role !== 'owner');
+          !isSelf &&
+          (userRole === 'owner' || (userRole === 'admin' && member.role !== 'owner' && member.role !== 'admin'));
+        const canChangeRole = userRole === 'owner' && !isSelf;
 
         return (
           <View key={member.id} style={styles.memberRow}>
@@ -136,21 +154,28 @@ function GroupMembersList({
               <View>
                 <Text style={styles.memberName}>
                   {member.user.name ?? member.user.email}
-                  {member.userId === currentUserId ? ' (You)' : ''}
+                  {isSelf ? ' (You)' : ''}
                 </Text>
                 <Text style={styles.memberRoleText}>{member.role}</Text>
               </View>
             </View>
 
-            {canRemove ? (
-              <Pressable
-                onPress={() => handleRemoveMember(member)}
-                style={styles.memberRemoveBtn}
-                hitSlop={8}
-              >
-                <Text style={styles.memberRemoveText}>Remove</Text>
-              </Pressable>
-            ) : null}
+            <View style={styles.memberActionsRow}>
+              {canChangeRole ? (
+                <Pressable onPress={() => setRoleSheetMember(member)} hitSlop={8}>
+                  <Text style={styles.memberRoleAction}>Change role</Text>
+                </Pressable>
+              ) : null}
+              {canRemove ? (
+                <Pressable
+                  onPress={() => handleRemoveMember(member)}
+                  style={styles.memberRemoveBtn}
+                  hitSlop={8}
+                >
+                  <Text style={styles.memberRemoveText}>Remove</Text>
+                </Pressable>
+              ) : null}
+            </View>
           </View>
         );
       })}
@@ -162,6 +187,26 @@ function GroupMembersList({
           </Pressable>
         </View>
       ) : null}
+
+      <ActionSheet
+        visible={!!roleSheetMember}
+        title={roleSheetMember ? `Change role for ${roleSheetMember.user.name ?? 'Member'}` : ''}
+        onClose={() => setRoleSheetMember(null)}
+        items={
+          roleSheetMember
+            ? (['admin', 'contributor', 'read_only', 'owner'] as const)
+                .filter((r) => r !== roleSheetMember.role)
+                .map((r) => ({
+                  id: r,
+                  label: r === 'owner' ? 'Transfer ownership' : r.charAt(0).toUpperCase() + r.slice(1).replace('_', ' '),
+                  onPress: () => {
+                    applyRoleChange(roleSheetMember, r);
+                    setRoleSheetMember(null);
+                  },
+                }))
+            : []
+        }
+      />
     </View>
   );
 }
@@ -229,7 +274,7 @@ export function FamilyScreen() {
                 {m.group?.inviteCode ? (
                   <Text style={styles.inviteCode}>Invite: {m.group.inviteCode}</Text>
                 ) : null}
-                <GroupBalances groupId={m.groupId} currency={user?.currency ?? 'INR'} />
+                <GroupBalances groupId={m.groupId} currency={user?.currency ?? 'INR'} userRole={m.role} />
                 <GroupMembersList
                   groupId={m.groupId}
                   groupName={m.group?.name ?? 'Family Group'}
