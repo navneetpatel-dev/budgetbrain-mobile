@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import { useAppSelector } from '@/shared/store/hooks';
 import { useAppLock } from '@/features/settings/hooks/useAppLock';
+import { PinPadModal } from '@/features/settings/components/PinPadModal.component';
 import { ColdStartSkeleton } from '@/shared/components/ui';
 import { useTheme } from '@/shared/theme';
 import { createStyles } from './AppLockGate.styles';
@@ -14,19 +15,30 @@ export function AppLockGate({ children }: Props) {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const biometricEnabled = useAppSelector((s) => s.settings.biometricEnabled);
+  const appLockPin = useAppSelector((s) => s.settings.appLockPin);
   const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
-  const { locked, checked } = useAppLock(biometricEnabled, isAuthenticated);
+  const hasLock = biometricEnabled || !!appLockPin;
 
-  if (biometricEnabled && isAuthenticated && locked) {
+  const { locked, checked, unlockWithPin } = useAppLock(
+    biometricEnabled,
+    !!appLockPin,
+    isAuthenticated
+  );
+
+  if (hasLock && isAuthenticated && locked) {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>budgetbrain Locked</Text>
-        <Text style={styles.subtitle}>Authenticate to continue</Text>
+        <PinPadModal
+          visible={true}
+          mode="unlock"
+          onClose={() => {}}
+          onSuccess={unlockWithPin}
+        />
       </View>
     );
   }
 
-  if (!checked && biometricEnabled) {
+  if (!checked && hasLock) {
     return <ColdStartSkeleton />;
   }
 

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useAppSelector } from '@/shared/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/shared/store/hooks';
+import { setAppLockPin } from '@/shared/store/settingsSlice';
+import { getStoredAppLockPin } from '@/shared/services/secureStorage';
 import { useBiometricToggle } from './useBiometricToggle';
 import { useDigestPreference } from './useDigestPreference';
 import { useDeleteAccount } from './useDeleteAccount';
@@ -42,6 +44,17 @@ export function useSettingsScreen() {
     if (ok) setEditingProfile(false);
   };
 
+  const dispatch = useAppDispatch();
+  const appLockPin = useAppSelector((s) => s.settings.appLockPin);
+
+  useEffect(() => {
+    getStoredAppLockPin().then((pin) => {
+      if (pin && !appLockPin) {
+        dispatch(setAppLockPin('configured'));
+      }
+    });
+  }, [dispatch, appLockPin]);
+
   return {
     user,
     themeMode,
@@ -59,6 +72,7 @@ export function useSettingsScreen() {
     biometricSupported,
     biometricEnabled,
     toggleBiometric,
+    appLockPin,
     digestEnabled,
     toggleDigest,
     testPush,

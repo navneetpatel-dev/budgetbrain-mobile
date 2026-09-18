@@ -1,8 +1,10 @@
 import { useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
 import { apiPost, getApiErrorMessage } from '@/shared/services/api';
 import { invalidateMoneyQueries } from '@/shared/services/queryInvalidation';
+import { queueOfflineAction, isOnline } from '@/shared/services/offlineSync';
 import type { IncomeSource, Transaction } from '@/shared/types';
 
 export interface IncomeForm {
@@ -27,8 +29,25 @@ export function useCreateIncome() {
   const create = async (data: IncomeForm, showNewSource: boolean) => {
     setLoading(true);
     setSubmitError(null);
+    const payload = {
+      amount: Number(data.amount),
+      notes: data.notes || undefined,
+      date: data.date,
+      incomeSourceId: data.incomeSourceId || undefined,
+      type: 'income',
+    };
+
     try {
       let incomeSourceId = data.incomeSourceId;
+
+      const online = await isOnline();
+      if (!online) {
+        queueOfflineAction('create', payload, 'income');
+        invalidateMoneyQueries(queryClient);
+        setJustSaved(true);
+        setTimeout(() => router.back(), SAVE_CONFIRM_DELAY_MS);
+        return;
+      }
 
       if (showNewSource && data.newSourceName) {
         const source = await apiPost<IncomeSource>('/income/sources', {
@@ -50,6 +69,14 @@ export function useCreateIncome() {
       setJustSaved(true);
       setTimeout(() => router.back(), SAVE_CONFIRM_DELAY_MS);
     } catch (err) {
+      const isGenuineNetworkFailure = axios.isAxiosError(err) && !err.response;
+      if (isGenuineNetworkFailure) {
+        queueOfflineAction('create', payload, 'income');
+        invalidateMoneyQueries(queryClient);
+        setJustSaved(true);
+        setTimeout(() => router.back(), SAVE_CONFIRM_DELAY_MS);
+        return;
+      }
       setSubmitError(getApiErrorMessage(err, 'Could not save income'));
     } finally {
       setLoading(false);

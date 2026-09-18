@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { UseFormReset } from 'react-hook-form';
 import { apiGet, apiPatch, apiDelete, getApiErrorMessage } from '@/shared/services/api';
 import { invalidateGoalQueries, removeGoalDetail } from '@/shared/services/queryInvalidation';
+import { queueOfflineAction, isOnline } from '@/shared/services/offlineSync';
 import { CONFIRM } from '@/shared/constants/confirmations';
 import { showConfirmation } from '@/shared/utils/confirmations';
 import type { Goal } from '@/shared/types';
@@ -42,7 +43,29 @@ export function useGoalDetail(id: string) {
   const save = async (data: GoalForm) => {
     setLoading(true);
     setSubmitError(null);
+    const payload = {
+      id,
+      name: data.name,
+      targetAmount: Number(data.targetAmount),
+      targetDate: data.targetDate || undefined,
+    };
     try {
+      if (!(await isOnline())) {
+        queueOfflineAction('update', payload, 'goal');
+        queryClient.setQueryData<Goal>(['goal', id], (prev) =>
+          prev
+            ? {
+                ...prev,
+                name: payload.name,
+                targetAmount: payload.targetAmount,
+                targetDate: payload.targetDate ?? null,
+              }
+            : prev
+        );
+        invalidateGoalQueries(queryClient, id);
+        return true;
+      }
+
       const updated = await apiPatch<Goal>(`/goals/${id}`, {
         name: data.name,
         targetAmount: Number(data.targetAmount),
@@ -64,6 +87,14 @@ export function useGoalDetail(id: string) {
       setLoading(true);
       setSubmitError(null);
       try {
+        if (!(await isOnline())) {
+          queueOfflineAction('delete', { id }, 'goal');
+          removeGoalDetail(queryClient, id);
+          invalidateGoalQueries(queryClient);
+          router.back();
+          return;
+        }
+
         await apiDelete(`/goals/${id}`);
         removeGoalDetail(queryClient, id);
         invalidateGoalQueries(queryClient);

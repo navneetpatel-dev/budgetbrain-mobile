@@ -157,7 +157,7 @@ export function AddBudgetScreen() {
             <View style={{ flex: 1 }}>
               <Text style={{ ...theme.typography.bodySemibold, color: theme.colors.text }}>Roll over unused amount</Text>
               <Text style={{ ...theme.typography.caption, color: theme.colors.textTertiary, marginTop: theme.spacing.xs / 2 }}>
-                Carry last period's leftover (or deficit) into this one
+                {"Carry last period's leftover (or deficit) into this one"}
               </Text>
             </View>
             <Controller

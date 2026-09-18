@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { UseFormReset } from 'react-hook-form';
 import { apiGet, apiPatch, getApiErrorMessage } from '@/shared/services/api';
 import { invalidateBudgetQueries } from '@/shared/services/queryInvalidation';
+import { queueOfflineAction, isOnline } from '@/shared/services/offlineSync';
 import type { Budget } from '@/shared/types';
 
 export interface BudgetForm {
@@ -40,7 +41,23 @@ export function useBudgetDetail(id: string) {
   const save = async (data: BudgetForm) => {
     setLoading(true);
     setSubmitError(null);
+    const payload = {
+      id,
+      name: data.name,
+      amount: Number(data.amount),
+      alertThreshold: Number(data.alertThreshold),
+      rollover: data.rollover,
+    };
     try {
+      if (!(await isOnline())) {
+        queueOfflineAction('update', payload, 'budget');
+        queryClient.setQueryData<Budget>(['budget', id], (prev) =>
+          prev ? { ...prev, ...payload } : prev
+        );
+        invalidateBudgetQueries(queryClient, id);
+        return true;
+      }
+
       const updated = await apiPatch<Budget>(`/budgets/${id}`, {
         name: data.name,
         amount: Number(data.amount),

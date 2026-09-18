@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { AppHeaderBar, DateInput } from '@/shared/components/ui';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useExportReports } from '@/features/reports/hooks/useExportReports';
+import { useEntitlement, PaywallModal } from '@/features/subscriptions';
 import { DateBounds } from '@/shared/utils/dateBounds';
 import { useTheme } from '@/shared/theme';
 import { createStyles } from './ReportsScreen.styles';
@@ -13,7 +14,24 @@ export function ReportsScreen() {
   const theme = useTheme();
   const router = useRouter();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const { isEntitled, paywallVisible, openPaywall, closePaywall } = useEntitlement();
   const { startDate, setStartDate, endDate, setEndDate, loading, downloadCsv, downloadPdf } = useExportReports();
+
+  const handleDownloadCsv = () => {
+    if (!isEntitled) {
+      openPaywall();
+      return;
+    }
+    downloadCsv();
+  };
+
+  const handleDownloadPdf = () => {
+    if (!isEntitled) {
+      openPaywall();
+      return;
+    }
+    downloadPdf();
+  };
   const fromBounds = DateBounds.rangeFrom(endDate, startDate);
   const toBounds = DateBounds.rangeTo(startDate, endDate);
 
@@ -81,7 +99,7 @@ export function ReportsScreen() {
 
           {/* CSV Download Button */}
           <Pressable
-            onPress={downloadCsv}
+            onPress={handleDownloadCsv}
             disabled={loading}
             style={({ pressed }) => [styles.actionCard, pressed && { opacity: 0.85 }]}
           >
@@ -101,7 +119,7 @@ export function ReportsScreen() {
 
           {/* PDF Download Button */}
           <Pressable
-            onPress={downloadPdf}
+            onPress={handleDownloadPdf}
             disabled={loading}
             style={({ pressed }) => [styles.actionCard, pressed && { opacity: 0.85 }]}
           >
@@ -120,6 +138,12 @@ export function ReportsScreen() {
           </Pressable>
         </View>
       </ScrollView>
+
+      <PaywallModal
+        visible={paywallVisible}
+        onClose={closePaywall}
+        featureTitle="Unlock High-Res Financial Statements"
+      />
     </View>
   );
 }

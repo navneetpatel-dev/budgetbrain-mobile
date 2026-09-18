@@ -9,7 +9,7 @@ export interface SettingsState {
   currency: string;
   biometricEnabled: boolean;
   appLockPin: string | null;
-  offlineQueue: Array<{ id: string; action: string; payload: unknown; timestamp: string }>;
+  offlineQueue: Array<{ id: string; action: string; resource?: 'transaction' | 'income' | 'budget' | 'goal'; payload: unknown; timestamp: string }>;
 }
 
 const initialState: SettingsState = {
@@ -48,7 +48,7 @@ const settingsSlice = createSlice({
     },
     addToOfflineQueue(
       state,
-      action: PayloadAction<{ id: string; action: string; payload: unknown }>
+      action: PayloadAction<{ id: string; action: string; resource?: 'transaction' | 'income' | 'budget' | 'goal'; payload: unknown }>
     ) {
       state.offlineQueue.push({ ...action.payload, timestamp: new Date().toISOString() });
     },

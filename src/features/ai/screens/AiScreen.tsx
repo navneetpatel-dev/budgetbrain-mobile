@@ -25,6 +25,7 @@ import {
   AiAnomalyCard,
   AiAnomalyClear,
 } from '@/features/ai/components';
+import { useEntitlement, PaywallModal } from '@/features/subscriptions';
 import { createStyles } from './AiScreen.styles';
 
 function anomalyMeta(anomaly: { merchant?: string; amount?: number }, currency: string): string {
@@ -44,6 +45,7 @@ export function AiScreen() {
     [theme, tabBarPaddingX, footerBottom],
   );
   const scrollRef = useRef<ScrollView>(null);
+  const { isEntitled, paywallVisible, openPaywall, closePaywall } = useEntitlement();
   const {
     currency,
     message,
@@ -57,6 +59,14 @@ export function AiScreen() {
     insights,
     anomalies,
   } = useAiChat();
+
+  const handleSendMessage = () => {
+    if (!isEntitled) {
+      openPaywall();
+      return;
+    }
+    sendMessage();
+  };
 
   useEffect(() => {
     scrollRef.current?.scrollToEnd({ animated: true });
@@ -173,12 +183,18 @@ export function AiScreen() {
         <AiChatInput
           message={message}
           onChangeMessage={setMessage}
-          onSend={sendMessage}
+          onSend={handleSendMessage}
           loading={chatLoading}
           suggestionMode={isEmpty ? 'starter' : 'followup'}
           error={chatError}
         />
       </KeyboardAvoidingView>
+
+      <PaywallModal
+        visible={paywallVisible}
+        onClose={closePaywall}
+        featureTitle="Unlock AI Financial Advisor"
+      />
     </View>
   );
 }

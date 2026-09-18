@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { UseFormReset } from 'react-hook-form';
 import { apiGet, apiPatch, apiDelete, apiPost, getApiErrorMessage } from '@/shared/services/api';
 import { invalidateMoneyQueries } from '@/shared/services/queryInvalidation';
+import { queueOfflineAction, isOnline } from '@/shared/services/offlineSync';
 import { CONFIRM } from '@/shared/constants/confirmations';
 import { showConfirmation } from '@/shared/utils/confirmations';
 import type { Transaction } from '@/shared/types';
@@ -44,7 +45,30 @@ export function useIncomeDetail(id: string) {
   const save = async (data: IncomeForm) => {
     setPendingAction('update');
     setSubmitError(null);
+    const payload = {
+      id,
+      amount: Number(data.amount),
+      notes: data.notes || undefined,
+      date: data.date,
+      type: 'income',
+    };
     try {
+      if (!(await isOnline())) {
+        queueOfflineAction('update', payload, 'income');
+        queryClient.setQueryData<Transaction>(['income', id], (prev) =>
+          prev
+            ? {
+                ...prev,
+                amount: payload.amount,
+                notes: payload.notes ?? null,
+                date: payload.date,
+              }
+            : prev,
+        );
+        void queryClient.invalidateQueries({ queryKey: ['income', id] });
+        invalidateMoneyQueries(queryClient);
+        return true;
+      }
       const updated = await apiPatch<Transaction>(`/income/${id}`, {
         amount: Number(data.amount),
         notes: data.notes || undefined,
@@ -81,6 +105,13 @@ export function useIncomeDetail(id: string) {
       setPendingAction('delete');
       setSubmitError(null);
       try {
+        if (!(await isOnline())) {
+          queueOfflineAction('delete', { id }, 'income');
+          void queryClient.removeQueries({ queryKey: ['income', id] });
+          invalidateMoneyQueries(queryClient);
+          goHome();
+          return;
+        }
         await apiDelete(`/income/${id}`);
         void queryClient.removeQueries({ queryKey: ['income', id] });
         invalidateMoneyQueries(queryClient);

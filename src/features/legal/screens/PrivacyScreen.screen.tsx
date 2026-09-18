@@ -28,7 +28,7 @@ export function PrivacyScreen() {
       <Text style={styles.section}>3. Data Security</Text>
       <Text style={styles.body}>
         We use industry-standard encryption for data in transit and at rest. Access tokens are stored
-        in your device's secure storage. You can delete your account and all associated data at any time.
+        {" in your device's secure storage. You can delete your account and all associated data at any time."}
       </Text>
 
       <Text style={styles.section}>4. Third-Party Services</Text>

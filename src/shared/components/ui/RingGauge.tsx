@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useId } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon';
@@ -25,12 +25,13 @@ export function RingGauge({
   gradientColors,
 }: RingGaugeProps) {
   const theme = useTheme();
+  const reactId = useId();
   const clampedProgress = Math.min(100, Math.max(0, progress));
 
   const startColor = gradientColors?.[0] ?? theme.colors.secondary;
   const endColor = gradientColors?.[1] ?? theme.colors.primary;
 
-  const gradId = useMemo(() => `ring_grad_${Math.floor(Math.random() * 100000)}`, []);
+  const gradId = useMemo(() => `ring_grad_${reactId.replace(/:/g, '')}`, [reactId]);
 
   // Geometry:
   const radius = (size - strokeWidth * 2) / 2;

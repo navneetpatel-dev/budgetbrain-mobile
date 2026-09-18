@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { RefreshControl, Text, View, Pressable } from 'react-native';
 import { Controller } from 'react-hook-form';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Input,
   Card,
@@ -16,11 +16,13 @@ import { ProfileStackHeader } from '@/features/settings/components/ProfileStackH
 import { useTheme } from '@/shared/theme';
 import { useFamilyGroups } from '@/features/family/hooks/useFamilyGroups';
 import { useSettleSplit } from '@/features/family/hooks/useSettleSplit';
-import { apiGet } from '@/shared/services/api';
+import { apiGet, apiDelete } from '@/shared/services/api';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import { formatCurrency } from '@/shared/utils/currency';
 import { useAppSelector } from '@/shared/store/hooks';
 import { inviteCodeRules, maxLen, textRules } from '@/shared/validation/fieldLimits';
+import { showConfirmation } from '@/shared/utils/confirmations';
+import { CONFIRM } from '@/shared/constants/confirmations';
 import type { FamilyBalance, FamilyMemberWithUser, SplitWithTransaction } from '@/shared/types';
 import { createStyles } from './FamilyScreen.styles';
 
@@ -77,6 +79,93 @@ function GroupBalances({ groupId, currency }: { groupId: string; currency: strin
   );
 }
 
+function GroupMembersList({
+  groupId,
+  groupName,
+  userRole,
+  currentUserId,
+}: {
+  groupId: string;
+  groupName: string;
+  userRole: string;
+  currentUserId?: string;
+}) {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  const queryClient = useQueryClient();
+  const { data } = useQuery({
+    queryKey: ['family-members', groupId],
+    queryFn: () => apiGet<{ members: FamilyMemberWithUser[] }>(`/family/groups/${groupId}/members`),
+  });
+
+  const members = data?.members ?? [];
+  const isOwnerOrAdmin = userRole === 'owner' || userRole === 'admin';
+
+  const handleRemoveMember = (member: FamilyMemberWithUser) => {
+    showConfirmation(CONFIRM.removeFamilyMember(member.user.name ?? 'Member'), async () => {
+      await apiDelete(`/family/groups/${groupId}/members/${member.userId}`);
+      void queryClient.invalidateQueries({ queryKey: ['family-members', groupId] });
+      void queryClient.invalidateQueries({ queryKey: ['family-groups'] });
+    });
+  };
+
+  const handleDeleteGroup = () => {
+    showConfirmation(CONFIRM.deleteFamilyGroup(groupName), async () => {
+      await apiDelete(`/family/groups/${groupId}`);
+      void queryClient.invalidateQueries({ queryKey: ['family-groups'] });
+    });
+  };
+
+  return (
+    <View style={styles.membersSection}>
+      <Text style={styles.membersSectionTitle}>Members ({members.length})</Text>
+      {members.map((member) => {
+        const canRemove =
+          isOwnerOrAdmin &&
+          member.userId !== currentUserId &&
+          (userRole === 'owner' || member.role !== 'owner');
+
+        return (
+          <View key={member.id} style={styles.memberRow}>
+            <View style={styles.memberLeft}>
+              <View style={styles.memberAvatar}>
+                <Text style={styles.memberInitials}>
+                  {(member.user.name?.[0] ?? member.user.email[0] ?? 'M').toUpperCase()}
+                </Text>
+              </View>
+              <View>
+                <Text style={styles.memberName}>
+                  {member.user.name ?? member.user.email}
+                  {member.userId === currentUserId ? ' (You)' : ''}
+                </Text>
+                <Text style={styles.memberRoleText}>{member.role}</Text>
+              </View>
+            </View>
+
+            {canRemove ? (
+              <Pressable
+                onPress={() => handleRemoveMember(member)}
+                style={styles.memberRemoveBtn}
+                hitSlop={8}
+              >
+                <Text style={styles.memberRemoveText}>Remove</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        );
+      })}
+
+      {userRole === 'owner' ? (
+        <View style={styles.groupActionsRow}>
+          <Pressable onPress={handleDeleteGroup} style={styles.deleteGroupBtn} hitSlop={8}>
+            <Text style={styles.deleteGroupText}>Delete Group</Text>
+          </Pressable>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 export function FamilyScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -112,16 +201,44 @@ export function FamilyScreen() {
       {isLoading ? <FamilySkeleton /> : null}
       {!isLoading && groups.length > 0 && (
         <FormSection title="Your groups" subtitle={`${groups.length} group${groups.length !== 1 ? 's' : ''}`}>
-          {groups.map((m) => (
-            <Card key={m.id} style={styles.groupCard}>
-              <Text style={styles.groupName}>{m.group?.name ?? 'Family Group'}</Text>
-              <Text style={styles.groupRole}>Role: {m.role}</Text>
-              {m.group?.inviteCode ? (
-                <Text style={styles.inviteCode}>Invite: {m.group.inviteCode}</Text>
-              ) : null}
-              <GroupBalances groupId={m.groupId} currency={user?.currency ?? 'INR'} />
-            </Card>
-          ))}
+          {groups.map((m) => {
+            const isOwner = m.role === 'owner';
+            const isAdmin = m.role === 'admin';
+            return (
+              <Card key={m.id} style={styles.groupCard}>
+                <View style={styles.headerRow}>
+                  <Text style={styles.groupName}>{m.group?.name ?? 'Family Group'}</Text>
+                  <View
+                    style={[
+                      styles.roleBadge,
+                      isOwner && styles.roleBadgeOwner,
+                      isAdmin && styles.roleBadgeAdmin,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.roleBadgeText,
+                        isOwner && styles.roleBadgeTextOwner,
+                        isAdmin && styles.roleBadgeTextAdmin,
+                      ]}
+                    >
+                      {m.role}
+                    </Text>
+                  </View>
+                </View>
+                {m.group?.inviteCode ? (
+                  <Text style={styles.inviteCode}>Invite: {m.group.inviteCode}</Text>
+                ) : null}
+                <GroupBalances groupId={m.groupId} currency={user?.currency ?? 'INR'} />
+                <GroupMembersList
+                  groupId={m.groupId}
+                  groupName={m.group?.name ?? 'Family Group'}
+                  userRole={m.role}
+                  currentUserId={user?.id}
+                />
+              </Card>
+            );
+          })}
         </FormSection>
       )}
 

@@ -2,42 +2,61 @@ import { useCallback, useEffect, useState } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { authenticateWithBiometrics } from '@/shared/services/biometrics';
 
-export function useAppLock(biometricEnabled: boolean, isAuthenticated: boolean) {
+export function useAppLock(
+  biometricEnabled: boolean,
+  hasPin: boolean,
+  isAuthenticated: boolean
+) {
+  const isLockActive = (biometricEnabled || hasPin) && isAuthenticated;
   const [locked, setLocked] = useState(false);
   const [checked, setChecked] = useState(false);
 
-  const unlock = useCallback(async () => {
+  const unlockWithBiometrics = useCallback(async () => {
+    if (!biometricEnabled) return;
     const success = await authenticateWithBiometrics();
     if (success) {
       setLocked(false);
       setChecked(true);
     }
+  }, [biometricEnabled]);
+
+  const unlockWithPin = useCallback(() => {
+    setLocked(false);
+    setChecked(true);
   }, []);
 
   useEffect(() => {
-    if (biometricEnabled && isAuthenticated) {
+    if (isLockActive) {
       setLocked(true);
-      unlock();
+      if (biometricEnabled) {
+        unlockWithBiometrics();
+      } else {
+        setChecked(true);
+      }
     } else {
       setChecked(true);
     }
   }, []);
 
   useEffect(() => {
-    if (!biometricEnabled || !isAuthenticated) return;
+    if (!isLockActive) return;
 
     const handleAppState = (state: AppStateStatus) => {
       if (state === 'background' || state === 'inactive') {
         setLocked(true);
         setChecked(false);
       } else if (state === 'active' && locked) {
-        unlock();
+        if (biometricEnabled) {
+          unlockWithBiometrics();
+        } else {
+          setChecked(true);
+        }
       }
     };
 
     const sub = AppState.addEventListener('change', handleAppState);
     return () => sub.remove();
-  }, [biometricEnabled, isAuthenticated, locked, unlock]);
+  }, [isLockActive, biometricEnabled, locked, unlockWithBiometrics]);
 
-  return { locked, checked };
+  return { locked, checked, unlockWithBiometrics, unlockWithPin };
 }

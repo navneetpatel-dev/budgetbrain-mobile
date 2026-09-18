@@ -69,4 +69,18 @@ export const CONFIRM = {
     cancelLabel: 'Cancel',
     destructive: true,
   }),
+  removeFamilyMember: (name: string): ConfirmCopy => ({
+    title: 'Remove member?',
+    message: `Remove "${name}" from this family group?`,
+    confirmLabel: 'Remove',
+    cancelLabel: 'Cancel',
+    destructive: true,
+  }),
+  deleteFamilyGroup: (name: string): ConfirmCopy => ({
+    title: 'Delete family group?',
+    message: `"${name}" and all split ledgers will be permanently deleted. This action cannot be undone.`,
+    confirmLabel: 'Delete Group',
+    cancelLabel: 'Cancel',
+    destructive: true,
+  }),
 } as const;

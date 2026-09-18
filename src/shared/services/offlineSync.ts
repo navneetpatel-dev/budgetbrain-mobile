@@ -12,6 +12,7 @@ function generateId() {
 }
 
 export type OfflineAction = 'create' | 'update' | 'delete';
+export type OfflineResource = 'transaction' | 'income' | 'budget' | 'goal';
 
 export function initOfflineSync() {
   return NetInfo.addEventListener((state) => {
@@ -23,12 +24,14 @@ export function initOfflineSync() {
 
 export function queueOfflineAction(
   action: OfflineAction,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
+  resource: OfflineResource = 'transaction'
 ) {
   store.dispatch(
     addToOfflineQueue({
       id: generateId(),
       action,
+      resource,
       payload,
     })
   );
@@ -45,7 +48,7 @@ export async function processOfflineQueue(): Promise<void> {
     const items = queue.map((item) => ({
       id: item.id,
       action: item.action as OfflineAction,
-      resource: 'transaction',
+      resource: (item.resource ?? 'transaction') as OfflineResource,
       payload: item.payload as Record<string, unknown>,
       timestamp: item.timestamp,
     }));
@@ -55,6 +58,8 @@ export async function processOfflineQueue(): Promise<void> {
     invalidateMoneyQueries(queryClient);
     void queryClient.invalidateQueries({ queryKey: ['expense'] });
     void queryClient.invalidateQueries({ queryKey: ['income'] });
+    void queryClient.invalidateQueries({ queryKey: ['budgets'] });
+    void queryClient.invalidateQueries({ queryKey: ['goals'] });
   } catch {
     // Will retry on next reconnect
   } finally {
