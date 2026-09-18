@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import { BrandMark } from './BrandMark';
+import { createStyles } from './BrandLogoBadge.styles';
 
 export function BrandLogoBadge({
   compact = false,
@@ -19,26 +20,4 @@ export function BrandLogoBadge({
       </View>
     </View>
   );
-}
-
-function createStyles(compact: boolean, branded: boolean) {
-  const logoSize = branded ? (compact ? 40 : 52) : 44;
-  const logoRadius = branded ? (compact ? 12 : 15) : 14;
-
-  return StyleSheet.create({
-    ring: {
-      padding: 2,
-      borderRadius: branded ? (compact ? 16 : 20) : 18,
-      borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.22)',
-    },
-    badge: {
-      width: logoSize,
-      height: logoSize,
-      borderRadius: logoRadius,
-      backgroundColor: 'rgba(255,255,255,0.16)',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-  });
 }
