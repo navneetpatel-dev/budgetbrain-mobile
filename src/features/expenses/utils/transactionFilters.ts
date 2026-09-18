@@ -80,3 +80,28 @@ export function parseFilterParam(value: string | string[] | undefined): string |
   if (Array.isArray(value)) return value[0] || undefined;
   return value || undefined;
 }
+
+export function buildInitialFilters(params: {
+  type?: string | string[];
+  categoryId?: string | string[];
+  incomeSourceId?: string | string[];
+  paymentMethod?: string | string[];
+  datePreset?: string | string[];
+  startDate?: string | string[];
+  endDate?: string | string[];
+}): TransactionListFilters {
+  const type = parseFilterParam(params.type);
+  const datePreset = parseFilterParam(params.datePreset) as DatePreset | undefined;
+  return {
+    type: type === 'expense' || type === 'income' ? (type as TransactionTypeFilter) : 'all',
+    categoryId: parseFilterParam(params.categoryId),
+    incomeSourceId: parseFilterParam(params.incomeSourceId),
+    paymentMethod: parseFilterParam(params.paymentMethod),
+    datePreset:
+      datePreset === 'this_month' || datePreset === 'last_30' || datePreset === 'custom'
+        ? datePreset
+        : 'all',
+    startDate: parseFilterParam(params.startDate),
+    endDate: parseFilterParam(params.endDate),
+  };
+}

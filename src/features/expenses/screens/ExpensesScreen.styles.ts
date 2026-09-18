@@ -1,0 +1,132 @@
+import { StyleSheet } from 'react-native';
+import type { useTheme } from '@/shared/theme';
+
+export function createStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    screenWrapper: {
+      flex: 1,
+      backgroundColor: t.colors.background,
+    },
+    listContent: {
+      paddingHorizontal: t.spacing.lg,
+      paddingBottom: 90,
+      gap: 8,
+    },
+    headerBlock: {
+      gap: t.spacing.md,
+      paddingVertical: t.spacing.md,
+    },
+    searchBarRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: t.spacing.sm,
+    },
+    searchInputWrap: {
+      flex: 1,
+      height: 46,
+      borderRadius: t.radii.md,
+      backgroundColor: t.colors.surface,
+      borderWidth: 1,
+      borderColor: t.colors.borderSubtle,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 12,
+      gap: 8,
+      ...t.shadows.sm,
+    },
+    searchInput: {
+      flex: 1,
+      fontSize: 14,
+      color: t.colors.text,
+      fontFamily: t.typography.body.fontFamily,
+    },
+    filterBtn: {
+      width: 46,
+      height: 46,
+      borderRadius: t.radii.md,
+      backgroundColor: t.colors.surface,
+      borderWidth: 1,
+      borderColor: t.colors.borderSubtle,
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'relative',
+      ...t.shadows.sm,
+    },
+    filterBtnActive: {
+      borderColor: t.colors.primary,
+    },
+    badgeCount: {
+      position: 'absolute',
+      top: 6,
+      right: 6,
+      minWidth: 16,
+      height: 16,
+      borderRadius: 8,
+      backgroundColor: t.colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 3,
+    },
+    badgeCountText: {
+      fontSize: 9,
+      fontWeight: '700',
+      color: t.colors.onPrimary,
+    },
+    exportBtn: {
+      width: 46,
+      height: 46,
+      borderRadius: t.radii.md,
+      backgroundColor: t.colors.surface,
+      borderWidth: 1,
+      borderColor: t.colors.borderSubtle,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...t.shadows.sm,
+    },
+    filterPanelWrap: {
+      backgroundColor: t.colors.surface,
+      borderRadius: t.radii.card,
+      padding: t.spacing.md,
+      borderWidth: 1,
+      borderColor: t.colors.borderSubtle,
+    },
+    syncHintRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      paddingVertical: 4,
+    },
+    syncHintText: {
+      fontSize: 11,
+      fontWeight: '600',
+      color: t.colors.textTertiary,
+      textTransform: 'uppercase',
+      letterSpacing: 0.3,
+    },
+    footerSyncCard: {
+      paddingVertical: 24,
+      alignItems: 'center',
+      gap: 4,
+      opacity: 0.8,
+    },
+    footerCheckCircle: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: t.colors.surfaceHover,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 4,
+    },
+    footerTitle: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: t.colors.textSecondary,
+    },
+    footerSubtitle: {
+      fontSize: 11,
+      color: t.colors.textTertiary,
+    },
+  });
+}
