@@ -136,6 +136,12 @@ When touching a feature, colocate new code in the correct layer rather than mixi
 
 ---
 
+## Testing
+
+Each feature that has tests keeps one flat `__tests__/` folder colocated at `src/features/<domain>/__tests__/` (or `src/shared/<layer>/__tests__/` for shared code) — no nested subfolders inside it. Name files `<thing>.test.ts` (or `.test.tsx` for component tests), matching the name of the module under test. Run with `npm test` (Jest, `jest-expo` preset).
+
+---
+
 ## Shared UI design system
 
 Use these from `@/shared/components/ui` for consistent screen styling:
