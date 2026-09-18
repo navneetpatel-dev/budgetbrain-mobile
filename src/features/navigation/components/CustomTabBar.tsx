@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View, Platform } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -9,6 +9,7 @@ import { useTheme } from '@/shared/theme';
 import type { AppTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
 import { appHref } from '@/shared/utils/navigation';
+import { createStyles } from './CustomTabBar.styles';
 
 export interface CustomTabBarProps {
   state: { index: number; routes: { key: string; name: string }[] };
@@ -179,83 +180,4 @@ export function CustomTabBar({ state, navigation }: CustomTabBarProps) {
       />
     </>
   );
-}
-
-function createStyles(t: AppTheme, tabBarPaddingX: number) {
-  return StyleSheet.create({
-    outer: {
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      bottom: 0,
-      paddingHorizontal: tabBarPaddingX,
-      paddingTop: t.spacing.xs,
-    },
-    bar: {
-      flexDirection: 'row',
-      alignItems: 'flex-end',
-      justifyContent: 'space-between',
-      backgroundColor: t.colors.tabBar,
-      borderRadius: t.radii.xl + 4,
-      borderWidth: 1,
-      borderColor: t.colors.tabBarBorder,
-      paddingHorizontal: t.spacing.sm,
-      paddingTop: t.spacing.sm,
-      paddingBottom: t.spacing.sm,
-      minHeight: 64,
-      ...t.shadows.lg,
-      ...Platform.select({ android: { elevation: 12 } }),
-    },
-    side: {
-      flex: 1,
-      flexDirection: 'row',
-    },
-    tab: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: 2,
-      gap: 3,
-      minHeight: 52,
-    },
-    tabPressed: { opacity: 0.88, transform: [{ scale: 0.97 }] },
-    iconIdle: {
-      width: 36,
-      height: 36,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    label: {
-      fontSize: 10,
-      fontWeight: '600',
-      color: t.colors.textTertiary,
-      letterSpacing: 0.2,
-    },
-    labelActive: {
-      color: t.colors.primary,
-      fontWeight: '700',
-    },
-    indicator: {
-      width: 16,
-      height: 3,
-      borderRadius: 2,
-      marginTop: 1,
-      backgroundColor: 'transparent',
-    },
-    fab: {
-      marginTop: -28,
-      marginHorizontal: t.spacing.xs,
-      borderRadius: 28,
-      ...t.shadows.lg,
-      borderWidth: 4,
-      borderColor: t.colors.background,
-    },
-    fabGradient: {
-      width: 56,
-      height: 56,
-      borderRadius: 28,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-  });
 }

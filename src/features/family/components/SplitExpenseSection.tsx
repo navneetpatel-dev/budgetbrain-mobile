@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { Button, FormFieldLabel, FormErrorBanner, FormSuccessBanner, ActionSheet } from '@/shared/components/ui';
 import { apiGet, apiPost, getApiErrorMessage } from '@/shared/services/api';
@@ -8,6 +8,7 @@ import { useSettleSplit } from '@/features/family/hooks/useSettleSplit';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
 import type { FamilyMemberWithUser, SplitParticipant } from '@/shared/types';
+import { createStyles } from './SplitExpenseSection.styles';
 
 /**
  * Split-with-family action for a single expense. Only supports splitting from the expense
@@ -187,50 +188,4 @@ export function SplitExpenseSection({
       />
     </View>
   );
-}
-
-function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    wrap: { marginTop: t.spacing.lg },
-    panel: {
-      borderWidth: 1.5,
-      borderColor: t.colors.borderSubtle,
-      borderRadius: t.radii.lg,
-      padding: t.spacing.md,
-      gap: 10,
-    },
-    headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    groupPicker: { fontSize: 13, fontWeight: '600', color: t.colors.primary },
-    memberRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingVertical: 10,
-      paddingHorizontal: 12,
-      borderRadius: t.radii.md,
-      borderWidth: 1.5,
-      borderColor: t.colors.borderSubtle,
-    },
-    memberRowSelected: { borderColor: t.colors.primary, backgroundColor: t.colors.primarySoft },
-    memberName: { fontSize: 14, fontWeight: '600', color: t.colors.text },
-    shareInput: {
-      minWidth: 70,
-      textAlign: 'right',
-      fontSize: 14,
-      fontWeight: '600',
-      color: t.colors.text,
-      borderBottomWidth: 1,
-      borderBottomColor: t.colors.primary,
-    },
-    actionsRow: { flexDirection: 'row', gap: 8, marginTop: 4 },
-    resultRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingVertical: 8,
-    },
-    resultText: { fontSize: 13, color: t.colors.text, flex: 1 },
-    settleAction: { fontSize: 12, fontWeight: '700', color: t.colors.primary },
-    settledText: { fontSize: 12, fontWeight: '700', color: t.colors.success },
-  });
 }

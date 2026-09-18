@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { Button, Input, OtpInput } from '@/shared/components/ui';
@@ -9,6 +9,7 @@ import { maxLen } from '@/shared/validation/fieldLimits';
 import { useOtpLogin } from '@/features/auth/hooks';
 import { useTheme } from '@/shared/theme';
 import { appHref } from '@/shared/utils/navigation';
+import { createStyles } from './OtpLoginScreen.styles';
 
 interface OtpForm {
   email: string;
@@ -123,13 +124,4 @@ export function OtpLoginScreen() {
       )}
     </AuthShell>
   );
-}
-
-function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    actions: {
-      gap: t.spacing.md,
-      marginTop: t.spacing.xs,
-    },
-  });
 }

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { Button, Input } from '@/shared/components/ui';
@@ -10,6 +10,7 @@ import { useForgotPassword } from '@/features/auth/hooks';
 import type { ForgotPasswordInput } from '@/features/auth/types';
 import { useTheme } from '@/shared/theme';
 import { appHref } from '@/shared/utils/navigation';
+import { createStyles } from './ForgotPasswordScreen.styles';
 
 export function ForgotPasswordScreen() {
   const router = useRouter();
@@ -86,13 +87,4 @@ export function ForgotPasswordScreen() {
       )}
     </AuthShell>
   );
-}
-
-function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    actions: {
-      gap: t.spacing.md,
-      marginTop: t.spacing.xs,
-    },
-  });
 }

@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { ActionSheet, FormFieldLabel } from '@/shared/components/ui';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import { FILTER_PICKER_PREVIEW_COUNT } from '../utils/transactionFilters';
+import { createStyles } from './FilterEntityPicker.styles';
 
 export type FilterEntityOption = { id: string; label: string };
 
@@ -88,43 +89,4 @@ export function FilterEntityPicker({
       />
     </View>
   );
-}
-
-function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    block: { gap: 8 },
-    chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-    chip: {
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderRadius: t.radii.lg,
-      borderWidth: 1.5,
-      borderColor: t.isDark ? 'rgba(255,255,255,0.12)' : t.colors.borderSubtle,
-      backgroundColor: t.isDark ? 'rgba(255,255,255,0.05)' : t.colors.surface,
-      maxWidth: '100%',
-    },
-    chipSelected: {
-      borderColor: t.colors.primary,
-      backgroundColor: t.colors.primary + '22',
-    },
-    chipText: { fontSize: 13, fontWeight: '600', color: t.colors.text },
-    // Keep weight constant — boldening selected text shifts wrap layout.
-    chipTextSelected: { color: t.colors.primary },
-    // Neutral action — not a selected filter chip.
-    moreChip: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 2,
-      paddingHorizontal: 10,
-      paddingVertical: 8,
-      borderRadius: t.radii.lg,
-      borderWidth: 0,
-      backgroundColor: 'transparent',
-    },
-    moreChipText: {
-      fontSize: 13,
-      fontWeight: '600',
-      color: t.colors.textSecondary,
-    },
-  });
 }

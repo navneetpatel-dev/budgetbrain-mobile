@@ -1,13 +1,5 @@
 import { useMemo } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  useWindowDimensions,
-} from 'react-native';
+import { View, Text, KeyboardAvoidingView, Platform, ScrollView, useWindowDimensions,  } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { BackButton } from '@/shared/components/ui';
@@ -15,6 +7,7 @@ import { AuthHeroHeader } from '@/features/auth/components/layout/AuthHeroHeader
 import { useTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
 import { appHref } from '@/shared/utils/navigation';
+import { createStyles } from './AuthShell.styles';
 
 export function AuthShell({
   children,
@@ -87,67 +80,4 @@ export function AuthShell({
       </View>
     </View>
   );
-}
-
-function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    flex: { flex: 1 },
-    heroRoot: {
-      flex: 1,
-      backgroundColor: t.colors.background,
-    },
-    panel: {
-      flex: 1,
-      backgroundColor: t.colors.background,
-      borderTopLeftRadius: 28,
-      borderTopRightRadius: 28,
-      overflow: 'hidden',
-      ...Platform.select({
-        ios: {
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -6 },
-          shadowOpacity: 0.14,
-          shadowRadius: 14,
-        },
-        android: { elevation: 10 },
-        default: {},
-      }),
-    },
-    panelCompact: {
-      borderTopLeftRadius: 24,
-      borderTopRightRadius: 24,
-    },
-    panelHandle: {
-      alignSelf: 'center',
-      width: 40,
-      height: 4,
-      borderRadius: 2,
-      backgroundColor: t.colors.border,
-      marginTop: t.spacing.md,
-      marginBottom: t.spacing.sm,
-    },
-    panelHandleCompact: {
-      width: 36,
-    },
-    panelScroll: {
-      paddingHorizontal: t.spacing.xl,
-      paddingTop: t.spacing.lg,
-    },
-    backWrap: {
-      marginBottom: t.spacing.lg,
-    },
-    panelEyebrow: {
-      ...t.typography.label,
-      color: t.colors.primary,
-      marginBottom: t.spacing.lg,
-    },
-    form: {
-      gap: t.spacing.xs,
-    },
-    footer: {
-      marginTop: t.spacing.lg,
-      paddingTop: 0,
-      alignItems: 'center',
-    },
-  });
 }

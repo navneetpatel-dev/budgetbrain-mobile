@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import {
   DateInput,
   FormFieldLabel,
@@ -16,6 +16,7 @@ import type {
 import { DateBounds } from '@/shared/utils/dateBounds';
 import { FilterEntityPicker } from './FilterEntityPicker';
 import { useExpenseTagSuggestions } from '../hooks/useExpenseTagSuggestions';
+import { createStyles } from './TransactionFilters.styles';
 
 const TYPE_OPTIONS: TransactionTypeFilter[] = ['all', 'expense', 'income'];
 const DATE_OPTIONS: DatePreset[] = ['all', 'this_month', 'last_30', 'custom'];
@@ -217,43 +218,4 @@ export function TransactionFilters({
       </View>
     </View>
   );
-}
-
-function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    wrap: { gap: 8, paddingBottom: 0 },
-    block: { gap: 6 },
-    dateRow: { flexDirection: 'row', gap: t.spacing.sm },
-    dateField: { flex: 1 },
-    actions: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: t.spacing.sm,
-      marginTop: 4,
-      paddingTop: 8,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: t.colors.borderSubtle,
-    },
-    clearBtn: {
-      paddingVertical: 4,
-      paddingRight: 8,
-    },
-    clearText: {
-      fontSize: 13,
-      fontWeight: '600',
-      color: t.colors.textSecondary,
-    },
-    applyBtn: {
-      paddingVertical: 6,
-      paddingHorizontal: 14,
-      borderRadius: t.radii.full,
-      backgroundColor: t.colors.primary,
-    },
-    applyText: {
-      fontSize: 13,
-      fontWeight: '700',
-      color: t.colors.onPrimary,
-    },
-  });
 }

@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { View, Text } from 'react-native';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { SegmentedMacroBar } from '@/shared/components/ui/SegmentedMacroBar';
 import { useTheme } from '@/shared/theme';
 import { buildCategoryChartItems, type CategoryChartInput } from '@/shared/utils/categoryChart';
+import { createStyles } from './CategoryChart.styles';
 
 interface Props {
   data: CategoryChartInput[];
@@ -46,37 +47,4 @@ export function CategoryChart({ data, currency, onCategoryPress }: Props) {
       />
     </View>
   );
-}
-
-function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    container: {
-      padding: t.spacing.lg,
-    },
-    empty: {
-      paddingVertical: t.spacing.xl,
-      paddingHorizontal: t.spacing.lg,
-      alignItems: 'center',
-    },
-    emptyIcon: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      backgroundColor: t.colors.primarySoft,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: t.spacing.sm,
-    },
-    emptyText: {
-      fontSize: 15,
-      fontWeight: '600',
-      color: t.colors.text,
-    },
-    emptyHint: {
-      fontSize: 13,
-      fontWeight: '500',
-      color: t.colors.textTertiary,
-      marginTop: 4,
-    },
-  });
 }

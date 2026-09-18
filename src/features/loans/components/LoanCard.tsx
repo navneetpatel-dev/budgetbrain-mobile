@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { appHref } from '@/shared/utils/navigation';
 import { Card, ProgressBar } from '@/shared/components/ui';
@@ -8,6 +8,7 @@ import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
 import { toSafePercent } from '@/shared/utils/number';
 import type { Loan } from '@/shared/types';
+import { createStyles } from './LoanCard.styles';
 
 export function LoanCard({ loan, onDelete }: { loan: Loan; onDelete: () => void }) {
   const theme = useTheme();
@@ -35,16 +36,4 @@ export function LoanCard({ loan, onDelete }: { loan: Loan; onDelete: () => void 
       </Pressable>
     </Card>
   );
-}
-
-function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    card: { marginBottom: 0 },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
-    titleCol: { flex: 1 },
-    name: { ...t.typography.titleSm, color: t.colors.text },
-    type: { ...t.typography.caption, color: t.colors.textTertiary, textTransform: 'capitalize', marginTop: 2 },
-    remaining: { ...t.typography.amount, color: t.colors.text },
-    principal: { ...t.typography.caption, color: t.colors.textTertiary, marginTop: 2 },
-  });
 }

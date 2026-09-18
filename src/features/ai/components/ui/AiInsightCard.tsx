@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { View, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
+import { createStyles } from './AiInsightCard.styles';
 
 export function AiInsightCard({ text }: { text: string }) {
   const theme = useTheme();
@@ -22,42 +23,4 @@ export function AiInsightCard({ text }: { text: string }) {
       <Text style={styles.text}>{text}</Text>
     </View>
   );
-}
-
-function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    card: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      gap: 12,
-      padding: t.spacing.lg,
-      borderRadius: t.radii.lg,
-      backgroundColor: t.isDark ? 'rgba(255,255,255,0.04)' : t.colors.surface,
-      borderWidth: 1,
-      borderColor: t.isDark ? 'rgba(255,255,255,0.08)' : t.colors.borderSubtle,
-      overflow: 'hidden',
-    },
-    accent: {
-      position: 'absolute',
-      left: 0,
-      top: 0,
-      bottom: 0,
-      width: 3,
-    },
-    iconWrap: {
-      width: 32,
-      height: 32,
-      borderRadius: 10,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: t.colors.primarySoft,
-      marginTop: 1,
-    },
-    text: {
-      flex: 1,
-      ...t.typography.bodyMedium,
-      color: t.colors.text,
-      lineHeight: 22,
-    },
-  });
 }

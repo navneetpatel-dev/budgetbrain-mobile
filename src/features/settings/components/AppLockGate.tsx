@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { View, Text } from 'react-native';
 import { useAppSelector } from '@/shared/store/hooks';
 import { useAppLock } from '@/features/settings/hooks/useAppLock';
 import { ColdStartSkeleton } from '@/shared/components/ui';
 import { useTheme } from '@/shared/theme';
+import { createStyles } from './AppLockGate.styles';
 
 interface Props {
   children: React.ReactNode;
@@ -30,17 +31,4 @@ export function AppLockGate({ children }: Props) {
   }
 
   return <>{children}</>;
-}
-
-function createStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    container: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: t.colors.background,
-    },
-    title: { ...t.typography.title, color: t.colors.text },
-    subtitle: { ...t.typography.bodyMedium, color: t.colors.textSecondary, marginTop: t.spacing.sm },
-  });
 }
