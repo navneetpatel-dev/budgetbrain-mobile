@@ -16,6 +16,7 @@
     },
     "android": {
       "package": "app.budgetbrain.mobile",
+      "usesCleartextTraffic": true,
       "intentFilters": [
         {
           "action": "VIEW",

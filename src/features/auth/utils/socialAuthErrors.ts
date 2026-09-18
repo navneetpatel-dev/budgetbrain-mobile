@@ -17,6 +17,7 @@ export function isSocialAuthCancellation(err: unknown): boolean {
       || msg.includes('popup_closed')
       || msg.includes('user closed')
       || msg.includes('err_request_canceled')
+      || msg.includes('sign_in_cancelled')
     );
   }
   return false;
@@ -47,6 +48,15 @@ export function getSocialAuthErrorMessage(
       return `Setup required: ${err.message}`;
     }
     return `${label} sign-in is temporarily unavailable. Please use email and password, or try again later.`;
+  }
+
+  if (err instanceof Error) {
+    const code =
+      'code' in err && typeof err.code === 'string' ? err.code.toLowerCase() : '';
+    const msg = `${err.message} ${code}`.toLowerCase();
+    if (msg.includes('developer_error') || code === '10') {
+      return `${label} sign-in is not configured for this app build. Add this APK's SHA-1 to the Android OAuth client in Google Cloud Console.`;
+    }
   }
 
   return getApiErrorMessage(

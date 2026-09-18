@@ -12,29 +12,26 @@ export const isExpoGo =
   Constants.appOwnership === 'expo' ||
   Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 
+function getWebGoogleClientId(): string | undefined {
+  return (
+    process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
+    process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID
+  );
+}
+
 export function getGoogleClientId(): string | undefined {
   if (Platform.OS === 'web' && process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID) {
     return process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
   }
-  // In Expo Go, browser OAuth requires the Web Client ID
-  if (isExpoGo) {
-    return (
-      process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
-      process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID
-    );
+  // Browser OAuth only works with a Web client ID. Android/iOS client IDs
+  // sent to accounts.google.com produce Google's "Access blocked" page.
+  if (isExpoGo || Platform.OS === 'web') {
+    return getWebGoogleClientId();
   }
   if (Platform.OS === 'ios' && process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID) {
     return process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
   }
-  if (Platform.OS === 'android' && process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID) {
-    return process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
-  }
-  return (
-    process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID ||
-    process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
-    process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ||
-    process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID
-  );
+  return getWebGoogleClientId();
 }
 
 export function getGoogleRedirectUri(): string {
@@ -50,7 +47,50 @@ export function getGoogleRedirectUri(): string {
   });
 }
 
-export async function signInWithGoogle(): Promise<AuthSessionResult | null> {
+async function signInWithGoogleNative(): Promise<AuthSessionResult | null> {
+  const webClientId = getWebGoogleClientId();
+  if (!webClientId) {
+    throw new Error('EXPO_PUBLIC_GOOGLE_CLIENT_ID is not configured in mobile/.env');
+  }
+
+  const {
+    GoogleSignin,
+    isErrorWithCode,
+    isSuccessResponse,
+    statusCodes,
+  } = await import('@react-native-google-signin/google-signin');
+
+  GoogleSignin.configure({
+    webClientId,
+    offlineAccess: false,
+  });
+
+  await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+
+  try {
+    const response = await GoogleSignin.signIn();
+    if (!isSuccessResponse(response)) {
+      return null;
+    }
+
+    const idToken = response.data.idToken;
+    if (!idToken) {
+      throw new Error('No authentication token returned by Google');
+    }
+
+    return apiPost<AuthSessionResult>('/auth/google', {
+      idToken,
+      name: response.data.user.name ?? undefined,
+    });
+  } catch (err) {
+    if (isErrorWithCode(err) && err.code === statusCodes.SIGN_IN_CANCELLED) {
+      return null;
+    }
+    throw err;
+  }
+}
+
+async function signInWithGoogleBrowser(): Promise<AuthSessionResult | null> {
   const clientId = getGoogleClientId();
   if (!clientId) {
     throw new Error('EXPO_PUBLIC_GOOGLE_CLIENT_ID is not configured in mobile/.env');
@@ -111,6 +151,13 @@ export async function signInWithGoogle(): Promise<AuthSessionResult | null> {
     idToken: tokenToVerify,
     name: result.params.name as string | undefined,
   });
+}
+
+export async function signInWithGoogle(): Promise<AuthSessionResult | null> {
+  if (!isExpoGo && Platform.OS === 'android') {
+    return signInWithGoogleNative();
+  }
+  return signInWithGoogleBrowser();
 }
 
 export async function signInWithApple(): Promise<AuthSessionResult | null> {

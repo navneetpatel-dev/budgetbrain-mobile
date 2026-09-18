@@ -131,7 +131,7 @@ export function getApiErrorMessage(err: unknown, fallback = 'Something went wron
       if (__DEV__) {
         return `Cannot reach the server at ${API_BASE_URL}. Update EXPO_PUBLIC_API_URL in mobile/.env to your computer's current LAN IP, then restart Expo (press r in the terminal).`;
       }
-      return 'Unable to connect. Check your internet connection and try again.';
+      return 'Unable to reach the BudgetBrain server. Your internet is fine — the app could not talk to the API.';
     }
     return `Request failed (${err.response.status})`;
   }
