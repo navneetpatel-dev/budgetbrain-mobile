@@ -261,7 +261,9 @@ export function PaywallModal({
                 <Text style={styles.ctaText}>
                   {selectedPlan === 'lifetime'
                     ? 'Get Lifetime Access'
-                    : 'Start 7-Day Free Trial'}
+                    : selectedPlan === 'yearly'
+                      ? 'Subscribe Yearly'
+                      : 'Subscribe Monthly'}
                 </Text>
               )}
             </Pressable>
