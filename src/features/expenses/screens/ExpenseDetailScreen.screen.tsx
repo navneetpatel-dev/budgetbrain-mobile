@@ -1,4 +1,5 @@
-import { RefreshControl, View, Text, Pressable } from 'react-native';
+import { useState } from 'react';
+import { RefreshControl, View, Text, Pressable, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
@@ -25,7 +26,7 @@ import { useExpenseDetail, type ExpenseForm } from '@/features/expenses/hooks/us
 import { useExpenseTagSuggestions } from '@/features/expenses/hooks/useExpenseTagSuggestions';
 import { TagInput } from '@/features/expenses/components/TagInput';
 import { SplitExpenseSection } from '@/features/family/components/SplitExpenseSection';
-import { fetchAttachments, deleteReceipt } from '@/features/expenses/services/receipts';
+import { fetchAttachments, fetchAttachmentSuggestion, deleteReceipt, type ReceiptExtraction } from '@/features/expenses/services/receipts';
 import { PAYMENT_METHODS } from '@/shared/constants/config';
 import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
@@ -76,11 +77,44 @@ export function ExpenseDetailScreen() {
     }
   };
 
+  const [checkingSuggestionId, setCheckingSuggestionId] = useState<string | null>(null);
+  const [suggestionNotReadyId, setSuggestionNotReadyId] = useState<string | null>(null);
+  const [suggestion, setSuggestion] = useState<{ attachmentId: string; data: ReceiptExtraction } | null>(null);
+
+  const handleCheckSuggestion = async (attachmentId: string) => {
+    if (!id) return;
+    setSuggestionNotReadyId(null);
+    setCheckingSuggestionId(attachmentId);
+    try {
+      const result = await fetchAttachmentSuggestion(id, attachmentId);
+      if (result && (result.merchant || result.amount !== undefined || result.date)) {
+        setSuggestion({ attachmentId, data: result });
+      } else {
+        setSuggestionNotReadyId(attachmentId);
+      }
+    } catch (err) {
+      console.error('Failed to fetch receipt suggestion', err);
+      setSuggestionNotReadyId(attachmentId);
+    } finally {
+      setCheckingSuggestionId(null);
+    }
+  };
+
   const { control, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<ExpenseForm>({
     defaultValues: { amount: '', merchant: '', notes: '', categoryId: '', paymentMethod: 'upi', date: '', tags: [] },
   });
 
   const selectedPayment = watch('paymentMethod');
+
+  const handleApplySuggestion = () => {
+    if (!suggestion) return;
+    const { data } = suggestion;
+    startEditing(reset);
+    if (data.merchant) setValue('merchant', data.merchant);
+    if (data.amount !== undefined) setValue('amount', String(data.amount));
+    if (data.date) setValue('date', data.date);
+    setSuggestion(null);
+  };
 
   if (isLoading) {
     return (
@@ -118,6 +152,34 @@ export function ExpenseDetailScreen() {
     >
       {justSaved ? <FormSuccessBanner message="Expense updated" /> : null}
       {submitError ? <FormErrorBanner message={submitError} /> : null}
+      {!editing && suggestion ? (
+        <View
+          style={{
+            padding: 12,
+            borderRadius: 12,
+            backgroundColor: theme.colors.surfaceContainer,
+            borderWidth: 1,
+            borderColor: theme.colors.primary,
+            marginBottom: theme.spacing.md,
+            gap: 8,
+          }}
+        >
+          <Text style={{ fontSize: 13, fontWeight: '600', color: theme.colors.text }}>
+            Scanned receipt found: {[suggestion.data.merchant, suggestion.data.amount !== undefined ? formatCurrency(suggestion.data.amount, expense.currency) : undefined, suggestion.data.date].filter(Boolean).join(' · ')}
+          </Text>
+          <Text style={{ fontSize: 12, color: theme.colors.textTertiary }}>
+            Apply these details to this expense? Review before saving.
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            <Pressable onPress={handleApplySuggestion} accessibilityRole="button" accessibilityLabel="Apply scanned details">
+              <Text style={{ fontSize: 13, fontWeight: '700', color: theme.colors.primary }}>Apply</Text>
+            </Pressable>
+            <Pressable onPress={() => setSuggestion(null)} accessibilityRole="button" accessibilityLabel="Dismiss scanned details">
+              <Text style={{ fontSize: 13, fontWeight: '600', color: theme.colors.textTertiary }}>Dismiss</Text>
+            </Pressable>
+          </View>
+        </View>
+      ) : null}
 
       {!editing ? (
         <>
@@ -180,16 +242,35 @@ export function ExpenseDetailScreen() {
                       >
                         {Math.round(att.fileSize / 1024)} KB
                       </Text>
+                      {suggestionNotReadyId === att.id ? (
+                        <Text style={{ fontSize: 11, color: theme.colors.textTertiary, marginTop: 2 }}>
+                          No scanned details yet — try again shortly
+                        </Text>
+                      ) : null}
                     </View>
                   </View>
-                  <Pressable
-                    onPress={() => void handleDeleteAttachment(att.id)}
-                    style={{ padding: 6 }}
-                    accessibilityRole="button"
-                    accessibilityLabel="Delete attachment"
-                  >
-                    <AppIcon name="trash" size={16} color={theme.colors.danger} />
-                  </Pressable>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    {checkingSuggestionId === att.id ? (
+                      <ActivityIndicator size="small" color={theme.colors.primary} />
+                    ) : (
+                      <Pressable
+                        onPress={() => void handleCheckSuggestion(att.id)}
+                        style={{ padding: 6 }}
+                        accessibilityRole="button"
+                        accessibilityLabel="Check for scanned receipt details"
+                      >
+                        <AppIcon name="sparkles" size={16} color={theme.colors.primary} />
+                      </Pressable>
+                    )}
+                    <Pressable
+                      onPress={() => void handleDeleteAttachment(att.id)}
+                      style={{ padding: 6 }}
+                      accessibilityRole="button"
+                      accessibilityLabel="Delete attachment"
+                    >
+                      <AppIcon name="trash" size={16} color={theme.colors.danger} />
+                    </Pressable>
+                  </View>
                 </View>
               ))}
             </View>
