@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
@@ -6,9 +7,30 @@ import { apiPost, getApiErrorMessage } from '@/shared/services/api';
 import { invalidateMoneyQueries } from '@/shared/services/queryInvalidation';
 import { uploadReceipt } from '@/features/expenses/services/receipts';
 import { queueOfflineAction, isOnline } from '@/shared/services/offlineSync';
+import { queuePendingReceiptUpload, ReceiptTooLargeError } from '@/shared/services/pendingReceipts';
 import { trackEvent } from '@/shared/services/analytics';
 import type { Transaction } from '@/shared/types';
 import type { Receipt } from '@/features/expenses/hooks/useReceiptPicker';
+
+/**
+ * Queues a receipt for upload once its offline-created expense syncs. The expense itself
+ * still saves even if the receipt can't be queued (e.g. too large) — losing the receipt is
+ * recoverable (re-attach later), losing the whole expense entry is not.
+ */
+async function queueReceiptForOfflineExpense(clientQueueId: string, receipt: Receipt) {
+  try {
+    await queuePendingReceiptUpload(clientQueueId, receipt);
+  } catch (err) {
+    if (err instanceof ReceiptTooLargeError) {
+      Alert.alert(
+        'Receipt not saved',
+        `${err.message} The expense was saved without it — you can attach the receipt again once you're back online.`
+      );
+    }
+    // Any other failure (e.g. couldn't copy the file) is treated the same way: the expense
+    // itself is already queued and safe, only the receipt attachment is lost this time.
+  }
+}
 
 export interface ExpenseForm {
   amount: string;
@@ -56,7 +78,10 @@ export function useCreateExpense() {
       const online = await isOnline();
 
       if (!online) {
-        queueOfflineAction('create', payload);
+        const clientQueueId = queueOfflineAction('create', payload);
+        if (receipt) {
+          await queueReceiptForOfflineExpense(clientQueueId, receipt);
+        }
         invalidateMoneyQueries(queryClient);
         router.back();
         return { ok: true, offline: true };
@@ -79,7 +104,10 @@ export function useCreateExpense() {
       // server actually returned (validation, auth, 5xx) is a real failure the user needs to see.
       const isGenuineNetworkFailure = axios.isAxiosError(err) && !err.response;
       if (isGenuineNetworkFailure) {
-        queueOfflineAction('create', payload);
+        const clientQueueId = queueOfflineAction('create', payload);
+        if (receipt) {
+          await queueReceiptForOfflineExpense(clientQueueId, receipt);
+        }
         invalidateMoneyQueries(queryClient);
         router.back();
         return { ok: true, offline: true };
