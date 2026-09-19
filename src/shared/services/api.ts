@@ -118,6 +118,14 @@ export async function apiDelete<T>(url: string): Promise<T> {
   return data.data;
 }
 
+/** Extract the backend's machine-readable error code (e.g. 'AI_QUOTA_EXCEEDED'), if present. */
+export function getApiErrorCode(err: unknown): string | undefined {
+  if (axios.isAxiosError(err)) {
+    return (err.response?.data as { error?: { code?: string } } | undefined)?.error?.code;
+  }
+  return undefined;
+}
+
 /** Extract a user-facing message from axios / API errors (prefers Zod field message). */
 export function getApiErrorMessage(err: unknown, fallback = 'Something went wrong'): string {
   if (axios.isAxiosError(err)) {

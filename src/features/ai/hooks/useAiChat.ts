@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiGet, apiPost, getApiErrorMessage } from '@/shared/services/api';
+import { apiGet, apiPost, getApiErrorCode, getApiErrorMessage } from '@/shared/services/api';
 import { useAppSelector } from '@/shared/store/hooks';
 import type {
   AiAnomaly,
@@ -151,7 +151,11 @@ export function useAiChat() {
       });
     } catch (err) {
       setMessages((prev) => prev.slice(0, -1));
-      setChatError(getApiErrorMessage(err, 'Could not send message'));
+      if (getApiErrorCode(err) === 'AI_QUOTA_EXCEEDED') {
+        setChatError("You've reached this month's AI usage limit. It resets on the 1st.");
+      } else {
+        setChatError(getApiErrorMessage(err, 'Could not send message'));
+      }
     } finally {
       setChatLoading(false);
     }
