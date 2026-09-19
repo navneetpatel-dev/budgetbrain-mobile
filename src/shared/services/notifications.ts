@@ -83,7 +83,22 @@ export function resolveNotificationDeepLink(data: Record<string, unknown> | unde
       return '/(tabs)/settings';
     case 'daily_reminder':
       return '/expense/add';
-    case 'bill_due':
+    case 'bill_due': {
+      // Richer payload (merchant/amount/currency) lets the notification deep-link into a
+      // pre-filled Add Expense form for a one-tap "mark as paid" flow — the user still
+      // reviews and explicitly saves, this never auto-creates a transaction. Falls back to
+      // the plain subscriptions screen for older reminders sent before this data existed.
+      const merchant = data?.merchant ? String(data.merchant) : undefined;
+      const amount = data?.amount != null ? String(data.amount) : undefined;
+      if (merchant && amount) {
+        const params = new URLSearchParams({ merchant, amount });
+        if (data?.categoryId) params.set('categoryId', String(data.categoryId));
+        if (data?.currency) params.set('currency', String(data.currency));
+        if (data?.recurringSeriesId) params.set('recurringSeriesId', String(data.recurringSeriesId));
+        return `/expense/add?${params.toString()}`;
+      }
+      return '/subscriptions';
+    }
     case 'recurring_expense':
       return data?.transactionId ? `/expense/${String(data.transactionId)}` : '/subscriptions';
     case 'weekly_digest':

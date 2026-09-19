@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useLocalSearchParams } from 'expo-router';
 import type { AppIconName } from '@/features/navigation/components/AppIcon';
 import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
 import { useCreateExpense, type ExpenseForm } from '@/features/expenses/hooks/useCreateExpense';
@@ -36,16 +37,30 @@ export function useAddExpenseForm() {
   const { suggestions: tagSuggestions } = useExpenseTagSuggestions();
   const { data: categories } = useCategoryOptions();
 
-  const [currencyIndex, setCurrencyIndex] = useState(0);
+  // Pre-fill from a bill-due notification's deep link (?merchant=&amount=&categoryId=&currency=)
+  // so tapping "Upcoming bill" opens Add Expense ready to review, not empty — the user still
+  // explicitly reviews and saves, this never auto-creates the transaction.
+  const params = useLocalSearchParams<{
+    merchant?: string;
+    amount?: string;
+    categoryId?: string;
+    currency?: string;
+  }>();
+
+  const [currencyIndex, setCurrencyIndex] = useState(() => {
+    if (!params.currency) return 0;
+    const idx = CURRENCIES.findIndex((c) => c.code === params.currency);
+    return idx >= 0 ? idx : 0;
+  });
   const [splitWithFamily, setSplitWithFamily] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const form = useForm<ExpenseForm>({
     defaultValues: {
-      amount: '',
-      merchant: '',
+      amount: params.amount ?? '',
+      merchant: params.merchant ?? '',
       notes: '',
-      categoryId: '',
+      categoryId: params.categoryId ?? '',
       paymentMethod: 'upi',
       date: toIsoDate(new Date()),
       tags: [],
