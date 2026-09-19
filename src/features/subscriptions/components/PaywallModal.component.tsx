@@ -14,7 +14,8 @@ import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { createStyles } from './PaywallModal.styles';
 import { usePaywallOfferings } from '../hooks/usePaywallOfferings';
 import { useEntitlement } from '../hooks/useEntitlement';
-import { purchasePackage, restorePurchases } from '@/shared/services/purchases';
+import { purchasePackage, restorePurchases, ensurePurchasesIdentity } from '@/shared/services/purchases';
+import { useAppSelector } from '@/shared/store/hooks';
 
 export interface PaywallModalProps {
   visible: boolean;
@@ -35,6 +36,7 @@ export function PaywallModal({
   const [purchasing, setPurchasing] = useState(false);
   const { refreshEntitlement } = useEntitlement();
   const { monthly, annual, lifetime, loading, purchasesAvailable } = usePaywallOfferings(visible);
+  const userId = useAppSelector((state) => state.auth.user?.id);
 
   const packageForPlan: Record<PlanType, PurchasesPackage | null> = {
     monthly,
@@ -62,6 +64,21 @@ export function PaywallModal({
       return;
     }
     setPurchasing(true);
+
+    // Confirm RevenueCat's identity matches the signed-in user before charging them —
+    // if this doesn't match, the backend's webhook (keyed on this app_user_id) would
+    // silently fail to attribute the purchase to anyone, and the customer would pay
+    // with no entitlement ever granted.
+    const identityConfirmed = userId ? await ensurePurchasesIdentity(userId) : false;
+    if (!identityConfirmed) {
+      setPurchasing(false);
+      Alert.alert(
+        'One moment',
+        'Still setting up your account. Please try again in a few seconds.',
+      );
+      return;
+    }
+
     const result = await purchasePackage(selectedPackage);
     if (result.status === 'success') {
       const entitled = await refreshEntitlement();
