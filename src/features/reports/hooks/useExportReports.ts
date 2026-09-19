@@ -39,6 +39,22 @@ export function useExportReports() {
     }
   };
 
+  const downloadExcel = async () => {
+    setLoading(true);
+    try {
+      const buffer = await apiDownloadBinary('/reports/excel', buildParams());
+      await saveAndShareFile(
+        'budgetbrain-report.xlsx',
+        buffer,
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      );
+    } catch {
+      Alert.alert('Error', 'Could not download Excel report');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     startDate,
     setStartDate,
@@ -47,5 +63,6 @@ export function useExportReports() {
     loading,
     downloadCsv,
     downloadPdf,
+    downloadExcel,
   };
 }

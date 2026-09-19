@@ -15,14 +15,18 @@ export function ReportsScreen() {
   const router = useRouter();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { isEntitled, paywallVisible, openPaywall, closePaywall } = useEntitlement();
-  const { startDate, setStartDate, endDate, setEndDate, loading, downloadCsv, downloadPdf } = useExportReports();
+  const { startDate, setStartDate, endDate, setEndDate, loading, downloadCsv, downloadPdf, downloadExcel } = useExportReports();
 
   const handleDownloadCsv = () => {
+    downloadCsv();
+  };
+
+  const handleDownloadExcel = () => {
     if (!isEntitled) {
       openPaywall();
       return;
     }
-    downloadCsv();
+    downloadExcel();
   };
 
   const handleDownloadPdf = () => {
@@ -117,6 +121,28 @@ export function ReportsScreen() {
             )}
           </Pressable>
 
+          {/* Excel Download Button */}
+          <Pressable
+            onPress={handleDownloadExcel}
+            disabled={loading}
+            style={({ pressed }) => [styles.actionCard, pressed && { opacity: 0.85 }]}
+          >
+            <View style={[styles.formatIconPod, { backgroundColor: theme.colors.success + '18' }]}>
+              <AppIcon name="document" size={20} color={theme.colors.success} />
+            </View>
+            <View style={styles.formatTextCol}>
+              <Text style={styles.formatTitle}>
+                Spreadsheet (Excel) {!isEntitled ? '★ PRO' : ''}
+              </Text>
+              <Text style={styles.formatDesc}>Formatted workbook with financial metrics (.xlsx)</Text>
+            </View>
+            {loading ? (
+              <ActivityIndicator size="small" color={theme.colors.success} />
+            ) : (
+              <AppIcon name="chevronRight" size={16} color={theme.colors.textTertiary} />
+            )}
+          </Pressable>
+
           {/* PDF Download Button */}
           <Pressable
             onPress={handleDownloadPdf}
@@ -127,7 +153,9 @@ export function ReportsScreen() {
               <AppIcon name="reports" size={20} color={theme.colors.rose} />
             </View>
             <View style={styles.formatTextCol}>
-              <Text style={styles.formatTitle}>Executive Summary (PDF)</Text>
+              <Text style={styles.formatTitle}>
+                Executive Summary (PDF) {!isEntitled ? '★ PRO' : ''}
+              </Text>
               <Text style={styles.formatDesc}>Formatted report with category charts and spending breakdown</Text>
             </View>
             {loading ? (

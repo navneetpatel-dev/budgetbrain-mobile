@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, Pressable, ActivityIndicator } from 'react-native';
-// import { Platform } from 'react-native';
-// import { AppIcon } from '@/features/navigation/components/AppIcon';
+import { View, Text, Pressable, ActivityIndicator, Platform } from 'react-native';
+import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useSocialAuth } from '@/features/auth/hooks/useSocialAuth';
 import { AuthDivider } from '@/features/auth/components/ui/AuthDivider';
 import { AuthErrorBanner } from '@/features/auth/components/ui/AuthErrorBanner';
@@ -21,8 +20,7 @@ function GoogleMark() {
 export function SocialAuthButtons({ disabled: formDisabled }: { disabled?: boolean }) {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const { loading, error, clearError, signInGoogle } = useSocialAuth();
-  // const { signInApple } = useSocialAuth(); // restore with Apple button
+  const { loading, error, clearError, signInGoogle, signInApple } = useSocialAuth();
   const isBusy = formDisabled || !!loading;
 
   const onGoogle = () => {
@@ -30,10 +28,10 @@ export function SocialAuthButtons({ disabled: formDisabled }: { disabled?: boole
     void signInGoogle();
   };
 
-  // const onApple = () => {
-  //   clearError();
-  //   void signInApple();
-  // };
+  const onApple = () => {
+    clearError();
+    void signInApple();
+  };
 
   return (
     <View style={styles.container}>
@@ -46,7 +44,6 @@ export function SocialAuthButtons({ disabled: formDisabled }: { disabled?: boole
           disabled={isBusy}
           icon={<GoogleMark />}
         />
-        {/* Apple login temporarily disabled
         {Platform.OS === 'ios' && (
           <SocialButton
             label="Apple"
@@ -56,7 +53,6 @@ export function SocialAuthButtons({ disabled: formDisabled }: { disabled?: boole
             icon={<AppIcon name="apple" size={20} color={theme.colors.text} />}
           />
         )}
-        */}
       </View>
       {error ? <AuthErrorBanner message={error} /> : null}
     </View>

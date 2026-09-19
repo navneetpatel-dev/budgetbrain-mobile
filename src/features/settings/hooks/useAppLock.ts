@@ -37,6 +37,7 @@ export function useAppLock(
     } else {
       setChecked(true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional initial-mount-only lock initialization
   }, []);
 
   useEffect(() => {

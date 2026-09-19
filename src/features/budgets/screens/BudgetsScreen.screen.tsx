@@ -17,12 +17,14 @@ import { showAlert } from '@/shared/utils/confirmations';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
 import { useBudgetsScreen } from '@/features/budgets/hooks/useBudgetsScreen.hook';
+import { useEntitlement, PaywallModal } from '@/features/subscriptions';
 import { createStyles } from './BudgetsScreen.styles';
 
 export function BudgetsScreen() {
   const theme = useTheme();
   const router = useRouter();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const { isEntitled, paywallVisible, openPaywall, closePaywall } = useEntitlement();
   const { deleteBudget } = useDeleteBudget();
   const {
     budgets,
@@ -39,6 +41,14 @@ export function BudgetsScreen() {
     periodChips,
     dailySafe,
   } = useBudgetsScreen();
+
+  const handleAddBudget = () => {
+    if (!isEntitled && budgets.length >= 3) {
+      openPaywall();
+      return;
+    }
+    router.push('/budget/add');
+  };
 
   return (
     <View style={styles.screenWrapper}>
@@ -144,7 +154,7 @@ export function BudgetsScreen() {
           <View style={styles.footerWrap}>
             {/* Primary Action Button to Create New Budget */}
             <Pressable
-              onPress={() => router.push('/budget/add')}
+              onPress={handleAddBudget}
               style={({ pressed }) => [styles.createBtnWrap, pressed && { transform: [{ scale: 0.98 }] }]}
               accessibilityRole="button"
               accessibilityLabel="New Budget Category"
@@ -178,7 +188,7 @@ export function BudgetsScreen() {
               title="No budgets yet"
               subtitle="Set spending limits to stay on track"
               action="Create budget"
-              onAction={() => router.push('/budget/add')}
+              onAction={handleAddBudget}
             />
           )
         }
@@ -194,6 +204,12 @@ export function BudgetsScreen() {
             />
           </View>
         )}
+      />
+
+      <PaywallModal
+        visible={paywallVisible}
+        onClose={closePaywall}
+        featureTitle="Unlimited Budget Categories"
       />
     </View>
   );
