@@ -92,19 +92,16 @@ export function useCategories() {
     }
   };
 
-  const moveCategory = async (index: number, direction: -1 | 1) => {
-    if (!data) return;
-    const newIndex = index + direction;
-    if (newIndex < 0 || newIndex >= data.length) return;
-    const ordered = [...data];
-    const [item] = ordered.splice(index, 1);
-    ordered.splice(newIndex, 0, item);
+  const reorderAll = async (ordered: Category[]) => {
     setListError(null);
     try {
       await apiPost('/categories/reorder', { orderedIds: ordered.map((c) => c.id) });
       queryClient.invalidateQueries({ queryKey: ['categories'] });
     } catch (err) {
       setListError(getApiErrorMessage(err, 'Could not reorder categories'));
+      // Refetch to snap back to the server's real order after a failed reorder,
+      // since the draggable list already optimistically reflects the drag result.
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
     }
   };
 
@@ -133,6 +130,6 @@ export function useCategories() {
     onSubmit,
     archiveCategory,
     unarchiveCategory,
-    moveCategory,
+    reorderAll,
   };
 }

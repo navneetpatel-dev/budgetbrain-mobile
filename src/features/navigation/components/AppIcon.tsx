@@ -56,6 +56,7 @@ const ICONS = {
   devices: { ios: 'iphone', android: 'devices', web: 'devices' },
   refresh: { ios: 'arrow.clockwise', android: 'refresh', web: 'refresh' },
   receipt: { ios: 'doc.text.fill', android: 'receipt', web: 'receipt' },
+  dragHandle: { ios: 'line.3.horizontal', android: 'drag_indicator', web: 'drag_indicator' },
 } as const;
 
 export type AppIconName = keyof typeof ICONS;

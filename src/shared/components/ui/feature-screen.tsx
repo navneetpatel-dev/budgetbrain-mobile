@@ -10,6 +10,10 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
+import DraggableFlatList, {
+  type DragEndParams,
+  type RenderItem as DraggableRenderItem,
+} from 'react-native-draggable-flatlist';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, type Href } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -733,6 +737,26 @@ export function FormStackScreen({
 
 /* ── Sticky header + FlatList ── */
 
+function useStickyListLayout(inset: 'tab' | 'stack', extra?: ViewStyle) {
+  const theme = useTheme();
+  const safeInsets = useSafeAreaInsets();
+  const tabBarInset = useTabBarInset();
+  const bottomInset = inset === 'stack' ? safeInsets.bottom + theme.spacing.xxl : tabBarInset;
+  const { frame, stackGap } = useScreenInsets();
+  return useMemo(
+    () => [
+      {
+        ...frame,
+        paddingTop: stackGap,
+        paddingBottom: bottomInset,
+        gap: stackGap,
+      },
+      extra,
+    ],
+    [frame, stackGap, bottomInset, extra]
+  );
+}
+
 export function StickyHeaderFlatScreen<T>({
   header,
   data,
@@ -793,6 +817,57 @@ export function StickyHeaderFlatScreen<T>({
         ItemSeparatorComponent={ItemSeparatorComponent}
         onEndReached={onEndReached}
         onEndReachedThreshold={onEndReachedThreshold}
+      />
+    </View>
+  );
+}
+
+/* ── Sticky header + drag-to-reorder list ──
+ * A separate component (not a mode flag on StickyHeaderFlatScreen) since
+ * DraggableFlatList's renderItem shape ({item, drag, isActive}) differs from
+ * FlatList's ({item, index}) — keeping them distinct avoids widening the
+ * widely-used StickyHeaderFlatScreen's renderItem type for every caller.
+ */
+export function SortableStickyHeaderFlatScreen<T>({
+  header,
+  data,
+  renderItem,
+  keyExtractor,
+  onDragEnd,
+  ListEmptyComponent,
+  ListHeaderComponent,
+  refreshControl,
+  contentContainerStyle,
+  inset = 'tab',
+}: {
+  header: React.ReactNode;
+  data: T[];
+  renderItem: DraggableRenderItem<T>;
+  keyExtractor: (item: T, index: number) => string;
+  onDragEnd: (params: DragEndParams<T>) => void;
+  ListEmptyComponent?: FlatListProps<T>['ListEmptyComponent'];
+  ListHeaderComponent?: FlatListProps<T>['ListHeaderComponent'];
+  refreshControl?: FlatListProps<T>['refreshControl'];
+  contentContainerStyle?: ViewStyle;
+  inset?: 'tab' | 'stack';
+}) {
+  const theme = useTheme();
+  const [listStyle, extraStyle] = useStickyListLayout(inset, contentContainerStyle);
+
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      {header}
+      <DraggableFlatList
+        data={data}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        onDragEnd={onDragEnd}
+        contentContainerStyle={[listStyle, extraStyle]}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={ListEmptyComponent}
+        ListHeaderComponent={ListHeaderComponent}
+        refreshControl={refreshControl}
+        activationDistance={8}
       />
     </View>
   );
