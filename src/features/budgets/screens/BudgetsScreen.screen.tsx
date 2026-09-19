@@ -16,6 +16,9 @@ import { confirmDeleteBudget } from '@/features/budgets/services/confirmations';
 import { showAlert } from '@/shared/utils/confirmations';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
+import { useQuery } from '@tanstack/react-query';
+import { apiGet } from '@/shared/services/api';
+import type { AiInsight } from '@/shared/types';
 import { useBudgetsScreen } from '@/features/budgets/hooks/useBudgetsScreen.hook';
 import { useEntitlement, PaywallModal } from '@/features/subscriptions';
 import { createStyles } from './BudgetsScreen.styles';
@@ -41,6 +44,18 @@ export function BudgetsScreen() {
     periodChips,
     dailySafe,
   } = useBudgetsScreen();
+
+  const { data: aiInsights } = useQuery({
+    queryKey: ['ai-insights'],
+    queryFn: () => apiGet<AiInsight>('/ai/insights'),
+    retry: false,
+  });
+
+  const recommendation = useMemo(() => {
+    return aiInsights?.structuredInsights?.find(
+      (s) => s.kind === 'budget_recommendation' || s.kind === 'saving_opportunity'
+    );
+  }, [aiInsights]);
 
   const handleAddBudget = () => {
     if (!isEntitled && budgets.length >= 3) {
@@ -127,9 +142,12 @@ export function BudgetsScreen() {
                 <AppIcon name="sparkles" size={20} color={theme.colors.primary} />
               </View>
               <View style={styles.aiContentCol}>
-                <Text style={styles.aiTitle}>AI Optimization Forecast</Text>
+                <Text style={styles.aiTitle}>
+                  {recommendation?.title || 'AI Optimization Forecast'}
+                </Text>
                 <Text style={styles.aiDescription}>
-                  You are tracking well this cycle. BudgetBrain suggests preserving surplus in discretionary categories to secure your month-end goal.
+                  {recommendation?.message ||
+                    'You are tracking well this cycle. BudgetBrain suggests preserving surplus in discretionary categories to secure your month-end goal.'}
                 </Text>
                 <Pressable
                   onPress={() => router.push('/(tabs)/ai')}

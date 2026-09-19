@@ -26,6 +26,7 @@ export interface Category {
   color: string | null;
   isDefault: boolean;
   sortOrder: number;
+  archivedAt?: string | null;
 }
 
 export interface Transaction {
@@ -204,14 +205,24 @@ export interface FamilyMembership {
   group?: FamilyGroup;
 }
 
+export interface StructuredInsight {
+  kind: 'monthly_comparison' | 'top_category' | 'saving_opportunity' | 'budget_recommendation';
+  title: string;
+  message: string;
+  amount?: number;
+  category?: string;
+  changePercent?: number;
+}
+
 export interface AiInsight {
   insights: string[];
+  structuredInsights?: StructuredInsight[];
   summary: { current: number; previous: number; changePercent: number };
 }
 
 /** Matches backend/src/shared/ai/anomalyDetection.engine.ts's DetectedAnomaly shape exactly. */
 export interface AiAnomaly {
-  type: 'spending_spike' | 'duplicate_expense' | 'subscription_cost_increase';
+  type: 'spending_spike' | 'duplicate_expense' | 'subscription_cost_increase' | 'unusual_transaction';
   transactionId?: string;
   recurringSeriesId?: string;
   merchant?: string;
@@ -266,6 +277,16 @@ export interface PaginatedTransactions extends PaginationMeta {
 
 export type PaginatedList<K extends string, T> = PaginationMeta & Record<K, T[]>;
 
+export interface GoalContribution {
+  id: string;
+  goalId: string;
+  userId: string;
+  amount: number;
+  note: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Goal {
   id: string;
   name: string;
@@ -277,6 +298,18 @@ export interface Goal {
   /** Server-computed (0-100, capped) — never derive this from targetAmount/currentAmount client-side. */
   progressPercentage: number;
   completedAt: string | null;
+  contributions?: GoalContribution[];
+}
+
+export interface SpendingTrendPoint {
+  label: string;
+  total: number;
+}
+
+export interface SpendingTrends {
+  daily: SpendingTrendPoint[];
+  weekly: SpendingTrendPoint[];
+  monthly: SpendingTrendPoint[];
 }
 
 export interface DashboardData {
@@ -293,6 +326,7 @@ export interface DashboardData {
   categoryBreakdown: Array<{ categoryId: string; total: string; category?: Category }>;
   noSpendStreak: number;
   upcomingBills: RecurringSeries[];
+  spendingTrends?: SpendingTrends;
 }
 
 export interface ApiErrorDetail {

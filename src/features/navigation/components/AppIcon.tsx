@@ -54,6 +54,8 @@ const ICONS = {
   reports: { ios: 'doc.text.fill', android: 'assessment', web: 'assessment' },
   info: { ios: 'info.circle.fill', android: 'info', web: 'info' },
   devices: { ios: 'iphone', android: 'devices', web: 'devices' },
+  refresh: { ios: 'arrow.clockwise', android: 'refresh', web: 'refresh' },
+  receipt: { ios: 'doc.text.fill', android: 'receipt', web: 'receipt' },
 } as const;
 
 export type AppIconName = keyof typeof ICONS;

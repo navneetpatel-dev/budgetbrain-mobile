@@ -1,5 +1,6 @@
-import { RefreshControl, View } from 'react-native';
+import { RefreshControl, View, Text, Pressable } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
+import { useQuery } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import {
   Input,
@@ -18,11 +19,13 @@ import {
   FormErrorBanner,
   FormSuccessBanner,
 } from '@/shared/components/ui';
+import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
 import { useExpenseDetail, type ExpenseForm } from '@/features/expenses/hooks/useExpenseDetail';
 import { useExpenseTagSuggestions } from '@/features/expenses/hooks/useExpenseTagSuggestions';
 import { TagInput } from '@/features/expenses/components/TagInput';
 import { SplitExpenseSection } from '@/features/family/components/SplitExpenseSection';
+import { fetchAttachments, deleteReceipt } from '@/features/expenses/services/receipts';
 import { PAYMENT_METHODS } from '@/shared/constants/config';
 import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
@@ -56,6 +59,22 @@ export function ExpenseDetailScreen() {
 
   const { data: categories } = useCategoryOptions();
   const { suggestions: tagSuggestions } = useExpenseTagSuggestions();
+
+  const { data: attachments = [], refetch: refetchAttachments } = useQuery({
+    queryKey: ['expense-attachments', id],
+    queryFn: () => (id ? fetchAttachments(id) : Promise.resolve([])),
+    enabled: !!id,
+  });
+
+  const handleDeleteAttachment = async (attachmentId: string) => {
+    if (!id) return;
+    try {
+      await deleteReceipt(id, attachmentId);
+      refetchAttachments();
+    } catch (err) {
+      console.error('Failed to delete attachment', err);
+    }
+  };
 
   const { control, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<ExpenseForm>({
     defaultValues: { amount: '', merchant: '', notes: '', categoryId: '', paymentMethod: 'upi', date: '', tags: [] },
@@ -116,6 +135,65 @@ export function ExpenseDetailScreen() {
               { label: 'Tags', value: expense.tags?.length ? expense.tags.join(', ') : '' },
             ]}
           />
+          {attachments.length > 0 && (
+            <View style={{ marginTop: theme.spacing.lg }}>
+              <Text
+                style={{
+                  fontWeight: '700',
+                  fontSize: 14,
+                  color: theme.colors.text,
+                  marginBottom: 8,
+                }}
+              >
+                Receipt Attachments
+              </Text>
+              {attachments.map((att) => (
+                <View
+                  key={att.id}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: 12,
+                    borderRadius: 12,
+                    backgroundColor: theme.colors.surfaceContainer,
+                    borderWidth: 1,
+                    borderColor: theme.colors.borderSubtle,
+                    marginBottom: 8,
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+                    <AppIcon name="receipt" size={20} color={theme.colors.primary} />
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <Text
+                        style={{ fontWeight: '500', fontSize: 13, color: theme.colors.text }}
+                        numberOfLines={1}
+                      >
+                        {att.fileName}
+                      </Text>
+                      <Text
+                        style={{
+                          fontWeight: '400',
+                          fontSize: 11,
+                          color: theme.colors.textTertiary,
+                        }}
+                      >
+                        {Math.round(att.fileSize / 1024)} KB
+                      </Text>
+                    </View>
+                  </View>
+                  <Pressable
+                    onPress={() => void handleDeleteAttachment(att.id)}
+                    style={{ padding: 6 }}
+                    accessibilityRole="button"
+                    accessibilityLabel="Delete attachment"
+                  >
+                    <AppIcon name="trash" size={16} color={theme.colors.danger} />
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+          )}
           <DetailActions
             primaryTitle="Edit"
             onPrimary={() => startEditing(reset)}

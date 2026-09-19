@@ -127,6 +127,82 @@ export function GoalDetailScreen() {
               { label: 'Target date', value: goal.targetDate ?? '' },
             ]}
           />
+          <View style={{ marginTop: theme.spacing.lg }}>
+            <Text
+              style={{
+                fontWeight: '700',
+                fontSize: 14,
+                color: theme.colors.text,
+                marginBottom: 8,
+              }}
+            >
+              Contribution History
+            </Text>
+            {goal.contributions && goal.contributions.length > 0 ? (
+              goal.contributions.map((c) => (
+                <View
+                  key={c.id}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: 12,
+                    borderRadius: 12,
+                    backgroundColor: theme.colors.surfaceContainer,
+                    borderWidth: 1,
+                    borderColor: theme.colors.borderSubtle,
+                    marginBottom: 8,
+                  }}
+                >
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text
+                      style={{
+                        fontWeight: '500',
+                        fontSize: 13,
+                        color: theme.colors.text,
+                      }}
+                      numberOfLines={1}
+                    >
+                      {c.note || 'Contribution'}
+                    </Text>
+                    <Text
+                      style={{
+                        fontWeight: '400',
+                        fontSize: 11,
+                        color: theme.colors.textTertiary,
+                        marginTop: 2,
+                      }}
+                    >
+                      {new Date(c.createdAt).toLocaleDateString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </Text>
+                  </View>
+                  <Text
+                    style={{
+                      fontWeight: '700',
+                      fontSize: 13,
+                      color: theme.colors.success,
+                    }}
+                  >
+                    +{formatCurrency(Number(c.amount), goal.currency)}
+                  </Text>
+                </View>
+              ))
+            ) : (
+              <Text
+                style={{
+                  fontWeight: '400',
+                  fontSize: 13,
+                  color: theme.colors.textSecondary,
+                }}
+              >
+                No contributions recorded yet.
+              </Text>
+            )}
+          </View>
           <DetailActions
             primaryTitle="Contribute"
             onPrimary={() => router.push(`/goal/${id}/contribute`)}

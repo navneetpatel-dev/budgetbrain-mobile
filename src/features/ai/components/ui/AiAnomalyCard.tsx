@@ -9,6 +9,7 @@ const ANOMALY_LABELS: Record<AiAnomaly['type'], { label: string; icon: AppIconNa
   duplicate_expense: { label: 'Possible duplicate', icon: 'document' },
   spending_spike: { label: 'Spending spike', icon: 'trendingUp' },
   subscription_cost_increase: { label: 'Subscription cost increase', icon: 'bell' },
+  unusual_transaction: { label: 'Unusual transaction', icon: 'shield' },
 };
 
 export function AiAnomalyCard({

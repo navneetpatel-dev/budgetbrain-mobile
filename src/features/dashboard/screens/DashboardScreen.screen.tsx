@@ -17,6 +17,7 @@ import {
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { TransactionItem, TransactionGroup } from '@/features/expenses/components/TransactionItem';
 import { CategoryChart } from '@/features/dashboard/components/CategoryChart';
+import { SpendingTrendChart } from '@/features/dashboard/components/SpendingTrendChart';
 import { DashboardHero } from '@/features/dashboard/components/DashboardHero';
 import { useDashboardScreen } from '@/features/dashboard/hooks/useDashboardScreen.hook';
 import { useTheme } from '@/shared/theme';
@@ -219,6 +220,13 @@ export function DashboardScreen() {
                     );
                   })}
                 </View>
+              </ScreenSection>
+            )}
+
+            {/* Spending Trends Chart */}
+            {data.spendingTrends && (
+              <ScreenSection style={sectionStyle}>
+                <SpendingTrendChart trends={data.spendingTrends} currency={currency} />
               </ScreenSection>
             )}
 

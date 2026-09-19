@@ -12,6 +12,7 @@ import {
   ColorPicker,
   FormActions,
   FormErrorBanner,
+  FilterChipsRail,
 } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
@@ -30,6 +31,8 @@ export function CategoriesScreen() {
     isLoading,
     isRefetching,
     refetch,
+    showArchived,
+    setShowArchived,
     editingId,
     showForm,
     setShowForm,
@@ -45,6 +48,7 @@ export function CategoriesScreen() {
     openEdit,
     onSubmit,
     archiveCategory,
+    unarchiveCategory,
     moveCategory,
   } = useCategories();
 
@@ -97,7 +101,20 @@ export function CategoriesScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingBottom: fabBottom + 72 }}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />}
-        ListHeaderComponent={listError ? <FormErrorBanner message={listError} /> : null}
+        ListHeaderComponent={
+          <View style={{ gap: 10, paddingHorizontal: 16, paddingVertical: 10 }}>
+            {listError ? <FormErrorBanner message={listError} /> : null}
+            <FilterChipsRail
+              chips={[
+                { id: 'active', label: 'Active Categories' },
+                { id: 'all', label: 'Include Archived' },
+              ]}
+              selectedId={showArchived ? 'all' : 'active'}
+              onSelect={(id) => setShowArchived(id === 'all')}
+              style={{ paddingHorizontal: 0 }}
+            />
+          </View>
+        }
         ListEmptyComponent={
           isLoading ? (
             <ListRowsSkeleton count={5} variant="category" />
@@ -107,52 +124,75 @@ export function CategoriesScreen() {
         }
         renderItem={({ item, index }) => (
           <Pressable
-            onPress={() => openEdit(item)}
+            onPress={() => (item.archivedAt ? undefined : openEdit(item))}
             accessibilityRole="button"
-            accessibilityLabel={`Edit ${item.name}`}
+            accessibilityLabel={`Category ${item.name}`}
           >
             <Card style={styles.catCard}>
               <View style={styles.catRow}>
                 <View style={[styles.dot, { backgroundColor: item.color ?? theme.colors.primary }]} />
-                <Text style={styles.catName}>{item.name}</Text>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={styles.catName} numberOfLines={1}>
+                    {item.name}
+                  </Text>
+                  {item.archivedAt && (
+                    <Text style={{ ...theme.typography.caption, fontSize: 11, color: theme.colors.textTertiary }}>
+                      Archived
+                    </Text>
+                  )}
+                </View>
                 <View style={styles.actions}>
-                  <Pressable
-                    onPress={() => moveCategory(index, -1)}
-                    style={({ pressed }) => [styles.iconBtn, pressed && styles.iconBtnPressed]}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Move ${item.name} up`}
-                    hitSlop={4}
-                  >
-                    <AppIcon name="arrowUp" size={18} color={theme.colors.primary} />
-                  </Pressable>
-                  <Pressable
-                    onPress={() => moveCategory(index, 1)}
-                    style={({ pressed }) => [styles.iconBtn, pressed && styles.iconBtnPressed]}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Move ${item.name} down`}
-                    hitSlop={4}
-                  >
-                    <AppIcon name="arrowDown" size={18} color={theme.colors.primary} />
-                  </Pressable>
-                  <Pressable
-                    onPress={() => openEdit(item)}
-                    style={({ pressed }) => [styles.iconBtn, pressed && styles.iconBtnPressed]}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Edit ${item.name}`}
-                    hitSlop={4}
-                  >
-                    <AppIcon name="edit" size={17} color={theme.colors.primary} />
-                  </Pressable>
-                  {!item.isDefault && (
+                  {item.archivedAt ? (
                     <Pressable
-                      onPress={() => archiveCategory(item.id, item.name)}
-                      style={({ pressed }) => [styles.iconBtnDanger, pressed && styles.iconBtnPressed]}
+                      onPress={() => void unarchiveCategory(item.id)}
+                      style={({ pressed }) => [styles.iconBtn, pressed && styles.iconBtnPressed]}
                       accessibilityRole="button"
-                      accessibilityLabel={`Archive ${item.name}`}
+                      accessibilityLabel={`Unarchive ${item.name}`}
                       hitSlop={4}
                     >
-                      <AppIcon name="trash" size={16} color={theme.colors.danger} />
+                      <AppIcon name="refresh" size={18} color={theme.colors.success} />
                     </Pressable>
+                  ) : (
+                    <>
+                      <Pressable
+                        onPress={() => moveCategory(index, -1)}
+                        style={({ pressed }) => [styles.iconBtn, pressed && styles.iconBtnPressed]}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Move ${item.name} up`}
+                        hitSlop={4}
+                      >
+                        <AppIcon name="arrowUp" size={18} color={theme.colors.primary} />
+                      </Pressable>
+                      <Pressable
+                        onPress={() => moveCategory(index, 1)}
+                        style={({ pressed }) => [styles.iconBtn, pressed && styles.iconBtnPressed]}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Move ${item.name} down`}
+                        hitSlop={4}
+                      >
+                        <AppIcon name="arrowDown" size={18} color={theme.colors.primary} />
+                      </Pressable>
+                      <Pressable
+                        onPress={() => openEdit(item)}
+                        style={({ pressed }) => [styles.iconBtn, pressed && styles.iconBtnPressed]}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Edit ${item.name}`}
+                        hitSlop={4}
+                      >
+                        <AppIcon name="edit" size={17} color={theme.colors.primary} />
+                      </Pressable>
+                      {!item.isDefault && (
+                        <Pressable
+                          onPress={() => archiveCategory(item.id, item.name)}
+                          style={({ pressed }) => [styles.iconBtnDanger, pressed && styles.iconBtnPressed]}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Archive ${item.name}`}
+                          hitSlop={4}
+                        >
+                          <AppIcon name="trash" size={16} color={theme.colors.danger} />
+                        </Pressable>
+                      )}
+                    </>
                   )}
                 </View>
               </View>

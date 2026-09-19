@@ -17,6 +17,7 @@ export const COLORS_PRESET = ['#6366F1', '#10B981', '#EF4444', '#F59E0B', '#8B5C
 
 export function useCategories() {
   const queryClient = useQueryClient();
+  const [showArchived, setShowArchived] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -26,8 +27,8 @@ export function useCategories() {
   const clearListError = useCallback(() => setListError(null), []);
 
   const { data, isLoading, isRefetching, refetch } = usePaginatedList<Category, 'categories'>({
-    queryKey: ['categories'],
-    url: '/categories',
+    queryKey: ['categories', showArchived ? 'all' : 'active'],
+    url: showArchived ? '/categories?includeArchived=true' : '/categories',
     itemsKey: 'categories',
   });
 
@@ -81,6 +82,16 @@ export function useCategories() {
     });
   };
 
+  const unarchiveCategory = async (id: string) => {
+    setListError(null);
+    try {
+      await apiPost(`/categories/${id}/unarchive`);
+      invalidateCategoryConsumers(queryClient);
+    } catch (err) {
+      setListError(getApiErrorMessage(err, 'Could not unarchive category'));
+    }
+  };
+
   const moveCategory = async (index: number, direction: -1 | 1) => {
     if (!data) return;
     const newIndex = index + direction;
@@ -102,6 +113,8 @@ export function useCategories() {
     isLoading,
     isRefetching,
     refetch,
+    showArchived,
+    setShowArchived,
     editingId,
     showForm,
     setShowForm,
@@ -119,6 +132,7 @@ export function useCategories() {
     openEdit,
     onSubmit,
     archiveCategory,
+    unarchiveCategory,
     moveCategory,
   };
 }
