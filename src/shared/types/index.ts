@@ -43,6 +43,15 @@ export interface Transaction {
   tags?: string[] | null;
   category?: Category;
   incomeSource?: IncomeSource;
+  /** Present on income transactions that have been split across accounts (GET /income/:id). */
+  incomeAllocations?: IncomeAllocation[];
+}
+
+export interface IncomeAllocation {
+  id: string;
+  financialAccountId: string;
+  amount: number;
+  financialAccount?: { id: string; name: string; currency: string };
 }
 
 export interface Budget {

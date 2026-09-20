@@ -1,4 +1,4 @@
-import type { FinancialAccount } from '@/shared/types';
+import type { FinancialAccount, IncomeAllocation } from '@/shared/types';
 
 /** Pure gate: is the sum of entered allocation amounts within a paisa of the income total? */
 export function allocationSumMatches(entries: Record<string, string>, incomeAmount: number): boolean {
@@ -12,4 +12,17 @@ export function allocationSumMatches(entries: Record<string, string>, incomeAmou
  *  rejected server-side, so the picker never offers a combination that would just 400 later. */
 export function accountsForCurrency(accounts: FinancialAccount[], currency: string): FinancialAccount[] {
   return accounts.filter((a) => a.currency === currency);
+}
+
+/** Builds the { financialAccountId: amountString } form-state shape from a transaction's
+ *  existing allocations, so re-opening the split panel pre-fills instead of starting blank. */
+export function buildPrefillFromAllocations(
+  existingAllocations: IncomeAllocation[] | undefined
+): Record<string, string> {
+  if (!existingAllocations || existingAllocations.length === 0) return {};
+  const prefill: Record<string, string> = {};
+  for (const a of existingAllocations) {
+    prefill[a.financialAccountId] = String(a.amount);
+  }
+  return prefill;
 }

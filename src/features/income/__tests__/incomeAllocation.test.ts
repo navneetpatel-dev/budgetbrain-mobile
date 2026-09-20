@@ -1,6 +1,6 @@
 import { describe, it, expect } from '@jest/globals';
-import { allocationSumMatches, accountsForCurrency } from '../utils/incomeAllocation';
-import type { FinancialAccount } from '@/shared/types';
+import { allocationSumMatches, accountsForCurrency, buildPrefillFromAllocations } from '../utils/incomeAllocation';
+import type { FinancialAccount, IncomeAllocation } from '@/shared/types';
 
 function account(overrides: Partial<FinancialAccount> = {}): FinancialAccount {
   return {
@@ -53,5 +53,23 @@ describe('accountsForCurrency', () => {
   it('returns an empty array when nothing matches', () => {
     const accounts = [account({ currency: 'USD' })];
     expect(accountsForCurrency(accounts, 'INR')).toEqual([]);
+  });
+});
+
+describe('buildPrefillFromAllocations', () => {
+  it('returns an empty object when there are no existing allocations', () => {
+    expect(buildPrefillFromAllocations(undefined)).toEqual({});
+    expect(buildPrefillFromAllocations([])).toEqual({});
+  });
+
+  it('maps each allocation to its account id and amount as a string', () => {
+    const allocations: IncomeAllocation[] = [
+      { id: 'a1', financialAccountId: 'acc-1', amount: 300 },
+      { id: 'a2', financialAccountId: 'acc-2', amount: 200 },
+    ];
+    expect(buildPrefillFromAllocations(allocations)).toEqual({
+      'acc-1': '300',
+      'acc-2': '200',
+    });
   });
 });

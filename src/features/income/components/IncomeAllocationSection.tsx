@@ -6,25 +6,30 @@ import { apiPost, getApiErrorMessage } from '@/shared/services/api';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
-import type { FinancialAccount } from '@/shared/types';
+import type { FinancialAccount, IncomeAllocation } from '@/shared/types';
 import { createStyles } from './IncomeAllocationSection.styles';
-import { allocationSumMatches, accountsForCurrency } from '@/features/income/utils/incomeAllocation';
+import {
+  allocationSumMatches,
+  accountsForCurrency,
+  buildPrefillFromAllocations,
+} from '@/features/income/utils/incomeAllocation';
 
 /**
  * Split-into-accounts action for a single income entry. Re-submitting replaces any prior
- * allocation cleanly on the backend (reverses old balance deltas, applies new ones) — there is
- * currently no endpoint to read back a prior allocation, so this section always starts fresh
- * rather than pre-filling; a `GET /income/:id/allocations` endpoint would be needed for that
- * (flagged, out of scope here).
+ * allocation cleanly on the backend (reverses old balance deltas, applies new ones) —
+ * `GET /income/:id` now returns the transaction's existing `incomeAllocations`, so opening
+ * this panel pre-fills from `existingAllocations` instead of always starting fresh.
  */
 export function IncomeAllocationSection({
   transactionId,
   amount,
   currency,
+  existingAllocations,
 }: {
   transactionId: string;
   amount: number;
   currency: string;
+  existingAllocations?: IncomeAllocation[];
 }) {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -42,11 +47,13 @@ export function IncomeAllocationSection({
     enabled: open,
   });
   const eligible = accountsForCurrency(accounts, currency);
+  const hasExistingSplit = !!existingAllocations && existingAllocations.length > 0;
 
   const startAllocate = () => {
     setOpen(true);
     setSuccess(false);
     setError(null);
+    setSelected(buildPrefillFromAllocations(existingAllocations));
   };
 
   const toggleAccount = (accountId: string, defaultShare: number) => {
@@ -90,7 +97,11 @@ export function IncomeAllocationSection({
   return (
     <View style={styles.wrap}>
       {!open ? (
-        <Button title="Split into accounts" variant="outline" onPress={startAllocate} />
+        <Button
+          title={hasExistingSplit ? 'Edit account split' : 'Split into accounts'}
+          variant="outline"
+          onPress={startAllocate}
+        />
       ) : (
         <View style={styles.panel}>
           <View style={styles.headerRow}>

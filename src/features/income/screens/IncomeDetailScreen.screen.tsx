@@ -122,6 +122,7 @@ export function IncomeDetailScreen() {
             transactionId={income.id}
             amount={Number(income.amount)}
             currency={income.currency}
+            existingAllocations={income.incomeAllocations}
           />
         </>
       ) : (
