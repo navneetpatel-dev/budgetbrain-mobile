@@ -17,6 +17,7 @@ import {
   FormSuccessBanner,
 } from '@/shared/components/ui';
 import { useIncomeDetail, type IncomeForm } from '@/features/income/hooks/useIncomeDetail';
+import { IncomeAllocationSection } from '@/features/income/components/IncomeAllocationSection';
 import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import { formatCurrency } from '@/shared/utils/currency';
@@ -116,6 +117,11 @@ export function IncomeDetailScreen() {
             secondaryLoading={duplicating}
             onDestructive={confirmDelete}
             destructiveLoading={deleting}
+          />
+          <IncomeAllocationSection
+            transactionId={income.id}
+            amount={Number(income.amount)}
+            currency={income.currency}
           />
         </>
       ) : (
