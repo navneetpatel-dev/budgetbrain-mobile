@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { RefreshControl, Text, View, Pressable } from 'react-native';
-import { Controller } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Input,
@@ -12,11 +12,14 @@ import {
   FormSuccessBanner,
   FamilySkeleton,
   ActionSheet,
+  FormModal,
+  OptionChips,
 } from '@/shared/components/ui';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
 import { useFamilyGroups } from '@/features/family/hooks/useFamilyGroups';
 import { useSettleSplit } from '@/features/family/hooks/useSettleSplit';
+import { useFamilyInvite, type FamilyInviteForm, type FamilyInviteRole } from '@/features/family/hooks/useFamilyInvite';
 import { apiGet, apiDelete, apiPatch } from '@/shared/services/api';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
 import { formatCurrency } from '@/shared/utils/currency';
@@ -26,6 +29,14 @@ import { showConfirmation } from '@/shared/utils/confirmations';
 import { CONFIRM } from '@/shared/constants/confirmations';
 import type { FamilyBalance, FamilyMemberWithUser, SplitWithTransaction } from '@/shared/types';
 import { createStyles } from './FamilyScreen.styles';
+
+const INVITE_ROLE_OPTIONS: FamilyInviteRole[] = ['admin', 'contributor', 'read_only'];
+const INVITE_ROLE_LABELS: Record<FamilyInviteRole, string> = {
+  admin: 'Admin',
+  contributor: 'Contributor',
+  read_only: 'Read Only',
+};
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function GroupBalances({ groupId, currency, userRole }: { groupId: string; currency: string; userRole: string }) {
   const theme = useTheme();
@@ -101,9 +112,25 @@ function GroupMembersList({
   });
 
   const [roleSheetMember, setRoleSheetMember] = useState<FamilyMemberWithUser | null>(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const invite = useFamilyInvite(groupId);
+  const inviteForm = useForm<FamilyInviteForm>({ defaultValues: { invitedEmail: '', role: 'contributor' } });
 
   const members = data?.members ?? [];
   const isOwnerOrAdmin = userRole === 'owner' || userRole === 'admin';
+
+  const closeInviteModal = () => {
+    setInviteOpen(false);
+    invite.reset();
+    inviteForm.reset({ invitedEmail: '', role: 'contributor' });
+  };
+
+  const submitInvite = async (data: FamilyInviteForm) => {
+    const sent = await invite.sendInvite(data);
+    if (sent) {
+      inviteForm.reset({ invitedEmail: '', role: 'contributor' });
+    }
+  };
 
   const handleRemoveMember = (member: FamilyMemberWithUser) => {
     showConfirmation(CONFIRM.removeFamilyMember(member.user.name ?? 'Member'), async () => {
@@ -180,13 +207,70 @@ function GroupMembersList({
         );
       })}
 
-      {userRole === 'owner' ? (
+      {isOwnerOrAdmin ? (
         <View style={styles.groupActionsRow}>
-          <Pressable onPress={handleDeleteGroup} style={styles.deleteGroupBtn} hitSlop={8}>
-            <Text style={styles.deleteGroupText}>Delete Group</Text>
+          <Pressable onPress={() => setInviteOpen(true)} hitSlop={8}>
+            <Text style={styles.memberRoleAction}>Invite by email</Text>
           </Pressable>
+          {userRole === 'owner' ? (
+            <Pressable onPress={handleDeleteGroup} style={styles.deleteGroupBtn} hitSlop={8}>
+              <Text style={styles.deleteGroupText}>Delete Group</Text>
+            </Pressable>
+          ) : null}
         </View>
       ) : null}
+
+      <FormModal
+        visible={inviteOpen}
+        title="Invite by email"
+        subtitle={`Invite someone to "${groupName}" — they'll get an email even if they don't have an account yet.`}
+        onClose={closeInviteModal}
+        footer={
+          <FormActions
+            primaryTitle="Send Invite"
+            onPrimary={inviteForm.handleSubmit(submitInvite)}
+            primaryLoading={invite.loading}
+          />
+        }
+      >
+        <Controller
+          control={inviteForm.control}
+          name="invitedEmail"
+          rules={{
+            required: 'Email is required',
+            pattern: { value: EMAIL_PATTERN, message: 'Enter a valid email address' },
+          }}
+          render={({ field: { onChange, value } }) => (
+            <Input
+              label="Email"
+              value={value}
+              onChangeText={onChange}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              textContentType="emailAddress"
+              autoComplete="email"
+              placeholder="member@example.com"
+              error={inviteForm.formState.errors.invitedEmail?.message}
+              disabled={invite.loading}
+            />
+          )}
+        />
+        <Controller
+          control={inviteForm.control}
+          name="role"
+          render={({ field: { onChange, value } }) => (
+            <OptionChips
+              options={INVITE_ROLE_OPTIONS}
+              value={value}
+              onChange={onChange}
+              getLabel={(v) => INVITE_ROLE_LABELS[v]}
+              disabled={invite.loading}
+            />
+          )}
+        />
+        {invite.error ? <FormErrorBanner message={invite.error} /> : null}
+        {invite.success ? <FormSuccessBanner message={invite.success} /> : null}
+      </FormModal>
 
       <ActionSheet
         visible={!!roleSheetMember}

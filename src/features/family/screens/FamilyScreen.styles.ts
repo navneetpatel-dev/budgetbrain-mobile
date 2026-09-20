@@ -127,7 +127,8 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
       borderTopWidth: 1,
       borderTopColor: t.isDark ? 'rgba(255,255,255,0.06)' : t.colors.borderSubtle,
       flexDirection: 'row',
-      justifyContent: 'flex-end',
+      justifyContent: 'space-between',
+      alignItems: 'center',
     },
     deleteGroupBtn: {
       paddingVertical: 4,
