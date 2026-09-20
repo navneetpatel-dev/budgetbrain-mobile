@@ -118,8 +118,96 @@ export async function apiDelete<T>(url: string): Promise<T> {
   return data.data;
 }
 
+/** Thrown by apiPostStream for a non-2xx response — carries the backend's error code/message
+ *  the same way an axios error would, so getApiErrorCode/getApiErrorMessage work uniformly. */
+export class ApiStreamError extends Error {
+  code?: string;
+  constructor(message: string, code?: string) {
+    super(message);
+    this.name = 'ApiStreamError';
+    this.code = code;
+  }
+}
+
+/**
+ * POSTs to an SSE streaming endpoint using `expo/fetch` (axios/React Native's default
+ * fetch does not reliably expose a readable response body; `expo/fetch` is Expo's
+ * purpose-built streaming-capable fetch, see https://docs.expo.dev/versions/latest/sdk/expo/#fetch).
+ * Calls `onDelta` per streamed token, then resolves with the final `{done: true, ...}` payload.
+ */
+export async function apiPostStream<T>(
+  url: string,
+  body: unknown,
+  onDelta: (delta: string) => void
+): Promise<T> {
+  const { fetch: expoFetch } = await import('expo/fetch');
+  const token = await getAccessToken();
+
+  const response = await expoFetch(`${API_BASE_URL}${url}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok || !response.body) {
+    let message = `Request failed (${response.status})`;
+    let code: string | undefined;
+    try {
+      const errBody = (await response.json()) as { error?: { message?: string; code?: string } };
+      if (errBody.error?.message) message = errBody.error.message;
+      code = errBody.error?.code;
+    } catch {
+      // non-JSON error body — keep the generic message
+    }
+    throw new ApiStreamError(message, code);
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let finalPayload: T | null = null;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    const lines = buffer.split('\n');
+    buffer = lines.pop() ?? '';
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith('data:')) continue;
+      const payload = trimmed.slice(5).trim();
+      if (!payload) continue;
+
+      let parsed: { delta?: string; done?: boolean } & Record<string, unknown>;
+      try {
+        parsed = JSON.parse(payload);
+      } catch {
+        continue;
+      }
+
+      if (parsed.done) {
+        finalPayload = parsed as T;
+      } else if (typeof parsed.delta === 'string') {
+        onDelta(parsed.delta);
+      }
+    }
+  }
+
+  if (!finalPayload) {
+    throw new ApiStreamError('Stream ended without a completion event');
+  }
+  return finalPayload;
+}
+
 /** Extract the backend's machine-readable error code (e.g. 'AI_QUOTA_EXCEEDED'), if present. */
 export function getApiErrorCode(err: unknown): string | undefined {
+  if (err instanceof ApiStreamError) return err.code;
   if (axios.isAxiosError(err)) {
     return (err.response?.data as { error?: { code?: string } } | undefined)?.error?.code;
   }

@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiGet, apiPost, getApiErrorCode, getApiErrorMessage } from '@/shared/services/api';
+import { apiGet, apiPostStream, getApiErrorCode, getApiErrorMessage } from '@/shared/services/api';
 import { useAppSelector } from '@/shared/store/hooks';
 import type {
   AiAnomaly,
@@ -116,13 +116,25 @@ export function useAiChat() {
     setChatError(null);
     draftNewChat.current = false;
     const userMsg: AiChatMessage = { role: 'user', content, timestamp: new Date().toISOString() };
-    setMessages((prev) => [...prev, userMsg]);
+    // Placeholder assistant message that fills in incrementally as tokens stream in.
+    const placeholderTimestamp = new Date().toISOString();
+    setMessages((prev) => [...prev, userMsg, { role: 'assistant', content: '', timestamp: placeholderTimestamp }]);
     setMessage('');
     try {
-      const result = await apiPost<AiChatResponse>('/ai/chat', {
-        message: userMsg.content,
-        conversationId,
-      });
+      const result = await apiPostStream<AiChatResponse>(
+        '/ai/chat/stream',
+        { message: userMsg.content, conversationId },
+        (delta) => {
+          setMessages((prev) => {
+            const next = [...prev];
+            const last = next[next.length - 1];
+            if (last?.role === 'assistant' && last.timestamp === placeholderTimestamp) {
+              next[next.length - 1] = { ...last, content: last.content + delta };
+            }
+            return next;
+          });
+        }
+      );
       const nextMessages = visibleMessages(result.messages);
       const now = new Date().toISOString();
 
@@ -150,7 +162,9 @@ export function useAiChat() {
         ];
       });
     } catch (err) {
-      setMessages((prev) => prev.slice(0, -1));
+      // Remove both the optimistic user message and the (possibly partially-filled)
+      // assistant placeholder — a failed/incomplete stream shouldn't leave a half-typed reply.
+      setMessages((prev) => prev.slice(0, -2));
       if (getApiErrorCode(err) === 'AI_QUOTA_EXCEEDED') {
         setChatError("You've reached this month's AI usage limit. It resets on the 1st.");
       } else {
