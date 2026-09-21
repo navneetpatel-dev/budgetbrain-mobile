@@ -11,7 +11,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
-import { useScreenInsets } from '@/shared/hooks/useLayout';
+import { useScreenInsets, useBottomSafeInset } from '@/shared/hooks/useLayout';
 import { useTabBarInset } from '@/shared/hooks/useTabBarInset';
 import { ScreenSkeleton as ContentScreenSkeleton } from './skeleton';
 import { createResponsiveGridStyles, createSummaryMetricsGridStyles } from './layout.styles';
@@ -21,12 +21,12 @@ export { ScreenSkeleton } from './skeleton';
 
 function useBottomInset(inset: ScreenInset) {
   const theme = useTheme();
-  const safeInsets = useSafeAreaInsets();
+  const bottomSafe = useBottomSafeInset();
   const tabBarInset = useTabBarInset();
 
   if (inset === 'tab') return tabBarInset;
-  if (inset === 'stack') return safeInsets.bottom + theme.spacing.xxl;
-  return safeInsets.bottom + theme.spacing.md;
+  if (inset === 'stack') return bottomSafe + theme.spacing.xl;
+  return bottomSafe + theme.spacing.md;
 }
 
 /**

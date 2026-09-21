@@ -20,7 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import { useTabBarInset } from '@/shared/hooks/useTabBarInset';
-import { useScreenInsets } from '@/shared/hooks/useLayout';
+import { useScreenInsets, useBottomSafeInset } from '@/shared/hooks/useLayout';
 import { ensureArray } from '@/shared/utils/listData';
 import { useFabBottom } from '@/shared/hooks/useFabBottom';
 import { ScreenWrapper } from '@/shared/components/ui/layout';
@@ -739,9 +739,9 @@ export function FormStackScreen({
 
 function useStickyListLayout(inset: 'tab' | 'stack', extra?: ViewStyle) {
   const theme = useTheme();
-  const safeInsets = useSafeAreaInsets();
+  const bottomSafe = useBottomSafeInset();
   const tabBarInset = useTabBarInset();
-  const bottomInset = inset === 'stack' ? safeInsets.bottom + theme.spacing.xxl : tabBarInset;
+  const bottomInset = inset === 'stack' ? bottomSafe + theme.spacing.xl : tabBarInset;
   const { frame, stackGap } = useScreenInsets();
   return useMemo(
     () => [
@@ -787,9 +787,9 @@ export function StickyHeaderFlatScreen<T>({
   inset?: 'tab' | 'stack';
 }) {
   const theme = useTheme();
-  const safeInsets = useSafeAreaInsets();
+  const bottomSafe = useBottomSafeInset();
   const tabBarInset = useTabBarInset();
-  const bottomInset = inset === 'stack' ? safeInsets.bottom + theme.spacing.xxl : tabBarInset;
+  const bottomInset = inset === 'stack' ? bottomSafe + theme.spacing.xl : tabBarInset;
   const { frame, stackGap } = useScreenInsets();
   const listStyle = useMemo(
     () => ({

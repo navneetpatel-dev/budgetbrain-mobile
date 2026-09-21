@@ -1,38 +1,24 @@
 import { useEffect } from 'react';
-import { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
-import { useTheme } from '@/shared/theme';
+import { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useReducedMotion } from './useReducedMotion';
 
 /**
- * Shared entrance motion for bottom-sheet and centered-dialog surfaces
- * (`ActionSheet`, `DateInput`'s iOS picker sheet, `ConfirmDialog`) — replaces the
- * previously inconsistent fade/no-animation treatments with one spring language:
- * bottom sheets spring up from a slight offset, dialogs spring up from a slight scale.
- * The surrounding RN `Modal` still handles the backdrop fade in/out; this hook only
- * drives the inner content's entrance, keyed on the `visible`/`open` boolean.
+ * Shared entrance motion for bottom-sheet and centered-dialog surfaces.
+ * Fade only — no spring / bounce, per product UI.
  */
-export function useSheetEnterAnimation(visible: boolean, kind: 'sheet' | 'dialog' = 'sheet') {
-  const theme = useTheme();
+export function useSheetEnterAnimation(visible: boolean, _kind: 'sheet' | 'dialog' = 'sheet') {
   const reducedMotion = useReducedMotion();
   const progress = useSharedValue(visible ? 1 : 0);
 
   useEffect(() => {
     if (visible) {
-      progress.value = reducedMotion ? 1 : withSpring(1, theme.motion.spring);
+      progress.value = reducedMotion ? 1 : withTiming(1, { duration: 180 });
     } else {
       progress.value = 0;
     }
-  }, [visible, reducedMotion, theme.motion.spring, progress]);
+  }, [visible, reducedMotion, progress]);
 
-  return useAnimatedStyle(() => {
-    if (kind === 'dialog') {
-      return {
-        opacity: progress.value,
-        transform: [{ scale: 0.92 + progress.value * 0.08 }],
-      };
-    }
-    return {
-      transform: [{ translateY: (1 - progress.value) * 24 }],
-    };
-  });
+  return useAnimatedStyle(() => ({
+    opacity: progress.value,
+  }));
 }

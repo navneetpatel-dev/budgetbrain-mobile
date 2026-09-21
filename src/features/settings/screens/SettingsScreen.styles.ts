@@ -13,7 +13,7 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
     switchLabelCol: { flex: 1 },
     switchLabel: { ...t.typography.bodyMedium, color: t.colors.text, fontWeight: '600' },
     switchHint: { ...t.typography.caption, color: t.colors.textTertiary, marginTop: 2 },
-    actions: { gap: t.spacing.md, marginTop: t.spacing.xl, alignItems: 'center' },
+    actions: { gap: t.spacing.md, marginTop: t.spacing.xl, width: '100%', alignSelf: 'stretch' },
     appearanceBody: { padding: t.spacing.lg },
     editProfileSection: { margin: t.spacing.lg, marginTop: 0 },
   });

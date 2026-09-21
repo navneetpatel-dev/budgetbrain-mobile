@@ -10,13 +10,11 @@ export function createStyles(t: AppTheme) {
     },
     sheet: {
       backgroundColor: t.colors.surface,
-      borderTopLeftRadius: t.radii.xl,
-      borderTopRightRadius: t.radii.xl,
+      borderRadius: t.radii.xl,
       paddingHorizontal: t.spacing.lg,
       paddingTop: t.spacing.sm,
       borderWidth: 1,
       borderColor: t.colors.borderSubtle,
-      borderBottomWidth: 0,
     },
     handle: {
       alignSelf: 'center',

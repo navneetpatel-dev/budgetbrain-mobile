@@ -211,7 +211,7 @@ export function SettingsScreen() {
 
       <View style={styles.actions}>
         <Button title="Sign out" onPress={logout} variant="outline" size="lg" />
-        <Button title="Delete account" onPress={deleteAccount} variant="dangerGhost" />
+        <Button title="Delete account" onPress={deleteAccount} variant="danger" size="lg" />
       </View>
 
       <PinPadModal

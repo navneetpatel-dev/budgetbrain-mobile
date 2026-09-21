@@ -1,11 +1,12 @@
 import { StyleSheet } from 'react-native';
 import type { useTheme } from '@/shared/theme';
 
-export function createStyles(t: ReturnType<typeof useTheme>, topInset: number) {
+export function createStyles(t: ReturnType<typeof useTheme>, topInset: number, paddingX: number) {
   return StyleSheet.create({
     container: {
       backgroundColor: t.colors.surfaceContainerLow,
       paddingTop: Math.max(topInset, 12),
+      paddingBottom: t.spacing.sm,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: t.colors.borderSubtle,
       ...t.shadows.sm,
@@ -13,7 +14,7 @@ export function createStyles(t: ReturnType<typeof useTheme>, topInset: number) {
     },
     content: {
       height: 60,
-      paddingHorizontal: t.spacing.lg,
+      paddingHorizontal: paddingX,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',

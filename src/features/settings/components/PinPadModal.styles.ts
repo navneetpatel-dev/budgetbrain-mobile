@@ -10,12 +10,11 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
     },
     sheetContainer: {
       backgroundColor: t.colors.surfaceContainer ?? t.colors.surface,
-      borderTopLeftRadius: 28,
-      borderTopRightRadius: 28,
+      borderRadius: 28,
       paddingHorizontal: t.spacing.lg,
       paddingTop: 16,
-      paddingBottom: 40,
-      borderTopWidth: 1,
+      paddingBottom: 24,
+      borderWidth: 1,
       borderColor: t.isDark ? 'rgba(255,255,255,0.1)' : t.colors.borderSubtle,
     },
     dragHandle: {

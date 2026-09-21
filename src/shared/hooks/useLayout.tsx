@@ -1,7 +1,22 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, type ViewStyle } from 'react-native';
+import { Platform, StyleSheet, View, type ViewStyle } from 'react-native';
+import { initialWindowMetrics, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
+
+/** Android stack/modals often report 0 bottom inset while the system nav still overlaps. */
+const ANDROID_NAV_MIN = 32;
+
+/** Bottom inset that still works inside Expo Router modal screens. */
+export function useBottomSafeInset() {
+  const insets = useSafeAreaInsets();
+  const windowBottom = initialWindowMetrics?.insets.bottom ?? 0;
+  return Math.max(
+    insets.bottom,
+    windowBottom,
+    Platform.OS === 'android' ? ANDROID_NAV_MIN : 0,
+  );
+}
 
 /** Horizontal insets aligned with the floating tab bar — use for all screen content */
 export function useScreenInsets() {

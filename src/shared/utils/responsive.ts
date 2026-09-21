@@ -8,7 +8,7 @@ export const BREAKPOINTS = {
 /** Single source of truth for screen rhythm — 4pt grid, aligned with floating tab bar */
 const PHONE = {
   /** Horizontal inset for tab bar AND all screen content */
-  tabBarPaddingX: 10,
+  tabBarPaddingX: 16,
   sectionGap: 16,
   stackGap: 10,
   gridGap: 10,
@@ -18,7 +18,7 @@ const PHONE = {
 } as const;
 
 const TABLET = {
-  tabBarPaddingX: 14,
+  tabBarPaddingX: 20,
   sectionGap: 20,
   stackGap: 12,
   gridGap: 12,
@@ -28,7 +28,7 @@ const TABLET = {
 } as const;
 
 const LARGE_TABLET = {
-  tabBarPaddingX: 16,
+  tabBarPaddingX: 24,
   sectionGap: 24,
   stackGap: 14,
   gridGap: 14,

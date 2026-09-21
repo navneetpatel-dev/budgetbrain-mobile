@@ -9,7 +9,6 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import { createSectionStyles, createUploadStyles, createColorStyles } from './forms.styles';

@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { useTheme } from '@/shared/theme';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
+import { useScreenInsets, useBottomSafeInset } from '@/shared/hooks/useLayout';
 import {
   getStoredAppLockPin,
   setStoredAppLockPin,
@@ -42,6 +43,8 @@ export function PinPadModal({
 }: PinPadModalProps) {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const bottomSafe = useBottomSafeInset();
+  const { paddingHorizontal } = useScreenInsets();
   const dispatch = useAppDispatch();
 
   // Step tracking for multi-step modes
@@ -215,12 +218,17 @@ export function PinPadModal({
   return (
     <Modal
       visible={visible}
-      animationType="slide"
+      animationType="fade"
       transparent
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.sheetContainer}>
+        <View
+          style={[
+            styles.sheetContainer,
+            { marginHorizontal: paddingHorizontal, marginBottom: bottomSafe, paddingBottom: theme.spacing.lg },
+          ]}
+        >
           <View style={styles.dragHandle} />
 
           {mode !== 'unlock' && (

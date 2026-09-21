@@ -1,9 +1,20 @@
 import { StyleSheet } from 'react-native';
 import type { useTheme } from '@/shared/theme';
 
-export function createStyles(t: ReturnType<typeof useTheme>, insets: { top: number; bottom: number }) {
+export function createStyles(t: ReturnType<typeof useTheme>, bottomInset: number) {
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: t.colors.background },
+    backdrop: {
+      flex: 1,
+      backgroundColor: t.colors.overlay,
+      justifyContent: 'flex-end',
+    },
+    container: {
+      flex: 1,
+      marginTop: 48,
+      backgroundColor: t.colors.background,
+      borderRadius: t.radii.xl,
+      overflow: 'hidden',
+    },
     handleWrap: { alignItems: 'center', paddingTop: 10, paddingBottom: 4 },
     handle: {
       width: 36,
@@ -22,6 +33,7 @@ export function createStyles(t: ReturnType<typeof useTheme>, insets: { top: numb
       flexDirection: 'row',
       alignItems: 'flex-start',
       justifyContent: 'space-between',
+      paddingHorizontal: t.spacing.lg,
       paddingTop: t.spacing.sm,
       paddingBottom: t.spacing.md,
       borderBottomWidth: StyleSheet.hairlineWidth,
@@ -41,10 +53,12 @@ export function createStyles(t: ReturnType<typeof useTheme>, insets: { top: numb
       borderColor: t.isDark ? 'rgba(255,255,255,0.1)' : t.colors.borderSubtle,
     },
     content: {
+      paddingHorizontal: t.spacing.lg,
       paddingTop: t.spacing.lg,
-      paddingBottom: insets.bottom + t.spacing.xl,
+      paddingBottom: bottomInset + t.spacing.xl,
     },
     footer: {
+      paddingHorizontal: t.spacing.lg,
       paddingTop: t.spacing.sm,
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: t.isDark ? 'rgba(255,255,255,0.08)' : t.colors.borderSubtle,

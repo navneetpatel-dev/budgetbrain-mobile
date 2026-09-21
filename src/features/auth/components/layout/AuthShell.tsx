@@ -6,6 +6,7 @@ import { BackButton } from '@/shared/components/ui';
 import { AuthHeroHeader } from '@/features/auth/components/layout/AuthHeroHeader';
 import { useTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
+import { useBottomSafeInset } from '@/shared/hooks/useLayout';
 import { appHref } from '@/shared/utils/navigation';
 import { createStyles } from './AuthShell.styles';
 
@@ -24,6 +25,7 @@ export function AuthShell({
 }) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const bottomSafe = useBottomSafeInset();
   const router = useRouter();
   const { height } = useWindowDimensions();
   const { isPhone } = useResponsive();
@@ -64,7 +66,7 @@ export function AuthShell({
             bounces={false}
             contentContainerStyle={[
               styles.panelScroll,
-              { paddingBottom: Math.max(insets.bottom, 20) },
+              { paddingBottom: bottomSafe + 20 },
             ]}
           >
             {backHref ? (

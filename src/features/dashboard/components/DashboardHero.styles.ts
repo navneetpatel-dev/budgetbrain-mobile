@@ -6,6 +6,7 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
     container: {
       gap: t.spacing.md,
       marginBottom: t.spacing.sm,
+      paddingTop: t.spacing.md,
     },
     heroCard: {
       backgroundColor: t.colors.surface,

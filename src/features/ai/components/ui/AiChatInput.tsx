@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
 import { View, Text, Pressable, TextInput, ActivityIndicator, ScrollView } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { FormErrorBanner } from '@/shared/components/ui/FormErrorBanner';
 import { useTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
+import { useBottomSafeInset } from '@/shared/hooks/useLayout';
 import { maxLen } from '@/shared/validation/fieldLimits';
 import {
   AI_FOLLOW_UP_SUGGESTIONS,
@@ -31,9 +31,9 @@ export function AiChatInput({
   error,
 }: AiChatInputProps) {
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
+  const bottomSafe = useBottomSafeInset();
   const { tabBarPaddingX } = useResponsive();
-  const bottomPad = Math.max(insets.bottom, 12) + theme.spacing.md;
+  const bottomPad = bottomSafe + theme.spacing.md;
   const styles = useMemo(
     () => createStyles(theme, bottomPad, tabBarPaddingX),
     [theme, bottomPad, tabBarPaddingX],

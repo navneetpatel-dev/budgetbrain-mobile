@@ -2,11 +2,11 @@ import { useMemo, useState } from 'react';
 import { Modal, Platform, Pressable, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import { parseIsoDate, toIsoDate } from '@/shared/utils/dateBounds';
 import { useSheetEnterAnimation } from '@/shared/hooks/useSheetEnterAnimation';
+import { useBottomSafeInset } from '@/shared/hooks/useLayout';
 import { createStyles } from './DateInput.styles';
 
 function formatDisplayDate(value: string) {
@@ -37,7 +37,7 @@ export function DateInput({
   disabled?: boolean;
 }) {
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
+  const bottomSafe = useBottomSafeInset();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [showPicker, setShowPicker] = useState(false);
   const [focused, setFocused] = useState(false);
@@ -92,7 +92,7 @@ export function DateInput({
       {Platform.OS === 'ios' ? (
         <Modal visible={showPicker} transparent animationType="fade" onRequestClose={closePicker}>
           <Pressable style={styles.sheetBackdrop} onPress={closePicker} />
-          <Animated.View style={[styles.sheet, { paddingBottom: insets.bottom + 12 }, sheetAnim]}>
+          <Animated.View style={[styles.sheet, { paddingBottom: bottomSafe + 12 }, sheetAnim]}>
             <View style={styles.sheetHandle} />
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>{label ?? 'Select date'}</Text>

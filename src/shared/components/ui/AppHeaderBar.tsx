@@ -7,6 +7,7 @@ import { BrandMark } from '@/shared/components/brand/BrandMark';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import { useAppSelector } from '@/shared/store/hooks';
+import { useScreenInsets } from '@/shared/hooks/useLayout';
 import { createStyles } from './AppHeaderBar.styles';
 
 export interface AppHeaderBarProps {
@@ -29,8 +30,12 @@ export function AppHeaderBar({
   const theme = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { paddingHorizontal } = useScreenInsets();
   const user = useAppSelector((s) => s.auth.user);
-  const styles = useMemo(() => createStyles(theme, insets.top), [theme, insets.top]);
+  const styles = useMemo(
+    () => createStyles(theme, insets.top, paddingHorizontal),
+    [theme, insets.top, paddingHorizontal],
+  );
   const userInitial = (user?.name?.[0] ?? user?.email?.[0] ?? 'A').toUpperCase();
 
   const handleBack = () => {

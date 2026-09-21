@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import { Modal, Pressable, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import { useSheetEnterAnimation } from '@/shared/hooks/useSheetEnterAnimation';
+import { useScreenInsets, useBottomSafeInset } from '@/shared/hooks/useLayout';
 import { createStyles } from './ActionSheet.styles';
 
 export type ActionSheetItem = {
@@ -28,7 +28,8 @@ export function ActionSheet({
   onClose: () => void;
 }) {
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
+  const bottomSafe = useBottomSafeInset();
+  const { paddingHorizontal } = useScreenInsets();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const sheetAnim = useSheetEnterAnimation(visible, 'sheet');
 
@@ -37,7 +38,14 @@ export function ActionSheet({
       <Pressable style={styles.backdrop} onPress={onClose} accessibilityRole="button" accessibilityLabel="Dismiss">
         <Animated.View style={sheetAnim}>
         <Pressable
-          style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 16) }]}
+          style={[
+            styles.sheet,
+            {
+              marginHorizontal: paddingHorizontal,
+              marginBottom: bottomSafe,
+              paddingBottom: theme.spacing.md,
+            },
+          ]}
           onPress={(e) => e.stopPropagation()}
         >
           <View style={styles.handle} />

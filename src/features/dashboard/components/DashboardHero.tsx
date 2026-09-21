@@ -10,6 +10,7 @@ import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
 import { useCountUp } from '@/shared/hooks/useCountUp';
 import { formatCurrency } from '@/shared/utils/currency';
 import { appHref } from '@/shared/utils/navigation';
+import { useScreenInsets } from '@/shared/hooks/useLayout';
 import { createStyles } from './DashboardHero.styles';
 
 export interface DashboardHeroProps {
@@ -33,6 +34,7 @@ export function DashboardHero({
   const router = useRouter();
   const reducedMotion = useReducedMotion();
   const animatedAmount = useCountUp(amount);
+  const { paddingHorizontal } = useScreenInsets();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [fade] = useState(() => new Animated.Value(reducedMotion ? 1 : 0));
 
@@ -48,7 +50,7 @@ export function DashboardHero({
   const targetProgress = Math.min(100, Math.max(10, Math.round(savingsRate || 25)));
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingHorizontal }]}>
       {/* Hero Overview Card */}
       <View style={styles.heroCard}>
         {/* Ambient Glows */}

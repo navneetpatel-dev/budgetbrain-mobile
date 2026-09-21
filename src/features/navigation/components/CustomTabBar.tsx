@@ -1,13 +1,13 @@
 import { useMemo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon';
 import { ActionSheet } from '@/shared/components/ui/ActionSheet';
 import { useTheme } from '@/shared/theme';
 import type { AppTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
+import { useBottomSafeInset } from '@/shared/hooks/useLayout';
 import { appHref } from '@/shared/utils/navigation';
 import { createStyles } from './CustomTabBar.styles';
 
@@ -71,7 +71,7 @@ function TabButton({
 
 export function CustomTabBar({ state, navigation }: CustomTabBarProps) {
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
+  const bottomSafe = useBottomSafeInset();
   const router = useRouter();
   const { tabBarBottomInset, tabBarPaddingX } = useResponsive();
   const styles = useMemo(() => createStyles(theme, tabBarPaddingX), [theme, tabBarPaddingX]);
@@ -97,7 +97,7 @@ export function CustomTabBar({ state, navigation }: CustomTabBarProps) {
 
   return (
     <>
-      <View style={[styles.outer, { paddingBottom: Math.max(insets.bottom, tabBarBottomInset) }]}>
+      <View style={[styles.outer, { paddingBottom: Math.max(bottomSafe, tabBarBottomInset) }]}>
         <View style={styles.bar}>
           <View style={styles.side}>
             {leftTabs.map((tab) => (

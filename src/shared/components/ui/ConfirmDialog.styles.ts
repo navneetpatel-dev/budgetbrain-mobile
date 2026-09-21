@@ -7,8 +7,12 @@ export function createStyles(t: AppTheme) {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      padding: t.spacing.xl,
+      paddingVertical: t.spacing.xl,
       backgroundColor: t.colors.overlay,
+    },
+    cardWrap: {
+      width: '100%',
+      maxWidth: 420,
     },
     card: {
       width: '100%',
