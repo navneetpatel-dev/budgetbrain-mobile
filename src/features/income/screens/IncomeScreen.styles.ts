@@ -21,7 +21,6 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
     listContent: {
       paddingHorizontal: t.spacing.lg,
       paddingTop: t.spacing.md,
-      paddingBottom: 120,
     },
     headerBlock: {
       marginBottom: t.spacing.md,

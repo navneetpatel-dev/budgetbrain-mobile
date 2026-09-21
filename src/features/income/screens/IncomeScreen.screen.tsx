@@ -9,11 +9,13 @@ import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
 import { useIncomeScreen } from '@/features/income/hooks/useIncomeScreen.hook';
+import { useTabBarInset } from '@/shared/hooks/useTabBarInset';
 import { createStyles } from './IncomeScreen.styles';
 
 export function IncomeScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const tabBarInset = useTabBarInset();
   const router = useRouter();
   const {
     transactionTotal,
@@ -62,7 +64,7 @@ export function IncomeScreen() {
       <FlatList
         data={isLoading ? [] : filteredTransactions}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingBottom: tabBarInset }]}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={refreshAll} tintColor={theme.colors.secondary} />
         }

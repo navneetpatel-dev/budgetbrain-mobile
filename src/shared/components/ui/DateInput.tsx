@@ -6,7 +6,7 @@ import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import { parseIsoDate, toIsoDate } from '@/shared/utils/dateBounds';
 import { useSheetEnterAnimation } from '@/shared/hooks/useSheetEnterAnimation';
-import { useBottomSafeInset } from '@/shared/hooks/useLayout';
+import { useBottomSafeInset, useScreenInsets } from '@/shared/hooks/useLayout';
 import { createStyles } from './DateInput.styles';
 
 function formatDisplayDate(value: string) {
@@ -38,6 +38,7 @@ export function DateInput({
 }) {
   const theme = useTheme();
   const bottomSafe = useBottomSafeInset();
+  const { paddingHorizontal } = useScreenInsets();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [showPicker, setShowPicker] = useState(false);
   const [focused, setFocused] = useState(false);
@@ -91,25 +92,38 @@ export function DateInput({
 
       {Platform.OS === 'ios' ? (
         <Modal visible={showPicker} transparent animationType="fade" onRequestClose={closePicker}>
-          <Pressable style={styles.sheetBackdrop} onPress={closePicker} />
-          <Animated.View style={[styles.sheet, { paddingBottom: bottomSafe + 12 }, sheetAnim]}>
-            <View style={styles.sheetHandle} />
-            <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>{label ?? 'Select date'}</Text>
-              <Pressable onPress={closePicker} hitSlop={8}>
-                <Text style={styles.sheetDone}>Done</Text>
+          <Pressable style={styles.sheetBackdrop} onPress={closePicker} accessibilityRole="button" accessibilityLabel="Dismiss">
+            <Animated.View style={sheetAnim}>
+              <Pressable
+                style={[
+                  styles.sheet,
+                  {
+                    marginHorizontal: paddingHorizontal,
+                    marginBottom: bottomSafe,
+                    paddingBottom: theme.spacing.md,
+                  },
+                ]}
+                onPress={(e) => e.stopPropagation()}
+              >
+                <View style={styles.sheetHandle} />
+                <View style={styles.sheetHeader}>
+                  <Text style={styles.sheetTitle}>{label ?? 'Select date'}</Text>
+                  <Pressable onPress={closePicker} hitSlop={8}>
+                    <Text style={styles.sheetDone}>Done</Text>
+                  </Pressable>
+                </View>
+                <DateTimePicker
+                  value={value ? parseIsoDate(value) : new Date()}
+                  mode="date"
+                  display="spinner"
+                  onChange={handleChange}
+                  minimumDate={minimumDate}
+                  maximumDate={maximumDate}
+                  themeVariant={theme.isDark ? 'dark' : 'light'}
+                />
               </Pressable>
-            </View>
-            <DateTimePicker
-              value={value ? parseIsoDate(value) : new Date()}
-              mode="date"
-              display="spinner"
-              onChange={handleChange}
-              minimumDate={minimumDate}
-              maximumDate={maximumDate}
-              themeVariant={theme.isDark ? 'dark' : 'light'}
-            />
-          </Animated.View>
+            </Animated.View>
+          </Pressable>
         </Modal>
       ) : (
         showPicker && (

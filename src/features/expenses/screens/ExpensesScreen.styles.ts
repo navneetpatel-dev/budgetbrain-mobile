@@ -9,7 +9,6 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
     },
     listContent: {
       paddingHorizontal: t.spacing.lg,
-      paddingBottom: 90,
       gap: 8,
     },
     headerBlock: {

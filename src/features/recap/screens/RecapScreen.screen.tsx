@@ -8,6 +8,7 @@ import { BentoCard, ScreenLoader, AppHeaderBar } from '@/shared/components/ui';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
+import { useBottomSafeInset } from '@/shared/hooks/useLayout';
 import type { MonthlyRecap } from '@/shared/types';
 import { createStyles } from './RecapScreen.styles';
 
@@ -16,6 +17,7 @@ export function RecapScreen() {
   const router = useRouter();
   const { format } = useUserCurrency();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const bottomSafe = useBottomSafeInset();
 
   const { data, isLoading, isRefetching, refetch } = useQuery({
     queryKey: ['recap'],
@@ -44,7 +46,7 @@ export function RecapScreen() {
       />
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: bottomSafe + theme.spacing.xl }]}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />}
       >
         {isLoading || !data ? (

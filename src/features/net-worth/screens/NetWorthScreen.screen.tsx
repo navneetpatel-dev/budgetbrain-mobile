@@ -16,6 +16,7 @@ import {
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
+import { useBottomSafeInset } from '@/shared/hooks/useLayout';
 import { createStyles } from './NetWorthScreen.styles';
 
 interface NetWorthData {
@@ -36,6 +37,7 @@ export function NetWorthScreen() {
   const theme = useTheme();
   const router = useRouter();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const bottomSafe = useBottomSafeInset();
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['net-worth'],
     queryFn: () => apiGet<NetWorthData>('/net-worth'),
@@ -87,7 +89,7 @@ export function NetWorthScreen() {
       />
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: bottomSafe + theme.spacing.xl }]}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
         }

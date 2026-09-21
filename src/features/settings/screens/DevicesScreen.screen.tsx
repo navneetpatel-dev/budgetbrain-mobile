@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { Pressable, RefreshControl, Text, View } from 'react-native';
-import { EmptyState, ListRowsSkeleton, StickyHeaderFlatScreen } from '@/shared/components/ui';
+import { RefreshControl, Text, View } from 'react-native';
+import { Button, EmptyState, ListRowsSkeleton, StickyHeaderFlatScreen } from '@/shared/components/ui';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
 import { useTheme } from '@/shared/theme';
@@ -41,22 +41,22 @@ export function DevicesScreen() {
         }
         renderItem={({ item }: { item: AccountDevice }) => (
           <View style={styles.item}>
-            <View style={styles.itemIconWrap}>
-              <AppIcon name="devices" size={20} color={theme.colors.primary} />
+            <View style={styles.itemRow}>
+              <View style={styles.itemIconWrap}>
+                <AppIcon name="devices" size={20} color={theme.colors.primary} />
+              </View>
+              <View style={styles.itemBody}>
+                <Text style={styles.itemName}>{item.deviceName ?? item.platform ?? 'Unknown device'}</Text>
+                <Text style={styles.itemMeta}>Last active {formatLastActive(item.lastActiveAt)}</Text>
+              </View>
             </View>
-            <View style={styles.itemBody}>
-              <Text style={styles.itemName}>{item.deviceName ?? item.platform ?? 'Unknown device'}</Text>
-              <Text style={styles.itemMeta}>Last active {formatLastActive(item.lastActiveAt)}</Text>
-            </View>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Sign out ${item.deviceName ?? 'device'}`}
-              style={styles.revokeButton}
-              disabled={revokingId === item.id}
+            <Button
+              title="Sign out"
               onPress={() => confirmRevoke(item)}
-            >
-              <Text style={styles.revokeLabel}>{revokingId === item.id ? 'Signing out…' : 'Sign out'}</Text>
-            </Pressable>
+              variant="outline"
+              loading={revokingId === item.id}
+              disabled={revokingId === item.id}
+            />
           </View>
         )}
       />

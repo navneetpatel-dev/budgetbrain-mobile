@@ -8,12 +8,14 @@ import { useExportReports } from '@/features/reports/hooks/useExportReports';
 import { useEntitlement, PaywallModal } from '@/features/subscriptions';
 import { DateBounds } from '@/shared/utils/dateBounds';
 import { useTheme } from '@/shared/theme';
+import { useBottomSafeInset } from '@/shared/hooks/useLayout';
 import { createStyles } from './ReportsScreen.styles';
 
 export function ReportsScreen() {
   const theme = useTheme();
   const router = useRouter();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const bottomSafe = useBottomSafeInset();
   const { isEntitled, paywallVisible, openPaywall, closePaywall } = useEntitlement();
   const { startDate, setStartDate, endDate, setEndDate, loading, downloadCsv, downloadPdf, downloadExcel } = useExportReports();
 
@@ -48,7 +50,7 @@ export function ReportsScreen() {
         onBack={() => router.back()}
       />
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: bottomSafe + theme.spacing.xl }]}>
         {/* Info Card */}
         <View style={styles.infoCard}>
           <LinearGradient

@@ -10,7 +10,6 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
     scrollContent: {
       paddingHorizontal: t.spacing.lg,
       paddingTop: t.spacing.md,
-      paddingBottom: 80,
       gap: t.spacing.md,
     },
     infoCard: {

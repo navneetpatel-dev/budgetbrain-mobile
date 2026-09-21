@@ -1,5 +1,6 @@
-import { View, Text, ActivityIndicator, Pressable } from 'react-native';
+import { View, Text, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Button } from '@/shared/components/ui';
 import { useTheme } from '@/shared/theme';
 import { appHref } from '@/shared/utils/navigation';
 import { useAcceptFamilyInvite } from '@/features/family/hooks/useAcceptFamilyInvite';
@@ -38,11 +39,14 @@ export function AcceptFamilyInviteScreen() {
           <Text style={{ ...theme.typography.body, color: theme.colors.textSecondary, textAlign: 'center' }}>
             {error}
           </Text>
-          <Pressable onPress={() => router.replace(appHref('/(auth)/login'))} hitSlop={8}>
-            <Text style={{ ...theme.typography.body, color: theme.colors.primary, fontWeight: '700' }}>
-              Go to login
-            </Text>
-          </Pressable>
+          <View style={{ width: '100%' }}>
+            <Button
+              title="Go to login"
+              onPress={() => router.replace(appHref('/(auth)/login'))}
+              variant="outline"
+              size="lg"
+            />
+          </View>
         </>
       ) : null}
 

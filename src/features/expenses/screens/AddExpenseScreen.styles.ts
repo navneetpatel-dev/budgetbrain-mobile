@@ -9,7 +9,6 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
     },
     scrollContent: {
       paddingHorizontal: t.spacing.lg,
-      paddingBottom: 40,
       gap: t.spacing.lg,
     },
     sheetHeader: {

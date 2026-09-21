@@ -652,7 +652,8 @@ export function DetailActions({
         <Button
           title={destructiveTitle}
           onPress={onDestructive}
-          variant="dangerGhost"
+          variant="danger"
+          size="lg"
           loading={destructiveLoading}
           disabled={busy && !destructiveLoading}
         />

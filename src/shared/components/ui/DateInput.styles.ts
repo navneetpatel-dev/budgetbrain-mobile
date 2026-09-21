@@ -41,12 +41,14 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
     sheetBackdrop: {
       flex: 1,
       backgroundColor: 'rgba(0,0,0,0.45)',
+      justifyContent: 'flex-end',
     },
     sheet: {
       backgroundColor: t.colors.surface,
-      borderTopLeftRadius: t.radii.xl,
-      borderTopRightRadius: t.radii.xl,
+      borderRadius: t.radii.xl,
       paddingTop: t.spacing.sm,
+      borderWidth: 1,
+      borderColor: t.colors.borderSubtle,
     },
     sheetHandle: {
       width: 36,

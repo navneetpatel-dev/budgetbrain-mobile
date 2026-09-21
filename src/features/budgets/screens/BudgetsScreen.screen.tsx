@@ -21,12 +21,14 @@ import { apiGet } from '@/shared/services/api';
 import type { AiInsight } from '@/shared/types';
 import { useBudgetsScreen } from '@/features/budgets/hooks/useBudgetsScreen.hook';
 import { useEntitlement, PaywallModal } from '@/features/subscriptions';
+import { useTabBarInset } from '@/shared/hooks/useTabBarInset';
 import { createStyles } from './BudgetsScreen.styles';
 
 export function BudgetsScreen() {
   const theme = useTheme();
   const router = useRouter();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const tabBarInset = useTabBarInset();
   const { isEntitled, paywallVisible, openPaywall, closePaywall } = useEntitlement();
   const { deleteBudget } = useDeleteBudget();
   const {
@@ -72,7 +74,7 @@ export function BudgetsScreen() {
       <FlatList
         data={isLoading ? [] : budgets}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingBottom: tabBarInset }]}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
         }

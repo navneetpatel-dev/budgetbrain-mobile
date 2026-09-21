@@ -13,6 +13,7 @@ import {
 } from '@/shared/components/ui';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
+import { useTabBarInset } from '@/shared/hooks/useTabBarInset';
 import { useExpensesScreen } from '@/features/expenses/hooks/useExpensesScreen.hook';
 import { createStyles } from './ExpensesScreen.styles';
 
@@ -20,6 +21,7 @@ export function ExpensesScreen() {
   const router = useRouter();
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const tabBarInset = useTabBarInset();
   const {
     total,
     isLoading,
@@ -57,7 +59,7 @@ export function ExpensesScreen() {
       <FlatList
         data={isLoading ? [] : filteredTransactions}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingBottom: tabBarInset }]}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
         }

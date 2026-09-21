@@ -283,7 +283,6 @@ export function createDetailActionsStyles(t: AppTheme) {
     wrap: {
       gap: t.spacing.md,
       marginTop: t.spacing.lg,
-      alignItems: 'center',
     },
     row: {
       flexDirection: 'row',

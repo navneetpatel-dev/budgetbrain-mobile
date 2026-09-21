@@ -11,12 +11,14 @@ import { showAlert, showConfirmation } from '@/shared/utils/confirmations';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
 import { useGoalsScreen } from '@/features/goals/hooks/useGoalsScreen.hook';
+import { useTabBarInset } from '@/shared/hooks/useTabBarInset';
 import { createStyles } from './GoalsScreen.styles';
 
 export function GoalsScreen() {
   const theme = useTheme();
   const router = useRouter();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const tabBarInset = useTabBarInset();
   const { deleteGoal } = useDeleteGoal();
   const {
     isLoading,
@@ -61,7 +63,7 @@ export function GoalsScreen() {
       <FlatList
         data={isLoading ? [] : filteredGoals}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingBottom: tabBarInset }]}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
         }

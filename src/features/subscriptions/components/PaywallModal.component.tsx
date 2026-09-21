@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useTheme } from '@/shared/theme';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
+import { useScreenInsets, useBottomSafeInset } from '@/shared/hooks/useLayout';
 import { createStyles } from './PaywallModal.styles';
 import { openWebUpgrade, type WebUpgradePlan } from '../services/webHandoff.service';
 
@@ -32,6 +33,8 @@ export function PaywallModal({
 }: PaywallModalProps) {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const bottomSafe = useBottomSafeInset();
+  const { paddingHorizontal } = useScreenInsets();
   const [selectedPlan, setSelectedPlan] = useState<WebUpgradePlan>('yearly');
   const [opening, setOpening] = useState(false);
 
@@ -53,12 +56,21 @@ export function PaywallModal({
   return (
     <Modal
       visible={visible}
-      animationType="slide"
+      animationType="fade"
       transparent
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.sheetContainer}>
+        <View
+          style={[
+            styles.sheetContainer,
+            {
+              marginHorizontal: paddingHorizontal,
+              marginBottom: bottomSafe,
+              paddingBottom: theme.spacing.lg,
+            },
+          ]}
+        >
           <View style={styles.dragHandle} />
 
           <View style={styles.headerRow}>

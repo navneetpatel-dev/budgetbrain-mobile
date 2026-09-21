@@ -5,12 +5,14 @@ import { EmptyState, ListRowsSkeleton, AppHeaderBar, FilterChipsRail, type Filte
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import { useMarkNotificationRead } from '@/features/notifications/hooks/useMarkNotificationRead';
+import { useBottomSafeInset } from '@/shared/hooks/useLayout';
 import { createStyles } from './NotificationsScreen.styles';
 
 export function NotificationsScreen() {
   const theme = useTheme();
   const router = useRouter();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const bottomSafe = useBottomSafeInset();
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
   const {
@@ -50,7 +52,7 @@ export function NotificationsScreen() {
       <FlatList
         data={isLoading ? [] : filteredItems}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingBottom: bottomSafe + theme.spacing.xl }]}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
         }

@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Animated, Easing, View, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/shared/theme';
-import { useScreenInsets } from '@/shared/hooks/useLayout';
+import { useScreenInsets, useBottomSafeInset } from '@/shared/hooks/useLayout';
 import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
 
 /* ── Shimmer ── */
@@ -759,6 +759,7 @@ function ChatAssistantBubbleSkeleton({
 export function AiChatSkeleton() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const bottomSafe = useBottomSafeInset();
   const { frame } = useScreenInsets();
 
   return (
@@ -775,7 +776,7 @@ export function AiChatSkeleton() {
           <ChatAssistantBubbleSkeleton width="70%" height={64} />
         </View>
 
-        <View style={{ paddingTop: theme.spacing.md, paddingBottom: insets.bottom + theme.spacing.sm, gap: theme.spacing.sm }}>
+        <View style={{ paddingTop: theme.spacing.md, paddingBottom: bottomSafe + theme.spacing.sm, gap: theme.spacing.sm }}>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <SkeletonBlock width={132} height={32} radius={999} />
             <SkeletonBlock width={118} height={32} radius={999} />

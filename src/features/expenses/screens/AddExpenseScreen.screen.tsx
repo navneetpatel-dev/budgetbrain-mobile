@@ -5,6 +5,7 @@ import { Controller } from 'react-hook-form';
 import { AppHeaderBar, DateInput, ToggleSwitch, FormErrorBanner, FormSuccessBanner } from '@/shared/components/ui';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
+import { useBottomSafeInset } from '@/shared/hooks/useLayout';
 import { amountRules, textRules, maxLen } from '@/shared/validation/fieldLimits';
 import { DateBounds } from '@/shared/utils/dateBounds';
 import {
@@ -18,6 +19,7 @@ import { createStyles } from './AddExpenseScreen.styles';
 export function AddExpenseScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const bottomSafe = useBottomSafeInset();
   const {
     control,
     handleSubmit,
@@ -55,7 +57,10 @@ export function AddExpenseScreen() {
       <AppHeaderBar title="Log Transaction" subtitle="Expense" showBack={true} />
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: bottomSafe + theme.spacing.lg },
+        ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
@@ -439,7 +444,7 @@ export function AddExpenseScreen() {
         </View>
 
         {/* Sticky Save Button */}
-        <View style={styles.saveBtnWrap}>
+        <View style={[styles.saveBtnWrap, { paddingBottom: theme.spacing.sm }]}>
           <Pressable
             onPress={handleSubmit(onSubmit)}
             disabled={disabled}

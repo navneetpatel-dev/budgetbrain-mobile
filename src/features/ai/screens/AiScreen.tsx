@@ -8,13 +8,13 @@ import {
   Platform,
   Pressable,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AiChatSkeleton, AppHeaderBar } from '@/shared/components/ui';
 import { BrandMark } from '@/shared/components/brand/BrandMark';
 import { AppIcon } from '@/features/navigation/components/AppIcon';
 import { useTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
+import { useBottomSafeInset } from '@/shared/hooks/useLayout';
 import { useAiChat } from '@/features/ai/hooks/useAiChat';
 import { formatCurrency } from '@/shared/utils/currency';
 import {
@@ -37,9 +37,9 @@ function anomalyMeta(anomaly: { merchant?: string; amount?: number }, currency: 
 
 export function AiScreen() {
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
+  const bottomSafe = useBottomSafeInset();
   const { tabBarPaddingX } = useResponsive();
-  const footerBottom = Math.max(insets.bottom, 12) + theme.spacing.md;
+  const footerBottom = bottomSafe + theme.spacing.md;
   const styles = useMemo(
     () => createStyles(theme, tabBarPaddingX, footerBottom),
     [theme, tabBarPaddingX, footerBottom],
