@@ -21,7 +21,7 @@ import { ThemeProvider, useTheme } from '@/shared/theme';
 import { useFontBootstrap } from '@/shared/hooks/useFontBootstrap';
 import { useAuthBootstrap } from '@/shared/hooks/useAuthBootstrap';
 import { useAuthNavigation } from '@/shared/hooks/useAuthNavigation';
-import { ColdStartSkeleton } from '@/shared/components/ui';
+import { AppLoadingScreen } from '@/shared/components/brand/AppLoadingScreen';
 import { ConfirmDialogProvider } from '@/shared/components/confirm/ConfirmDialogProvider';
 import { PreferencesHydrator } from '@/features/settings/components/PreferencesHydrator';
 
@@ -32,7 +32,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function FontGate({ children }: { children: React.ReactNode }) {
   const { fontsLoaded } = useFontBootstrap();
-  if (!fontsLoaded) return <ColdStartSkeleton />;
+  if (!fontsLoaded) return <AppLoadingScreen />;
   return <>{children}</>;
 }
 
@@ -83,7 +83,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthenticated]);
 
-  if (isLoading) return <ColdStartSkeleton />;
+  if (isLoading) return <AppLoadingScreen />;
 
   return <>{children}</>;
 }

@@ -36,6 +36,7 @@ export {
   NetWorthSkeleton, FamilySkeleton, SupportSkeleton,
   OnboardingSkeleton, ColdStartSkeleton, AiChatSkeleton,
 } from './skeleton';
+export { AppLoadingScreen } from '@/shared/components/brand/AppLoadingScreen';
 export type { ListSkeletonVariant } from './skeleton';
 export type { ScreenInset } from './layout';
 export {

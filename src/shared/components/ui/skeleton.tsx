@@ -701,27 +701,8 @@ export function OnboardingSkeleton() {
   );
 }
 
-export function ColdStartSkeleton() {
-  const theme = useTheme();
-  return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: theme.colors.background,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 32,
-      }}
-    >
-      <SkeletonCircle size={80} style={{ marginBottom: 24 }} />
-      <SkeletonBlock width={180} height={28} radius={8} style={{ marginBottom: 8 }} />
-      <SkeletonBlock width={240} height={16} radius={6} style={{ marginBottom: 32 }} />
-      <SkeletonBlock width="100%" height={50} radius={12} style={{ marginBottom: 12 }} />
-      <SkeletonBlock width="100%" height={50} radius={12} style={{ marginBottom: 24 }} />
-      <SkeletonBlock width="100%" height={52} radius={14} />
-    </View>
-  );
-}
+/** @deprecated Use AppLoadingScreen — kept as an alias for existing call sites. */
+export { AppLoadingScreen as ColdStartSkeleton } from '@/shared/components/brand/AppLoadingScreen';
 
 function ChatUserBubbleSkeleton({ width, height = 40 }: { width: number | string; height?: number }) {
   return (

@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { useAppSelector } from '@/shared/store/hooks';
 import { useAppLock } from '@/features/settings/hooks/useAppLock';
 import { PinPadModal } from '@/features/settings/components/PinPadModal.component';
-import { ColdStartSkeleton } from '@/shared/components/ui';
+import { AppLoadingScreen } from '@/shared/components/brand/AppLoadingScreen';
 import { useTheme } from '@/shared/theme';
 import { useLogoutAction } from '@/features/settings/hooks/useLogout';
 import { createStyles } from './AppLockGate.styles';
@@ -76,7 +76,7 @@ export function AppLockGate({ children }: Props) {
   }
 
   if (!checked && hasLock) {
-    return <ColdStartSkeleton />;
+    return <AppLoadingScreen />;
   }
 
   return <>{children}</>;
