@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 import { QueryClient } from '@tanstack/react-query';
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
@@ -18,6 +19,20 @@ export const queryClient = new QueryClient({
 });
 
 /**
+ * Expo Router SSR evaluates the web bundle in Node. AsyncStorage's web backend
+ * reads `window.localStorage`, which throws `window is not defined` and kills
+ * Metro. TanStack treats `undefined` storage as an SSR no-op persister.
+ */
+function queryCacheStorage() {
+  if (Platform.OS === 'web' && typeof window === 'undefined') {
+    return undefined;
+  }
+  return AsyncStorage;
+}
+
+let persistenceStarted = false;
+
+/**
  * Offline "Local Data Storage" support (requirements.md): persists TanStack Query's
  * cache to AsyncStorage so screens (dashboard totals, transaction list, etc.) can
  * render last-known data immediately on cold start while offline, instead of an
@@ -25,12 +40,15 @@ export const queryClient = new QueryClient({
  * only replays the exact server response that was last cached.
  */
 export function initQueryPersistence(): void {
+  if (persistenceStarted) return;
+  persistenceStarted = true;
+
   const persister = createAsyncStoragePersister({
-    storage: AsyncStorage,
+    storage: queryCacheStorage(),
     key: 'budgetbrain-query-cache',
   });
 
-  void persistQueryClient({
+  const [, restore] = persistQueryClient({
     queryClient,
     persister,
     maxAge: CACHE_MAX_AGE_MS,
@@ -39,4 +57,8 @@ export function initQueryPersistence(): void {
       shouldDehydrateQuery: (query) => query.state.status === 'success',
     },
   });
+
+  // persistQueryClient rethrows restore failures. Leave them unhandled and Node
+  // (Expo's web SSR renderer) treats that as a fatal process crash.
+  void restore.catch(() => {});
 }
