@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { apiPost, apiPatch, getApiErrorMessage } from '@/shared/services/api';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
+import { toIsoDate } from '@/shared/utils/dateBounds';
 import type { Investment } from '@/shared/types';
 
 export interface InvestmentForm {
@@ -47,7 +48,7 @@ export function useInvestments() {
       quantity: '',
       purchasePrice: '',
       currentPrice: '',
-      purchaseDate: new Date().toISOString().split('T')[0],
+      purchaseDate: toIsoDate(new Date()),
     },
   });
 
@@ -62,7 +63,7 @@ export function useInvestments() {
       quantity: '',
       purchasePrice: '',
       currentPrice: '',
-      purchaseDate: new Date().toISOString().split('T')[0],
+      purchaseDate: toIsoDate(new Date()),
     });
     setEditingId(null);
     setShowForm(true);

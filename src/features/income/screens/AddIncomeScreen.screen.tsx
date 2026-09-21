@@ -19,7 +19,7 @@ import { INCOME_SOURCE_TYPES } from '@/shared/constants/config';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
 import { useTheme } from '@/shared/theme';
 import type { IncomeSource } from '@/shared/types';
-import { DateBounds } from '@/shared/utils/dateBounds';
+import { DateBounds, toIsoDate } from '@/shared/utils/dateBounds';
 import {
   amountRules,
   dateRules,
@@ -56,7 +56,7 @@ export function AddIncomeScreen() {
     defaultValues: {
       amount: '',
       notes: '',
-      date: new Date().toISOString().split('T')[0],
+      date: toIsoDate(new Date()),
       incomeSourceId: '',
       newSourceName: '',
       newSourceType: 'salary',
