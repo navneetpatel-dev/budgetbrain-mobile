@@ -48,7 +48,12 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -94,10 +99,19 @@
       "@sentry/react-native",
       "@react-native-community/datetimepicker",
       "expo-asset",
-      "expo-web-browser"
+      "expo-web-browser",
+      "./plugins/withCleartextTraffic"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "root": "./src/app"
+      },
+      "eas": {
+        "projectId": "e38c95e1-42c2-4c83-b686-f8431fd89e97"
+      }
     }
   }
 }

@@ -32,7 +32,9 @@ EXPO_PUBLIC_API_URL=http://<HOST>/mobile/api/v1
 
 A phone cannot use `localhost` or `10.0.2.2`. Those only work on the simulator / emulator.
 
-The current server is **HTTP** (`http://...`), not HTTPS. A release APK blocks HTTP unless `android.usesCleartextTraffic` is `true` in `app.json` (already set). Without that, the app shows a connection error even though the phone has internet.
+The current server is **HTTP** (`http://...`), not HTTPS. Android 9+ blocks HTTP in **release** APKs by default. Debug / `adb` installs still work because Expo only puts `usesCleartextTraffic` on the debug manifest.
+
+`app.json` has `android.usesCleartextTraffic: true`, but Expo 56 does not copy that onto the release manifest. The `./plugins/withCleartextTraffic` config plugin writes it onto the main application (plus a network-security-config). Re-run prebuild after changing that plugin, then assembleRelease. Without it, the phone shows a connection error even though it has internet.
 
 Also set Google client IDs in `.env` if you need Sign in with Google on the APK.
 
@@ -103,7 +105,28 @@ If native deps, `app.json` plugins, or package name changed, prebuild again (ste
 
 ## Optional: EAS cloud APK
 
-`eas.json` already has a `preview` profile that produces an APK.
+`eas.json` `preview` produces a release APK. EAS does **not** read `mobile/.env` (gitignored) and does **not** use your local `android/` folder. It prebuilds from `app.json` + plugins, and bakes `EXPO_PUBLIC_*` from `eas.json` `build.base.env`.
+
+The mobile app only reads these runtime keys. `build.base.env` already has every one that has a value:
+
+| Key | Needed for |
+| --- | --- |
+| `EXPO_PUBLIC_API_URL` | Login and every API call |
+| `EXPO_PUBLIC_WEB_URL` | Subscriptions paywall (opens the web app) |
+| `EXPO_PUBLIC_GOOGLE_CLIENT_ID` | Google Sign-In — must be the **Web** client ID the backend verifies |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Same Web client (native `webClientId`) |
+| `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID` | Android OAuth client (package + SHA-1 in Cloud Console) |
+
+Leave these out until you actually have values — empty keys disable the feature, they do not break the app:
+
+- `EXPO_PUBLIC_POSTHOG_KEY` / `EXPO_PUBLIC_POSTHOG_HOST` — analytics
+- `EXPO_PUBLIC_SENTRY_DSN` — crash reporting
+- `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` — iOS only
+- `EXPO_PUBLIC_GOOGLE_CLIENT_SECRET` — Expo Go browser OAuth only; never put this in EAS
+
+`SENTRY_DISABLE_AUTO_UPLOAD=true` is build-time only so EAS does not fail without a Sentry auth token.
+
+Commit `plugins/withCleartextTraffic.js`, the plugin entry in `app.json`, and `eas.json` before you build. Without the plugin, Android blocks HTTP and login shows "Unable to reach the BudgetBrain server". Without the env block, the APK falls back to `http://localhost:8000/api/v1`.
 
 ```bash
 npm install -g eas-cli
@@ -113,10 +136,12 @@ eas build --platform android --profile preview
 
 Download the APK from the Expo dashboard when the build finishes.
 
+Google Sign-In on an EAS APK uses Expo's keystore, not the local debug keystore. After the first build, run `eas credentials -p android` and paste that SHA-1 into the Android OAuth client (package `app.budgetbrain.mobile`).
+
 ## Troubleshooting
 
 - **Cannot reach the server** — `.env` still has `localhost` or `10.0.2.2`, or the phone is not on a network that can reach the host. Rebuild after fixing `.env`.
-- **"Unable to connect / check your internet"** on a phone that clearly has internet — the API is `http://` and Android release builds block HTTP unless `android.usesCleartextTraffic` is `true` in `app.json`. That flag is required until the server is on HTTPS.
+- **"Unable to reach the BudgetBrain server"** on a phone that clearly has internet, while `adb` / Expo Go works — the release APK is blocking HTTP. Local: confirm `android/app/src/main/AndroidManifest.xml` has `android:usesCleartextTraffic="true"` on `<application>`. EAS: confirm `./plugins/withCleartextTraffic` is in `app.json` and `eas.json` `build.base.env` has `EXPO_PUBLIC_API_URL`. This goes away once the API is on HTTPS.
 - **Install blocked** — allow installs from this source, or uninstall an existing `app.budgetbrain.mobile` build first if signatures differ.
 - **`adb` empty** — unlock the phone, replug USB, and check `adb devices`.
 

@@ -4,21 +4,32 @@
     "appVersionSource": "remote"
   },
   "build": {
+    "base": {
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://40.192.65.184/mobile/api/v1",
+        "EXPO_PUBLIC_WEB_URL": "http://40.192.65.184",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "742946517894-t2nbqgr1h50moms6ebs88g0kijuoo0o3.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "742946517894-t2nbqgr1h50moms6ebs88g0kijuoo0o3.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "742946517894-t2a325vhfofuv4q01p8ch31r0fgggfn0.apps.googleusercontent.com",
+        "EXPO_PUBLIC_POSTHOG_HOST": "https://us.i.posthog.com",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+      }
+    },
     "development": {
+      "extends": "base",
       "developmentClient": true,
       "distribution": "internal",
       "ios": { "simulator": true }
     },
     "preview": {
+      "extends": "base",
       "distribution": "internal",
       "android": {
         "buildType": "apk"
-      },
-      "ios": {
-        "buildType": "app-store-connect"
       }
     },
     "production": {
+      "extends": "base",
       "autoIncrement": true
     }
   },
