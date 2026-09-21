@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { View } from 'react-native';
 import { useAppSelector } from '@/shared/store/hooks';
 import { useAppLock } from '@/features/settings/hooks/useAppLock';
 import { PinPadModal } from '@/features/settings/components/PinPadModal.component';
 import { ColdStartSkeleton } from '@/shared/components/ui';
 import { useTheme } from '@/shared/theme';
+import { useLogoutAction } from '@/features/settings/hooks/useLogout';
 import { createStyles } from './AppLockGate.styles';
 
 interface Props {
@@ -17,22 +18,58 @@ export function AppLockGate({ children }: Props) {
   const biometricEnabled = useAppSelector((s) => s.settings.biometricEnabled);
   const appLockPin = useAppSelector((s) => s.settings.appLockPin);
   const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
-  const hasLock = biometricEnabled || !!appLockPin;
+  const hasPin = !!appLockPin;
+  const hasLock = biometricEnabled || hasPin;
+  const [needsPinSetup, setNeedsPinSetup] = useState(false);
+  const signOut = useLogoutAction();
 
-  const { locked, checked, unlockWithPin } = useAppLock(
+  const { locked, checked, unlockWithPin, unlockWithBiometrics } = useAppLock(
     biometricEnabled,
-    !!appLockPin,
+    hasPin,
     isAuthenticated
   );
+
+  useEffect(() => {
+    if (!locked && isAuthenticated && biometricEnabled && !hasPin) {
+      setNeedsPinSetup(true);
+    }
+  }, [locked, isAuthenticated, biometricEnabled, hasPin]);
+
+  const handleBiometricUnlock = async () => {
+    await unlockWithBiometrics();
+  };
+
+  const handleUnlocked = () => {
+    unlockWithPin();
+  };
 
   if (hasLock && isAuthenticated && locked) {
     return (
       <View style={styles.container}>
         <PinPadModal
           visible={true}
-          mode="unlock"
+          mode={hasPin ? 'unlock' : 'unlock'}
+          allowEmptyPin={!hasPin}
           onClose={() => {}}
-          onSuccess={unlockWithPin}
+          onSuccess={handleUnlocked}
+          onRetryBiometrics={biometricEnabled ? handleBiometricUnlock : undefined}
+          onSignOut={!hasPin ? () => void signOut() : undefined}
+        />
+      </View>
+    );
+  }
+
+  if (needsPinSetup) {
+    return (
+      <View style={styles.container}>
+        <PinPadModal
+          visible={true}
+          mode="set"
+          onClose={() => {}}
+          onSuccess={() => {
+            setNeedsPinSetup(false);
+            unlockWithPin();
+          }}
         />
       </View>
     );

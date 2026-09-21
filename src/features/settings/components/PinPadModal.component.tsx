@@ -26,6 +26,9 @@ export interface PinPadModalProps {
   mode: PinPadMode;
   onClose: () => void;
   onSuccess: () => void;
+  onRetryBiometrics?: () => void;
+  onSignOut?: () => void;
+  allowEmptyPin?: boolean;
 }
 
 export function PinPadModal({
@@ -33,6 +36,9 @@ export function PinPadModal({
   mode,
   onClose,
   onSuccess,
+  onRetryBiometrics,
+  onSignOut,
+  allowEmptyPin = false,
 }: PinPadModalProps) {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -85,6 +91,7 @@ export function PinPadModal({
   }, []);
 
   const getTitle = () => {
+    if (mode === 'unlock' && allowEmptyPin) return 'Unlock BudgetBrain';
     if (mode === 'unlock') return 'Enter PIN to Unlock';
     if (mode === 'remove') return 'Enter Current PIN';
     if (mode === 'set') {
@@ -99,6 +106,9 @@ export function PinPadModal({
   };
 
   const getSubtitle = () => {
+    if (mode === 'unlock' && allowEmptyPin) {
+      return 'No PIN is set. Try biometrics again, or sign out to recover access.';
+    }
     if (mode === 'unlock') return 'Enter your 4-digit code to access BudgetBrain';
     if (mode === 'remove') return 'Confirm your identity to disable app PIN';
     if (mode === 'set') {
@@ -234,6 +244,23 @@ export function PinPadModal({
             <Text style={styles.errorText}>{error}</Text>
           ) : null}
 
+          {(onRetryBiometrics || onSignOut) && (
+            <View style={{ gap: 10, marginBottom: 16, alignItems: 'center' }}>
+              {onRetryBiometrics && (
+                <Pressable onPress={onRetryBiometrics} style={styles.retryBtn}>
+                  <Text style={styles.actionText}>Try biometrics again</Text>
+                </Pressable>
+              )}
+              {onSignOut && (
+                <Pressable onPress={onSignOut} style={styles.retryBtn}>
+                  <Text style={styles.actionText}>Sign out</Text>
+                </Pressable>
+              )}
+            </View>
+          )}
+
+          {!allowEmptyPin && (
+          <>
           {/* Dots Indicator */}
           <View style={styles.dotsContainer}>
             {[0, 1, 2, 3].map((i) => (
@@ -331,6 +358,8 @@ export function PinPadModal({
               </Pressable>
             </View>
           </View>
+          </>
+          )}
         </View>
       </View>
     </Modal>

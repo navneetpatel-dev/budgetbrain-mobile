@@ -20,6 +20,13 @@ export function useBiometricToggle() {
       Alert.alert('Unavailable', `${type} is not set up.`);
       return;
     }
+    if (enable && !settings.appLockPin) {
+      Alert.alert(
+        'Set a PIN first',
+        'Biometrics need a PIN fallback so you can still unlock if Face ID or fingerprint fails.'
+      );
+      return;
+    }
     dispatch(setBiometricEnabled(enable));
   };
 

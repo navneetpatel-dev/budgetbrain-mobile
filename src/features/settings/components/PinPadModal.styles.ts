@@ -113,5 +113,11 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
       fontWeight: '600',
       color: t.colors.textSecondary,
     },
+    retryBtn: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 12,
+      backgroundColor: t.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+    },
   });
 }

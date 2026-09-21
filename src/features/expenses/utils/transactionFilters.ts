@@ -1,4 +1,6 @@
 /** How many category/source chips to show inline before “More”. */
+import { toIsoDate } from '@/shared/utils/dateBounds';
+
 export const FILTER_PICKER_PREVIEW_COUNT = 4;
 /** Page size when loading income sources / categories for filters. */
 export const FILTER_PICKER_FETCH_LIMIT = 100;
@@ -21,10 +23,6 @@ export const DEFAULT_TRANSACTION_FILTERS: TransactionListFilters = {
   type: 'all',
   datePreset: 'all',
 };
-
-function toIsoDate(d: Date) {
-  return d.toISOString().slice(0, 10);
-}
 
 export function resolveDateRange(filters: TransactionListFilters): {
   startDate?: string;

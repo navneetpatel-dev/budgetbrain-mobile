@@ -1,6 +1,8 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { API_BASE_URL } from '../constants/config';
+import { store } from '../store';
+import { logout } from '../store/authSlice';
 import type { ApiResponse } from '../types';
 
 const ACCESS_TOKEN_KEY = 'access_token';
@@ -39,7 +41,16 @@ api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
 });
 
 let isRefreshing = false;
-let refreshQueue: Array<(token: string) => void> = [];
+let refreshQueue: Array<{
+  resolve: (value: unknown) => void;
+  reject: (reason?: unknown) => void;
+  request: InternalAxiosRequestConfig;
+}> = [];
+
+async function endSession(): Promise<void> {
+  await clearTokens();
+  store.dispatch(logout());
+}
 
 api.interceptors.response.use(
   (response) => response,
@@ -48,11 +59,8 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
-        return new Promise((resolve) => {
-          refreshQueue.push((token: string) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            resolve(api(originalRequest));
-          });
+        return new Promise((resolve, reject) => {
+          refreshQueue.push({ resolve, reject, request: originalRequest });
         });
       }
 
@@ -69,15 +77,19 @@ api.interceptors.response.use(
         );
 
         await setTokens(data.data.accessToken, data.data.refreshToken);
-        refreshQueue.forEach((cb) => cb(data.data.accessToken));
+        refreshQueue.forEach(({ resolve, request }) => {
+          request.headers.Authorization = `Bearer ${data.data.accessToken}`;
+          resolve(api(request));
+        });
         refreshQueue = [];
 
         originalRequest.headers.Authorization = `Bearer ${data.data.accessToken}`;
         return api(originalRequest);
-      } catch {
-        await clearTokens();
+      } catch (refreshError) {
+        refreshQueue.forEach(({ reject }) => reject(refreshError));
         refreshQueue = [];
-        return Promise.reject(error);
+        await endSession();
+        return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
       }

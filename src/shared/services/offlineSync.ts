@@ -1,6 +1,12 @@
 import NetInfo from '@react-native-community/netinfo';
+import { Alert } from 'react-native';
 import { store } from '../store';
-import { addToOfflineQueue, clearOfflineQueue } from '../store/settingsSlice';
+import {
+  addToOfflineQueue,
+  bumpOfflineQueueRetry,
+  moveOfflineItemToConflicts,
+  removeOfflineQueueItems,
+} from '../store/settingsSlice';
 import { apiPost } from './api';
 import { queryClient } from './queryClient';
 import { invalidateMoneyQueries } from './queryInvalidation';
@@ -9,11 +15,14 @@ import { uploadReceipt } from '@/features/expenses/services/receipts';
 
 interface SyncItemResult {
   id: string;
-  status: 'applied' | 'conflict_server_kept' | 'error';
+  status: 'applied' | 'conflict_server_kept' | 'error' | 'success';
   resource: string;
   action: string;
   serverId?: string;
+  error?: string;
 }
+
+const MAX_OFFLINE_RETRIES = 5;
 
 let syncInProgress = false;
 
@@ -66,7 +75,41 @@ export async function processOfflineQueue(): Promise<void> {
     }));
 
     const response = await apiPost<{ results: SyncItemResult[] }>('/sync/batch', { items });
-    store.dispatch(clearOfflineQueue());
+    const results = response?.results ?? [];
+    const resultsById = new Map(results.map((result) => [result.id, result]));
+
+    const succeededIds: string[] = [];
+    let failedCount = 0;
+
+    for (const item of items) {
+      const result = resultsById.get(item.id);
+      const status = result?.status;
+      if (status === 'applied' || status === 'success') {
+        succeededIds.push(item.id);
+        continue;
+      }
+
+      failedCount += 1;
+      const errorMessage = result?.error || (status === 'conflict_server_kept' ? 'Server kept a conflicting version' : 'Sync failed');
+      const current = store.getState().settings.offlineQueue.find((entry) => entry.id === item.id);
+      const retries = (current?.retryCount ?? 0) + 1;
+      if (status === 'conflict_server_kept' || retries >= MAX_OFFLINE_RETRIES) {
+        store.dispatch(moveOfflineItemToConflicts({ id: item.id, error: errorMessage }));
+      } else {
+        store.dispatch(bumpOfflineQueueRetry({ id: item.id, error: errorMessage }));
+      }
+    }
+
+    if (succeededIds.length) {
+      store.dispatch(removeOfflineQueueItems(succeededIds));
+    }
+
+    if (failedCount > 0) {
+      Alert.alert(
+        'Sync issue',
+        `${failedCount} change${failedCount === 1 ? '' : 's'} couldn't be synced. Open Settings to review, or they'll retry on the next reconnect.`
+      );
+    }
 
     // A queued transaction created while offline may have had a receipt image queued
     // alongside it (see pendingReceipts.ts) — now that the create has synced and we know

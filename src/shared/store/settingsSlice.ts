@@ -9,7 +9,23 @@ export interface SettingsState {
   currency: string;
   biometricEnabled: boolean;
   appLockPin: string | null;
-  offlineQueue: Array<{ id: string; action: string; resource?: 'transaction' | 'income' | 'budget' | 'goal'; payload: unknown; timestamp: string }>;
+  offlineQueue: Array<{
+    id: string;
+    action: string;
+    resource?: 'transaction' | 'income' | 'budget' | 'goal';
+    payload: unknown;
+    timestamp: string;
+    retryCount?: number;
+    lastError?: string;
+  }>;
+  syncConflicts: Array<{
+    id: string;
+    action: string;
+    resource?: string;
+    payload: unknown;
+    timestamp: string;
+    error: string;
+  }>;
 }
 
 const initialState: SettingsState = {
@@ -19,6 +35,7 @@ const initialState: SettingsState = {
   biometricEnabled: false,
   appLockPin: null,
   offlineQueue: [],
+  syncConflicts: [],
 };
 
 const settingsSlice = createSlice({
@@ -50,10 +67,36 @@ const settingsSlice = createSlice({
       state,
       action: PayloadAction<{ id: string; action: string; resource?: 'transaction' | 'income' | 'budget' | 'goal'; payload: unknown }>
     ) {
-      state.offlineQueue.push({ ...action.payload, timestamp: new Date().toISOString() });
+      state.offlineQueue.push({ ...action.payload, timestamp: new Date().toISOString(), retryCount: 0 });
     },
     clearOfflineQueue(state) {
       state.offlineQueue = [];
+    },
+    removeOfflineQueueItems(state, action: PayloadAction<string[]>) {
+      const ids = new Set(action.payload);
+      state.offlineQueue = state.offlineQueue.filter((item) => !ids.has(item.id));
+    },
+    bumpOfflineQueueRetry(
+      state,
+      action: PayloadAction<{ id: string; error: string }>
+    ) {
+      const item = state.offlineQueue.find((entry) => entry.id === action.payload.id);
+      if (!item) return;
+      item.retryCount = (item.retryCount ?? 0) + 1;
+      item.lastError = action.payload.error;
+    },
+    moveOfflineItemToConflicts(state, action: PayloadAction<{ id: string; error: string }>) {
+      const index = state.offlineQueue.findIndex((entry) => entry.id === action.payload.id);
+      if (index < 0) return;
+      const [item] = state.offlineQueue.splice(index, 1);
+      state.syncConflicts.push({
+        id: item.id,
+        action: item.action,
+        resource: item.resource,
+        payload: item.payload,
+        timestamp: item.timestamp,
+        error: action.payload.error,
+      });
     },
     hydratePreferences(state, action: PayloadAction<{ theme?: string | null; accent?: string | null }>) {
       if (action.payload.theme) state.theme = resolveThemeMode(action.payload.theme);
@@ -70,6 +113,7 @@ const settingsSlice = createSlice({
         theme: resolveThemeMode(incoming.theme),
         accent: resolveAccent(incoming.accent),
         offlineQueue: incoming.offlineQueue ?? [],
+        syncConflicts: incoming.syncConflicts ?? [],
       };
     });
   },
@@ -83,6 +127,9 @@ export const {
   setAppLockPin,
   addToOfflineQueue,
   clearOfflineQueue,
+  removeOfflineQueueItems,
+  bumpOfflineQueueRetry,
+  moveOfflineItemToConflicts,
   hydratePreferences,
 } = settingsSlice.actions;
 export default settingsSlice.reducer;

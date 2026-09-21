@@ -43,20 +43,40 @@ interface MockQueueItem {
   resource?: string;
   payload: unknown;
   timestamp: string;
+  retryCount?: number;
+  lastError?: string;
 }
 
 jest.mock('../../store', () => {
   let queue: MockQueueItem[] = [];
+  let conflicts: MockQueueItem[] = [];
   return {
     store: {
       dispatch: (action: { type: string; payload?: unknown }) => {
         if (action.type === 'settings/addToOfflineQueue') {
-          queue.push({ ...(action.payload as object), timestamp: new Date().toISOString() } as MockQueueItem);
+          queue.push({ ...(action.payload as object), timestamp: new Date().toISOString(), retryCount: 0 } as MockQueueItem);
         } else if (action.type === 'settings/clearOfflineQueue') {
           queue = [];
+        } else if (action.type === 'settings/removeOfflineQueueItems') {
+          const ids = new Set(action.payload as string[]);
+          queue = queue.filter((item) => !ids.has(item.id));
+        } else if (action.type === 'settings/bumpOfflineQueueRetry') {
+          const { id, error } = action.payload as { id: string; error: string };
+          const item = queue.find((entry) => entry.id === id);
+          if (item) {
+            item.retryCount = (item.retryCount ?? 0) + 1;
+            item.lastError = error;
+          }
+        } else if (action.type === 'settings/moveOfflineItemToConflicts') {
+          const { id } = action.payload as { id: string };
+          const index = queue.findIndex((entry) => entry.id === id);
+          if (index >= 0) {
+            const [item] = queue.splice(index, 1);
+            conflicts.push(item);
+          }
         }
       },
-      getState: () => ({ settings: { offlineQueue: queue } }),
+      getState: () => ({ settings: { offlineQueue: queue, syncConflicts: conflicts } }),
     },
   };
 });
@@ -64,6 +84,9 @@ jest.mock('../../store', () => {
 jest.mock('../../store/settingsSlice', () => ({
   addToOfflineQueue: (payload: unknown) => ({ type: 'settings/addToOfflineQueue', payload }),
   clearOfflineQueue: () => ({ type: 'settings/clearOfflineQueue' }),
+  removeOfflineQueueItems: (payload: unknown) => ({ type: 'settings/removeOfflineQueueItems', payload }),
+  bumpOfflineQueueRetry: (payload: unknown) => ({ type: 'settings/bumpOfflineQueueRetry', payload }),
+  moveOfflineItemToConflicts: (payload: unknown) => ({ type: 'settings/moveOfflineItemToConflicts', payload }),
 }));
 
 import { store } from '../../store';
@@ -126,9 +149,11 @@ describe('offlineSync', () => {
       expect(mockApiPost).toHaveBeenCalledTimes(1);
     });
 
-    it('clears the queue and invalidates money-related query keys on a successful sync', async () => {
-      queueOfflineAction('create', { amount: 100 });
-      mockApiPost.mockResolvedValueOnce({ results: [] });
+    it('clears successful items and invalidates money-related query keys on a successful sync', async () => {
+      const id = queueOfflineAction('create', { amount: 100 });
+      mockApiPost.mockResolvedValueOnce({
+        results: [{ id, status: 'applied', resource: 'transaction', action: 'create' }],
+      });
       const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
 
       await processOfflineQueue();
@@ -156,7 +181,9 @@ describe('offlineSync', () => {
       await processOfflineQueue();
       expect(store.getState().settings.offlineQueue).toHaveLength(1);
 
-      mockApiPost.mockResolvedValueOnce({ results: [] });
+      mockApiPost.mockResolvedValueOnce({
+        results: [{ id: store.getState().settings.offlineQueue[0].id, status: 'applied', resource: 'transaction', action: 'create' }],
+      });
       await processOfflineQueue();
 
       expect(mockApiPost).toHaveBeenCalledTimes(2);
@@ -217,6 +244,18 @@ describe('offlineSync', () => {
       await processOfflineQueue();
 
       expect(mockUploadReceipt).not.toHaveBeenCalled();
+    });
+
+    it('keeps a failed generic item in the queue instead of dropping it', async () => {
+      const id = queueOfflineAction('update', { id: 'budget-1' }, 'budget');
+      mockApiPost.mockResolvedValueOnce({
+        results: [{ id, status: 'error', resource: 'budget', action: 'update', error: 'category gone' }],
+      });
+
+      await processOfflineQueue();
+
+      expect(store.getState().settings.offlineQueue).toHaveLength(1);
+      expect(store.getState().settings.offlineQueue[0].retryCount).toBe(1);
     });
 
     it('does not attempt a receipt upload for a non-create action or a non-applied/error result', async () => {
