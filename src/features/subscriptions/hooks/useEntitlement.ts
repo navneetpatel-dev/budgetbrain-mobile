@@ -27,10 +27,10 @@ export function useEntitlement() {
   }, []);
 
   /**
-   * The backend's Subscription/role state is the entitlement source of truth,
-   * synced from RevenueCat's webhook — which can lag a client-side purchase by
-   * a few seconds. Poll `/users/me` a few times after a purchase completes so
-   * the paywall doesn't stay stuck showing "free" right after a successful buy.
+   * The backend's Subscription/role state is the entitlement source of truth, synced from
+   * the Razorpay webhook once the user completes checkout on web — which can lag their return
+   * to the app by a few seconds. Poll `/users/me` a few times so the paywall doesn't stay stuck
+   * showing "free" right after a successful web purchase.
    */
   const refreshEntitlement = useCallback(async (): Promise<boolean> => {
     const delays = [0, 1500, 3000, 5000];

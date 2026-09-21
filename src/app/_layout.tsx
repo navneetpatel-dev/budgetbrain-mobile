@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -10,10 +11,10 @@ import { store, persistor } from '@/shared/store';
 import { initQueryPersistence, queryClient } from '@/shared/services/queryClient';
 import { useAppSelector } from '@/shared/store/hooks';
 import { AppLockGate } from '@/features/settings/components/AppLockGate';
+import { useEntitlement } from '@/features/subscriptions';
 import { initAnalytics, resetAnalytics } from '@/shared/services/analytics';
 import { initMonitoring } from '@/shared/services/monitoring';
 import { initOfflineSync } from '@/shared/services/offlineSync';
-import { initPurchases, loginPurchasesUser, logoutPurchasesUser } from '@/shared/services/purchases';
 import { addNotificationResponseListener, resolveNotificationDeepLink } from '@/shared/services/notifications';
 import { appHref } from '@/shared/utils/navigation';
 import { ThemeProvider, useTheme } from '@/shared/theme';
@@ -27,7 +28,6 @@ import { PreferencesHydrator } from '@/features/settings/components/PreferencesH
 initAnalytics();
 initMonitoring();
 initQueryPersistence();
-initPurchases();
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function FontGate({ children }: { children: React.ReactNode }) {
@@ -43,11 +43,24 @@ function ThemedStatusBar() {
 
 function AuthGate({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, user } = useAppSelector((s) => s.auth);
+  const { isEntitled, refreshEntitlement } = useEntitlement();
 
   useEffect(() => {
     const unsubscribe = initOfflineSync();
     return unsubscribe;
   }, []);
+
+  // Subscriptions are purchased on web now (see PaywallModal), so there's no in-app purchase
+  // promise to resolve entitlement from — re-check on every foreground return instead, since
+  // that's when a user is most likely to have just finished checkout in the browser.
+  useEffect(() => {
+    if (!isAuthenticated || isEntitled) return;
+    const handleAppState = (state: AppStateStatus) => {
+      if (state === 'active') refreshEntitlement();
+    };
+    const sub = AppState.addEventListener('change', handleAppState);
+    return () => sub.remove();
+  }, [isAuthenticated, isEntitled, refreshEntitlement]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -67,11 +80,8 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isAuthenticated) {
       resetAnalytics();
-      logoutPurchasesUser();
-    } else if (user?.id) {
-      loginPurchasesUser(user.id);
     }
-  }, [isAuthenticated, user?.id]);
+  }, [isAuthenticated]);
 
   if (isLoading) return <ColdStartSkeleton />;
 

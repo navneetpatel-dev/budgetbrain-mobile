@@ -176,17 +176,6 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
       fontWeight: '700',
       letterSpacing: 0.3,
     },
-    restoreBtn: {
-      paddingVertical: 10,
-      alignItems: 'center',
-      marginTop: 6,
-    },
-    restoreText: {
-      ...t.typography.caption,
-      color: t.colors.textSecondary,
-      fontSize: 12,
-      textDecorationLine: 'underline',
-    },
     legalText: {
       ...t.typography.caption,
       color: t.colors.textTertiary,

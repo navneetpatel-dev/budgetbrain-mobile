@@ -1,6 +1,10 @@
 export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000/api/v1';
 
+/** Web app base URL — subscriptions are purchased there, never in-app (see subscriptions/services/webHandoff.service.ts). */
+export const WEB_APP_URL =
+  process.env.EXPO_PUBLIC_WEB_URL ?? 'http://localhost:3000';
+
 export const SUPPORTED_CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD'] as const;
 
 export const FINANCIAL_GOALS = [
