@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { FilterChipItem } from '@/shared/components/ui';
-import { useInfinitePaginatedList, usePaginatedList } from '@/shared/hooks/usePaginatedList';
+import { useInfinitePaginatedList, usePaginatedList } from '@/shared/hooks/usePaginatedList.hook';
 import type { IncomeSource, Transaction } from '@/shared/types';
 
 export function useIncomeScreen() {

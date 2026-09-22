@@ -13,10 +13,10 @@ import {
   FormErrorBanner,
   FormSuccessBanner,
 } from '@/shared/components/ui';
-import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
-import { useCreateIncome, type IncomeForm } from '@/features/income/hooks/useCreateIncome';
+import { usePaginatedList } from '@/shared/hooks/usePaginatedList.hook';
+import { useCreateIncome, type IncomeForm } from '@/features/income/hooks/useCreateIncome.hook';
 import { INCOME_SOURCE_TYPES } from '@/shared/constants/config';
-import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
+import { useUserCurrency } from '@/shared/hooks/useUserCurrency.hook';
 import { useTheme } from '@/shared/theme';
 import type { IncomeSource } from '@/shared/types';
 import { DateBounds, toIsoDate } from '@/shared/utils/dateBounds';

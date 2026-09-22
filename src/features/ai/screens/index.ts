@@ -1,1 +1,1 @@
-export { AiScreen } from './AiScreen';
+export { AiScreen } from './AiScreen.screen';

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Text } from 'react-native';
 import { StackScrollScreen } from '@/shared/components/ui';
-import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
+import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader.component';
 import { useTheme } from '@/shared/theme';
 import { createStyles } from './TermsScreen.styles';
 

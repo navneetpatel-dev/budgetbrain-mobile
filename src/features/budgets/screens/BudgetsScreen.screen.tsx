@@ -9,9 +9,9 @@ import {
   RingGauge,
   FilterChipsRail,
 } from '@/shared/components/ui';
-import { AppIcon } from '@/features/navigation/components/AppIcon';
-import { BudgetCard } from '@/features/budgets/components/BudgetCard';
-import { useDeleteBudget } from '@/features/budgets/hooks/useDeleteBudget';
+import { AppIcon } from '@/features/navigation/components/AppIcon.component';
+import { BudgetCard } from '@/features/budgets/components/BudgetCard.component';
+import { useDeleteBudget } from '@/features/budgets/hooks/useDeleteBudget.hook';
 import { confirmDeleteBudget } from '@/features/budgets/services/confirmations';
 import { showAlert } from '@/shared/utils/confirmations';
 import { useTheme } from '@/shared/theme';
@@ -21,7 +21,7 @@ import { apiGet } from '@/shared/services/api';
 import type { AiInsight } from '@/shared/types';
 import { useBudgetsScreen } from '@/features/budgets/hooks/useBudgetsScreen.hook';
 import { useEntitlement, PaywallModal } from '@/features/subscriptions';
-import { useTabBarInset } from '@/shared/hooks/useTabBarInset';
+import { useTabBarInset } from '@/shared/hooks/useTabBarInset.hook';
 import { createStyles } from './BudgetsScreen.styles';
 
 export function BudgetsScreen() {

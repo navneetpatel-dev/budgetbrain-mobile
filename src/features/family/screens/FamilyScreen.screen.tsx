@@ -15,13 +15,13 @@ import {
   FormModal,
   OptionChips,
 } from '@/shared/components/ui';
-import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
+import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader.component';
 import { useTheme } from '@/shared/theme';
-import { useFamilyGroups } from '@/features/family/hooks/useFamilyGroups';
-import { useSettleSplit } from '@/features/family/hooks/useSettleSplit';
-import { useFamilyInvite, type FamilyInviteForm, type FamilyInviteRole } from '@/features/family/hooks/useFamilyInvite';
+import { useFamilyGroups } from '@/features/family/hooks/useFamilyGroups.hook';
+import { useSettleSplit } from '@/features/family/hooks/useSettleSplit.hook';
+import { useFamilyInvite, type FamilyInviteForm, type FamilyInviteRole } from '@/features/family/hooks/useFamilyInvite.hook';
 import { apiGet, apiDelete, apiPatch } from '@/shared/services/api';
-import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
+import { usePaginatedList } from '@/shared/hooks/usePaginatedList.hook';
 import { formatCurrency } from '@/shared/utils/currency';
 import { useAppSelector } from '@/shared/store/hooks';
 import { inviteCodeRules, maxLen, textRules } from '@/shared/validation/fieldLimits';

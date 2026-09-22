@@ -16,11 +16,11 @@ import {
   FilterChipsRail,
 } from '@/shared/components/ui';
 import type { Category } from '@/shared/types';
-import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
-import { AppIcon } from '@/features/navigation/components/AppIcon';
-import { useFabBottom } from '@/shared/hooks/useFabBottom';
+import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader.component';
+import { AppIcon } from '@/features/navigation/components/AppIcon.component';
+import { useFabBottom } from '@/shared/hooks/useFabBottom.hook';
 import { useTheme } from '@/shared/theme';
-import { useCategories, COLORS_PRESET } from '@/features/categories/hooks/useCategories';
+import { useCategories, COLORS_PRESET } from '@/features/categories/hooks/useCategories.hook';
 import { maxLen, textRules } from '@/shared/validation/fieldLimits';
 import { createStyles } from './CategoriesScreen.styles';
 

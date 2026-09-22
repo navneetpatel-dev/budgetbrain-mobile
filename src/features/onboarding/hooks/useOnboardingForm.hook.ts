@@ -3,8 +3,8 @@ import { BackHandler } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { useForm } from 'react-hook-form';
 import { useAppSelector } from '@/shared/store/hooks';
-import { useLogout } from '@/features/settings/hooks/useLogout';
-import { useOnboarding, type OnboardingForm } from './useOnboarding';
+import { useLogout } from '@/features/settings/hooks/useLogout.hook';
+import { useOnboarding, type OnboardingForm } from './useOnboarding.hook';
 
 /** Screen-level orchestration for the onboarding form: field defaults, back-button block, and submit wiring. */
 export function useOnboardingScreen() {

@@ -3,15 +3,15 @@ import { RefreshControl, View, Text, Pressable, FlatList } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { EmptyState, ListRowsSkeleton, AppHeaderBar, RingGauge, FilterChipsRail } from '@/shared/components/ui';
-import { AppIcon } from '@/features/navigation/components/AppIcon';
-import { GoalCard } from '@/features/goals/components/GoalCard';
-import { useDeleteGoal } from '@/features/goals/hooks/useDeleteGoal';
+import { AppIcon } from '@/features/navigation/components/AppIcon.component';
+import { GoalCard } from '@/features/goals/components/GoalCard.component';
+import { useDeleteGoal } from '@/features/goals/hooks/useDeleteGoal.hook';
 import { CONFIRM } from '@/shared/constants/confirmations';
 import { showAlert, showConfirmation } from '@/shared/utils/confirmations';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
 import { useGoalsScreen } from '@/features/goals/hooks/useGoalsScreen.hook';
-import { useTabBarInset } from '@/shared/hooks/useTabBarInset';
+import { useTabBarInset } from '@/shared/hooks/useTabBarInset.hook';
 import { createStyles } from './GoalsScreen.styles';
 
 export function GoalsScreen() {

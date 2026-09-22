@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { RefreshControl, Text, View } from 'react-native';
 import { Button, EmptyState, ListRowsSkeleton, StickyHeaderFlatScreen } from '@/shared/components/ui';
-import { AppIcon } from '@/features/navigation/components/AppIcon';
-import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
+import { AppIcon } from '@/features/navigation/components/AppIcon.component';
+import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader.component';
 import { useTheme } from '@/shared/theme';
 import { useDevices } from '@/features/settings/hooks/useDevices.hook';
 import type { AccountDevice } from '@/features/settings/api/devices.api';

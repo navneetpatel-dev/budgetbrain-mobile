@@ -9,10 +9,10 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '@/shared/theme';
-import { AppIcon } from '@/features/navigation/components/AppIcon';
-import { useScreenInsets, useBottomSafeInset } from '@/shared/hooks/useLayout';
+import { AppIcon } from '@/features/navigation/components/AppIcon.component';
+import { useScreenInsets, useBottomSafeInset } from '@/shared/hooks/useLayout.hook';
 import { createStyles } from './PaywallModal.styles';
-import { openWebUpgrade, type WebUpgradePlan } from '../services/webHandoff.service';
+import { openWebUpgrade, type WebUpgradePlan } from '../api/webHandoff.api';
 
 export interface PaywallModalProps {
   visible: boolean;

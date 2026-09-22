@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Button } from '@/shared/components/ui';
 import { useTheme } from '@/shared/theme';
 import { appHref } from '@/shared/utils/navigation';
-import { useAcceptFamilyInvite } from '@/features/family/hooks/useAcceptFamilyInvite';
+import { useAcceptFamilyInvite } from '@/features/family/hooks/useAcceptFamilyInvite.hook';
 
 export function AcceptFamilyInviteScreen() {
   const theme = useTheme();

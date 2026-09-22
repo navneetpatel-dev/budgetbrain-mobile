@@ -1,6 +1,6 @@
-export { AiHeroHeader } from './layout/AiHeroHeader';
-export { AiInsightCard } from './ui/AiInsightCard';
-export { AiAnomalyCard, AiAnomalyClear } from './ui/AiAnomalyCard';
-export { AiChatBubble, AiTypingIndicator } from './ui/AiChatBubble';
-export { AiRichReply } from './ui/AiRichReply';
-export { AiChatInput } from './ui/AiChatInput';
+export { AiHeroHeader } from './layout/AiHeroHeader.component';
+export { AiInsightCard } from './ui/AiInsightCard.component';
+export { AiAnomalyCard, AiAnomalyClear } from './ui/AiAnomalyCard.component';
+export { AiChatBubble, AiTypingIndicator } from './ui/AiChatBubble.component';
+export { AiRichReply } from './ui/AiRichReply.component';
+export { AiChatInput } from './ui/AiChatInput.component';

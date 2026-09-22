@@ -3,13 +3,13 @@ import { StyleSheet, View, RefreshControl, Text, FlatList, Pressable, ScrollView
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { appHref } from '@/shared/utils/navigation';
-import { TransactionItem, TransactionGroup } from '@/features/expenses/components/TransactionItem';
+import { TransactionItem, TransactionGroup } from '@/features/expenses/components/TransactionItem.component';
 import { EmptyState, ListRowsSkeleton, AppHeaderBar, FilterChipsRail } from '@/shared/components/ui';
-import { AppIcon } from '@/features/navigation/components/AppIcon';
+import { AppIcon } from '@/features/navigation/components/AppIcon.component';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
 import { useIncomeScreen } from '@/features/income/hooks/useIncomeScreen.hook';
-import { useTabBarInset } from '@/shared/hooks/useTabBarInset';
+import { useTabBarInset } from '@/shared/hooks/useTabBarInset.hook';
 import { createStyles } from './IncomeScreen.styles';
 
 export function IncomeScreen() {

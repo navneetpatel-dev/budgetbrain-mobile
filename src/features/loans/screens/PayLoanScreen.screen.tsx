@@ -10,8 +10,8 @@ import {
   FormSuccessBanner,
   useStackBack,
 } from '@/shared/components/ui';
-import { usePayLoan, type PayLoanForm } from '@/features/loans/hooks/usePayLoan';
-import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
+import { usePayLoan, type PayLoanForm } from '@/features/loans/hooks/usePayLoan.hook';
+import { useUserCurrency } from '@/shared/hooks/useUserCurrency.hook';
 import { amountRules, maxLen, optionalTextRules } from '@/shared/validation/fieldLimits';
 
 export function PayLoanScreen() {

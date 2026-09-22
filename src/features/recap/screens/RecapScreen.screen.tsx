@@ -5,10 +5,10 @@ import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { apiGet } from '@/shared/services/api';
 import { BentoCard, ScreenLoader, AppHeaderBar } from '@/shared/components/ui';
-import { AppIcon } from '@/features/navigation/components/AppIcon';
+import { AppIcon } from '@/features/navigation/components/AppIcon.component';
 import { useTheme } from '@/shared/theme';
-import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
-import { useBottomSafeInset } from '@/shared/hooks/useLayout';
+import { useUserCurrency } from '@/shared/hooks/useUserCurrency.hook';
+import { useBottomSafeInset } from '@/shared/hooks/useLayout.hook';
 import type { MonthlyRecap } from '@/shared/types';
 import { createStyles } from './RecapScreen.styles';
 

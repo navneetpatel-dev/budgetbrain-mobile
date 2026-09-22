@@ -16,8 +16,8 @@ import {
   FormErrorBanner,
   SettingsSkeleton,
 } from '@/shared/components/ui';
-import { ProfileHero } from '@/features/settings/components/ProfileHero';
-import { ThemePicker } from '@/features/settings/components/ThemePicker';
+import { ProfileHero } from '@/features/settings/components/ProfileHero.component';
+import { ThemePicker } from '@/features/settings/components/ThemePicker.component';
 import { PinPadModal, type PinPadMode } from '@/features/settings/components/PinPadModal.component';
 import { SUPPORTED_CURRENCIES } from '@/shared/constants/config';
 import { useTheme } from '@/shared/theme';

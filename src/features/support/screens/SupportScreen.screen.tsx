@@ -1,8 +1,8 @@
 import { RefreshControl } from 'react-native';
 import { Controller } from 'react-hook-form';
 import { Button, Input, StackScrollScreen, GroupedCard, ListRow, FormSection, FormActions, FormErrorBanner, FormSuccessBanner, SupportSkeleton } from '@/shared/components/ui';
-import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
-import { useSupportTickets } from '@/features/support/hooks/useSupportTickets';
+import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader.component';
+import { useSupportTickets } from '@/features/support/hooks/useSupportTickets.hook';
 import { useTheme } from '@/shared/theme';
 import { FieldLimits, maxLen, textRules, ValidationMessages } from '@/shared/validation/fieldLimits';
 

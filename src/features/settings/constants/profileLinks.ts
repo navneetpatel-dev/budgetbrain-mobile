@@ -1,4 +1,4 @@
-import type { AppIconName } from '@/features/navigation/components/AppIcon';
+import type { AppIconName } from '@/features/navigation/components/AppIcon.component';
 
 export const PROFILE_FEATURE_LINKS: { label: string; href: string; icon: AppIconName }[] = [
   { label: 'Goals', href: '/(tabs)/goals', icon: 'goals' },

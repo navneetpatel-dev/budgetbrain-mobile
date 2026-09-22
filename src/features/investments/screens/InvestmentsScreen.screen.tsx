@@ -15,11 +15,11 @@ import {
   FormActions,
   FormErrorBanner,
 } from '@/shared/components/ui';
-import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
-import { useFabBottom } from '@/shared/hooks/useFabBottom';
+import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader.component';
+import { useFabBottom } from '@/shared/hooks/useFabBottom.hook';
 import { useTheme } from '@/shared/theme';
-import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
-import { useInvestments, INVESTMENT_TYPES } from '@/features/investments/hooks/useInvestments';
+import { useUserCurrency } from '@/shared/hooks/useUserCurrency.hook';
+import { useInvestments, INVESTMENT_TYPES } from '@/features/investments/hooks/useInvestments.hook';
 import { amountRules, dateRules, maxLen, optionalTextRules, quantityRules, textRules } from '@/shared/validation/fieldLimits';
 import { DateBounds } from '@/shared/utils/dateBounds';
 import { createStyles } from './InvestmentsScreen.styles';

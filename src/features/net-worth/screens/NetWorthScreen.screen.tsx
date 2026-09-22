@@ -13,10 +13,10 @@ import {
   EmptyState,
   AppHeaderBar,
 } from '@/shared/components/ui';
-import { AppIcon } from '@/features/navigation/components/AppIcon';
+import { AppIcon } from '@/features/navigation/components/AppIcon.component';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
-import { useBottomSafeInset } from '@/shared/hooks/useLayout';
+import { useBottomSafeInset } from '@/shared/hooks/useLayout.hook';
 import { createStyles } from './NetWorthScreen.styles';
 
 interface NetWorthData {

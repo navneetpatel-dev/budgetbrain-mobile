@@ -10,8 +10,8 @@ import {
   FormSuccessBanner,
   useStackBack,
 } from '@/shared/components/ui';
-import { useContributeGoal, type ContributeForm } from '@/features/goals/hooks/useContributeGoal';
-import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
+import { useContributeGoal, type ContributeForm } from '@/features/goals/hooks/useContributeGoal.hook';
+import { useUserCurrency } from '@/shared/hooks/useUserCurrency.hook';
 import { amountRules, maxLen, optionalTextRules } from '@/shared/validation/fieldLimits';
 
 export function ContributeGoalScreen() {

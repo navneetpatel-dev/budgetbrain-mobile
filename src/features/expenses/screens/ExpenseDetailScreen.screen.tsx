@@ -1,7 +1,6 @@
-import { useState } from 'react';
-import { RefreshControl, View, Text, Pressable, ActivityIndicator } from 'react-native';
+import { useMemo } from 'react';
+import { RefreshControl, View, Text, Pressable } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import {
   Input,
@@ -20,22 +19,31 @@ import {
   FormErrorBanner,
   FormSuccessBanner,
 } from '@/shared/components/ui';
-import { AppIcon } from '@/features/navigation/components/AppIcon';
-import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
-import { useExpenseDetail, type ExpenseForm } from '@/features/expenses/hooks/useExpenseDetail';
-import { useExpenseTagSuggestions } from '@/features/expenses/hooks/useExpenseTagSuggestions';
-import { TagInput } from '@/features/expenses/components/TagInput';
-import { SplitExpenseSection } from '@/features/family/components/SplitExpenseSection';
-import { fetchAttachments, fetchAttachmentSuggestion, deleteReceipt, type ReceiptExtraction } from '@/features/expenses/services/receipts';
+import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions.hook';
+import { useExpenseDetail } from '@/features/expenses/hooks/useExpenseDetail.hook';
+import { useExpenseTagSuggestions } from '@/features/expenses/hooks/useExpenseTagSuggestions.hook';
+import { AttachmentList } from '@/features/expenses/components/AttachmentList.component';
+import { TagInput } from '@/features/expenses/components/TagInput.component';
+import { useExpenseAttachments } from '@/features/expenses/hooks/useExpenseAttachments.hook';
+import type { ExpenseForm } from '@/features/expenses/types/expenses.types';
+import { SplitExpenseSection } from '@/features/family/components/SplitExpenseSection.component';
 import { PAYMENT_METHODS } from '@/shared/constants/config';
 import { useTheme } from '@/shared/theme';
-import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
+import { useUserCurrency } from '@/shared/hooks/useUserCurrency.hook';
 import { formatCurrency } from '@/shared/utils/currency';
 import { ValidationMessages, amountRules, dateRules, maxLen, optionalTextRules, textRules } from '@/shared/validation/fieldLimits';
 import { DateBounds } from '@/shared/utils/dateBounds';
+import { createStyles } from './ExpenseDetailScreen.styles';
+
+function paymentMethodLabel(value: string) {
+  return PAYMENT_METHODS.find((pm) => pm.value === value)?.label ?? value;
+}
+
+const PAYMENT_METHOD_IDS = PAYMENT_METHODS.map((pm) => pm.value);
 
 export function ExpenseDetailScreen() {
   const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const { amountLabel } = useUserCurrency();
   const { id } = useLocalSearchParams<{ id: string }>();
   const {
@@ -60,45 +68,15 @@ export function ExpenseDetailScreen() {
 
   const { data: categories } = useCategoryOptions();
   const { suggestions: tagSuggestions } = useExpenseTagSuggestions();
-
-  const { data: attachments = [], refetch: refetchAttachments } = useQuery({
-    queryKey: ['expense-attachments', id],
-    queryFn: () => (id ? fetchAttachments(id) : Promise.resolve([])),
-    enabled: !!id,
-  });
-
-  const handleDeleteAttachment = async (attachmentId: string) => {
-    if (!id) return;
-    try {
-      await deleteReceipt(id, attachmentId);
-      refetchAttachments();
-    } catch (err) {
-      console.error('Failed to delete attachment', err);
-    }
-  };
-
-  const [checkingSuggestionId, setCheckingSuggestionId] = useState<string | null>(null);
-  const [suggestionNotReadyId, setSuggestionNotReadyId] = useState<string | null>(null);
-  const [suggestion, setSuggestion] = useState<{ attachmentId: string; data: ReceiptExtraction } | null>(null);
-
-  const handleCheckSuggestion = async (attachmentId: string) => {
-    if (!id) return;
-    setSuggestionNotReadyId(null);
-    setCheckingSuggestionId(attachmentId);
-    try {
-      const result = await fetchAttachmentSuggestion(id, attachmentId);
-      if (result && (result.merchant || result.amount !== undefined || result.date)) {
-        setSuggestion({ attachmentId, data: result });
-      } else {
-        setSuggestionNotReadyId(attachmentId);
-      }
-    } catch (err) {
-      console.error('Failed to fetch receipt suggestion', err);
-      setSuggestionNotReadyId(attachmentId);
-    } finally {
-      setCheckingSuggestionId(null);
-    }
-  };
+  const {
+    attachments,
+    suggestion,
+    dismissSuggestion,
+    checkingSuggestionId,
+    suggestionNotReadyId,
+    checkSuggestion,
+    deleteAttachment,
+  } = useExpenseAttachments(id);
 
   const { control, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<ExpenseForm>({
     defaultValues: { amount: '', merchant: '', notes: '', categoryId: '', paymentMethod: 'upi', date: '', tags: [] },
@@ -113,8 +91,21 @@ export function ExpenseDetailScreen() {
     if (data.merchant) setValue('merchant', data.merchant);
     if (data.amount !== undefined) setValue('amount', String(data.amount));
     if (data.date) setValue('date', data.date);
-    setSuggestion(null);
+    dismissSuggestion();
   };
+
+  const retryLoad = () => {
+    void refetch();
+  };
+  const beginEditing = () => startEditing(reset);
+  const cancelEditing = () => setEditing(false);
+  const selectPaymentMethod = (value: string) => setValue('paymentMethod', value);
+  // OptionChipList hosts this category set.
+  const categoryItems = (categories ?? []).map((cat) => ({
+    id: cat.id,
+    label: cat.name,
+    color: cat.color ?? undefined,
+  }));
 
   if (isLoading) {
     return (
@@ -132,7 +123,7 @@ export function ExpenseDetailScreen() {
           title="Couldn’t load expense"
           subtitle="Check your connection and try again"
           action="Retry"
-          onAction={() => void refetch()}
+          onAction={retryLoad}
         />
       </FormStackScreen>
     );
@@ -140,6 +131,13 @@ export function ExpenseDetailScreen() {
 
   const title = expense.merchant ?? expense.category?.name ?? 'Expense';
   const amount = formatCurrency(Number(expense.amount), expense.currency);
+  const suggestionSummary = suggestion
+    ? [
+        suggestion.data.merchant,
+        suggestion.data.amount !== undefined ? formatCurrency(suggestion.data.amount, expense.currency) : undefined,
+        suggestion.data.date,
+      ].filter(Boolean).join(' · ')
+    : '';
 
   return (
     <FormStackScreen
@@ -153,29 +151,17 @@ export function ExpenseDetailScreen() {
       {justSaved ? <FormSuccessBanner message="Expense updated" /> : null}
       {submitError ? <FormErrorBanner message={submitError} /> : null}
       {!editing && suggestion ? (
-        <View
-          style={{
-            padding: 12,
-            borderRadius: 12,
-            backgroundColor: theme.colors.surfaceContainer,
-            borderWidth: 1,
-            borderColor: theme.colors.primary,
-            marginBottom: theme.spacing.md,
-            gap: 8,
-          }}
-        >
-          <Text style={{ fontSize: 13, fontWeight: '600', color: theme.colors.text }}>
-            Scanned receipt found: {[suggestion.data.merchant, suggestion.data.amount !== undefined ? formatCurrency(suggestion.data.amount, expense.currency) : undefined, suggestion.data.date].filter(Boolean).join(' · ')}
-          </Text>
-          <Text style={{ fontSize: 12, color: theme.colors.textTertiary }}>
+        <View style={styles.suggestionCard}>
+          <Text style={styles.suggestionTitle}>Scanned receipt found: {suggestionSummary}</Text>
+          <Text style={styles.suggestionBody}>
             Apply these details to this expense? Review before saving.
           </Text>
-          <View style={{ flexDirection: 'row', gap: 12 }}>
+          <View style={styles.suggestionActions}>
             <Pressable onPress={handleApplySuggestion} accessibilityRole="button" accessibilityLabel="Apply scanned details">
-              <Text style={{ fontSize: 13, fontWeight: '700', color: theme.colors.primary }}>Apply</Text>
+              <Text style={styles.applyText}>Apply</Text>
             </Pressable>
-            <Pressable onPress={() => setSuggestion(null)} accessibilityRole="button" accessibilityLabel="Dismiss scanned details">
-              <Text style={{ fontSize: 13, fontWeight: '600', color: theme.colors.textTertiary }}>Dismiss</Text>
+            <Pressable onPress={dismissSuggestion} accessibilityRole="button" accessibilityLabel="Dismiss scanned details">
+              <Text style={styles.dismissText}>Dismiss</Text>
             </Pressable>
           </View>
         </View>
@@ -197,87 +183,16 @@ export function ExpenseDetailScreen() {
               { label: 'Tags', value: expense.tags?.length ? expense.tags.join(', ') : '' },
             ]}
           />
-          {attachments.length > 0 && (
-            <View style={{ marginTop: theme.spacing.lg }}>
-              <Text
-                style={{
-                  fontWeight: '700',
-                  fontSize: 14,
-                  color: theme.colors.text,
-                  marginBottom: 8,
-                }}
-              >
-                Receipt Attachments
-              </Text>
-              {attachments.map((att) => (
-                <View
-                  key={att.id}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: 12,
-                    borderRadius: 12,
-                    backgroundColor: theme.colors.surfaceContainer,
-                    borderWidth: 1,
-                    borderColor: theme.colors.borderSubtle,
-                    marginBottom: 8,
-                  }}
-                >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
-                    <AppIcon name="receipt" size={20} color={theme.colors.primary} />
-                    <View style={{ flex: 1, minWidth: 0 }}>
-                      <Text
-                        style={{ fontWeight: '500', fontSize: 13, color: theme.colors.text }}
-                        numberOfLines={1}
-                      >
-                        {att.fileName}
-                      </Text>
-                      <Text
-                        style={{
-                          fontWeight: '400',
-                          fontSize: 11,
-                          color: theme.colors.textTertiary,
-                        }}
-                      >
-                        {Math.round(att.fileSize / 1024)} KB
-                      </Text>
-                      {suggestionNotReadyId === att.id ? (
-                        <Text style={{ fontSize: 11, color: theme.colors.textTertiary, marginTop: 2 }}>
-                          No scanned details yet — try again shortly
-                        </Text>
-                      ) : null}
-                    </View>
-                  </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    {checkingSuggestionId === att.id ? (
-                      <ActivityIndicator size="small" color={theme.colors.primary} />
-                    ) : (
-                      <Pressable
-                        onPress={() => void handleCheckSuggestion(att.id)}
-                        style={{ padding: 6 }}
-                        accessibilityRole="button"
-                        accessibilityLabel="Check for scanned receipt details"
-                      >
-                        <AppIcon name="sparkles" size={16} color={theme.colors.primary} />
-                      </Pressable>
-                    )}
-                    <Pressable
-                      onPress={() => void handleDeleteAttachment(att.id)}
-                      style={{ padding: 6 }}
-                      accessibilityRole="button"
-                      accessibilityLabel="Delete attachment"
-                    >
-                      <AppIcon name="trash" size={16} color={theme.colors.danger} />
-                    </Pressable>
-                  </View>
-                </View>
-              ))}
-            </View>
-          )}
+          <AttachmentList
+            attachments={attachments}
+            checkingId={checkingSuggestionId}
+            notReadyId={suggestionNotReadyId}
+            onCheck={checkSuggestion}
+            onDelete={deleteAttachment}
+          />
           <DetailActions
             primaryTitle="Edit"
-            onPrimary={() => startEditing(reset)}
+            onPrimary={beginEditing}
             secondaryTitle="Duplicate"
             onSecondary={duplicate}
             secondaryLoading={duplicating}
@@ -330,14 +245,15 @@ export function ExpenseDetailScreen() {
 
           <FormSection title="Payment & category">
             <FormFieldLabel>Payment method</FormFieldLabel>
+            {/* Fixed payment set. OptionChips renders it. */}
             <OptionChips
-              options={PAYMENT_METHODS.map((pm) => pm.value)}
+              options={PAYMENT_METHOD_IDS}
               value={selectedPayment}
-              onChange={(v) => setValue('paymentMethod', v)}
-              getLabel={(v) => PAYMENT_METHODS.find((pm) => pm.value === v)?.label ?? v}
+              onChange={selectPaymentMethod}
+              getLabel={paymentMethodLabel}
               disabled={loading}
             />
-            <View style={{ marginTop: theme.spacing.lg }}>
+            <View style={styles.categoryBlock}>
               <FormFieldLabel>Category</FormFieldLabel>
               <Controller
                 control={control}
@@ -345,7 +261,7 @@ export function ExpenseDetailScreen() {
                 rules={{ required: ValidationMessages.categoryRequired }}
                 render={({ field: { onChange, value } }) => (
                   <OptionChipList
-                    items={(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined }))}
+                    items={categoryItems}
                     selectedId={value}
                     onSelect={onChange}
                     error={errors.categoryId?.message}
@@ -379,7 +295,7 @@ export function ExpenseDetailScreen() {
             onPrimary={handleSubmit(update)}
             primaryLoading={updating}
             secondaryTitle="Cancel"
-            onSecondary={() => setEditing(false)}
+            onSecondary={cancelEditing}
           />
         </>
       )}

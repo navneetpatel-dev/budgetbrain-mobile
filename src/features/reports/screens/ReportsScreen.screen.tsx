@@ -3,12 +3,12 @@ import { StyleSheet, View, Text, ScrollView, Pressable, ActivityIndicator } from
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppHeaderBar, DateInput } from '@/shared/components/ui';
-import { AppIcon } from '@/features/navigation/components/AppIcon';
-import { useExportReports } from '@/features/reports/hooks/useExportReports';
+import { AppIcon } from '@/features/navigation/components/AppIcon.component';
+import { useExportReports } from '@/features/reports/hooks/useExportReports.hook';
 import { useEntitlement, PaywallModal } from '@/features/subscriptions';
 import { DateBounds } from '@/shared/utils/dateBounds';
 import { useTheme } from '@/shared/theme';
-import { useBottomSafeInset } from '@/shared/hooks/useLayout';
+import { useBottomSafeInset } from '@/shared/hooks/useLayout.hook';
 import { createStyles } from './ReportsScreen.styles';
 
 export function ReportsScreen() {

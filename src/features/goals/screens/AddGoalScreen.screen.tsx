@@ -10,9 +10,9 @@ import {
   FormErrorBanner,
   FormSuccessBanner,
 } from '@/shared/components/ui';
-import { useCreateGoal, type GoalForm } from '@/features/goals/hooks/useCreateGoal';
+import { useCreateGoal, type GoalForm } from '@/features/goals/hooks/useCreateGoal.hook';
 import { GOAL_TYPES } from '@/shared/constants/config';
-import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
+import { useUserCurrency } from '@/shared/hooks/useUserCurrency.hook';
 import { amountRules, maxLen, optionalDateRules, textRules } from '@/shared/validation/fieldLimits';
 import { DateBounds } from '@/shared/utils/dateBounds';
 

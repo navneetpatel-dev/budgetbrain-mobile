@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useLocalSearchParams } from 'expo-router';
-import type { AppIconName } from '@/features/navigation/components/AppIcon';
-import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
-import { useCreateExpense, type ExpenseForm } from '@/features/expenses/hooks/useCreateExpense';
-import { useReceiptPicker } from '@/features/expenses/hooks/useReceiptPicker';
-import { useCategorySuggestion } from '@/features/expenses/hooks/useCategorySuggestion';
-import { useExpenseTagSuggestions } from '@/features/expenses/hooks/useExpenseTagSuggestions';
+import type { AppIconName } from '@/features/navigation/components/AppIcon.component';
+import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions.hook';
+import { useCreateExpense } from '@/features/expenses/hooks/useCreateExpense.hook';
+import { useReceiptPicker } from '@/features/expenses/hooks/useReceiptPicker.hook';
+import { useCategorySuggestion } from '@/features/expenses/hooks/useCategorySuggestion.hook';
+import { useExpenseTagSuggestions } from '@/features/expenses/hooks/useExpenseTagSuggestions.hook';
+import type { ExpenseForm } from '@/features/expenses/types/expenses.types';
 import { useTheme } from '@/shared/theme';
 import { toIsoDate } from '@/shared/utils/dateBounds';
 
@@ -82,6 +83,17 @@ export function useAddExpenseForm() {
   const selectMerchantSuggestion = (merchant: string) => {
     setValue('merchant', merchant);
     void onMerchantBlur(merchant);
+  };
+
+  const cycleCurrency = () => setCurrencyIndex((prev) => (prev + 1) % CURRENCIES.length);
+  const toggleDatePicker = () => setShowDatePicker((prev) => !prev);
+  const addTen = () => handleAddAmount(10);
+  const addTwentyFive = () => handleAddAmount(25);
+  const addFifty = () => handleAddAmount(50);
+  const addOneHundred = () => handleAddAmount(100);
+  const blurMerchantField = (onBlur: () => void, value: string) => {
+    onBlur();
+    void onMerchantBlur(value);
   };
 
   useEffect(() => {
@@ -183,7 +195,13 @@ export function useAddExpenseForm() {
     currentTags,
     onMerchantBlur,
     selectMerchantSuggestion,
-    handleAddAmount,
+    cycleCurrency,
+    toggleDatePicker,
+    addTen,
+    addTwentyFive,
+    addFifty,
+    addOneHundred,
+    blurMerchantField,
     handleRoundUp,
     handleToggleTag,
     onSubmit,

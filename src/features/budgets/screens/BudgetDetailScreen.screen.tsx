@@ -18,11 +18,11 @@ import {
   FormSuccessBanner,
   useStackBack,
 } from '@/shared/components/ui';
-import { useBudgetDetail, type BudgetForm } from '@/features/budgets/hooks/useBudgetDetail';
-import { useDeleteBudget } from '@/features/budgets/hooks/useDeleteBudget';
+import { useBudgetDetail, type BudgetForm } from '@/features/budgets/hooks/useBudgetDetail.hook';
+import { useDeleteBudget } from '@/features/budgets/hooks/useDeleteBudget.hook';
 import { confirmDeleteBudget } from '@/features/budgets/services/confirmations';
 import { useTheme } from '@/shared/theme';
-import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
+import { useUserCurrency } from '@/shared/hooks/useUserCurrency.hook';
 import { formatCurrency } from '@/shared/utils/currency';
 import { alertThresholdRules, amountRules, maxLen, textRules } from '@/shared/validation/fieldLimits';
 import { showAlert } from '@/shared/utils/confirmations';

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
+import { usePaginatedList } from '@/shared/hooks/usePaginatedList.hook';
 import type { FilterChipItem } from '@/shared/components/ui';
 import type { Goal } from '@/shared/types';
 

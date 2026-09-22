@@ -2,8 +2,8 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import type { FilterChipItem } from '@/shared/components/ui';
-import { useInfinitePaginatedList, usePaginatedList } from '@/shared/hooks/usePaginatedList';
-import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
+import { useInfinitePaginatedList, usePaginatedList } from '@/shared/hooks/usePaginatedList.hook';
+import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions.hook';
 import { useTheme } from '@/shared/theme';
 import type { IncomeSource, Transaction } from '@/shared/types';
 import {

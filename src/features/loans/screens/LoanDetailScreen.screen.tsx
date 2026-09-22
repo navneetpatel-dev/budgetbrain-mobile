@@ -18,7 +18,7 @@ import {
   FormSuccessBanner,
   useStackBack,
 } from '@/shared/components/ui';
-import { useLoanDetail, type LoanEditForm } from '@/features/loans/hooks/useLoanDetail';
+import { useLoanDetail, type LoanEditForm } from '@/features/loans/hooks/useLoanDetail.hook';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
 import { maxLen, optionalTextRules, textRules } from '@/shared/validation/fieldLimits';

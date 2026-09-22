@@ -3,13 +3,13 @@ import { useForm } from 'react-hook-form';
 import { useAppDispatch, useAppSelector } from '@/shared/store/hooks';
 import { setAppLockPin } from '@/shared/store/settingsSlice';
 import { getStoredAppLockPin } from '@/shared/services/secureStorage';
-import { useBiometricToggle } from './useBiometricToggle';
-import { useDigestPreference } from './useDigestPreference';
-import { useDeleteAccount } from './useDeleteAccount';
-import { useEditProfile, type ProfileForm } from './useEditProfile';
-import { useLogout } from './useLogout';
-import { usePushTest } from './usePushTest';
-import { useSyncedPreferences } from './useSyncedPreferences';
+import { useBiometricToggle } from './useBiometricToggle.hook';
+import { useDigestPreference } from './useDigestPreference.hook';
+import { useDeleteAccount } from './useDeleteAccount.hook';
+import { useEditProfile, type ProfileForm } from './useEditProfile.hook';
+import { useLogout } from './useLogout.hook';
+import { usePushTest } from './usePushTest.hook';
+import { useSyncedPreferences } from './useSyncedPreferences.hook';
 
 export function useSettingsScreen() {
   const user = useAppSelector((s) => s.auth.user);

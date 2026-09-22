@@ -1,1 +1,1 @@
-export { OtpLoginScreen as default } from '@/features/auth/screens/OtpLoginScreen';
+export { OtpLoginScreen as default } from '@/features/auth/screens/OtpLoginScreen.screen';

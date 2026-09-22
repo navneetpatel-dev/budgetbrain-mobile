@@ -1,1 +1,1 @@
-export { AiScreen as default } from '@/features/ai/screens/AiScreen';
+export { AiScreen as default } from '@/features/ai/screens/AiScreen.screen';

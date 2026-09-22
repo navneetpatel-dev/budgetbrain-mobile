@@ -11,7 +11,7 @@ import { apiPost } from './api';
 import { queryClient } from './queryClient';
 import { invalidateMoneyQueries } from './queryInvalidation';
 import { queuePendingReceiptUpload, takePendingReceiptUpload } from './pendingReceipts';
-import { uploadReceipt } from '@/features/expenses/services/receipts';
+import { uploadReceipt } from '@/features/expenses/api/receipts.api';
 
 interface SyncItemResult {
   id: string;

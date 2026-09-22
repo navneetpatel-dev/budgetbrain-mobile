@@ -4,7 +4,7 @@ import { useFocusEffect } from 'expo-router';
 import { apiGet } from '@/shared/services/api';
 import { useAppSelector } from '@/shared/store/hooks';
 import { formatCurrency } from '@/shared/utils/currency';
-import { useDashboardWidgets } from './useDashboardWidgets';
+import { useDashboardWidgets } from './useDashboardWidgets.hook';
 import type { DashboardData } from '@/shared/types';
 
 interface NetWorthSummary {

@@ -1,7 +1,7 @@
 import { Link } from 'expo-router';
 import { StyleSheet, Text } from 'react-native';
 import { FeatureHeader, StackScrollScreen } from '@/shared/components/ui';
-import { useThemedStyles } from '@/shared/hooks/useThemedStyles';
+import { useThemedStyles } from '@/shared/hooks/useThemedStyles.hook';
 import type { AppTheme } from '@/shared/theme';
 
 export default function NotFoundScreen() {

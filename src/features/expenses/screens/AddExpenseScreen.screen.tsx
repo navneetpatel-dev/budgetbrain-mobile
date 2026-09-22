@@ -3,9 +3,9 @@ import { View, Text, TextInput, Pressable, ScrollView, Image, ActivityIndicator 
 import { LinearGradient } from 'expo-linear-gradient';
 import { Controller } from 'react-hook-form';
 import { AppHeaderBar, DateInput, ToggleSwitch, FormErrorBanner, FormSuccessBanner } from '@/shared/components/ui';
-import { AppIcon } from '@/features/navigation/components/AppIcon';
+import { AppIcon } from '@/features/navigation/components/AppIcon.component';
 import { useTheme } from '@/shared/theme';
-import { useBottomSafeInset } from '@/shared/hooks/useLayout';
+import { useBottomSafeInset } from '@/shared/hooks/useLayout.hook';
 import { amountRules, textRules, maxLen } from '@/shared/validation/fieldLimits';
 import { DateBounds } from '@/shared/utils/dateBounds';
 import {
@@ -14,7 +14,7 @@ import {
   DEFAULT_TAG_PRESETS,
   PAYMENT_METHODS,
 } from '@/features/expenses/hooks/useAddExpenseForm.hook';
-import { createStyles } from './AddExpenseScreen.styles';
+import { categoryIconTint, createStyles, scrollBottomInset } from './AddExpenseScreen.styles';
 
 export function AddExpenseScreen() {
   const theme = useTheme();
@@ -33,17 +33,20 @@ export function AddExpenseScreen() {
     clear,
     suggestedCategoryId,
     currencyIndex,
-    setCurrencyIndex,
+    cycleCurrency,
     splitWithFamily,
     setSplitWithFamily,
     showDatePicker,
-    setShowDatePicker,
+    toggleDatePicker,
+    addTen,
+    addTwentyFive,
+    addFifty,
+    addOneHundred,
+    blurMerchantField,
     currentCategoryId,
     currentDate,
     currentTags,
-    onMerchantBlur,
     selectMerchantSuggestion,
-    handleAddAmount,
     handleRoundUp,
     handleToggleTag,
     onSubmit,
@@ -59,7 +62,7 @@ export function AddExpenseScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: bottomSafe + theme.spacing.lg },
+          scrollBottomInset(bottomSafe, theme.spacing.lg),
         ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
@@ -83,7 +86,7 @@ export function AddExpenseScreen() {
 
             <Pressable
               onPress={pick}
-              style={({ pressed }) => [styles.scanReceiptBtn, pressed && { opacity: 0.85 }]}
+              style={({ pressed }) => [styles.scanReceiptBtn, pressed && styles.pressedFade]}
               accessibilityRole="button"
               accessibilityLabel="Scan Receipt"
             >
@@ -101,7 +104,7 @@ export function AddExpenseScreen() {
           {/* Currency Toggle Pill */}
           <View style={styles.amountTopRow}>
             <Pressable
-              onPress={() => setCurrencyIndex((prev) => (prev + 1) % 4)}
+              onPress={cycleCurrency}
               style={styles.currencyTogglePill}
               accessibilityRole="button"
               accessibilityLabel="Change Currency"
@@ -140,25 +143,25 @@ export function AddExpenseScreen() {
           {/* Quick Increment Presets */}
           <View style={styles.presetChipsRow}>
             <Pressable
-              onPress={() => handleAddAmount(10)}
+              onPress={addTen}
               style={({ pressed }) => [styles.presetChip, pressed && styles.presetPressed]}
             >
               <Text style={styles.presetText}>+$10</Text>
             </Pressable>
             <Pressable
-              onPress={() => handleAddAmount(25)}
+              onPress={addTwentyFive}
               style={({ pressed }) => [styles.presetChip, pressed && styles.presetPressed]}
             >
               <Text style={styles.presetText}>+$25</Text>
             </Pressable>
             <Pressable
-              onPress={() => handleAddAmount(50)}
+              onPress={addFifty}
               style={({ pressed }) => [styles.presetChip, pressed && styles.presetPressed]}
             >
               <Text style={styles.presetText}>+$50</Text>
             </Pressable>
             <Pressable
-              onPress={() => handleAddAmount(100)}
+              onPress={addOneHundred}
               style={({ pressed }) => [styles.presetChip, pressed && styles.presetPressed]}
             >
               <Text style={styles.presetText}>+$100</Text>
@@ -186,21 +189,21 @@ export function AddExpenseScreen() {
               control={control}
               name="merchant"
               rules={textRules('merchant')}
-              render={({ field: { onChange, onBlur, value } }) => (
+              render={({ field: { onChange, onBlur, value } }) => {
+                const blurMerchant = () => blurMerchantField(onBlur, value);
+                return (
                 <TextInput
                   style={styles.merchantInput}
                   placeholder="e.g. Starbucks, Target, Uber"
                   placeholderTextColor={theme.colors.textTertiary}
                   value={value}
                   onChangeText={onChange}
-                  onBlur={() => {
-                    onBlur();
-                    void onMerchantBlur(value);
-                  }}
+                  onBlur={blurMerchant}
                   maxLength={maxLen('merchant')}
                   editable={!disabled}
                 />
-              )}
+                );
+              }}
             />
           </View>
           {errors.merchant?.message ? (
@@ -208,12 +211,13 @@ export function AddExpenseScreen() {
           ) : null}
 
           {/* Suggested Merchant Rail */}
+          {/* Fixed merchant set of 5. Horizontal rail, not a growing list. */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.merchantRail}>
             {MERCHANT_SUGGESTIONS.map((merchant) => (
               <Pressable
                 key={merchant}
                 onPress={() => selectMerchantSuggestion(merchant)}
-                style={({ pressed }) => [styles.merchantChip, pressed && { opacity: 0.8 }]}
+                style={({ pressed }) => [styles.merchantChip, pressed && styles.pressedChip]}
               >
                 <Text style={styles.merchantChipText}>{merchant}</Text>
               </Pressable>
@@ -230,6 +234,7 @@ export function AddExpenseScreen() {
             ) : null}
           </View>
 
+          {/* Fixed 4x2 category grid, capped at 8 tiles. */}
           <Controller
             control={control}
             name="categoryId"
@@ -245,15 +250,12 @@ export function AddExpenseScreen() {
                       style={({ pressed }) => [
                         styles.categoryTile,
                         isSelected && styles.categoryTileSelected,
-                        pressed && { transform: [{ scale: 0.96 }] },
+                        pressed && styles.tilePressed,
                       ]}
                       accessibilityRole="button"
                     >
                       <View
-                        style={[
-                          styles.catIconCircle,
-                          { backgroundColor: cat.color + '22' },
-                        ]}
+                        style={[styles.catIconCircle, categoryIconTint(cat.color)]}
                       >
                         <AppIcon name={cat.icon} size={18} color={cat.color} />
                       </View>
@@ -274,6 +276,7 @@ export function AddExpenseScreen() {
         {/* Payment Method Selector (4 segmented cards) */}
         <View style={styles.sectionWrap}>
           <Text style={styles.sectionEyebrow}>Payment Method</Text>
+          {/* Fixed payment methods, four tiles. */}
           <Controller
             control={control}
             name="paymentMethod"
@@ -319,7 +322,7 @@ export function AddExpenseScreen() {
               </View>
             </View>
             <Pressable
-              onPress={() => setShowDatePicker((prev) => !prev)}
+              onPress={toggleDatePicker}
               style={styles.changeActionBtn}
             >
               <Text style={styles.changeActionText}>
@@ -422,6 +425,7 @@ export function AddExpenseScreen() {
             />
 
             {/* Quick Tag Chips */}
+            {/* Fixed preset tags. */}
             <View style={styles.tagChipsRow}>
               {DEFAULT_TAG_PRESETS.map((tag) => {
                 const clean = tag.slice(1);
@@ -444,7 +448,7 @@ export function AddExpenseScreen() {
         </View>
 
         {/* Sticky Save Button */}
-        <View style={[styles.saveBtnWrap, { paddingBottom: theme.spacing.sm }]}>
+        <View style={styles.saveBtnWrap}>
           <Pressable
             onPress={handleSubmit(onSubmit)}
             disabled={disabled}

@@ -32,6 +32,7 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
       borderWidth: 0,
       backgroundColor: 'transparent',
     },
+    moreChipPressed: { opacity: 0.85 },
     moreChipText: {
       fontSize: 13,
       fontWeight: '600',

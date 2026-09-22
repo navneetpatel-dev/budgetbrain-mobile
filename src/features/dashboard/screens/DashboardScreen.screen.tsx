@@ -14,11 +14,11 @@ import {
   StreakBanner,
   AppHeaderBar,
 } from '@/shared/components/ui';
-import { AppIcon } from '@/features/navigation/components/AppIcon';
-import { TransactionItem, TransactionGroup } from '@/features/expenses/components/TransactionItem';
-import { CategoryChart } from '@/features/dashboard/components/CategoryChart';
-import { SpendingTrendChart } from '@/features/dashboard/components/SpendingTrendChart';
-import { DashboardHero } from '@/features/dashboard/components/DashboardHero';
+import { AppIcon } from '@/features/navigation/components/AppIcon.component';
+import { TransactionItem, TransactionGroup } from '@/features/expenses/components/TransactionItem.component';
+import { CategoryChart } from '@/features/dashboard/components/CategoryChart.component';
+import { SpendingTrendChart } from '@/features/dashboard/components/SpendingTrendChart.component';
+import { DashboardHero } from '@/features/dashboard/components/DashboardHero.component';
 import { useDashboardScreen } from '@/features/dashboard/hooks/useDashboardScreen.hook';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';

@@ -10,8 +10,8 @@ import {
   FormErrorBanner,
   FormSuccessBanner,
 } from '@/shared/components/ui';
-import { useCreateLoan, type LoanForm } from '@/features/loans/hooks/useCreateLoan';
-import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
+import { useCreateLoan, type LoanForm } from '@/features/loans/hooks/useCreateLoan.hook';
+import { useUserCurrency } from '@/shared/hooks/useUserCurrency.hook';
 import { amountRules, dateRules, maxLen, optionalTextRules, textRules } from '@/shared/validation/fieldLimits';
 import { DateBounds, toIsoDate } from '@/shared/utils/dateBounds';
 

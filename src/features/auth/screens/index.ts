@@ -1,6 +1,6 @@
-export { LoginScreen } from './LoginScreen';
-export { RegisterScreen } from './RegisterScreen';
-export { OtpLoginScreen } from './OtpLoginScreen';
-export { ForgotPasswordScreen } from './ForgotPasswordScreen';
-export { ResetPasswordScreen } from './ResetPasswordScreen';
-export { VerifyEmailScreen } from './VerifyEmailScreen';
+export { LoginScreen } from './LoginScreen.screen';
+export { RegisterScreen } from './RegisterScreen.screen';
+export { OtpLoginScreen } from './OtpLoginScreen.screen';
+export { ForgotPasswordScreen } from './ForgotPasswordScreen.screen';
+export { ResetPasswordScreen } from './ResetPasswordScreen.screen';
+export { VerifyEmailScreen } from './VerifyEmailScreen.screen';

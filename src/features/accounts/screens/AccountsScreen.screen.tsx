@@ -14,11 +14,11 @@ import {
   FormActions,
   FormErrorBanner,
 } from '@/shared/components/ui';
-import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
-import { useFabBottom } from '@/shared/hooks/useFabBottom';
+import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader.component';
+import { useFabBottom } from '@/shared/hooks/useFabBottom.hook';
 import { useTheme } from '@/shared/theme';
-import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
-import { useAccounts, ACCOUNT_TYPES } from '@/features/accounts/hooks/useAccounts';
+import { useUserCurrency } from '@/shared/hooks/useUserCurrency.hook';
+import { useAccounts, ACCOUNT_TYPES } from '@/features/accounts/hooks/useAccounts.hook';
 import { last4Rules, maxLen, moneyValueRules, optionalTextRules, textRules } from '@/shared/validation/fieldLimits';
 import { createStyles } from './AccountsScreen.styles';
 

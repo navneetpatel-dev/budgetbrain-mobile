@@ -16,10 +16,10 @@ import {
   FormErrorBanner,
   FormSuccessBanner,
 } from '@/shared/components/ui';
-import { useIncomeDetail, type IncomeForm } from '@/features/income/hooks/useIncomeDetail';
-import { IncomeAllocationSection } from '@/features/income/components/IncomeAllocationSection';
+import { useIncomeDetail, type IncomeForm } from '@/features/income/hooks/useIncomeDetail.hook';
+import { IncomeAllocationSection } from '@/features/income/components/IncomeAllocationSection.component';
 import { useTheme } from '@/shared/theme';
-import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
+import { useUserCurrency } from '@/shared/hooks/useUserCurrency.hook';
 import { formatCurrency } from '@/shared/utils/currency';
 import { amountRules, dateRules, maxLen, optionalTextRules } from '@/shared/validation/fieldLimits';
 import { DateBounds } from '@/shared/utils/dateBounds';

@@ -16,13 +16,13 @@ import {
   EmptyState,
   ListRowsSkeleton,
 } from '@/shared/components/ui';
-import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
-import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
-import { useRecurringSeries, monthlyEquivalent } from '@/features/recurring/hooks/useRecurringSeries';
-import { useCreateRecurringSeries, type RecurringSeriesForm } from '@/features/recurring/hooks/useCreateRecurringSeries';
-import { useRecurringSeriesActions } from '@/features/recurring/hooks/useRecurringSeriesActions';
+import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader.component';
+import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions.hook';
+import { useRecurringSeries, monthlyEquivalent } from '@/features/recurring/hooks/useRecurringSeries.hook';
+import { useCreateRecurringSeries, type RecurringSeriesForm } from '@/features/recurring/hooks/useCreateRecurringSeries.hook';
+import { useRecurringSeriesActions } from '@/features/recurring/hooks/useRecurringSeriesActions.hook';
 import { useTheme } from '@/shared/theme';
-import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
+import { useUserCurrency } from '@/shared/hooks/useUserCurrency.hook';
 import { formatCurrency } from '@/shared/utils/currency';
 import { amountRules, dateRules, maxLen, textRules } from '@/shared/validation/fieldLimits';
 import { DateBounds, toIsoDate } from '@/shared/utils/dateBounds';

@@ -1,10 +1,10 @@
 import { RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { EmptyState, ListRowsSkeleton, StickyHeaderFlatScreen } from '@/shared/components/ui';
-import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
-import { LoanCard } from '@/features/loans/components/LoanCard';
-import { useDeleteLoan } from '@/features/loans/hooks/useDeleteLoan';
-import { usePaginatedList } from '@/shared/hooks/usePaginatedList';
+import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader.component';
+import { LoanCard } from '@/features/loans/components/LoanCard.component';
+import { useDeleteLoan } from '@/features/loans/hooks/useDeleteLoan.hook';
+import { usePaginatedList } from '@/shared/hooks/usePaginatedList.hook';
 import { CONFIRM } from '@/shared/constants/confirmations';
 import { showAlert, showConfirmation } from '@/shared/utils/confirmations';
 import { useTheme } from '@/shared/theme';

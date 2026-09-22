@@ -21,6 +21,7 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
       paddingVertical: 4,
       paddingRight: 8,
     },
+    clearBtnPressed: { opacity: 0.75 },
     clearText: {
       fontSize: 13,
       fontWeight: '600',
@@ -32,6 +33,7 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
       borderRadius: t.radii.full,
       backgroundColor: t.colors.primary,
     },
+    applyBtnPressed: { opacity: 0.88 },
     applyText: {
       fontSize: 13,
       fontWeight: '700',

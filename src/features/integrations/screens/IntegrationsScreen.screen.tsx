@@ -12,10 +12,10 @@ import {
   FormErrorBanner,
   ListRowsSkeleton,
 } from '@/shared/components/ui';
-import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader';
+import { ProfileStackHeader } from '@/features/settings/components/ProfileStackHeader.component';
 import { useTheme } from '@/shared/theme';
-import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
-import { useTransactionParsing } from '@/features/integrations/hooks/useTransactionParsing';
+import { useUserCurrency } from '@/shared/hooks/useUserCurrency.hook';
+import { useTransactionParsing } from '@/features/integrations/hooks/useTransactionParsing.hook';
 import { maxLen, textRules } from '@/shared/validation/fieldLimits';
 import { createStyles } from './IntegrationsScreen.styles';
 

@@ -1,6 +1,14 @@
 import { StyleSheet } from 'react-native';
 import type { useTheme } from '@/shared/theme';
 
+export function scrollBottomInset(bottomSafe: number, spacingLg: number) {
+  return { paddingBottom: bottomSafe + spacingLg };
+}
+
+export function categoryIconTint(color: string) {
+  return { backgroundColor: color + '22' };
+}
+
 export function createStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     screenWrapper: {
@@ -436,7 +444,11 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
     },
     saveBtnWrap: {
       paddingTop: 8,
+      paddingBottom: t.spacing.sm,
     },
+    pressedFade: { opacity: 0.85 },
+    pressedChip: { opacity: 0.8 },
+    tilePressed: { transform: [{ scale: 0.96 }] },
     savePressable: {
       width: '100%',
       borderRadius: t.radii.full,

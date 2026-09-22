@@ -1,9 +1,9 @@
-export { AuthShell } from './layout/AuthShell';
-export { AuthHeroHeader } from './layout/AuthHeroHeader';
-export { AuthFooter, AuthLink } from './ui/AuthFooter';
-export { AuthDivider } from './ui/AuthDivider';
-export { AuthInfoBanner } from './ui/AuthInfoBanner';
-export { AuthSuccessBanner } from './ui/AuthSuccessBanner';
-export { AuthErrorBanner } from './ui/AuthErrorBanner';
-export { SocialAuthButtons } from './ui/SocialAuthButtons';
-export { AuthFeatureTicker, AuthFeatureTickerRail } from './ui/AuthFeatureTicker';
+export { AuthShell } from './layout/AuthShell.component';
+export { AuthHeroHeader } from './layout/AuthHeroHeader.component';
+export { AuthFooter, AuthLink } from './ui/AuthFooter.component';
+export { AuthDivider } from './ui/AuthDivider.component';
+export { AuthInfoBanner } from './ui/AuthInfoBanner.component';
+export { AuthSuccessBanner } from './ui/AuthSuccessBanner.component';
+export { AuthErrorBanner } from './ui/AuthErrorBanner.component';
+export { SocialAuthButtons } from './ui/SocialAuthButtons.component';
+export { AuthFeatureTicker, AuthFeatureTickerRail } from './ui/AuthFeatureTicker.component';

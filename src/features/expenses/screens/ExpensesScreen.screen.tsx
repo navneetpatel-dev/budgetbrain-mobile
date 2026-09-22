@@ -2,8 +2,8 @@ import { useMemo } from 'react';
 import { RefreshControl, View, Text, Pressable, TextInput, FlatList } from 'react-native';
 import { useRouter } from 'expo-router';
 import { appHref } from '@/shared/utils/navigation';
-import { TransactionItem, TransactionGroup } from '@/features/expenses/components/TransactionItem';
-import { TransactionFilters } from '@/features/expenses/components/TransactionFilters';
+import { TransactionItem, TransactionGroup } from '@/features/expenses/components/TransactionItem.component';
+import { TransactionFilters } from '@/features/expenses/components/TransactionFilters.component';
 import {
   EmptyState,
   ListRowsSkeleton,
@@ -11,9 +11,9 @@ import {
   CashFlowHero,
   FilterChipsRail,
 } from '@/shared/components/ui';
-import { AppIcon } from '@/features/navigation/components/AppIcon';
+import { AppIcon } from '@/features/navigation/components/AppIcon.component';
 import { useTheme } from '@/shared/theme';
-import { useTabBarInset } from '@/shared/hooks/useTabBarInset';
+import { useTabBarInset } from '@/shared/hooks/useTabBarInset.hook';
 import { useExpensesScreen } from '@/features/expenses/hooks/useExpensesScreen.hook';
 import { createStyles } from './ExpensesScreen.styles';
 

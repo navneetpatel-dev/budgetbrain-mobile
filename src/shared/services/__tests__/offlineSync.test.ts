@@ -22,7 +22,7 @@ jest.mock('../api', () => ({
 }));
 
 const mockUploadReceipt = jest.fn<AnyFn>();
-jest.mock('@/features/expenses/services/receipts', () => ({
+jest.mock('@/features/expenses/api/receipts.api', () => ({
   uploadReceipt: (...args: unknown[]) => mockUploadReceipt(...args),
 }));
 

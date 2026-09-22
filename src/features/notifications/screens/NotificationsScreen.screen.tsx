@@ -2,10 +2,10 @@ import { useMemo, useState } from 'react';
 import { Text, RefreshControl, View, FlatList, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { EmptyState, ListRowsSkeleton, AppHeaderBar, FilterChipsRail, type FilterChipItem } from '@/shared/components/ui';
-import { AppIcon } from '@/features/navigation/components/AppIcon';
+import { AppIcon } from '@/features/navigation/components/AppIcon.component';
 import { useTheme } from '@/shared/theme';
-import { useMarkNotificationRead } from '@/features/notifications/hooks/useMarkNotificationRead';
-import { useBottomSafeInset } from '@/shared/hooks/useLayout';
+import { useMarkNotificationRead } from '@/features/notifications/hooks/useMarkNotificationRead.hook';
+import { useBottomSafeInset } from '@/shared/hooks/useLayout.hook';
 import { createStyles } from './NotificationsScreen.styles';
 
 export function NotificationsScreen() {

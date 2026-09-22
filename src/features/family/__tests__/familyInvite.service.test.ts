@@ -9,7 +9,7 @@ import {
   sendFamilyInvite,
   acceptFamilyInviteRequest,
   resolveAcceptErrorMessage,
-} from '../services/familyInvite.service';
+} from '../api/familyInvite.api';
 
 describe('familyInvite.service', () => {
   beforeEach(() => {

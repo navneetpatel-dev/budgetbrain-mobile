@@ -6,8 +6,8 @@ import {
   Pressable,
 } from 'react-native';
 import { useTheme } from '@/shared/theme';
-import { AppIcon } from '@/features/navigation/components/AppIcon';
-import { useScreenInsets, useBottomSafeInset } from '@/shared/hooks/useLayout';
+import { AppIcon } from '@/features/navigation/components/AppIcon.component';
+import { useScreenInsets, useBottomSafeInset } from '@/shared/hooks/useLayout.hook';
 import {
   getStoredAppLockPin,
   setStoredAppLockPin,

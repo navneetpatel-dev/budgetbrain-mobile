@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Text, View, Switch } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import {
@@ -13,16 +14,18 @@ import {
   FormSuccessBanner,
 } from '@/shared/components/ui';
 import { useTheme } from '@/shared/theme';
-import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions';
-import { useCreateBudget, type BudgetForm } from '@/features/budgets/hooks/useCreateBudget';
-import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
+import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions.hook';
+import { useCreateBudget, type BudgetForm } from '@/features/budgets/hooks/useCreateBudget.hook';
+import { useUserCurrency } from '@/shared/hooks/useUserCurrency.hook';
 import { alertThresholdRules, amountRules, dateRules, maxLen, textRules, validateBoundedDate, ValidationMessages } from '@/shared/validation/fieldLimits';
 import { DateBounds, toIsoDate } from '@/shared/utils/dateBounds';
+import { createStyles } from './AddBudgetScreen.styles';
 
 const PERIODS = ['monthly', 'weekly', 'custom'] as const;
 
 export function AddBudgetScreen() {
   const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const { amountLabel } = useUserCurrency();
   const { create, loading, submitError, justSaved } = useCreateBudget();
   const disabled = loading || justSaved;
@@ -48,6 +51,13 @@ export function AddBudgetScreen() {
   const budgetType = watch('type');
   const startDateValue = watch('startDate');
   const endDateValue = watch('endDate');
+  const handlePeriodChange = (period: (typeof PERIODS)[number]) => {
+    setValue('type', period);
+    if (period !== 'custom') clearErrors('endDate');
+  };
+  const periodLabel = (period: (typeof PERIODS)[number]) =>
+    period === 'custom' ? 'Custom' : period.charAt(0).toUpperCase() + period.slice(1);
+  // OptionChipList hosts this category set.
   const categoryItems = [
     { id: '__all__', label: 'All spending' },
     ...(categories ?? []).map((cat) => ({ id: cat.id, label: cat.name, color: cat.color ?? undefined })),
@@ -71,11 +81,8 @@ export function AddBudgetScreen() {
         <OptionChips
           options={[...PERIODS]}
           value={budgetType}
-          onChange={(v) => {
-            setValue('type', v);
-            if (v !== 'custom') clearErrors('endDate');
-          }}
-          getLabel={(v) => (v === 'custom' ? 'Custom' : v.charAt(0).toUpperCase() + v.slice(1))}
+          onChange={handlePeriodChange}
+          getLabel={periodLabel}
           disabled={disabled}
         />
 
@@ -96,17 +103,18 @@ export function AddBudgetScreen() {
           rules={dateRules('budgetStart')}
           render={({ field: { onChange, value } }) => {
             const b = DateBounds.budgetStart(value);
+            const handleStartChange = (next: string) => {
+              onChange(next);
+              if (endDateValue && endDateValue < next) {
+                setValue('endDate', next);
+                clearErrors('endDate');
+              }
+            };
             return (
               <DateInput
                 label="Start date"
                 value={value}
-                onChange={(next) => {
-                  onChange(next);
-                  if (endDateValue && endDateValue < next) {
-                    setValue('endDate', next);
-                    clearErrors('endDate');
-                  }
-                }}
+                onChange={handleStartChange}
                 error={errors.startDate?.message}
                 disabled={disabled}
                 minimumDate={b.minimumDate}
@@ -153,10 +161,10 @@ export function AddBudgetScreen() {
         />
 
         {budgetType !== 'custom' ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: theme.spacing.lg }}>
-            <View style={{ flex: 1 }}>
-              <Text style={{ ...theme.typography.bodySemibold, color: theme.colors.text }}>Roll over unused amount</Text>
-              <Text style={{ ...theme.typography.caption, color: theme.colors.textTertiary, marginTop: theme.spacing.xs / 2 }}>
+          <View style={styles.rolloverRow}>
+            <View style={styles.rolloverCopy}>
+              <Text style={styles.rolloverTitle}>Roll over unused amount</Text>
+              <Text style={styles.rolloverCaption}>
                 {"Carry last period's leftover (or deficit) into this one"}
               </Text>
             </View>

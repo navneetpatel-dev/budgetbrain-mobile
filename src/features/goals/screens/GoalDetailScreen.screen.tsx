@@ -19,9 +19,9 @@ import {
   FormSuccessBanner,
   useStackBack,
 } from '@/shared/components/ui';
-import { useGoalDetail, type GoalForm } from '@/features/goals/hooks/useGoalDetail';
+import { useGoalDetail, type GoalForm } from '@/features/goals/hooks/useGoalDetail.hook';
 import { useTheme } from '@/shared/theme';
-import { useUserCurrency } from '@/shared/hooks/useUserCurrency';
+import { useUserCurrency } from '@/shared/hooks/useUserCurrency.hook';
 import { formatCurrency } from '@/shared/utils/currency';
 import { amountRules, maxLen, optionalDateRules, textRules } from '@/shared/validation/fieldLimits';
 import { DateBounds } from '@/shared/utils/dateBounds';
