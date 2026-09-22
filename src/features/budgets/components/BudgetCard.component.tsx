@@ -1,5 +1,6 @@
 import { memo, useMemo } from 'react';
 import { View, Text, Pressable } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { appHref } from '@/shared/utils/navigation';
 import { Card, ProgressBar } from '@/shared/components/ui';
@@ -8,6 +9,7 @@ import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
 import { toSafeNumber } from '@/shared/utils/number';
 import { confirmDeleteBudget } from '@/features/budgets/services/confirmations';
+import { useSpringPress } from '@/shared/hooks/useSpringPress.hook';
 import type { Budget } from '@/shared/types';
 import { createStyles } from './BudgetCard.styles';
 
@@ -23,6 +25,9 @@ export const BudgetCard = memo(function BudgetCard({
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
+  const adjustSpring = useSpringPress();
+  const editSpring = useSpringPress();
+  const deleteSpring = useSpringPress();
   const spent = budget.spent ?? 0;
   const effectiveLimit = budget.effectiveAmount ?? budget.amount;
   const rolloverAmount = budget.rolloverAmount ?? 0;
@@ -114,9 +119,13 @@ export const BudgetCard = memo(function BudgetCard({
             </View>
             <Pressable
               onPress={goToEdit}
-              style={({ pressed }) => [styles.adjustBtn, pressed && { opacity: 0.8 }]}
+              onPressIn={adjustSpring.onPressIn}
+              onPressOut={adjustSpring.onPressOut}
+              style={styles.adjustBtn}
             >
-              <Text style={styles.adjustBtnText}>Adjust</Text>
+              <Animated.View style={adjustSpring.style}>
+                <Text style={styles.adjustBtnText}>Adjust</Text>
+              </Animated.View>
             </Pressable>
           </View>
         ) : null}
@@ -145,21 +154,29 @@ export const BudgetCard = memo(function BudgetCard({
           <View style={styles.actions}>
             <Pressable
               onPress={goToEdit}
+              onPressIn={editSpring.onPressIn}
+              onPressOut={editSpring.onPressOut}
               hitSlop={8}
-              style={({ pressed }) => [styles.actionIconBtn, pressed && { opacity: 0.75 }]}
+              style={styles.actionIconBtn}
               accessibilityRole="button"
               accessibilityLabel={`Edit ${budget.name}`}
             >
-              <AppIcon name="edit" size={16} color={theme.colors.textTertiary} />
+              <Animated.View style={editSpring.style}>
+                <AppIcon name="edit" size={16} color={theme.colors.textTertiary} />
+              </Animated.View>
             </Pressable>
             <Pressable
               onPress={() => confirmDeleteBudget(budget.name, () => onDelete(budget.id))}
+              onPressIn={deleteSpring.onPressIn}
+              onPressOut={deleteSpring.onPressOut}
               hitSlop={8}
-              style={({ pressed }) => [styles.actionIconBtn, pressed && { opacity: 0.75 }]}
+              style={styles.actionIconBtn}
               accessibilityRole="button"
               accessibilityLabel={`Delete ${budget.name}`}
             >
-              <AppIcon name="trash" size={16} color={theme.colors.danger} />
+              <Animated.View style={deleteSpring.style}>
+                <AppIcon name="trash" size={16} color={theme.colors.danger} />
+              </Animated.View>
             </Pressable>
           </View>
         </View>

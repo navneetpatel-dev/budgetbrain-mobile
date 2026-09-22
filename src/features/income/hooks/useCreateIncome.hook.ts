@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { apiPost, getApiErrorMessage } from '@/shared/services/api';
@@ -44,6 +45,7 @@ export function useCreateIncome() {
       if (!online) {
         queueOfflineAction('create', payload, 'income');
         invalidateMoneyQueries(queryClient);
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setJustSaved(true);
         setTimeout(() => router.back(), SAVE_CONFIRM_DELAY_MS);
         return;
@@ -66,6 +68,7 @@ export function useCreateIncome() {
       });
 
       invalidateMoneyQueries(queryClient);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setJustSaved(true);
       setTimeout(() => router.back(), SAVE_CONFIRM_DELAY_MS);
     } catch (err) {
@@ -73,6 +76,7 @@ export function useCreateIncome() {
       if (isGenuineNetworkFailure) {
         queueOfflineAction('create', payload, 'income');
         invalidateMoneyQueries(queryClient);
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setJustSaved(true);
         setTimeout(() => router.back(), SAVE_CONFIRM_DELAY_MS);
         return;

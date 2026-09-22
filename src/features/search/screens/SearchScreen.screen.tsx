@@ -1,11 +1,12 @@
 import { useCallback, useState, useMemo } from 'react';
-import { Text, View, FlatList, Pressable, TextInput, type ListRenderItem } from 'react-native';
+import { Text, View, FlatList, Pressable, RefreshControl, TextInput, type ListRenderItem } from 'react-native';
 import { useRouter } from 'expo-router';
 import { appHref } from '@/shared/utils/navigation';
 import { AppHeaderBar, EmptyState, ListSkeleton, ListRowsSkeleton, FilterChipsRail, type FilterChipItem } from '@/shared/components/ui';
 import { AppIcon } from '@/features/navigation/components/AppIcon.component';
 import { TransactionItem, TransactionGroup } from '@/features/expenses/components/TransactionItem.component';
 import { useInfinitePaginatedList } from '@/shared/hooks/usePaginatedList.hook';
+import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue.hook';
 import { useTheme } from '@/shared/theme';
 import { useFabBottom } from '@/shared/hooks/useFabBottom.hook';
 import type { Transaction } from '@/shared/types';
@@ -23,8 +24,11 @@ export function SearchScreen() {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [query, setQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'expense' | 'income'>('all');
+  // Raw `query` drives the TextInput so typing stays instant; the debounced value drives
+  // the network request so a fast typist doesn't fire one request per keystroke.
+  const debouncedQuery = useDebouncedValue(query, 300);
 
-  const enabled = query.trim().length >= FieldLimits.search.min;
+  const enabled = debouncedQuery.trim().length >= FieldLimits.search.min;
   const {
     items: results,
     total,
@@ -33,11 +37,12 @@ export function SearchScreen() {
     isRefetching,
     fetchNextPage,
     hasNextPage,
+    refetch,
   } = useInfinitePaginatedList<Transaction>({
-    queryKey: ['search', query],
+    queryKey: ['search', debouncedQuery],
     url: '/expenses/search',
     itemsKey: 'transactions',
-    params: { q: query },
+    params: { q: debouncedQuery },
     pageSize: 20,
     enabled,
   });
@@ -127,6 +132,7 @@ export function SearchScreen() {
           if (hasNextPage && !isFetchingNextPage) fetchNextPage();
         }}
         onEndReachedThreshold={0.4}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />}
         ListHeaderComponent={
           searching ? (
             <ListSkeleton count={6} variant="transaction" showHeader={false} safeAreaTop={false} />

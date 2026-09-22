@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { apiPost, getApiErrorMessage } from '@/shared/services/api';
@@ -59,6 +60,7 @@ export function useCreateBudget() {
       if (!(await isOnline())) {
         queueOfflineAction('create', payload, 'budget');
         invalidateBudgetQueries(queryClient);
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setJustSaved(true);
         setTimeout(() => router.back(), SAVE_CONFIRM_DELAY_MS);
         return;
@@ -66,6 +68,7 @@ export function useCreateBudget() {
 
       await apiPost<Budget>('/budgets', payload);
       invalidateBudgetQueries(queryClient);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setJustSaved(true);
       setTimeout(() => router.back(), SAVE_CONFIRM_DELAY_MS);
     } catch (err) {
@@ -73,6 +76,7 @@ export function useCreateBudget() {
       if (isGenuineNetworkFailure) {
         queueOfflineAction('create', payload, 'budget');
         invalidateBudgetQueries(queryClient);
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setJustSaved(true);
         setTimeout(() => router.back(), SAVE_CONFIRM_DELAY_MS);
         return;

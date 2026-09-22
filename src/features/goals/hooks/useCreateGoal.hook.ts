@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { apiPost, getApiErrorMessage } from '@/shared/services/api';
@@ -37,6 +38,7 @@ export function useCreateGoal() {
       if (!(await isOnline())) {
         queueOfflineAction('create', payload, 'goal');
         invalidateGoalQueries(queryClient);
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setJustSaved(true);
         setTimeout(() => router.back(), SAVE_CONFIRM_DELAY_MS);
         return;
@@ -44,6 +46,7 @@ export function useCreateGoal() {
 
       await apiPost<Goal>('/goals', payload);
       invalidateGoalQueries(queryClient);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setJustSaved(true);
       setTimeout(() => router.back(), SAVE_CONFIRM_DELAY_MS);
     } catch (err) {
@@ -51,6 +54,7 @@ export function useCreateGoal() {
       if (isGenuineNetworkFailure) {
         queueOfflineAction('create', payload, 'goal');
         invalidateGoalQueries(queryClient);
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setJustSaved(true);
         setTimeout(() => router.back(), SAVE_CONFIRM_DELAY_MS);
         return;

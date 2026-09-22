@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon.component';
 import { ActionSheet } from '@/shared/components/ui/ActionSheet.component';
 import { useTheme } from '@/shared/theme';
@@ -91,6 +92,7 @@ export function CustomTabBar({ state, navigation }: CustomTabBarProps) {
     const isFocused = state.routes[state.index]?.name === routeName;
     const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
     if (!isFocused && !event.defaultPrevented) {
+      void Haptics.selectionAsync();
       navigation.navigate(routeName);
     }
   };
@@ -113,7 +115,10 @@ export function CustomTabBar({ state, navigation }: CustomTabBarProps) {
           </View>
 
           <Pressable
-            onPress={() => setSheetOpen(true)}
+            onPress={() => {
+              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setSheetOpen(true);
+            }}
             style={({ pressed }) => [styles.fab, pressed && { transform: [{ scale: 0.94 }] }]}
             accessibilityRole="button"
             accessibilityLabel="Create"

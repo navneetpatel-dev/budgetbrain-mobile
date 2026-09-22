@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { RefreshControl, View, Pressable, Text } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { Controller } from 'react-hook-form';
 import {
   Input,
@@ -92,7 +93,10 @@ export function CategoriesScreen() {
             <>
               {dragProps && (
                 <Pressable
-                  onLongPress={dragProps.drag}
+                  onLongPress={() => {
+                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    dragProps.drag();
+                  }}
                   disabled={dragProps.isActive}
                   style={({ pressed }) => [styles.iconBtn, pressed && styles.iconBtnPressed]}
                   accessibilityRole="button"
@@ -242,7 +246,10 @@ export function CategoriesScreen() {
             header={header}
             data={isLoading ? [] : items}
             keyExtractor={keyExtractor}
-            onDragEnd={({ data: reordered }) => void reorderAll(reordered)}
+            onDragEnd={({ data: reordered }) => {
+              void Haptics.selectionAsync();
+              void reorderAll(reordered);
+            }}
             contentContainerStyle={{ paddingBottom: fabBottom + 72 }}
             refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />}
             ListHeaderComponent={listHeader}

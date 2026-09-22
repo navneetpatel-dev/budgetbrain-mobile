@@ -6,6 +6,8 @@ import {
   ScrollViewProps,
   ViewStyle,
   RefreshControl,
+  KeyboardAvoidingView,
+  Platform,
   type RefreshControlProps,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -71,7 +73,10 @@ export function ScreenWrapper({
   );
 
   return (
-    <View style={[{ flex: 1, backgroundColor: theme.colors.background }, style]}>
+    <KeyboardAvoidingView
+      style={[{ flex: 1, backgroundColor: theme.colors.background }, style]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       {header}
       {scroll ? (
         <ScrollView
@@ -89,7 +94,7 @@ export function ScreenWrapper({
           {children}
         </View>
       )}
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

@@ -72,6 +72,7 @@ export function BackButton({
   return (
     <Pressable
       onPress={onPress ?? stackBack}
+      hitSlop={compact ? 8 : undefined}
       style={({ pressed }) => [
         styles.backBtn,
         compact && styles.backBtnCompact,
@@ -133,6 +134,7 @@ export function StackNavHeader({
         {onAction && actionIcon ? (
           <Pressable
             onPress={onAction}
+            hitSlop={8}
             style={({ pressed }) => [styles.actionBtn, pressed && { opacity: 0.85 }]}
             accessibilityRole="button"
             accessibilityLabel={actionLabel ?? 'Action'}

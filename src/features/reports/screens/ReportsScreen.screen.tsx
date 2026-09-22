@@ -17,10 +17,10 @@ export function ReportsScreen() {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const bottomSafe = useBottomSafeInset();
   const { isEntitled, paywallVisible, openPaywall, closePaywall } = useEntitlement();
-  const { startDate, setStartDate, endDate, setEndDate, loading, downloadCsv, downloadPdf, downloadExcel } = useExportReports();
+  const { startDate, setStartDate, endDate, setEndDate, loading, exportReport } = useExportReports();
 
   const handleDownloadCsv = () => {
-    downloadCsv();
+    void exportReport('csv');
   };
 
   const handleDownloadExcel = () => {
@@ -28,7 +28,7 @@ export function ReportsScreen() {
       openPaywall();
       return;
     }
-    downloadExcel();
+    void exportReport('excel');
   };
 
   const handleDownloadPdf = () => {
@@ -36,7 +36,7 @@ export function ReportsScreen() {
       openPaywall();
       return;
     }
-    downloadPdf();
+    void exportReport('pdf');
   };
   const fromBounds = DateBounds.rangeFrom(endDate, startDate);
   const toBounds = DateBounds.rangeTo(startDate, endDate);

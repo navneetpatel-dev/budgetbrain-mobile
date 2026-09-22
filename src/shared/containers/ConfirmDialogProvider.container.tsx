@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import * as Haptics from 'expo-haptics';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog.component';
 import type { ConfirmCopy } from '@/shared/constants/confirmations';
 import { registerConfirmHandlers } from '@/shared/utils/confirmations';
@@ -17,6 +18,7 @@ export function ConfirmDialogProvider({ children }: { children: React.ReactNode 
     mounted.current = true;
     registerConfirmHandlers({
       showConfirmation: (copy, onConfirm) => {
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
         setPending({ ...copy, onConfirm, alertOnly: false });
       },
       showAlert: (title, message) => {

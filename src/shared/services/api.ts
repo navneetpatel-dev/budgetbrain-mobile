@@ -246,26 +246,3 @@ export function getApiErrorMessage(err: unknown, fallback = 'Something went wron
   if (err instanceof Error) return err.message;
   return fallback;
 }
-
-export async function apiDownloadText(url: string, params?: Record<string, string>): Promise<string> {
-  const token = await getAccessToken();
-  const search = params ? `?${new URLSearchParams(params).toString()}` : '';
-  const response = await fetch(`${API_BASE_URL}${url}${search}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
-  if (!response.ok) throw new Error('Download failed');
-  return response.text();
-}
-
-export async function apiDownloadBinary(
-  url: string,
-  params?: Record<string, string>
-): Promise<ArrayBuffer> {
-  const token = await getAccessToken();
-  const search = params ? `?${new URLSearchParams(params).toString()}` : '';
-  const response = await fetch(`${API_BASE_URL}${url}${search}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
-  if (!response.ok) throw new Error('Download failed');
-  return response.arrayBuffer();
-}

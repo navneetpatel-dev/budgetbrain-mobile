@@ -1,5 +1,6 @@
 import { memo, useMemo } from 'react';
 import { StyleSheet, View, Text, Pressable } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { appHref } from '@/shared/utils/navigation';
@@ -8,6 +9,7 @@ import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
 import { CONFIRM } from '@/shared/constants/confirmations';
 import { showConfirmation } from '@/shared/utils/confirmations';
+import { useSpringPress } from '@/shared/hooks/useSpringPress.hook';
 import type { Goal } from '@/shared/types';
 import { createStyles } from './GoalCard.styles';
 
@@ -23,6 +25,10 @@ export const GoalCard = memo(function GoalCard({
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
+  const cardSpring = useSpringPress(0.98);
+  const editSpring = useSpringPress();
+  const deleteSpring = useSpringPress();
+  const contributeSpring = useSpringPress();
   // Server-computed — do not derive from currentAmount/targetAmount client-side (MOBILE doc §12).
   const progress = goal.progressPercentage;
   const isCompleted = goal.completedAt != null;
@@ -39,7 +45,14 @@ export const GoalCard = memo(function GoalCard({
   }, [goal.targetDate]);
 
   return (
-    <View style={styles.card}>
+    <Pressable
+      onPress={openGoal}
+      onPressIn={cardSpring.onPressIn}
+      onPressOut={cardSpring.onPressOut}
+      accessibilityRole="button"
+      accessibilityLabel={`Open ${goal.name}`}
+    >
+    <Animated.View style={[styles.card, cardSpring.style]}>
       {/* Ambient gradient glow */}
       <LinearGradient
         colors={
@@ -89,21 +102,29 @@ export const GoalCard = memo(function GoalCard({
         <View style={styles.actions}>
           <Pressable
             onPress={openGoal}
+            onPressIn={editSpring.onPressIn}
+            onPressOut={editSpring.onPressOut}
             hitSlop={8}
-            style={({ pressed }) => [styles.actionBtn, pressed && styles.actionBtnPressed]}
+            style={styles.actionBtn}
             accessibilityRole="button"
             accessibilityLabel={`Edit ${goal.name}`}
           >
-            <AppIcon name="edit" size={16} color={theme.colors.textSecondary} />
+            <Animated.View style={editSpring.style}>
+              <AppIcon name="edit" size={16} color={theme.colors.textSecondary} />
+            </Animated.View>
           </Pressable>
           <Pressable
             onPress={() => showConfirmation(CONFIRM.deleteGoal, () => onDelete(goal.id))}
+            onPressIn={deleteSpring.onPressIn}
+            onPressOut={deleteSpring.onPressOut}
             hitSlop={8}
-            style={({ pressed }) => [styles.actionBtn, pressed && styles.actionBtnPressed]}
+            style={styles.actionBtn}
             accessibilityRole="button"
             accessibilityLabel={`Delete ${goal.name}`}
           >
-            <AppIcon name="trash" size={16} color={theme.colors.danger} />
+            <Animated.View style={deleteSpring.style}>
+              <AppIcon name="trash" size={16} color={theme.colors.danger} />
+            </Animated.View>
           </Pressable>
         </View>
       </View>
@@ -169,22 +190,27 @@ export const GoalCard = memo(function GoalCard({
         {!isCompleted ? (
           <Pressable
             onPress={contribute}
-            style={({ pressed }) => [styles.contributeBtn, pressed && { opacity: 0.85 }]}
+            onPressIn={contributeSpring.onPressIn}
+            onPressOut={contributeSpring.onPressOut}
+            style={styles.contributeBtn}
             accessibilityRole="button"
             accessibilityLabel={`Contribute to ${goal.name}`}
           >
-            <LinearGradient
-              colors={[theme.colors.primary + '25', theme.colors.secondary + '20']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.contributeGradient}
-            >
-              <AppIcon name="add" size={14} color={theme.colors.primary} />
-              <Text style={styles.contributeText}>Contribute</Text>
-            </LinearGradient>
+            <Animated.View style={contributeSpring.style}>
+              <LinearGradient
+                colors={[theme.colors.primary + '25', theme.colors.secondary + '20']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.contributeGradient}
+              >
+                <AppIcon name="add" size={14} color={theme.colors.primary} />
+                <Text style={styles.contributeText}>Contribute</Text>
+              </LinearGradient>
+            </Animated.View>
           </Pressable>
         ) : null}
       </View>
-    </View>
+    </Animated.View>
+    </Pressable>
   );
 });

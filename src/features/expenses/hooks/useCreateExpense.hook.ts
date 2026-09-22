@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { apiPost, getApiErrorMessage } from '@/shared/services/api';
@@ -81,6 +82,7 @@ export function useCreateExpense() {
 
       trackEvent('expense_created', { amount: payload.amount, hasReceipt: !!receipt });
       invalidateMoneyQueries(queryClient);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setJustSaved(true);
       setTimeout(() => router.back(), SAVE_CONFIRM_DELAY_MS);
       return { ok: true, offline: false };

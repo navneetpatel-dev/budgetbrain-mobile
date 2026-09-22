@@ -1,8 +1,10 @@
 import { useMemo } from 'react';
 import { Modal, ScrollView, View, Text, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/shared/theme';
 import { useScreenInsets, useBottomSafeInset } from '@/shared/hooks/useLayout.hook';
+import { useSheetEnterAnimation } from '@/shared/hooks/useSheetEnterAnimation.hook';
 import { AppIcon } from '@/features/navigation/components/AppIcon.component';
 import { createStyles } from './FormModal.styles';
 
@@ -25,6 +27,7 @@ export function FormModal({
   const bottomSafe = useBottomSafeInset();
   const { paddingHorizontal } = useScreenInsets();
   const styles = useMemo(() => createStyles(theme, bottomSafe), [theme, bottomSafe]);
+  const sheetAnim = useSheetEnterAnimation(visible, 'sheet');
 
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
@@ -33,6 +36,7 @@ export function FormModal({
           style={[styles.container, { marginHorizontal: paddingHorizontal, marginBottom: bottomSafe }]}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
+        <Animated.View style={sheetAnim}>
           <View style={styles.handleWrap}>
             <View style={styles.handle} />
           </View>
@@ -71,6 +75,7 @@ export function FormModal({
               {footer}
             </View>
           ) : null}
+        </Animated.View>
         </KeyboardAvoidingView>
       </View>
     </Modal>
