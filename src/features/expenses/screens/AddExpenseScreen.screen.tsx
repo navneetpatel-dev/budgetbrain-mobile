@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, Image, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, Pressable, ScrollView, ActivityIndicator } from 'react-native';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Controller } from 'react-hook-form';
 import { AppHeaderBar, DateInput, ToggleSwitch, FormErrorBanner, FormSuccessBanner } from '@/shared/components/ui';
@@ -393,7 +394,7 @@ export function AddExpenseScreen() {
               </View>
             </View>
             {receipt?.uri ? (
-              <Image source={{ uri: receipt.uri }} style={styles.receiptThumb} />
+              <Image source={{ uri: receipt.uri }} style={styles.receiptThumb} contentFit="cover" transition={150} />
             ) : (
               <AppIcon name="chevronRight" size={18} color={theme.colors.textTertiary} />
             )}

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { View, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppIcon } from '@/features/navigation/components/AppIcon.component';
@@ -7,7 +7,13 @@ import type { AiChatMessage } from '@/shared/types';
 import { AiRichReply } from './AiRichReply.component';
 import { createStyles, createTypingStyles } from './AiChatBubble.styles';
 
-export function AiChatBubble({ message }: { message: AiChatMessage }) {
+/**
+ * Memoized: useAiChat.hook.ts replaces only the last element of the `messages` array on
+ * every streamed token (see sendMessage's setMessages callback), so every earlier message
+ * object keeps the same reference across renders — without memo, all of them still
+ * re-rendered on every token because the parent (AiScreen) re-renders on each one.
+ */
+export const AiChatBubble = memo(function AiChatBubble({ message }: { message: AiChatMessage }) {
   const theme = useTheme();
   const isUser = message.role === 'user';
   const styles = useMemo(() => createStyles(theme, isUser), [theme, isUser]);
@@ -37,7 +43,7 @@ export function AiChatBubble({ message }: { message: AiChatMessage }) {
       </View>
     </View>
   );
-}
+});
 
 export function AiTypingIndicator() {
   const theme = useTheme();

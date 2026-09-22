@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { RefreshControl, Text, View } from 'react-native';
 import { Button, EmptyState, ListRowsSkeleton, StickyHeaderFlatScreen } from '@/shared/components/ui';
 import { AppIcon } from '@/features/navigation/components/AppIcon.component';
@@ -14,10 +14,38 @@ function formatLastActive(iso: string): string {
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 }
 
+function keyExtractor(item: AccountDevice) {
+  return item.id;
+}
+
 export function DevicesScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { devices, isLoading, isRefetching, refetch, confirmRevoke, revokingId } = useDevices();
+
+  const renderItem = useCallback(
+    ({ item }: { item: AccountDevice }) => (
+      <View style={styles.item}>
+        <View style={styles.itemRow}>
+          <View style={styles.itemIconWrap}>
+            <AppIcon name="devices" size={20} color={theme.colors.primary} />
+          </View>
+          <View style={styles.itemBody}>
+            <Text style={styles.itemName}>{item.deviceName ?? item.platform ?? 'Unknown device'}</Text>
+            <Text style={styles.itemMeta}>Last active {formatLastActive(item.lastActiveAt)}</Text>
+          </View>
+        </View>
+        <Button
+          title="Sign out"
+          onPress={() => confirmRevoke(item)}
+          variant="outline"
+          loading={revokingId === item.id}
+          disabled={revokingId === item.id}
+        />
+      </View>
+    ),
+    [styles, theme, confirmRevoke, revokingId]
+  );
 
   return (
     <View style={styles.root}>
@@ -30,7 +58,7 @@ export function DevicesScreen() {
           />
         }
         data={isLoading ? [] : devices}
-        keyExtractor={(item: AccountDevice) => item.id}
+        keyExtractor={keyExtractor}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />}
         ListEmptyComponent={
           isLoading ? (
@@ -39,26 +67,7 @@ export function DevicesScreen() {
             <EmptyState icon="devices" title="No devices" subtitle="Devices with an active session will appear here." />
           )
         }
-        renderItem={({ item }: { item: AccountDevice }) => (
-          <View style={styles.item}>
-            <View style={styles.itemRow}>
-              <View style={styles.itemIconWrap}>
-                <AppIcon name="devices" size={20} color={theme.colors.primary} />
-              </View>
-              <View style={styles.itemBody}>
-                <Text style={styles.itemName}>{item.deviceName ?? item.platform ?? 'Unknown device'}</Text>
-                <Text style={styles.itemMeta}>Last active {formatLastActive(item.lastActiveAt)}</Text>
-              </View>
-            </View>
-            <Button
-              title="Sign out"
-              onPress={() => confirmRevoke(item)}
-              variant="outline"
-              loading={revokingId === item.id}
-              disabled={revokingId === item.id}
-            />
-          </View>
-        )}
+        renderItem={renderItem}
       />
     </View>
   );

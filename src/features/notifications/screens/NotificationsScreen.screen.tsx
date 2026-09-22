@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Text, RefreshControl, View, FlatList, Pressable } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { Text, RefreshControl, View, FlatList, type ListRenderItem } from 'react-native';
 import { useRouter } from 'expo-router';
 import { EmptyState, ListRowsSkeleton, AppHeaderBar, FilterChipsRail, type FilterChipItem } from '@/shared/components/ui';
 import { AppIcon } from '@/features/navigation/components/AppIcon.component';
@@ -7,6 +7,11 @@ import { useTheme } from '@/shared/theme';
 import { useMarkNotificationRead } from '@/features/notifications/hooks/useMarkNotificationRead.hook';
 import { useBottomSafeInset } from '@/shared/hooks/useLayout.hook';
 import { createStyles } from './NotificationsScreen.styles';
+import type { NotificationItem } from '@/shared/types';
+
+function keyExtractor(item: NotificationItem) {
+  return item.id;
+}
 
 export function NotificationsScreen() {
   const theme = useTheme();
@@ -40,6 +45,50 @@ export function NotificationsScreen() {
     return items;
   }, [items, filter]);
 
+  const renderItem: ListRenderItem<NotificationItem> = useCallback(
+    ({ item }) => (
+      <View style={[styles.card, !item.read && styles.unreadCard]}>
+        <View style={styles.iconCol}>
+          <View
+            style={[
+              styles.iconPod,
+              {
+                backgroundColor: !item.read
+                  ? theme.colors.primary + '1F'
+                  : theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+              },
+            ]}
+          >
+            <AppIcon
+              name={item.title?.toLowerCase().includes('budget') ? 'budgets' : 'bell'}
+              size={16}
+              color={!item.read ? theme.colors.primary : theme.colors.textSecondary}
+            />
+          </View>
+        </View>
+
+        <View style={styles.contentCol}>
+          <View style={styles.titleRow}>
+            <Text style={[styles.title, !item.read && styles.unreadTitle]} numberOfLines={1}>
+              {item.title}
+            </Text>
+            {!item.read && <View style={styles.unreadDot} />}
+          </View>
+          <Text style={styles.body}>{item.body}</Text>
+          <Text style={styles.date}>
+            {new Date(item.sentAt).toLocaleDateString(undefined, {
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </Text>
+        </View>
+      </View>
+    ),
+    [styles, theme]
+  );
+
   return (
     <View style={styles.root}>
       <AppHeaderBar
@@ -51,7 +100,8 @@ export function NotificationsScreen() {
 
       <FlatList
         data={isLoading ? [] : filteredItems}
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
         contentContainerStyle={[styles.listContent, { paddingBottom: bottomSafe + theme.spacing.xl }]}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
@@ -85,46 +135,6 @@ export function NotificationsScreen() {
             />
           )
         }
-        renderItem={({ item }) => (
-          <View style={[styles.card, !item.read && styles.unreadCard]}>
-            <View style={styles.iconCol}>
-              <View
-                style={[
-                  styles.iconPod,
-                  {
-                    backgroundColor: !item.read
-                      ? theme.colors.primary + '1F'
-                      : theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
-                  },
-                ]}
-              >
-                <AppIcon
-                  name={item.title?.toLowerCase().includes('budget') ? 'budgets' : 'bell'}
-                  size={16}
-                  color={!item.read ? theme.colors.primary : theme.colors.textSecondary}
-                />
-              </View>
-            </View>
-
-            <View style={styles.contentCol}>
-              <View style={styles.titleRow}>
-                <Text style={[styles.title, !item.read && styles.unreadTitle]} numberOfLines={1}>
-                  {item.title}
-                </Text>
-                {!item.read && <View style={styles.unreadDot} />}
-              </View>
-              <Text style={styles.body}>{item.body}</Text>
-              <Text style={styles.date}>
-                {new Date(item.sentAt).toLocaleDateString(undefined, {
-                  month: 'short',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </Text>
-            </View>
-          </View>
-        )}
       />
     </View>
   );

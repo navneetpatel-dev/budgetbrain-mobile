@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Text, View, FlatList, Pressable, TextInput } from 'react-native';
+import { useCallback, useState, useMemo } from 'react';
+import { Text, View, FlatList, Pressable, TextInput, type ListRenderItem } from 'react-native';
 import { useRouter } from 'expo-router';
 import { appHref } from '@/shared/utils/navigation';
 import { AppHeaderBar, EmptyState, ListSkeleton, ListRowsSkeleton, FilterChipsRail, type FilterChipItem } from '@/shared/components/ui';
@@ -11,6 +11,10 @@ import { useFabBottom } from '@/shared/hooks/useFabBottom.hook';
 import type { Transaction } from '@/shared/types';
 import { FieldLimits, ValidationMessages, maxLen } from '@/shared/validation/fieldLimits';
 import { createStyles } from './SearchScreen.styles';
+
+function keyExtractor(item: Transaction) {
+  return item.id;
+}
 
 export function SearchScreen() {
   const theme = useTheme();
@@ -52,6 +56,21 @@ export function SearchScreen() {
     { id: 'expense', label: 'Expenses Only' },
     { id: 'income', label: 'Income Only' },
   ];
+
+  const renderItem: ListRenderItem<Transaction> = useCallback(
+    ({ item }) => (
+      <TransactionGroup>
+        <TransactionItem
+          transaction={item}
+          onPress={() => router.push(appHref(item.type === 'income' ? `/income/${item.id}` : `/expense/${item.id}`))}
+          showBadge
+          isFirst
+          isLast
+        />
+      </TransactionGroup>
+    ),
+    [router]
+  );
 
   return (
     <View style={styles.root}>
@@ -101,7 +120,8 @@ export function SearchScreen() {
 
       <FlatList
         data={enabled && !searching ? filteredResults : []}
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
         contentContainerStyle={[styles.listContent, { paddingBottom: fabBottom + 40 }]}
         onEndReached={() => {
           if (hasNextPage && !isFetchingNextPage) fetchNextPage();
@@ -129,21 +149,6 @@ export function SearchScreen() {
             <EmptyState icon="search" title="No results found" subtitle="Try checking for typos or searching a different term" />
           ) : null
         }
-        renderItem={({ item }) => (
-          <TransactionGroup>
-            <TransactionItem
-              transaction={item}
-              onPress={() =>
-                router.push(
-                  appHref(item.type === 'income' ? `/income/${item.id}` : `/expense/${item.id}`),
-                )
-              }
-              showBadge
-              isFirst
-              isLast
-            />
-          </TransactionGroup>
-        )}
       />
     </View>
   );

@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { RefreshControl, View, Text, Pressable, TextInput, FlatList } from 'react-native';
+import { useCallback, useMemo } from 'react';
+import { RefreshControl, View, Text, Pressable, TextInput, FlatList, type ListRenderItem } from 'react-native';
 import { useRouter } from 'expo-router';
 import { appHref } from '@/shared/utils/navigation';
 import { TransactionItem, TransactionGroup } from '@/features/expenses/components/TransactionItem.component';
@@ -16,6 +16,11 @@ import { useTheme } from '@/shared/theme';
 import { useTabBarInset } from '@/shared/hooks/useTabBarInset.hook';
 import { useExpensesScreen } from '@/features/expenses/hooks/useExpensesScreen.hook';
 import { createStyles } from './ExpensesScreen.styles';
+import type { Transaction } from '@/shared/types';
+
+function keyExtractor(item: Transaction) {
+  return item.id;
+}
 
 export function ExpensesScreen() {
   const router = useRouter();
@@ -52,13 +57,32 @@ export function ExpensesScreen() {
     filteredTransactions,
   } = useExpensesScreen();
 
+  const transactionsLength = filteredTransactions.length;
+  const renderItem: ListRenderItem<Transaction> = useCallback(
+    ({ item, index }) => (
+      <TransactionGroup>
+        <TransactionItem
+          transaction={item}
+          showBadge
+          onPress={() =>
+            router.push(appHref(item.type === 'income' ? `/income/${item.id}` : `/expense/${item.id}`))
+          }
+          isFirst={index === 0}
+          isLast={index === transactionsLength - 1}
+        />
+      </TransactionGroup>
+    ),
+    [router, transactionsLength]
+  );
+
   return (
     <View style={styles.screenWrapper}>
       <AppHeaderBar title="BudgetBrain" subtitle="Activity Feed" />
 
       <FlatList
         data={isLoading ? [] : filteredTransactions}
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
         contentContainerStyle={[styles.listContent, { paddingBottom: tabBarInset }]}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
@@ -202,21 +226,6 @@ export function ExpensesScreen() {
             />
           )
         }
-        renderItem={({ item, index }) => (
-          <TransactionGroup>
-            <TransactionItem
-              transaction={item}
-              showBadge
-              onPress={() =>
-                router.push(
-                  appHref(item.type === 'income' ? `/income/${item.id}` : `/expense/${item.id}`),
-                )
-              }
-              isFirst={index === 0}
-              isLast={index === filteredTransactions.length - 1}
-            />
-          </TransactionGroup>
-        )}
       />
     </View>
   );

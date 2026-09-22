@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { RefreshControl, View, Pressable, Text } from 'react-native';
 import { Controller } from 'react-hook-form';
 import {
@@ -21,6 +21,11 @@ import { useUserCurrency } from '@/shared/hooks/useUserCurrency.hook';
 import { useAccounts, ACCOUNT_TYPES } from '@/features/accounts/hooks/useAccounts.hook';
 import { last4Rules, maxLen, moneyValueRules, optionalTextRules, textRules } from '@/shared/validation/fieldLimits';
 import { createStyles } from './AccountsScreen.styles';
+import type { FinancialAccount } from '@/shared/types';
+
+function keyExtractor(item: FinancialAccount) {
+  return item.id;
+}
 
 export function AccountsScreen() {
   const theme = useTheme();
@@ -48,6 +53,21 @@ export function AccountsScreen() {
   } = useAccounts();
 
   const items = data ?? [];
+
+  const renderItem = useCallback(
+    ({ item }: { item: FinancialAccount }) => (
+      <Pressable onPress={() => openEdit(item)}>
+        <Card style={styles.item}>
+          <Text style={styles.itemName}>{item.name}</Text>
+          <Text style={styles.itemMeta}>{item.type.replace('_', ' ')} · {item.institution ?? '—'}</Text>
+          <Text style={[styles.itemAmount, item.type === 'credit_card' && styles.debt]}>
+            {format(Number(item.balance))}
+          </Text>
+        </Card>
+      </Pressable>
+    ),
+    [styles, openEdit, format]
+  );
 
   return (
     <View style={styles.root}>
@@ -122,7 +142,7 @@ export function AccountsScreen() {
           />
         }
         data={isLoading ? [] : items}
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractor}
         contentContainerStyle={{ paddingBottom: fabBottom + 72 }}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />}
         ListEmptyComponent={
@@ -132,17 +152,7 @@ export function AccountsScreen() {
             <EmptyState icon="wallet" title="No accounts" subtitle="Add bank accounts and wallets to track net worth" action="Add account" onAction={openCreate} />
           )
         }
-        renderItem={({ item }) => (
-          <Pressable onPress={() => openEdit(item)}>
-            <Card style={styles.item}>
-              <Text style={styles.itemName}>{item.name}</Text>
-              <Text style={styles.itemMeta}>{item.type.replace('_', ' ')} · {item.institution ?? '—'}</Text>
-              <Text style={[styles.itemAmount, item.type === 'credit_card' && styles.debt]}>
-                {format(Number(item.balance))}
-              </Text>
-            </Card>
-          </Pressable>
-        )}
+        renderItem={renderItem}
       />
 
       {!showForm && <ActionFab onPress={openCreate} label="Add account" />}

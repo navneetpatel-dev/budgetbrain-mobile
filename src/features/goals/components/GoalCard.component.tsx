@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { StyleSheet, View, Text, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -6,15 +6,19 @@ import { appHref } from '@/shared/utils/navigation';
 import { AppIcon } from '@/features/navigation/components/AppIcon.component';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
+import { CONFIRM } from '@/shared/constants/confirmations';
+import { showConfirmation } from '@/shared/utils/confirmations';
 import type { Goal } from '@/shared/types';
 import { createStyles } from './GoalCard.styles';
 
-export function GoalCard({
+export const GoalCard = memo(function GoalCard({
   goal,
   onDelete,
 }: {
   goal: Goal;
-  onDelete: () => void;
+  /** Takes the goal id (not a pre-bound callback) so the parent list can pass one stable
+   * function reference for every row instead of a fresh closure per row. */
+  onDelete: (id: string) => void;
 }) {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -93,7 +97,7 @@ export function GoalCard({
             <AppIcon name="edit" size={16} color={theme.colors.textSecondary} />
           </Pressable>
           <Pressable
-            onPress={onDelete}
+            onPress={() => showConfirmation(CONFIRM.deleteGoal, () => onDelete(goal.id))}
             hitSlop={8}
             style={({ pressed }) => [styles.actionBtn, pressed && styles.actionBtnPressed]}
             accessibilityRole="button"
@@ -183,4 +187,4 @@ export function GoalCard({
       </View>
     </View>
   );
-}
+});

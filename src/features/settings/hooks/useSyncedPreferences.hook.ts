@@ -6,7 +6,11 @@ import type { AccentPalette, ThemeMode } from '@/shared/theme/types';
 
 export function useSyncedPreferences() {
   const dispatch = useAppDispatch();
-  const settings = useAppSelector((s) => s.settings);
+  // Narrow selectors, not `s.settings` wholesale — the settings slice also carries the
+  // offline-sync queue, which mutates far more often than theme/accent do and would
+  // otherwise re-render this hook's consumers on every unrelated queue change.
+  const theme = useAppSelector((s) => s.settings.theme);
+  const accent = useAppSelector((s) => s.settings.accent);
   const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
   const syncRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -19,8 +23,8 @@ export function useSyncedPreferences() {
   };
 
   return {
-    theme: settings.theme,
-    accent: settings.accent,
+    theme,
+    accent,
     setThemeMode: (mode: ThemeMode) => {
       dispatch(setTheme(mode));
       sync({ theme: mode });

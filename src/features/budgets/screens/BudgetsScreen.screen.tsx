@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { RefreshControl, View, Text, Pressable, FlatList } from 'react-native';
+import { useCallback, useMemo } from 'react';
+import { RefreshControl, View, Text, Pressable, FlatList, type ListRenderItem } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -12,17 +12,20 @@ import {
 import { AppIcon } from '@/features/navigation/components/AppIcon.component';
 import { BudgetCard } from '@/features/budgets/components/BudgetCard.component';
 import { useDeleteBudget } from '@/features/budgets/hooks/useDeleteBudget.hook';
-import { confirmDeleteBudget } from '@/features/budgets/services/confirmations';
 import { showAlert } from '@/shared/utils/confirmations';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
 import { useQuery } from '@tanstack/react-query';
 import { apiGet } from '@/shared/services/api';
-import type { AiInsight } from '@/shared/types';
+import type { AiInsight, Budget } from '@/shared/types';
 import { useBudgetsScreen } from '@/features/budgets/hooks/useBudgetsScreen.hook';
 import { useEntitlement, PaywallModal } from '@/features/subscriptions';
 import { useTabBarInset } from '@/shared/hooks/useTabBarInset.hook';
 import { createStyles } from './BudgetsScreen.styles';
+
+function keyExtractor(item: Budget) {
+  return item.id;
+}
 
 export function BudgetsScreen() {
   const theme = useTheme();
@@ -67,13 +70,32 @@ export function BudgetsScreen() {
     router.push('/budget/add');
   };
 
+  // One stable reference for every row — the confirmation dialog itself now lives inside
+  // BudgetCard (it already has budget.name), so this only needs the id.
+  const handleDeleteBudget = useCallback(
+    (id: string) => {
+      deleteBudget(id).catch(() => showAlert('Error', 'Could not delete budget'));
+    },
+    [deleteBudget]
+  );
+
+  const renderItem: ListRenderItem<Budget> = useCallback(
+    ({ item }) => (
+      <View style={styles.cardItemWrap}>
+        <BudgetCard budget={item} onDelete={handleDeleteBudget} />
+      </View>
+    ),
+    [styles.cardItemWrap, handleDeleteBudget]
+  );
+
   return (
     <View style={styles.screenWrapper}>
       <AppHeaderBar title="BudgetBrain" subtitle="Budgets Overview" />
 
       <FlatList
         data={isLoading ? [] : budgets}
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
         contentContainerStyle={[styles.listContent, { paddingBottom: tabBarInset }]}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
@@ -212,18 +234,6 @@ export function BudgetsScreen() {
             />
           )
         }
-        renderItem={({ item }) => (
-          <View style={styles.cardItemWrap}>
-            <BudgetCard
-              budget={item}
-              onDelete={() =>
-                confirmDeleteBudget(item.name, () =>
-                  deleteBudget(item.id).catch(() => showAlert('Error', 'Could not delete budget')),
-                )
-              }
-            />
-          </View>
-        )}
       />
 
       <PaywallModal

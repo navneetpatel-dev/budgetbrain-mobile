@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { StyleSheet, View, RefreshControl, Text, FlatList, Pressable, ScrollView } from 'react-native';
+import { useCallback, useMemo } from 'react';
+import { StyleSheet, View, RefreshControl, Text, FlatList, Pressable, ScrollView, type ListRenderItem } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { appHref } from '@/shared/utils/navigation';
@@ -11,6 +11,11 @@ import { formatCurrency } from '@/shared/utils/currency';
 import { useIncomeScreen } from '@/features/income/hooks/useIncomeScreen.hook';
 import { useTabBarInset } from '@/shared/hooks/useTabBarInset.hook';
 import { createStyles } from './IncomeScreen.styles';
+import type { Transaction } from '@/shared/types';
+
+function keyExtractor(item: Transaction) {
+  return item.id;
+}
 
 export function IncomeScreen() {
   const theme = useTheme();
@@ -36,6 +41,21 @@ export function IncomeScreen() {
     setActiveCategory,
     filteredTransactions,
   } = useIncomeScreen();
+
+  const renderItem: ListRenderItem<Transaction> = useCallback(
+    ({ item }) => (
+      <TransactionGroup>
+        <TransactionItem
+          transaction={item}
+          onPress={() => router.push(appHref(`/income/${item.id}`))}
+          showBadge
+          isFirst
+          isLast
+        />
+      </TransactionGroup>
+    ),
+    [router]
+  );
 
   return (
     <View style={styles.screenWrapper}>
@@ -63,7 +83,8 @@ export function IncomeScreen() {
 
       <FlatList
         data={isLoading ? [] : filteredTransactions}
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
         contentContainerStyle={[styles.listContent, { paddingBottom: tabBarInset }]}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={refreshAll} tintColor={theme.colors.secondary} />
@@ -210,17 +231,6 @@ export function IncomeScreen() {
             />
           )
         }
-        renderItem={({ item }) => (
-          <TransactionGroup>
-            <TransactionItem
-              transaction={item}
-              onPress={() => router.push(appHref(`/income/${item.id}`))}
-              showBadge
-              isFirst
-              isLast
-            />
-          </TransactionGroup>
-        )}
       />
     </View>
   );

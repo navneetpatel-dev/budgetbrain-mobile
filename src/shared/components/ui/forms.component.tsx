@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -8,6 +7,7 @@ import {
   View,
   type ViewStyle,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppIcon } from '@/features/navigation/components/AppIcon.component';
 import { useTheme } from '@/shared/theme';
@@ -77,7 +77,7 @@ export function ImageUploadField({
       >
         {imageUri ? (
           <>
-            <Image source={{ uri: imageUri }} style={styles.preview} resizeMode="cover" />
+            <Image source={{ uri: imageUri }} style={styles.preview} contentFit="cover" transition={150} />
             <LinearGradient
               colors={['transparent', 'rgba(0,0,0,0.55)']}
               style={styles.previewOverlay}

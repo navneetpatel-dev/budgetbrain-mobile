@@ -1,18 +1,22 @@
-import { useMemo } from 'react';
-import { RefreshControl, View, Text, Pressable, FlatList } from 'react-native';
+import { useCallback, useMemo } from 'react';
+import { RefreshControl, View, Text, Pressable, FlatList, type ListRenderItem } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { EmptyState, ListRowsSkeleton, AppHeaderBar, RingGauge, FilterChipsRail } from '@/shared/components/ui';
 import { AppIcon } from '@/features/navigation/components/AppIcon.component';
 import { GoalCard } from '@/features/goals/components/GoalCard.component';
 import { useDeleteGoal } from '@/features/goals/hooks/useDeleteGoal.hook';
-import { CONFIRM } from '@/shared/constants/confirmations';
-import { showAlert, showConfirmation } from '@/shared/utils/confirmations';
+import { showAlert } from '@/shared/utils/confirmations';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
 import { useGoalsScreen } from '@/features/goals/hooks/useGoalsScreen.hook';
 import { useTabBarInset } from '@/shared/hooks/useTabBarInset.hook';
 import { createStyles } from './GoalsScreen.styles';
+import type { Goal } from '@/shared/types';
+
+function keyExtractor(item: Goal) {
+  return item.id;
+}
 
 export function GoalsScreen() {
   const theme = useTheme();
@@ -35,6 +39,18 @@ export function GoalsScreen() {
     filterChips,
     filteredGoals,
   } = useGoalsScreen();
+
+  const handleDeleteGoal = useCallback(
+    (id: string) => {
+      deleteGoal(id).catch(() => showAlert('Error', 'Could not delete goal'));
+    },
+    [deleteGoal]
+  );
+
+  const renderItem: ListRenderItem<Goal> = useCallback(
+    ({ item }) => <GoalCard goal={item} onDelete={handleDeleteGoal} />,
+    [handleDeleteGoal]
+  );
 
   return (
     <View style={styles.screenWrapper}>
@@ -62,7 +78,8 @@ export function GoalsScreen() {
 
       <FlatList
         data={isLoading ? [] : filteredGoals}
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
         contentContainerStyle={[styles.listContent, { paddingBottom: tabBarInset }]}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
@@ -174,16 +191,6 @@ export function GoalsScreen() {
             />
           )
         }
-        renderItem={({ item }) => (
-          <GoalCard
-            goal={item}
-            onDelete={() =>
-              showConfirmation(CONFIRM.deleteGoal, () =>
-                deleteGoal(item.id).catch(() => showAlert('Error', 'Could not delete goal')),
-              )
-            }
-          />
-        )}
       />
     </View>
   );

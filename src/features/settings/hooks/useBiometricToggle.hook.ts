@@ -6,7 +6,9 @@ import { useAppDispatch, useAppSelector } from '@/shared/store/hooks';
 
 export function useBiometricToggle() {
   const dispatch = useAppDispatch();
-  const settings = useAppSelector((s) => s.settings);
+  // Narrow selectors, not `s.settings` wholesale — see useSyncedPreferences.hook.ts for why.
+  const appLockPin = useAppSelector((s) => s.settings.appLockPin);
+  const biometricEnabled = useAppSelector((s) => s.settings.biometricEnabled);
   const [type, setType] = useState('Biometric');
   const [supported, setSupported] = useState(false);
 
@@ -20,7 +22,7 @@ export function useBiometricToggle() {
       Alert.alert('Unavailable', `${type} is not set up.`);
       return;
     }
-    if (enable && !settings.appLockPin) {
+    if (enable && !appLockPin) {
       Alert.alert(
         'Set a PIN first',
         'Biometrics need a PIN fallback so you can still unlock if Face ID or fingerprint fails.'
@@ -30,5 +32,5 @@ export function useBiometricToggle() {
     dispatch(setBiometricEnabled(enable));
   };
 
-  return { type, supported, enabled: settings.biometricEnabled, toggle };
+  return { type, supported, enabled: biometricEnabled, toggle };
 }

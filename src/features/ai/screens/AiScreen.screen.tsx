@@ -1,12 +1,14 @@
-import { useMemo, useRef, useEffect } from 'react';
+import { useCallback, useMemo } from 'react';
 import {
   StyleSheet,
   View,
   Text,
   ScrollView,
+  FlatList,
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  type ListRenderItem,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AiChatSkeleton, AppHeaderBar } from '@/shared/components/ui';
@@ -27,12 +29,19 @@ import {
 } from '@/features/ai/components';
 import { useEntitlement, PaywallModal } from '@/features/subscriptions';
 import { createStyles } from './AiScreen.styles';
+import type { AiChatMessage } from '@/shared/types';
 
 function anomalyMeta(anomaly: { merchant?: string; amount?: number }, currency: string): string {
   const parts: string[] = [];
   if (anomaly.merchant) parts.push(anomaly.merchant);
   if (typeof anomaly.amount === 'number') parts.push(formatCurrency(anomaly.amount, currency));
   return parts.join(' · ');
+}
+
+/** No stable id on AiChatMessage — timestamp is set once per message at creation (including
+ * the streaming placeholder) and never changes as content streams in, so it's a safe key. */
+function keyExtractorMessage(item: AiChatMessage) {
+  return item.timestamp;
 }
 
 export function AiScreen() {
@@ -44,7 +53,6 @@ export function AiScreen() {
     () => createStyles(theme, tabBarPaddingX, footerBottom),
     [theme, tabBarPaddingX, footerBottom],
   );
-  const scrollRef = useRef<ScrollView>(null);
   const { isEntitled, paywallVisible, openPaywall, closePaywall } = useEntitlement();
   const {
     currency,
@@ -68,9 +76,13 @@ export function AiScreen() {
     sendMessage();
   };
 
-  useEffect(() => {
-    scrollRef.current?.scrollToEnd({ animated: true });
-  }, [messages, chatLoading]);
+  // Newest-first for the inverted FlatList below — an inverted list anchors new content at
+  // the visual bottom automatically, no manual scrollToEnd needed.
+  const invertedMessages = useMemo(() => [...messages].reverse(), [messages]);
+  const renderMessage: ListRenderItem<AiChatMessage> = useCallback(
+    ({ item }) => <AiChatBubble message={item} />,
+    []
+  );
 
   if (historyLoading) {
     return <AiChatSkeleton />;
@@ -102,14 +114,13 @@ export function AiScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView
-          ref={scrollRef}
-          style={styles.flex}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {isEmpty ? (
+        {isEmpty ? (
+          <ScrollView
+            style={styles.flex}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
             <View style={styles.emptyContainer}>
               {/* Glowing Aura Neural Card */}
               <View style={styles.heroAuraCard}>
@@ -170,15 +181,22 @@ export function AiScreen() {
                 )}
               </View>
             </View>
-          ) : (
-            <View style={styles.messages}>
-              {messages.map((m, i) => (
-                <AiChatBubble key={i} message={m} />
-              ))}
-              {chatLoading && <AiTypingIndicator />}
-            </View>
-          )}
-        </ScrollView>
+          </ScrollView>
+        ) : (
+          <FlatList
+            inverted
+            data={invertedMessages}
+            keyExtractor={keyExtractorMessage}
+            renderItem={renderMessage}
+            style={styles.flex}
+            contentContainerStyle={[styles.scrollContent, styles.messages]}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            // "Header" in an inverted list renders at the visual bottom (below the newest
+            // message) — exactly where a typing indicator belongs.
+            ListHeaderComponent={chatLoading ? <AiTypingIndicator /> : null}
+          />
+        )}
 
         <AiChatInput
           message={message}

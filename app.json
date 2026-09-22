@@ -100,7 +100,8 @@
       "@react-native-community/datetimepicker",
       "expo-asset",
       "expo-web-browser",
-      "./plugins/withCleartextTraffic"
+      "./plugins/withCleartextTraffic",
+      "expo-image"
     ],
     "experiments": {
       "typedRoutes": true

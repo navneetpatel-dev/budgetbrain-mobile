@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { View, Text } from 'react-native';
 import { useTheme } from '@/shared/theme';
 import { parseCoachReply, renderInlineEmphasis } from '@/features/ai/utils/parseCoachReply';
@@ -23,10 +23,12 @@ function EmphasizedText({
   );
 }
 
-export function AiRichReply({ content }: { content: string }) {
+export const AiRichReply = memo(function AiRichReply({ content }: { content: string }) {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const blocks = parseCoachReply(content);
+  // Re-parsed only when the text actually changes, not on every parent re-render — matters
+  // most for the currently-streaming message, which re-renders once per token.
+  const blocks = useMemo(() => parseCoachReply(content), [content]);
 
   if (!blocks.length) {
     return <Text style={styles.paragraph}>{content}</Text>;
@@ -67,4 +69,4 @@ export function AiRichReply({ content }: { content: string }) {
       })}
     </View>
   );
-}
+});

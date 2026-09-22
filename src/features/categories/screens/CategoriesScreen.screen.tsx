@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { RefreshControl, View, Pressable, Text } from 'react-native';
 import { Controller } from 'react-hook-form';
 import {
@@ -23,6 +23,10 @@ import { useTheme } from '@/shared/theme';
 import { useCategories, COLORS_PRESET } from '@/features/categories/hooks/useCategories.hook';
 import { maxLen, textRules } from '@/shared/validation/fieldLimits';
 import { createStyles } from './CategoriesScreen.styles';
+
+function keyExtractor(item: Category) {
+  return item.id;
+}
 
 export function CategoriesScreen() {
   const theme = useTheme();
@@ -56,7 +60,7 @@ export function CategoriesScreen() {
 
   const items = data ?? [];
 
-  const renderCategoryCard = (
+  const renderCategoryCard = useCallback((
     item: Category,
     dragProps?: { drag: () => void; isActive: boolean }
   ) => (
@@ -123,6 +127,32 @@ export function CategoriesScreen() {
         </View>
       </View>
     </Card>
+  ), [styles, theme, unarchiveCategory, openEdit, archiveCategory]);
+
+  const renderArchivedItem = useCallback(
+    ({ item }: { item: Category }) => (
+      <Pressable
+        onPress={() => (item.archivedAt ? undefined : openEdit(item))}
+        accessibilityRole="button"
+        accessibilityLabel={`Category ${item.name}`}
+      >
+        {renderCategoryCard(item)}
+      </Pressable>
+    ),
+    [openEdit, renderCategoryCard]
+  );
+
+  const renderSortableItem = useCallback(
+    ({ item, drag, isActive }: { item: Category; drag: () => void; isActive: boolean }) => (
+      <Pressable
+        onPress={() => (isActive ? undefined : openEdit(item))}
+        accessibilityRole="button"
+        accessibilityLabel={`Category ${item.name}`}
+      >
+        {renderCategoryCard(item, { drag, isActive })}
+      </Pressable>
+    ),
+    [openEdit, renderCategoryCard]
   );
 
   return (
@@ -196,20 +226,12 @@ export function CategoriesScreen() {
               inset="stack"
               header={header}
               data={isLoading ? [] : items}
-              keyExtractor={(item) => item.id}
+              keyExtractor={keyExtractor}
               contentContainerStyle={{ paddingBottom: fabBottom + 72 }}
               refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />}
               ListHeaderComponent={listHeader}
               ListEmptyComponent={emptyComponent}
-              renderItem={({ item }) => (
-                <Pressable
-                  onPress={() => (item.archivedAt ? undefined : openEdit(item))}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Category ${item.name}`}
-                >
-                  {renderCategoryCard(item)}
-                </Pressable>
-              )}
+              renderItem={renderArchivedItem}
             />
           );
         }
@@ -219,21 +241,13 @@ export function CategoriesScreen() {
             inset="stack"
             header={header}
             data={isLoading ? [] : items}
-            keyExtractor={(item) => item.id}
+            keyExtractor={keyExtractor}
             onDragEnd={({ data: reordered }) => void reorderAll(reordered)}
             contentContainerStyle={{ paddingBottom: fabBottom + 72 }}
             refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />}
             ListHeaderComponent={listHeader}
             ListEmptyComponent={emptyComponent}
-            renderItem={({ item, drag, isActive }) => (
-              <Pressable
-                onPress={() => (isActive ? undefined : openEdit(item))}
-                accessibilityRole="button"
-                accessibilityLabel={`Category ${item.name}`}
-              >
-                {renderCategoryCard(item, { drag, isActive })}
-              </Pressable>
-            )}
+            renderItem={renderSortableItem}
           />
         );
       })()}

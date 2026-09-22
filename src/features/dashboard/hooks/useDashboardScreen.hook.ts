@@ -14,7 +14,7 @@ interface NetWorthSummary {
 export function useDashboardScreen() {
   const user = useAppSelector((s) => s.auth.user);
 
-  const { data, isLoading, isError, refetch, isRefetching } = useQuery({
+  const { data, isLoading, isError, refetch, isRefetching, isStale } = useQuery({
     queryKey: ['dashboard'],
     queryFn: () => apiGet<DashboardData>('/expenses/dashboard'),
   });
@@ -23,10 +23,15 @@ export function useDashboardScreen() {
     queryFn: () => apiGet<NetWorthSummary>('/net-worth'),
   });
 
+  // Only refetch when actually stale — every money-affecting mutation (expenses, income,
+  // budgets, goals, categories, recurring) already calls invalidateQueries(['dashboard'])
+  // on success (see shared/services/queryInvalidation.ts), so an unconditional refetch here
+  // was re-hitting the network on every tab focus even seconds after the last one, on the
+  // most-visited screen in the app.
   useFocusEffect(
     useCallback(() => {
-      void refetch();
-    }, [refetch]),
+      if (isStale) void refetch();
+    }, [isStale, refetch]),
   );
 
   const { budgetWidgets, goalWidgets } = useDashboardWidgets(

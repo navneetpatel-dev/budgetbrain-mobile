@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { appHref } from '@/shared/utils/navigation';
@@ -7,15 +7,18 @@ import { AppIcon } from '@/features/navigation/components/AppIcon.component';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
 import { toSafeNumber } from '@/shared/utils/number';
+import { confirmDeleteBudget } from '@/features/budgets/services/confirmations';
 import type { Budget } from '@/shared/types';
 import { createStyles } from './BudgetCard.styles';
 
-export function BudgetCard({
+export const BudgetCard = memo(function BudgetCard({
   budget,
   onDelete,
 }: {
   budget: Budget;
-  onDelete: () => void;
+  /** Takes the budget id (not a pre-bound callback) so the parent list can pass one
+   * stable function reference for every row instead of a fresh closure per row. */
+  onDelete: (id: string) => void;
 }) {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -150,7 +153,7 @@ export function BudgetCard({
               <AppIcon name="edit" size={16} color={theme.colors.textTertiary} />
             </Pressable>
             <Pressable
-              onPress={onDelete}
+              onPress={() => confirmDeleteBudget(budget.name, () => onDelete(budget.id))}
               hitSlop={8}
               style={({ pressed }) => [styles.actionIconBtn, pressed && { opacity: 0.75 }]}
               accessibilityRole="button"
@@ -163,4 +166,4 @@ export function BudgetCard({
       </View>
     </Card>
   );
-}
+});

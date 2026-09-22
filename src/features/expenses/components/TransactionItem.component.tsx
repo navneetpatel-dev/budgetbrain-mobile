@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon.component';
 import { useTheme } from '@/shared/theme';
@@ -41,7 +41,7 @@ function getCategoryIcon(name?: string, isExpense?: boolean): AppIconName {
   return 'expense';
 }
 
-export function TransactionItem({
+export const TransactionItem = memo(function TransactionItem({
   transaction,
   onPress,
   showBadge = false,
@@ -143,7 +143,7 @@ export function TransactionItem({
       </View>
     </Pressable>
   );
-}
+});
 
 /** Wrap transaction items in a grouped list container */
 export function TransactionGroup({ children }: { children: React.ReactNode }) {

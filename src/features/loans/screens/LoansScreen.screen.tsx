@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { EmptyState, ListRowsSkeleton, StickyHeaderFlatScreen } from '@/shared/components/ui';
@@ -5,10 +6,13 @@ import { ProfileStackHeader } from '@/features/settings/components/ProfileStackH
 import { LoanCard } from '@/features/loans/components/LoanCard.component';
 import { useDeleteLoan } from '@/features/loans/hooks/useDeleteLoan.hook';
 import { usePaginatedList } from '@/shared/hooks/usePaginatedList.hook';
-import { CONFIRM } from '@/shared/constants/confirmations';
-import { showAlert, showConfirmation } from '@/shared/utils/confirmations';
+import { showAlert } from '@/shared/utils/confirmations';
 import { useTheme } from '@/shared/theme';
 import type { Loan } from '@/shared/types';
+
+function keyExtractor(item: Loan) {
+  return item.id;
+}
 
 export function LoansScreen() {
   const theme = useTheme();
@@ -19,6 +23,18 @@ export function LoansScreen() {
     url: '/loans',
     itemsKey: 'loans',
   });
+
+  const handleDeleteLoan = useCallback(
+    (id: string) => {
+      deleteLoan(id).catch(() => showAlert('Error', 'Could not delete loan'));
+    },
+    [deleteLoan]
+  );
+
+  const renderItem = useCallback(
+    ({ item }: { item: Loan }) => <LoanCard loan={item} onDelete={handleDeleteLoan} />,
+    [handleDeleteLoan]
+  );
 
   return (
     <StickyHeaderFlatScreen
@@ -33,7 +49,7 @@ export function LoansScreen() {
         />
       }
       data={isLoading ? [] : loans}
-      keyExtractor={(item) => item.id}
+      keyExtractor={keyExtractor}
       refreshControl={
         <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />
       }
@@ -58,16 +74,7 @@ export function LoansScreen() {
           />
         )
       }
-      renderItem={({ item }) => (
-        <LoanCard
-          loan={item}
-          onDelete={() =>
-            showConfirmation(CONFIRM.deleteLoan, () =>
-              deleteLoan(item.id).catch(() => showAlert('Error', 'Could not delete loan')),
-            )
-          }
-        />
-      )}
+      renderItem={renderItem}
     />
   );
 }

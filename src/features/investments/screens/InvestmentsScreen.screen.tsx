@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { RefreshControl, View, Pressable, Text } from 'react-native';
 import { Controller } from 'react-hook-form';
 import {
@@ -23,6 +23,11 @@ import { useInvestments, INVESTMENT_TYPES } from '@/features/investments/hooks/u
 import { amountRules, dateRules, maxLen, optionalTextRules, quantityRules, textRules } from '@/shared/validation/fieldLimits';
 import { DateBounds } from '@/shared/utils/dateBounds';
 import { createStyles } from './InvestmentsScreen.styles';
+import type { Investment } from '@/shared/types';
+
+function keyExtractor(item: Investment) {
+  return item.id;
+}
 
 export function InvestmentsScreen() {
   const theme = useTheme();
@@ -50,6 +55,24 @@ export function InvestmentsScreen() {
   } = useInvestments();
 
   const items = data ?? [];
+
+  const renderItem = useCallback(
+    ({ item }: { item: Investment }) => (
+      <Pressable onPress={() => openEdit(item)}>
+        <Card style={styles.item}>
+          <Text style={styles.itemName}>{item.name}</Text>
+          <Text style={styles.itemMeta}>{item.type.replace('_', ' ')}</Text>
+          <Text style={styles.itemAmount}>{format(item.currentValue ?? Number(item.quantity) * Number(item.currentPrice))}</Text>
+          {item.gainLoss !== undefined && (
+            <Text style={[styles.gainLoss, item.gainLoss >= 0 ? styles.gain : styles.loss]}>
+              {item.gainLoss >= 0 ? '+' : ''}{format(item.gainLoss)}
+            </Text>
+          )}
+        </Card>
+      </Pressable>
+    ),
+    [styles, openEdit, format]
+  );
 
   return (
     <View style={styles.root}>
@@ -149,7 +172,7 @@ export function InvestmentsScreen() {
           />
         }
         data={isLoading ? [] : items}
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractor}
         contentContainerStyle={{ paddingBottom: fabBottom + 72 }}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />}
         ListEmptyComponent={
@@ -159,20 +182,7 @@ export function InvestmentsScreen() {
             <EmptyState icon="chart" title="No investments" subtitle="Track stocks, mutual funds, and more" action="Add investment" onAction={openCreate} />
           )
         }
-        renderItem={({ item }) => (
-          <Pressable onPress={() => openEdit(item)}>
-            <Card style={styles.item}>
-              <Text style={styles.itemName}>{item.name}</Text>
-              <Text style={styles.itemMeta}>{item.type.replace('_', ' ')}</Text>
-              <Text style={styles.itemAmount}>{format(item.currentValue ?? Number(item.quantity) * Number(item.currentPrice))}</Text>
-              {item.gainLoss !== undefined && (
-                <Text style={[styles.gainLoss, item.gainLoss >= 0 ? styles.gain : styles.loss]}>
-                  {item.gainLoss >= 0 ? '+' : ''}{format(item.gainLoss)}
-                </Text>
-              )}
-            </Card>
-          </Pressable>
-        )}
+        renderItem={renderItem}
       />
 
       {!showForm && <ActionFab onPress={openCreate} label="Add investment" />}
