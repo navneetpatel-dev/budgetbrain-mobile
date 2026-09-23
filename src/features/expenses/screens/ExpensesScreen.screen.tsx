@@ -24,6 +24,28 @@ function keyExtractor(item: Transaction) {
   return item.id;
 }
 
+function getDateGroup(dateStr: string) {
+  try {
+    const d = new Date(dateStr);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    if (d.toDateString() === today.toDateString()) {
+      return { title: 'Today', sub: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) };
+    }
+    if (d.toDateString() === yesterday.toDateString()) {
+      return { title: 'Yesterday', sub: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) };
+    }
+    return {
+      title: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      sub: d.toLocaleDateString('en-US', { weekday: 'short' }),
+    };
+  } catch {
+    return { title: dateStr, sub: '' };
+  }
+}
+
 export function ExpensesScreen() {
   const router = useRouter();
   const theme = useTheme();
@@ -61,22 +83,42 @@ export function ExpensesScreen() {
     filteredTransactions,
   } = useExpensesScreen();
 
-  const transactionsLength = filteredTransactions.length;
   const renderItem: ListRenderItem<Transaction> = useCallback(
-    ({ item, index }) => (
-      <TransactionGroup>
-        <TransactionItem
-          transaction={item}
-          showBadge
-          onPress={() =>
-            router.push(appHref(item.type === 'income' ? `/income/${item.id}` : `/expense/${item.id}`))
-          }
-          isFirst={index === 0}
-          isLast={index === transactionsLength - 1}
-        />
-      </TransactionGroup>
-    ),
-    [router, transactionsLength]
+    ({ item, index }) => {
+      const prev = index > 0 ? filteredTransactions[index - 1] : null;
+      const currentGroup = getDateGroup(item.date);
+      const isNewGroup = !prev || getDateGroup(prev.date).title !== currentGroup.title;
+
+      return (
+        <View style={{ gap: 6 }}>
+          {isNewGroup ? (
+            <View style={styles.dateGroupHeader}>
+              <View style={styles.dateGroupLeft}>
+                <Text style={styles.dateGroupTitle}>{currentGroup.title}</Text>
+                {currentGroup.sub ? (
+                  <>
+                    <View style={styles.dateGroupDot} />
+                    <Text style={styles.dateGroupSub}>{currentGroup.sub}</Text>
+                  </>
+                ) : null}
+              </View>
+            </View>
+          ) : null}
+          <TransactionGroup>
+            <TransactionItem
+              transaction={item}
+              showBadge
+              onPress={() =>
+                router.push(appHref(item.type === 'income' ? `/income/${item.id}` : `/expense/${item.id}`))
+              }
+              isFirst={true}
+              isLast={true}
+            />
+          </TransactionGroup>
+        </View>
+      );
+    },
+    [router, filteredTransactions, styles]
   );
 
   return (
@@ -148,7 +190,7 @@ export function ExpensesScreen() {
                 accessibilityLabel="Export statement"
               >
                 <Animated.View style={exportSpring.style}>
-                  <AppIcon name="send" size={18} color={theme.colors.textSecondary} />
+                  <AppIcon name="share" size={18} color={theme.colors.textSecondary} />
                 </Animated.View>
               </Pressable>
             </View>
@@ -188,7 +230,7 @@ export function ExpensesScreen() {
             {/* Pull to Refresh Hint */}
             <View style={styles.syncHintRow}>
               <AppIcon name="arrowDown" size={13} color={theme.colors.textTertiary} />
-              <Text style={styles.syncHintText}>Pull down to sync transactions</Text>
+              <Text style={styles.syncHintText}>Pull down to sync bank accounts</Text>
             </View>
           </View>
         }

@@ -62,6 +62,11 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
       color: t.colors.text,
       letterSpacing: -0.3,
     },
+    sheetActionsRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
     scanReceiptBtn: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -75,6 +80,14 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
       fontSize: 12,
       fontWeight: '600',
       color: t.colors.primary,
+    },
+    closeBtn: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: t.colors.surfaceContainerHigh,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     amountHeroCard: {
       backgroundColor: t.colors.surfaceContainerLow,

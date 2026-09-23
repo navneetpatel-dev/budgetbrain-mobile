@@ -91,7 +91,11 @@ export const BudgetCard = memo(function BudgetCard({
           <ProgressBar
             progress={progress}
             height={8}
-            color={isCritical ? theme.colors.danger : theme.colors.secondary}
+            gradientColors={
+              isCritical
+                ? [theme.colors.warning, theme.colors.danger]
+                : [theme.colors.emerald, theme.colors.secondary, theme.colors.ocean]
+            }
           />
           <View style={styles.progressInfoRow}>
             <Text

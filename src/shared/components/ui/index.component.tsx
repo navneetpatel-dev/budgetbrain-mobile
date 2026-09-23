@@ -498,10 +498,12 @@ export function EmptyState({
 
 export function SectionHeader({
   title,
+  badge,
   action,
   onAction,
 }: {
   title: string;
+  badge?: string;
   action?: string;
   onAction?: () => void;
 }) {
@@ -509,7 +511,14 @@ export function SectionHeader({
   const styles = useMemo(() => createSectionStyles(theme), [theme]);
   return (
     <View style={styles.row}>
-      <Text style={styles.title}>{title}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <Text style={styles.title}>{title}</Text>
+        {badge ? (
+          <View style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: theme.radii.full, backgroundColor: theme.colors.surfaceContainerHigh }}>
+            <Text style={{ fontSize: 11, fontWeight: '600', color: theme.colors.textSecondary }}>{badge}</Text>
+          </View>
+        ) : null}
+      </View>
       {action && onAction && (
         <Pressable onPress={onAction} hitSlop={8} accessibilityRole="button" accessibilityLabel={action}>
           <Text style={styles.action}>{action}</Text>

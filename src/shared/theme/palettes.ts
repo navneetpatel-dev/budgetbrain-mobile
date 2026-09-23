@@ -31,6 +31,8 @@ function buildLight(accent: AccentPalette): ThemeColors {
     surfaceElevated: '#FFFFFF',
     surface: '#FFFFFF',
     surfaceContainer: '#FFFFFF',
+    surfaceDark: '#FFFFFF',
+    surfaceContainerLowest: '#FFFFFF',
     surfaceContainerLow: '#F8FAFC',
     surfaceContainerHigh: '#EDF2F7',
     surfaceContainerHighest: '#E2E8F0',
@@ -76,6 +78,8 @@ function buildDark(accent: AccentPalette): ThemeColors {
     surfaceElevated: '#151C2F',
     surface: '#1B202A',
     surfaceContainer: '#1B202A',
+    surfaceDark: '#1C2540',
+    surfaceContainerLowest: '#090E18',
     surfaceContainerLow: '#171C26',
     surfaceContainerHigh: '#252A35',
     surfaceContainerHighest: '#303540',
@@ -114,7 +118,7 @@ export function getThemeColors(mode: 'light' | 'dark', accent: unknown): ThemeCo
   return mode === 'dark' ? buildDark(resolvedAccent) : buildLight(resolvedAccent);
 }
 
-export const ACCENT_OPTIONS: Array<{ id: AccentPalette; label: string; swatch: string }> = [
+export const ACCENT_OPTIONS: { id: AccentPalette; label: string; swatch: string }[] = [
   { id: 'indigo', label: 'Indigo', swatch: '#6366F1' },
   { id: 'emerald', label: 'Emerald', swatch: '#10B981' },
   { id: 'ocean', label: 'Ocean', swatch: '#0EA5E9' },

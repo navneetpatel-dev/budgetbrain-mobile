@@ -127,5 +127,40 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
       fontSize: 11,
       color: t.colors.textTertiary,
     },
+    dateGroupHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 4,
+      paddingTop: 8,
+      paddingBottom: 4,
+    },
+    dateGroupLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    dateGroupTitle: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: t.colors.primary,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    dateGroupDot: {
+      width: 4,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: t.colors.textTertiary,
+    },
+    dateGroupSub: {
+      fontSize: 12,
+      color: t.colors.textTertiary,
+    },
+    dateGroupMeta: {
+      fontSize: 12,
+      color: t.colors.textTertiary,
+      fontWeight: '500',
+    },
   });
 }

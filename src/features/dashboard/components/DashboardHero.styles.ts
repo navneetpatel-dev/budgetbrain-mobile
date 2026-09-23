@@ -54,6 +54,13 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
       height: 10,
       alignItems: 'center',
       justifyContent: 'center',
+      position: 'relative',
+    },
+    livePulsePing: {
+      position: 'absolute',
+      width: 8,
+      height: 8,
+      borderRadius: 4,
     },
     livePulseDot: {
       width: 8,

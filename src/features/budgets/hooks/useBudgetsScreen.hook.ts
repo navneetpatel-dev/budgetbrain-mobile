@@ -5,12 +5,25 @@ import type { Budget } from '@/shared/types';
 
 export function useBudgetsScreen() {
   const [activeFilter, setActiveFilter] = useState('active');
+  const [sortBySpent, setSortBySpent] = useState(false);
 
-  const { data: budgets, total, isLoading, isError, refetch, isRefetching } = usePaginatedList<Budget, 'budgets'>({
+  const { data: rawBudgets, total, isLoading, isError, refetch, isRefetching } = usePaginatedList<Budget, 'budgets'>({
     queryKey: ['budgets'],
     url: '/budgets',
     itemsKey: 'budgets',
   });
+
+  const daysRemaining = useMemo(() => {
+    const now = new Date();
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return Math.max(1, endOfMonth.getDate() - now.getDate());
+  }, []);
+
+  const budgets = useMemo(() => {
+    if (!rawBudgets) return [];
+    if (!sortBySpent) return rawBudgets;
+    return [...rawBudgets].sort((a, b) => (b.spent ?? 0) - (a.spent ?? 0));
+  }, [rawBudgets, sortBySpent]);
 
   // NOTE: this aggregates each budget's own already-server-provided spent/amount fields
   // client-side into an overall consumption %. The backend has no single "overall budget
@@ -21,7 +34,7 @@ export function useBudgetsScreen() {
     let limit = 0;
     let curr = 'INR';
 
-    (budgets ?? []).forEach((b) => {
+    (rawBudgets ?? []).forEach((b) => {
       curr = b.currency || curr;
       spent += b.spent ?? 0;
       limit += Number(b.effectiveAmount ?? b.amount) || 0;
@@ -29,7 +42,7 @@ export function useBudgetsScreen() {
 
     const prog = limit > 0 ? Math.min(100, Math.round((spent / limit) * 100)) : 0;
     return { totalSpent: spent, totalLimit: limit, overallProgress: prog, currency: curr };
-  }, [budgets]);
+  }, [rawBudgets]);
 
   const periodChips: FilterChipItem[] = [
     { id: 'active', label: `Active (${total || 0})` },
@@ -39,6 +52,8 @@ export function useBudgetsScreen() {
 
   const dailySafe = totalLimit > totalSpent ? (totalLimit - totalSpent) / 30 : 0;
 
+  const toggleSortBySpent = () => setSortBySpent((prev) => !prev);
+
   return {
     budgets,
     isLoading,
@@ -47,6 +62,9 @@ export function useBudgetsScreen() {
     isRefetching,
     activeFilter,
     setActiveFilter,
+    sortBySpent,
+    toggleSortBySpent,
+    daysRemaining,
     totalSpent,
     totalLimit,
     overallProgress,

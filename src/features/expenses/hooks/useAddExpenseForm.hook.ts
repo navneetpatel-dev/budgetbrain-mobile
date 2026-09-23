@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useLocalSearchParams } from 'expo-router';
 import type { AppIconName } from '@/features/navigation/components/AppIcon.component';
@@ -39,14 +39,22 @@ export function useAddExpenseForm() {
   const { data: categories } = useCategoryOptions();
 
   // Pre-fill from a bill-due notification's deep link (?merchant=&amount=&categoryId=&currency=)
-  // so tapping "Upcoming bill" opens Add Expense ready to review, not empty — the user still
-  // explicitly reviews and saves, this never auto-creates the transaction.
+  // or auto-open scanner from dashboard (?scan=1)
   const params = useLocalSearchParams<{
     merchant?: string;
     amount?: string;
     categoryId?: string;
     currency?: string;
+    scan?: string;
   }>();
+
+  const scanTriggeredRef = useRef(false);
+  useEffect(() => {
+    if (params.scan === '1' && !scanTriggeredRef.current) {
+      scanTriggeredRef.current = true;
+      void pick();
+    }
+  }, [params.scan, pick]);
 
   const [currencyIndex, setCurrencyIndex] = useState(() => {
     if (!params.currency) return 0;

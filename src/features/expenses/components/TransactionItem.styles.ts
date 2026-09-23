@@ -24,6 +24,18 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
       gap: 12,
       backgroundColor: t.colors.surface,
       minHeight: 72,
+      position: 'relative',
+      overflow: 'hidden',
+    },
+    incomeAccentStrip: {
+      position: 'absolute',
+      left: 0,
+      top: 0,
+      bottom: 0,
+      width: 4,
+      backgroundColor: t.colors.secondary,
+      borderTopRightRadius: 2,
+      borderBottomRightRadius: 2,
     },
     first: {},
     last: {

@@ -1,5 +1,6 @@
 import { memo, useEffect, useMemo, useState } from 'react';
 import { Animated, View, Text, Pressable, ViewStyle } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon.component';
 import { useTheme } from '@/shared/theme';
 import { useReducedMotion } from '@/shared/hooks/useReducedMotion.hook';
@@ -93,11 +94,13 @@ export const ListRow = memo(function ListRow({
 export function ProgressBar({
   progress,
   color,
+  gradientColors,
   height = 8,
   style,
 }: {
   progress: number;
   color?: string;
+  gradientColors?: [string, string, ...string[]];
   height?: number;
   style?: ViewStyle;
 }) {
@@ -129,10 +132,20 @@ export function ProgressBar({
         style={{
           width: width.interpolate({ inputRange: [0, 100], outputRange: ['0%', '100%'] }),
           height: '100%',
-          backgroundColor: fill,
+          backgroundColor: gradientColors ? 'transparent' : fill,
           borderRadius: height / 2,
+          overflow: 'hidden',
         }}
-      />
+      >
+        {gradientColors ? (
+          <LinearGradient
+            colors={gradientColors}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={{ width: '100%', height: '100%' }}
+          />
+        ) : null}
+      </Animated.View>
     </View>
   );
 }

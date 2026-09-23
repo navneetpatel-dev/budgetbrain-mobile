@@ -162,7 +162,7 @@ export function useExpensesScreen() {
     { id: 'all', label: 'All Flows' },
     { id: 'income', label: 'Income', icon: 'income', color: theme.colors.secondary },
     { id: 'expense', label: 'Expenses', icon: 'expense', color: theme.colors.danger },
-    { id: 'this_month', label: 'This Month', icon: 'calendar' },
+    { id: 'this_month', label: 'This Month', icon: 'calendar', hasDividerBefore: true },
     { id: 'last_30', label: 'Last 30 Days' },
   ];
 

@@ -142,10 +142,13 @@ export function DashboardScreen() {
             </ScreenSection>
 
             {/* Active Budgets Watchlist */}
-            {budgetWidgets.length > 0 && (
+            {budgetWidgets.length > 0 && (() => {
+              const alertingCount = budgetWidgets.filter((w) => w.progress >= w.budget.alertThreshold).length;
+              return (
               <ScreenSection style={sectionStyle}>
                 <SectionHeader
                   title="Active Budgets"
+                  badge={alertingCount > 0 ? `${alertingCount} Alerting` : undefined}
                   action="Manage"
                   onAction={() => router.push('/(tabs)/budgets')}
                 />
@@ -213,15 +216,20 @@ export function DashboardScreen() {
 
                         <ProgressBar
                           progress={progress}
-                          height={7}
-                          color={isAlerting ? theme.colors.danger : theme.colors.secondary}
+                          height={8}
+                          gradientColors={
+                            isAlerting
+                              ? [theme.colors.warning, theme.colors.danger]
+                              : [theme.colors.secondary, theme.colors.primary]
+                          }
                         />
                       </Pressable>
                     );
                   })}
                 </View>
               </ScreenSection>
-            )}
+            );
+            })()}
 
             {/* Spending Trends Chart */}
             {data.spendingTrends && (

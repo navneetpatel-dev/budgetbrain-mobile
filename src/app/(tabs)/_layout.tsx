@@ -29,10 +29,10 @@ export default function TabLayout() {
       <Tabs.Screen name="index" options={{ title: 'Home', headerShown: false }} />
       <Tabs.Screen name="expenses" options={{ title: 'Activity', headerShown: false }} />
       <Tabs.Screen name="budgets" options={{ title: 'Budgets', headerShown: false }} />
-      <Tabs.Screen name="settings" options={{ title: 'Profile', headerShown: false }} />
+      <Tabs.Screen name="ai" options={{ title: 'AI Coach', headerShown: false }} />
+      <Tabs.Screen name="settings" options={{ href: null, headerShown: false }} />
       <Tabs.Screen name="goals" options={{ href: null, headerShown: false }} />
       <Tabs.Screen name="income" options={{ href: null, headerShown: false }} />
-      <Tabs.Screen name="ai" options={{ href: null, headerShown: false }} />
     </Tabs>
   );
 }

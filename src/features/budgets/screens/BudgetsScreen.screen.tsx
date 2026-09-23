@@ -16,7 +16,7 @@ import { useDeleteBudget } from '@/features/budgets/hooks/useDeleteBudget.hook';
 import { showAlert } from '@/shared/utils/confirmations';
 import { useTheme } from '@/shared/theme';
 import { useSpringPress } from '@/shared/hooks/useSpringPress.hook';
-import { formatCurrency } from '@/shared/utils/currency';
+import { formatCurrency, formatCurrencyParts } from '@/shared/utils/currency';
 import { useQuery } from '@tanstack/react-query';
 import { apiGet } from '@/shared/services/api';
 import type { AiInsight, Budget } from '@/shared/types';
@@ -46,6 +46,9 @@ export function BudgetsScreen() {
     isRefetching,
     activeFilter,
     setActiveFilter,
+    sortBySpent,
+    toggleSortBySpent,
+    daysRemaining,
     totalSpent,
     totalLimit,
     overallProgress,
@@ -53,6 +56,11 @@ export function BudgetsScreen() {
     periodChips,
     dailySafe,
   } = useBudgetsScreen();
+
+  const { integerPart, fractionPart } = useMemo(
+    () => formatCurrencyParts(totalSpent, currency),
+    [totalSpent, currency]
+  );
 
   const { data: aiInsights } = useQuery({
     queryKey: ['ai-insights'],
@@ -119,7 +127,7 @@ export function BudgetsScreen() {
                 </View>
                 <View style={styles.daysLeftTag}>
                   <View style={[styles.pulseDot, { backgroundColor: theme.colors.warning }]} />
-                  <Text style={styles.daysLeftText}>Cycle Active</Text>
+                  <Text style={styles.daysLeftText}>{daysRemaining} Days Left</Text>
                 </View>
               </View>
 
@@ -129,15 +137,22 @@ export function BudgetsScreen() {
                   size={120}
                   progress={overallProgress || 71.4}
                   variant="semi"
-                  icon="budgets"
+                  icon="insights"
                   gradientColors={[theme.colors.secondary, theme.colors.primary]}
                 />
 
                 <View style={styles.metricsCol}>
                   <Text style={styles.consumedLabel}>Total Consumed</Text>
-                  <Text style={styles.consumedAmount} numberOfLines={1}>
-                    {formatCurrency(totalSpent, currency)}
-                  </Text>
+                  <View style={styles.consumedAmountRow}>
+                    <Text style={styles.consumedAmountInteger}>
+                      {integerPart}
+                    </Text>
+                    {fractionPart ? (
+                      <Text style={styles.consumedAmountFraction}>
+                        {fractionPart}
+                      </Text>
+                    ) : null}
+                  </View>
                   <Text style={styles.limitLabel}>
                     of {formatCurrency(totalLimit, currency)} Limit
                   </Text>
@@ -193,10 +208,32 @@ export function BudgetsScreen() {
 
             {/* Section Header */}
             <View style={styles.categorySectionHeader}>
-              <Text style={styles.categorySectionTitle}>Categories</Text>
-              <View style={styles.syncTag}>
-                <Text style={styles.syncTagText}>Real-Time Sync</Text>
+              <View style={styles.categoryTitleGroup}>
+                <Text style={styles.categorySectionTitle}>Categories</Text>
+                <View style={styles.syncTag}>
+                  <Text style={styles.syncTagText}>Real-Time Sync</Text>
+                </View>
               </View>
+              <Pressable
+                onPress={toggleSortBySpent}
+                style={styles.sortBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Sort by spent"
+              >
+                <AppIcon
+                  name="swapVert"
+                  size={14}
+                  color={sortBySpent ? theme.colors.primary : theme.colors.textSecondary}
+                />
+                <Text
+                  style={[
+                    styles.sortBtnText,
+                    sortBySpent && { color: theme.colors.primary, fontWeight: '700' },
+                  ]}
+                >
+                  {sortBySpent ? 'Sorted by spent' : 'Sort by spent'}
+                </Text>
+              </Pressable>
             </View>
           </View>
         }

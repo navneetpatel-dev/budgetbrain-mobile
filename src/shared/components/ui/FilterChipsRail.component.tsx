@@ -12,6 +12,7 @@ export interface FilterChipItem {
   icon?: AppIconName;
   color?: string;
   dotColor?: string;
+  hasDividerBefore?: boolean;
 }
 
 export interface FilterChipsRailProps {
@@ -37,35 +38,38 @@ const Chip = memo(function Chip({
   const spring = useSpringPress(0.97);
 
   return (
-    <Pressable
-      onPress={() => onSelect(chip.id)}
-      onPressIn={spring.onPressIn}
-      onPressOut={spring.onPressOut}
-      style={[styles.chip, isSelected ? styles.chipSelected : styles.chipUnselected]}
-      accessibilityRole="button"
-      accessibilityState={{ selected: isSelected }}
-    >
-      <Animated.View style={[{ flexDirection: 'row', alignItems: 'center', gap: 6 }, spring.style]}>
-        {chip.dotColor ? (
-          <View style={[styles.dot, { backgroundColor: chip.dotColor }]} />
-        ) : chip.icon ? (
-          <AppIcon
-            name={chip.icon}
-            size={14}
-            color={isSelected ? theme.colors.onPrimary : chip.color ?? theme.colors.textSecondary}
-          />
-        ) : isSelected ? (
-          <AppIcon name="checkmark" size={14} color={theme.colors.onPrimary} />
-        ) : null}
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+      {chip.hasDividerBefore ? <View style={styles.divider} /> : null}
+      <Pressable
+        onPress={() => onSelect(chip.id)}
+        onPressIn={spring.onPressIn}
+        onPressOut={spring.onPressOut}
+        style={[styles.chip, isSelected ? styles.chipSelected : styles.chipUnselected]}
+        accessibilityRole="button"
+        accessibilityState={{ selected: isSelected }}
+      >
+        <Animated.View style={[{ flexDirection: 'row', alignItems: 'center', gap: 6 }, spring.style]}>
+          {chip.dotColor ? (
+            <View style={[styles.dot, { backgroundColor: chip.dotColor }]} />
+          ) : chip.icon ? (
+            <AppIcon
+              name={chip.icon}
+              size={14}
+              color={isSelected ? theme.colors.onPrimary : chip.color ?? theme.colors.textSecondary}
+            />
+          ) : isSelected ? (
+            <AppIcon name="checkmark" size={14} color={theme.colors.onPrimary} />
+          ) : null}
 
-        <Text
-          style={[styles.chipLabel, isSelected ? styles.chipLabelSelected : styles.chipLabelUnselected]}
-          numberOfLines={1}
-        >
-          {chip.label}
-        </Text>
-      </Animated.View>
-    </Pressable>
+          <Text
+            style={[styles.chipLabel, isSelected ? styles.chipLabelSelected : styles.chipLabelUnselected]}
+            numberOfLines={1}
+          >
+            {chip.label}
+          </Text>
+        </Animated.View>
+      </Pressable>
+    </View>
   );
 });
 

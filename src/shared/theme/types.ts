@@ -11,6 +11,8 @@ export interface ThemeColors {
   surfaceElevated: string;
   surface: string;
   surfaceContainer: string;
+  surfaceDark: string;
+  surfaceContainerLowest: string;
   surfaceContainerLow: string;
   surfaceContainerHigh: string;
   surfaceContainerHighest: string;
@@ -52,8 +54,8 @@ export interface ThemeTypography {
   bodySemibold: { fontSize: number; fontWeight: '600'; fontFamily?: string; lineHeight: number };
   caption: { fontSize: number; fontWeight: '500'; fontFamily?: string; lineHeight: number };
   label: { fontSize: number; fontWeight: '600'; letterSpacing: number; textTransform: 'none' | 'uppercase'; fontFamily?: string; lineHeight: number };
-  amount: { fontSize: number; fontWeight: '700'; letterSpacing: number; fontFamily?: string; fontVariant?: Array<'tabular-nums'>; lineHeight: number };
-  amountLg: { fontSize: number; fontWeight: '700' | '800'; letterSpacing: number; fontFamily?: string; fontVariant?: Array<'tabular-nums'>; lineHeight: number };
+  amount: { fontSize: number; fontWeight: '700'; letterSpacing: number; fontFamily?: string; fontVariant?: ('tabular-nums')[]; lineHeight: number };
+  amountLg: { fontSize: number; fontWeight: '700' | '800'; letterSpacing: number; fontFamily?: string; fontVariant?: ('tabular-nums')[]; lineHeight: number };
 }
 
 /** Motion durations (ms) and spring config — shared "feel" spec with the web app's Framer Motion tokens. */

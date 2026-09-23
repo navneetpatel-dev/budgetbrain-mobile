@@ -57,6 +57,11 @@ const ICONS = {
   refresh: { ios: 'arrow.clockwise', android: 'refresh', web: 'refresh' },
   receipt: { ios: 'doc.text.fill', android: 'receipt', web: 'receipt' },
   dragHandle: { ios: 'line.3.horizontal', android: 'drag_indicator', web: 'drag_indicator' },
+  camera: { ios: 'camera.fill', android: 'photo_camera', web: 'photo_camera' },
+  share: { ios: 'square.and.arrow.up', android: 'share', web: 'share' },
+  insights: { ios: 'chart.line.uptrend.xyaxis.circle.fill', android: 'insights', web: 'insights' },
+  neurology: { ios: 'brain.head.profile', android: 'psychology', web: 'psychology' },
+  swapVert: { ios: 'arrow.up.arrow.down', android: 'swap_vert', web: 'swap_vert' },
 } as const;
 
 export type AppIconName = keyof typeof ICONS;

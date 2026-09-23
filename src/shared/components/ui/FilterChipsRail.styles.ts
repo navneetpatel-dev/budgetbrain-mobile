@@ -43,5 +43,11 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
       height: 7,
       borderRadius: 4,
     },
+    divider: {
+      width: 1,
+      height: 20,
+      backgroundColor: t.colors.borderSubtle,
+      marginHorizontal: 2,
+    },
   });
 }

@@ -37,6 +37,7 @@ export function DashboardHero({
   const { paddingHorizontal } = useScreenInsets();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [fade] = useState(() => new Animated.Value(reducedMotion ? 1 : 0));
+  const [pulseAnim] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     if (reducedMotion) {
@@ -47,7 +48,28 @@ export function DashboardHero({
     Animated.timing(fade, { toValue: 1, duration: 380, useNativeDriver: true }).start();
   }, [fade, reducedMotion, amount]);
 
+  useEffect(() => {
+    if (reducedMotion) return;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulseAnim, reducedMotion]);
+
   const targetProgress = Math.min(100, Math.max(10, Math.round(savingsRate || 25)));
+  const daysRemaining = getDaysRemainingInCycle();
 
   return (
     <View style={[styles.container, { paddingHorizontal }]}>
@@ -62,6 +84,28 @@ export function DashboardHero({
           <View style={styles.topStatusRow}>
             <View style={styles.greetingRow}>
               <View style={styles.livePulseContainer}>
+                {!reducedMotion && (
+                  <Animated.View
+                    style={[
+                      styles.livePulsePing,
+                      {
+                        backgroundColor: theme.colors.secondary,
+                        transform: [
+                          {
+                            scale: pulseAnim.interpolate({
+                              inputRange: [0, 1],
+                              outputRange: [1, 2.4],
+                            }),
+                          },
+                        ],
+                        opacity: pulseAnim.interpolate({
+                          inputRange: [0, 0.7, 1],
+                          outputRange: [0.75, 0.2, 0],
+                        }),
+                      },
+                    ]}
+                  />
+                )}
                 <View style={[styles.livePulseDot, { backgroundColor: theme.colors.secondary }]} />
               </View>
               <Text style={styles.greetingText}>
@@ -96,7 +140,7 @@ export function DashboardHero({
 
             {/* Circular Ring Visualizer */}
             <RingGauge
-              size={54}
+              size={56}
               strokeWidth={4.5}
               progress={targetProgress}
               icon="budgets"
@@ -112,7 +156,7 @@ export function DashboardHero({
                 Target on track{goalAmount ? `: ${formatCurrency(goalAmount, currency)} goal` : ''}
               </Text>
             </View>
-            <Text style={styles.targetDaysLeft}>Cycle active</Text>
+            <Text style={styles.targetDaysLeft}>{daysRemaining} days left</Text>
           </View>
         </View>
       </View>
@@ -156,14 +200,14 @@ export function DashboardHero({
 
         {/* Scan Slip Button */}
         <Pressable
-          onPress={() => router.push(appHref('/expense/add'))}
+          onPress={() => router.push(appHref('/expense/add?scan=1'))}
           style={({ pressed }) => [styles.actionPressable, pressed && styles.actionPressed]}
           accessibilityRole="button"
           accessibilityLabel="Scan Slip"
         >
           <View style={styles.actionSecondaryBtn}>
             <View style={[styles.actionSecondaryIconCircle, { backgroundColor: theme.colors.violet + '20' }]}>
-              <AppIcon name="document" size={16} color={theme.colors.violet} />
+              <AppIcon name="camera" size={16} color={theme.colors.violet} />
             </View>
             <Text style={styles.actionSecondaryLabel}>Scan Slip</Text>
           </View>
@@ -178,4 +222,11 @@ function getGreeting() {
   if (h < 12) return 'morning';
   if (h < 17) return 'afternoon';
   return 'evening';
+}
+
+function getDaysRemainingInCycle() {
+  const now = new Date();
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const remaining = lastDay - now.getDate();
+  return Math.max(1, remaining);
 }

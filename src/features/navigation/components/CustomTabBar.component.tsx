@@ -30,12 +30,12 @@ type TabConfig = {
 
 const TABS: TabConfig[] = [
   { route: 'index', label: 'Home', icon: 'home' },
-  { route: 'expenses', label: 'Activity', icon: 'activity' },
+  { route: 'expenses', label: 'Activity', icon: 'chart' },
   { route: 'budgets', label: 'Budgets', icon: 'budgets' },
-  { route: 'settings', label: 'Profile', icon: 'profile' },
+  { route: 'ai', label: 'AI Coach', icon: 'ai' },
 ];
 
-const HIDDEN_TAB_BAR_ROUTES = new Set(['ai']);
+const HIDDEN_TAB_BAR_ROUTES = new Set<string>();
 
 function TabButton({
   config,
@@ -79,7 +79,7 @@ export function CustomTabBar({ state, navigation }: CustomTabBarProps) {
   const { tabBarBottomInset, tabBarPaddingX } = useResponsive();
   const styles = useMemo(() => createStyles(theme, tabBarPaddingX), [theme, tabBarPaddingX]);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const fabSpring = useSpringPress(0.94);
+  const fabSpring = useSpringPress(0.97);
 
   const leftTabs = TABS.slice(0, 2);
   const rightTabs = TABS.slice(2);

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, ActivityIndicator } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Controller } from 'react-hook-form';
@@ -19,6 +20,7 @@ import { categoryIconTint, createStyles, scrollBottomInset } from './AddExpenseS
 
 export function AddExpenseScreen() {
   const theme = useTheme();
+  const router = useRouter();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const bottomSafe = useBottomSafeInset();
   const {
@@ -85,15 +87,25 @@ export function AddExpenseScreen() {
               </View>
             </View>
 
-            <Pressable
-              onPress={pick}
-              style={({ pressed }) => [styles.scanReceiptBtn, pressed && styles.pressedFade]}
-              accessibilityRole="button"
-              accessibilityLabel="Scan Receipt"
-            >
-              <AppIcon name="document" size={15} color={theme.colors.primary} />
-              <Text style={styles.scanReceiptText}>Scan Receipt</Text>
-            </Pressable>
+            <View style={styles.sheetActionsRight}>
+              <Pressable
+                onPress={pick}
+                style={({ pressed }) => [styles.scanReceiptBtn, pressed && styles.pressedFade]}
+                accessibilityRole="button"
+                accessibilityLabel="Scan Receipt"
+              >
+                <AppIcon name="camera" size={15} color={theme.colors.primary} />
+                <Text style={styles.scanReceiptText}>Scan Receipt</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => router.back()}
+                style={({ pressed }) => [styles.closeBtn, pressed && styles.pressedFade]}
+                accessibilityRole="button"
+                accessibilityLabel="Close"
+              >
+                <AppIcon name="close" size={16} color={theme.colors.textSecondary} />
+              </Pressable>
+            </View>
           </View>
         </View>
 
@@ -384,7 +396,7 @@ export function AddExpenseScreen() {
           >
             <View style={styles.receiptLeft}>
               <View style={styles.receiptIconCircle}>
-                <AppIcon name="document" size={18} color={theme.colors.primary} />
+                <AppIcon name="camera" size={18} color={theme.colors.primary} />
               </View>
               <View style={styles.receiptTextCol}>
                 <Text style={styles.receiptTitle} numberOfLines={1}>

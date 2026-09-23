@@ -6,9 +6,10 @@ import type {
   ThemeShadows,
   ThemeSpacing,
   ThemeTypography,
+  AccentPalette,
+  ThemeMode,
 } from './types';
 import { getThemeColors } from './palettes';
-import type { AccentPalette, ThemeMode } from './types';
 
 export const spacing: ThemeSpacing = {
   xs: 4,
@@ -33,14 +34,14 @@ export const radii: ThemeRadii = {
 export const typography: ThemeTypography = {
   display: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5, fontFamily: 'Inter_800ExtraBold', lineHeight: 34 },
   title: { fontSize: 20, fontWeight: '700', letterSpacing: -0.3, fontFamily: 'Inter_700Bold', lineHeight: 25 },
-  titleSm: { fontSize: 17, fontWeight: '600', fontFamily: 'Inter_600SemiBold', lineHeight: 21 },
+  titleSm: { fontSize: 17, fontWeight: '600', fontFamily: 'Inter_600SemiBold', lineHeight: 22 },
   body: { fontSize: 16, fontWeight: '400', fontFamily: 'Inter_400Regular', lineHeight: 22 },
   bodyMedium: { fontSize: 15, fontWeight: '500', fontFamily: 'Inter_500Medium', lineHeight: 21 },
   bodySemibold: { fontSize: 15, fontWeight: '600', fontFamily: 'Inter_600SemiBold', lineHeight: 21 },
   caption: { fontSize: 13, fontWeight: '500', fontFamily: 'Inter_500Medium', lineHeight: 18 },
-  label: { fontSize: 12, fontWeight: '600', letterSpacing: 0.2, textTransform: 'none', fontFamily: 'Inter_600SemiBold', lineHeight: 16 },
-  amount: { fontSize: 22, fontWeight: '700', letterSpacing: -0.5, fontFamily: 'Inter_700Bold', fontVariant: ['tabular-nums'], lineHeight: 24 },
-  amountLg: { fontSize: 32, fontWeight: '700', letterSpacing: -1, fontFamily: 'Fraunces_700Bold', fontVariant: ['tabular-nums'], lineHeight: 35 },
+  label: { fontSize: 12, fontWeight: '600', letterSpacing: 0.2, textTransform: 'uppercase', fontFamily: 'Inter_600SemiBold', lineHeight: 16 },
+  amount: { fontSize: 22, fontWeight: '700', letterSpacing: -0.5, fontFamily: 'Inter_700Bold', fontVariant: ['tabular-nums'], lineHeight: 26 },
+  amountLg: { fontSize: 32, fontWeight: '700', letterSpacing: -1, fontFamily: 'Inter_700Bold', fontVariant: ['tabular-nums'], lineHeight: 36 },
 };
 
 /** Motion durations (ms) + spring config — tuned to feel equivalent to the web app's Framer Motion tokens. */

@@ -80,3 +80,39 @@ export function formatCurrency(amount: unknown, currency: string): string {
     return `${getCurrencySymbol(currency)}${safe.toLocaleString(locale, { maximumFractionDigits: decimals })}`;
   }
 }
+
+export function formatCurrencyParts(
+  amount: unknown,
+  currency: string
+): { integerPart: string; fractionPart: string } {
+  const safe = toSafeNumber(amount);
+  const { locale, decimals } = configFor(currency);
+  const override = SYMBOL_OVERRIDES[currency];
+  try {
+    const formatter = new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    });
+    const parts = formatter.formatToParts(safe);
+    let integerPart = '';
+    let fractionPart = '';
+    let foundDecimal = false;
+    for (const part of parts) {
+      const val = part.type === 'currency' && override ? override : part.value;
+      if (part.type === 'decimal') {
+        foundDecimal = true;
+        fractionPart += val;
+      } else if (foundDecimal) {
+        fractionPart += val;
+      } else {
+        integerPart += val;
+      }
+    }
+    return { integerPart, fractionPart };
+  } catch {
+    const formatted = formatCurrency(amount, currency);
+    return { integerPart: formatted, fractionPart: '' };
+  }
+}

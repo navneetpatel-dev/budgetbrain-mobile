@@ -83,6 +83,8 @@ export const TransactionItem = memo(function TransactionItem({
       accessibilityRole={onPress ? 'button' : undefined}
       accessibilityLabel={`${title}, ${formattedAmount}`}
     >
+      {!isExpense && <View style={styles.incomeAccentStrip} pointerEvents="none" />}
+
       {/* 44px Rounded Icon Pod with Corner Glyph Badge */}
       <View style={[styles.iconPod, { backgroundColor: accent + '1E' }]}>
         <AppIcon

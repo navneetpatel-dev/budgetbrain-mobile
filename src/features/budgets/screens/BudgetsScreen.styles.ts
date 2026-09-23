@@ -94,11 +94,21 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
       textTransform: 'uppercase',
       color: t.colors.textTertiary,
     },
-    consumedAmount: {
-      fontSize: 24,
+    consumedAmountRow: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+    },
+    consumedAmountInteger: {
+      fontSize: 28,
       fontWeight: '800',
       letterSpacing: -0.5,
       color: t.colors.text,
+      fontVariant: ['tabular-nums'],
+    },
+    consumedAmountFraction: {
+      fontSize: 17,
+      fontWeight: '700',
+      color: t.colors.textSecondary,
       fontVariant: ['tabular-nums'],
     },
     limitLabel: {
@@ -173,6 +183,11 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
       justifyContent: 'space-between',
       paddingTop: 4,
     },
+    categoryTitleGroup: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
     categorySectionTitle: {
       fontSize: 15,
       fontWeight: '700',
@@ -190,6 +205,20 @@ export function createStyles(t: ReturnType<typeof useTheme>) {
       color: t.colors.textSecondary,
       textTransform: 'uppercase',
       letterSpacing: 0.3,
+    },
+    sortBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: t.radii.sm,
+      backgroundColor: t.colors.surfaceContainerHigh,
+    },
+    sortBtnText: {
+      fontSize: 11,
+      fontWeight: '600',
+      color: t.colors.textSecondary,
     },
     cardItemWrap: {
       marginBottom: 10,
