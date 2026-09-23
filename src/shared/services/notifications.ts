@@ -123,3 +123,28 @@ export async function addNotificationResponseListener(
   if (!Notifications) return { remove: () => {} };
   return Notifications.addNotificationResponseReceivedListener(callback);
 }
+
+export async function showLocalDetectionNotification(params: {
+  title: string;
+  body: string;
+  data?: Record<string, unknown>;
+}): Promise<void> {
+  const Notifications = await loadNotifications();
+  if (!Notifications) return;
+
+  try {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: params.title,
+        body: params.body,
+        data: params.data ?? {},
+        sound: true,
+        priority: Notifications.AndroidNotificationPriority.HIGH,
+      },
+      trigger: null,
+    });
+  } catch {
+    // Ignore notification schedule errors
+  }
+}
+

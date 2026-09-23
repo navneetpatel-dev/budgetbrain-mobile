@@ -4,6 +4,7 @@ import { AppIcon, type AppIconName } from '@/features/navigation/components/AppI
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
 import type { Transaction } from '@/shared/types';
+import { AutoDetectedBadge } from '@/features/transaction-detection';
 import { createGroupStyles, createStyles } from './TransactionItem.styles';
 
 interface Props {
@@ -107,6 +108,9 @@ export const TransactionItem = memo(function TransactionItem({
           <Text style={styles.merchant} numberOfLines={1}>
             {title}
           </Text>
+          {transaction.tags?.includes('auto-detected') && (
+            <AutoDetectedBadge />
+          )}
           {entityLabel ? (
             <View style={[styles.entityTag, { backgroundColor: theme.colors.surfaceHover }]}>
               <Text style={styles.entityTagText} numberOfLines={1}>

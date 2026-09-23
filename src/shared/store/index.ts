@@ -14,10 +14,12 @@ import {
 import { persistStorage } from './storage';
 import authReducer from './authSlice';
 import settingsReducer, { type SettingsState } from './settingsSlice';
+import transactionDetectionReducer from './transactionDetectionSlice';
 
 const rootReducer = combineReducers({
   auth: authReducer,
   settings: settingsReducer,
+  transactionDetection: transactionDetectionReducer,
 });
 
 type CombinedState = ReturnType<typeof rootReducer>;
@@ -37,7 +39,7 @@ const settingsSecurityTransform = createTransform<SettingsState, SettingsState, 
 const persistConfig: PersistConfig<CombinedState> = {
   key: 'budgetbrain',
   storage: persistStorage,
-  whitelist: ['settings'],
+  whitelist: ['settings', 'transactionDetection'],
   transforms: [settingsSecurityTransform],
 };
 

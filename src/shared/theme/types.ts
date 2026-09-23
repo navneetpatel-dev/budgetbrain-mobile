@@ -123,3 +123,5 @@ export interface AppTheme {
   iconSizes: ThemeIconSizes;
   isDark: boolean;
 }
+
+export type Theme = AppTheme;

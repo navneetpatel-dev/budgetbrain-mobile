@@ -10,6 +10,7 @@ export const PROFILE_FEATURE_LINKS: { label: string; href: string; icon: AppIcon
   { label: 'Categories', href: '/categories', icon: 'category' },
   { label: 'Loans & Debts', href: '/loan', icon: 'wallet' },
   { label: 'Subscriptions', href: '/subscriptions', icon: 'bell' },
+  { label: 'SMS Auto-Tracking', href: '/settings/auto-tracking', icon: 'receipt' },
 ];
 
 export const PROFILE_ACCOUNT_LINKS: { label: string; href: string; icon: AppIconName }[] = [
