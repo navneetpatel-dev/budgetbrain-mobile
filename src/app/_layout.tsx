@@ -24,6 +24,7 @@ import { useAuthNavigation } from '@/shared/hooks/useAuthNavigation.hook';
 import { AppLoadingScreen } from '@/shared/components/brand/AppLoadingScreen.component';
 import { ConfirmDialogProvider } from '@/shared/containers/ConfirmDialogProvider.container';
 import { PreferencesHydrator } from '@/features/settings/components/PreferencesHydrator.component';
+import { useTransactionDetectionPipeline } from '@/features/transaction-detection';
 
 initAnalytics();
 initMonitoring();
@@ -76,6 +77,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
   useAuthBootstrap();
   useAuthNavigation(isAuthenticated, isLoading, user);
+  useTransactionDetectionPipeline();
 
   useEffect(() => {
     if (!isAuthenticated) {

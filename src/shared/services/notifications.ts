@@ -71,6 +71,13 @@ export async function registerForPushNotifications(): Promise<string | null> {
  * backend/src/shared/modules/notifications/service/notification.service.ts).
  */
 export function resolveNotificationDeepLink(data: Record<string, unknown> | undefined): string {
+  if (data?.detectedId) {
+    if (data?.status === 'pending_review') {
+      return '/transactions/review';
+    }
+    return '/(tabs)/expenses';
+  }
+
   const type = data?.type as string | undefined;
   switch (type) {
     case 'budget_exceeded':
