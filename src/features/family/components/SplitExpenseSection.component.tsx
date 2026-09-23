@@ -37,7 +37,7 @@ export function SplitExpenseSection({
   const [created, setCreated] = useState<SplitParticipant[] | null>(null);
   const [settledIds, setSettledIds] = useState<Set<string>>(new Set());
 
-  const writableGroups = (memberships ?? []).filter((g) => g.role !== 'read_only');
+  const writableGroups = useMemo(() => (memberships ?? []).filter((g) => g.role !== 'read_only'), [memberships]);
   const groups = writableGroups;
   const activeGroupId = groupId ?? groups[0]?.groupId ?? null;
   const activeRole = groups.find((g) => g.groupId === activeGroupId)?.role;

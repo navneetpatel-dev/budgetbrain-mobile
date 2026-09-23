@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { RefreshControl, View, Text, Pressable, TextInput, FlatList, type ListRenderItem } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { appHref } from '@/shared/utils/navigation';
 import { TransactionItem, TransactionGroup } from '@/features/expenses/components/TransactionItem.component';
@@ -14,6 +15,7 @@ import {
 import { AppIcon } from '@/features/navigation/components/AppIcon.component';
 import { useTheme } from '@/shared/theme';
 import { useTabBarInset } from '@/shared/hooks/useTabBarInset.hook';
+import { useSpringPress } from '@/shared/hooks/useSpringPress.hook';
 import { useExpensesScreen } from '@/features/expenses/hooks/useExpensesScreen.hook';
 import { createStyles } from './ExpensesScreen.styles';
 import type { Transaction } from '@/shared/types';
@@ -27,6 +29,8 @@ export function ExpensesScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const tabBarInset = useTabBarInset();
+  const filterSpring = useSpringPress(0.95);
+  const exportSpring = useSpringPress(0.95);
   const {
     total,
     isLoading,
@@ -114,34 +118,38 @@ export function ExpensesScreen() {
               {/* Filter Tune Trigger with Badge */}
               <Pressable
                 onPress={() => (filtersOpen ? closeFilters() : openFilters())}
-                style={({ pressed }) => [
-                  styles.filterBtn,
-                  activeFilterCount > 0 && styles.filterBtnActive,
-                  pressed && { transform: [{ scale: 0.95 }] },
-                ]}
+                onPressIn={filterSpring.onPressIn}
+                onPressOut={filterSpring.onPressOut}
+                style={[styles.filterBtn, activeFilterCount > 0 && styles.filterBtnActive]}
                 accessibilityRole="button"
                 accessibilityLabel="Filter transactions"
               >
-                <AppIcon
-                  name="filter"
-                  size={18}
-                  color={activeFilterCount > 0 ? theme.colors.primary : theme.colors.text}
-                />
-                {activeFilterCount > 0 ? (
-                  <View style={styles.badgeCount}>
-                    <Text style={styles.badgeCountText}>{activeFilterCount}</Text>
-                  </View>
-                ) : null}
+                <Animated.View style={filterSpring.style}>
+                  <AppIcon
+                    name="filter"
+                    size={18}
+                    color={activeFilterCount > 0 ? theme.colors.primary : theme.colors.text}
+                  />
+                  {activeFilterCount > 0 ? (
+                    <View style={styles.badgeCount}>
+                      <Text style={styles.badgeCountText}>{activeFilterCount}</Text>
+                    </View>
+                  ) : null}
+                </Animated.View>
               </Pressable>
 
               {/* Reports / Export Shortcut */}
               <Pressable
                 onPress={() => router.push('/reports')}
-                style={({ pressed }) => [styles.exportBtn, pressed && { transform: [{ scale: 0.95 }] }]}
+                onPressIn={exportSpring.onPressIn}
+                onPressOut={exportSpring.onPressOut}
+                style={styles.exportBtn}
                 accessibilityRole="button"
                 accessibilityLabel="Export statement"
               >
-                <AppIcon name="send" size={18} color={theme.colors.textSecondary} />
+                <Animated.View style={exportSpring.style}>
+                  <AppIcon name="send" size={18} color={theme.colors.textSecondary} />
+                </Animated.View>
               </Pressable>
             </View>
 

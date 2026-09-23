@@ -31,7 +31,7 @@ export function NotificationsScreen() {
   } = useMarkNotificationRead();
 
   const items = data ?? [];
-  const unreadCount = items.filter((n) => !n.read).length;
+  const unreadCount = useMemo(() => items.filter((n) => !n.read).length, [items]);
 
   const filterChips: FilterChipItem[] = [
     { id: 'all', label: `All (${items.length})` },

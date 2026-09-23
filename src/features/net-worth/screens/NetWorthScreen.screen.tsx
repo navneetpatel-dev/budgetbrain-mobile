@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { StyleSheet, Text, RefreshControl, View, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -38,6 +38,9 @@ export function NetWorthScreen() {
   const router = useRouter();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const bottomSafe = useBottomSafeInset();
+  // ListRow is memoized — a fresh closure per row here would defeat that for every row.
+  const goToAccounts = useCallback(() => router.push('/accounts'), [router]);
+  const goToInvestments = useCallback(() => router.push('/investments'), [router]);
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['net-worth'],
     queryFn: () => apiGet<NetWorthData>('/net-worth'),
@@ -208,7 +211,7 @@ export function NetWorthScreen() {
                         label={acc.name}
                         subtitle={`${acc.type.replace(/_/g, ' ')} · ${acc.institution ?? '—'}`}
                         value={formatCurrency(Number(acc.balance), currency)}
-                        onPress={() => router.push('/accounts')}
+                        onPress={goToAccounts}
                         isLast={i === accounts.length - 1}
                       />
                     ))
@@ -232,7 +235,7 @@ export function NetWorthScreen() {
                         label={inv.name}
                         subtitle={`${inv.type.replace(/_/g, ' ')} · ${inv.gainLoss >= 0 ? '+' : ''}${formatCurrency(inv.gainLoss, currency)}`}
                         value={formatCurrency(inv.currentValue, currency)}
-                        onPress={() => router.push('/investments')}
+                        onPress={goToInvestments}
                         isLast={i === investments.length - 1}
                       />
                     ))

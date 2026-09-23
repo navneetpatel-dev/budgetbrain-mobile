@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { RefreshControl, Share, StyleSheet, Text, View, ScrollView, Pressable } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
@@ -9,6 +10,7 @@ import { AppIcon } from '@/features/navigation/components/AppIcon.component';
 import { useTheme } from '@/shared/theme';
 import { useUserCurrency } from '@/shared/hooks/useUserCurrency.hook';
 import { useBottomSafeInset } from '@/shared/hooks/useLayout.hook';
+import { useSpringPress } from '@/shared/hooks/useSpringPress.hook';
 import type { MonthlyRecap } from '@/shared/types';
 import { createStyles } from './RecapScreen.styles';
 
@@ -18,6 +20,7 @@ export function RecapScreen() {
   const { format } = useUserCurrency();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const bottomSafe = useBottomSafeInset();
+  const shareSpring = useSpringPress(0.98);
 
   const { data, isLoading, isRefetching, refetch } = useQuery({
     queryKey: ['recap'],
@@ -121,17 +124,21 @@ export function RecapScreen() {
             <View style={styles.ctaWrap}>
               <Pressable
                 onPress={share}
-                style={({ pressed }) => [styles.shareBtnWrap, pressed && { transform: [{ scale: 0.98 }] }]}
+                onPressIn={shareSpring.onPressIn}
+                onPressOut={shareSpring.onPressOut}
+                style={styles.shareBtnWrap}
               >
-                <LinearGradient
-                  colors={[theme.colors.primary, theme.colors.ocean]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.shareBtnGradient}
-                >
-                  <AppIcon name="info" size={18} color="#FFFFFF" />
-                  <Text style={styles.shareBtnText}>Share Monthly Recap</Text>
-                </LinearGradient>
+                <Animated.View style={shareSpring.style}>
+                  <LinearGradient
+                    colors={[theme.colors.primary, theme.colors.ocean]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.shareBtnGradient}
+                  >
+                    <AppIcon name="info" size={18} color="#FFFFFF" />
+                    <Text style={styles.shareBtnText}>Share Monthly Recap</Text>
+                  </LinearGradient>
+                </Animated.View>
               </Pressable>
             </View>
           </>

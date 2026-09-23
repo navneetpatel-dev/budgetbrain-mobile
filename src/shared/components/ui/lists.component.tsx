@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { Animated, View, Text, Pressable, ViewStyle } from 'react-native';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon.component';
 import { useTheme } from '@/shared/theme';
@@ -27,7 +27,7 @@ export function GroupedCard({
   );
 }
 
-export function ListRow({
+export const ListRow = memo(function ListRow({
   icon,
   iconColor,
   iconBg,
@@ -88,7 +88,7 @@ export function ListRow({
   }
 
   return <View style={[styles.row, !isLast && styles.rowBorder]}>{content}</View>;
-}
+});
 
 export function ProgressBar({
   progress,

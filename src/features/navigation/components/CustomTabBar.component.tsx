@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -9,6 +10,7 @@ import { useTheme } from '@/shared/theme';
 import type { AppTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
 import { useBottomSafeInset } from '@/shared/hooks/useLayout.hook';
+import { useSpringPress } from '@/shared/hooks/useSpringPress.hook';
 import { appHref } from '@/shared/utils/navigation';
 import { createStyles } from './CustomTabBar.styles';
 
@@ -77,6 +79,7 @@ export function CustomTabBar({ state, navigation }: CustomTabBarProps) {
   const { tabBarBottomInset, tabBarPaddingX } = useResponsive();
   const styles = useMemo(() => createStyles(theme, tabBarPaddingX), [theme, tabBarPaddingX]);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const fabSpring = useSpringPress(0.94);
 
   const leftTabs = TABS.slice(0, 2);
   const rightTabs = TABS.slice(2);
@@ -119,18 +122,22 @@ export function CustomTabBar({ state, navigation }: CustomTabBarProps) {
               void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               setSheetOpen(true);
             }}
-            style={({ pressed }) => [styles.fab, pressed && { transform: [{ scale: 0.94 }] }]}
+            onPressIn={fabSpring.onPressIn}
+            onPressOut={fabSpring.onPressOut}
+            style={styles.fab}
             accessibilityRole="button"
             accessibilityLabel="Create"
           >
-            <LinearGradient
-              colors={[theme.colors.ocean, theme.colors.primary, theme.colors.violet]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.fabGradient}
-            >
-              <AppIcon name="add" size={26} color="#FFFFFF" />
-            </LinearGradient>
+            <Animated.View style={fabSpring.style}>
+              <LinearGradient
+                colors={[theme.colors.ocean, theme.colors.primary, theme.colors.violet]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.fabGradient}
+              >
+                <AppIcon name="add" size={26} color="#FFFFFF" />
+              </LinearGradient>
+            </Animated.View>
           </Pressable>
 
           <View style={styles.side}>

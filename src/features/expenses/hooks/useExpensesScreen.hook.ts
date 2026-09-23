@@ -3,6 +3,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import type { FilterChipItem } from '@/shared/components/ui';
 import { useInfinitePaginatedList, usePaginatedList } from '@/shared/hooks/usePaginatedList.hook';
+import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue.hook';
 import { useCategoryOptions } from '@/features/categories/hooks/useCategoryOptions.hook';
 import { useTheme } from '@/shared/theme';
 import type { IncomeSource, Transaction } from '@/shared/types';
@@ -188,17 +189,19 @@ export function useExpensesScreen() {
         ? filters.datePreset
         : 'all';
 
-  // Client search filtering
+  // Client search filtering. Raw `searchQuery` drives the TextInput so typing stays
+  // instant; the debounced value drives the filter re-run.
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
   const filteredTransactions = useMemo(() => {
-    if (!searchQuery.trim()) return transactions;
-    const q = searchQuery.toLowerCase();
+    if (!debouncedSearchQuery.trim()) return transactions;
+    const q = debouncedSearchQuery.toLowerCase();
     return transactions.filter(
       (tx) =>
         (tx.merchant && tx.merchant.toLowerCase().includes(q)) ||
         (tx.category?.name && tx.category.name.toLowerCase().includes(q)) ||
         (tx.notes && tx.notes.toLowerCase().includes(q)),
     );
-  }, [transactions, searchQuery]);
+  }, [transactions, debouncedSearchQuery]);
 
   return {
     total,
