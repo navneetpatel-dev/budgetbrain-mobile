@@ -447,6 +447,8 @@ export function EmptyState({
 }) {
   const theme = useTheme();
   const styles = useMemo(() => createEmptyStyles(theme), [theme]);
+  const actionSpring = useSpringPress();
+  const secondarySpring = useSpringPress();
   return (
     <View style={styles.emptyState}>
       {icon && (
@@ -459,28 +461,35 @@ export function EmptyState({
       {action && onAction && (
         <Pressable
           onPress={onAction}
-          style={({ pressed }) => [pressed && { opacity: 0.9 }]}
+          onPressIn={actionSpring.onPressIn}
+          onPressOut={actionSpring.onPressOut}
           accessibilityRole="button"
           accessibilityLabel={action}
         >
-          <LinearGradient
-            colors={[theme.colors.primary, theme.colors.gradientEnd]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.actionBtn}
-          >
-            <Text style={styles.actionText}>{action}</Text>
-          </LinearGradient>
+          <Animated.View style={actionSpring.style}>
+            <LinearGradient
+              colors={[theme.colors.primary, theme.colors.gradientEnd]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.actionBtn}
+            >
+              <Text style={styles.actionText}>{action}</Text>
+            </LinearGradient>
+          </Animated.View>
         </Pressable>
       )}
       {secondaryAction && onSecondaryAction && (
         <Pressable
           onPress={onSecondaryAction}
-          style={({ pressed }) => [styles.secondaryBtn, pressed && { opacity: 0.85 }]}
+          onPressIn={secondarySpring.onPressIn}
+          onPressOut={secondarySpring.onPressOut}
+          style={styles.secondaryBtn}
           accessibilityRole="button"
           accessibilityLabel={secondaryAction}
         >
-          <Text style={styles.secondaryText}>{secondaryAction}</Text>
+          <Animated.View style={secondarySpring.style}>
+            <Text style={styles.secondaryText}>{secondaryAction}</Text>
+          </Animated.View>
         </Pressable>
       )}
     </View>

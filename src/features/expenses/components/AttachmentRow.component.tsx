@@ -1,11 +1,11 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { AppIcon } from '@/features/navigation/components/AppIcon.component';
 import type { Attachment } from '@/features/expenses/types/expenses.types';
 import { useTheme } from '@/shared/theme';
 import { createStyles } from './AttachmentList.styles';
 
-export function AttachmentRow({
+export const AttachmentRow = memo(function AttachmentRow({
   attachment,
   checking,
   notReady,
@@ -60,4 +60,4 @@ export function AttachmentRow({
       </View>
     </View>
   );
-}
+});

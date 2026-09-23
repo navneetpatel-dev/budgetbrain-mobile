@@ -10,6 +10,7 @@ import {
   Pressable,
   type ListRenderItem,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AiChatSkeleton, AppHeaderBar } from '@/shared/components/ui';
 import { BrandMark } from '@/shared/components/brand/BrandMark.component';
@@ -17,6 +18,7 @@ import { AppIcon } from '@/features/navigation/components/AppIcon.component';
 import { useTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
 import { useBottomSafeInset } from '@/shared/hooks/useLayout.hook';
+import { useSpringPress } from '@/shared/hooks/useSpringPress.hook';
 import { useAiChat } from '@/features/ai/hooks/useAiChat.hook';
 import { formatCurrency } from '@/shared/utils/currency';
 import {
@@ -53,6 +55,7 @@ export function AiScreen() {
     () => createStyles(theme, tabBarPaddingX, footerBottom),
     [theme, tabBarPaddingX, footerBottom],
   );
+  const newChatSpring = useSpringPress();
   const { isEntitled, paywallVisible, openPaywall, closePaywall } = useEntitlement();
   const {
     currency,
@@ -99,12 +102,16 @@ export function AiScreen() {
           messages.length > 0 ? (
             <Pressable
               onPress={startNewConversation}
-              style={({ pressed }) => [styles.newChatBtn, pressed && { opacity: 0.75 }]}
+              onPressIn={newChatSpring.onPressIn}
+              onPressOut={newChatSpring.onPressOut}
+              style={styles.newChatBtn}
               accessibilityRole="button"
               accessibilityLabel="Start new conversation"
             >
-              <AppIcon name="add" size={16} color={theme.colors.primary} />
-              <Text style={styles.newChatText}>New Chat</Text>
+              <Animated.View style={[{ flexDirection: 'row', alignItems: 'center', gap: 6 }, newChatSpring.style]}>
+                <AppIcon name="add" size={16} color={theme.colors.primary} />
+                <Text style={styles.newChatText}>New Chat</Text>
+              </Animated.View>
             </Pressable>
           ) : undefined
         }

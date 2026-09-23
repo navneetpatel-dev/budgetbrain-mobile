@@ -1,5 +1,6 @@
 import { useCallback, useState, useMemo } from 'react';
 import { Text, View, FlatList, Pressable, RefreshControl, TextInput, type ListRenderItem } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { appHref } from '@/shared/utils/navigation';
 import { AppHeaderBar, EmptyState, ListSkeleton, ListRowsSkeleton, FilterChipsRail, type FilterChipItem } from '@/shared/components/ui';
@@ -7,6 +8,7 @@ import { AppIcon } from '@/features/navigation/components/AppIcon.component';
 import { TransactionItem, TransactionGroup } from '@/features/expenses/components/TransactionItem.component';
 import { useInfinitePaginatedList } from '@/shared/hooks/usePaginatedList.hook';
 import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue.hook';
+import { useSpringPress } from '@/shared/hooks/useSpringPress.hook';
 import { useTheme } from '@/shared/theme';
 import { useFabBottom } from '@/shared/hooks/useFabBottom.hook';
 import type { Transaction } from '@/shared/types';
@@ -22,6 +24,7 @@ export function SearchScreen() {
   const router = useRouter();
   const fabBottom = useFabBottom();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const clearSpring = useSpringPress();
   const [query, setQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'expense' | 'income'>('all');
   // Raw `query` drives the TextInput so typing stays instant; the debounced value drives
@@ -103,10 +106,16 @@ export function SearchScreen() {
           {query.length > 0 ? (
             <Pressable
               onPress={() => setQuery('')}
+              onPressIn={clearSpring.onPressIn}
+              onPressOut={clearSpring.onPressOut}
               hitSlop={8}
-              style={({ pressed }) => [styles.clearBtn, pressed && { opacity: 0.7 }]}
+              style={styles.clearBtn}
+              accessibilityRole="button"
+              accessibilityLabel="Clear search"
             >
-              <AppIcon name="close" size={14} color={theme.colors.textTertiary} />
+              <Animated.View style={clearSpring.style}>
+                <AppIcon name="close" size={14} color={theme.colors.textTertiary} />
+              </Animated.View>
             </Pressable>
           ) : null}
         </View>

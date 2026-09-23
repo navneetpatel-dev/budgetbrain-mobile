@@ -4,6 +4,7 @@ import Animated from 'react-native-reanimated';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon.component';
 import { useTheme } from '@/shared/theme';
 import { useSheetEnterAnimation } from '@/shared/hooks/useSheetEnterAnimation.hook';
+import { useSpringPress } from '@/shared/hooks/useSpringPress.hook';
 import { useScreenInsets, useBottomSafeInset } from '@/shared/hooks/useLayout.hook';
 import { createStyles } from './ActionSheet.styles';
 
@@ -32,6 +33,7 @@ export function ActionSheet({
   const { paddingHorizontal } = useScreenInsets();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const sheetAnim = useSheetEnterAnimation(visible, 'sheet');
+  const cancelSpring = useSpringPress();
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -96,11 +98,15 @@ export function ActionSheet({
           </View>
           <Pressable
             onPress={onClose}
-            style={({ pressed }) => [styles.cancel, pressed && { opacity: 0.85 }]}
+            onPressIn={cancelSpring.onPressIn}
+            onPressOut={cancelSpring.onPressOut}
+            style={styles.cancel}
             accessibilityRole="button"
             accessibilityLabel="Cancel"
           >
-            <Text style={styles.cancelText}>Cancel</Text>
+            <Animated.View style={cancelSpring.style}>
+              <Text style={styles.cancelText}>Cancel</Text>
+            </Animated.View>
           </Pressable>
         </Pressable>
         </Animated.View>

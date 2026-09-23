@@ -1,7 +1,9 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { View, Text, Pressable } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useTheme } from '@/shared/theme';
 import { formatCurrency } from '@/shared/utils/currency';
+import { useSpringPress } from '@/shared/hooks/useSpringPress.hook';
 import { createStyles } from './SegmentedMacroBar.styles';
 
 export interface MacroCategoryItem {
@@ -18,6 +20,42 @@ export interface SegmentedMacroBarProps {
   onItemPress?: (id: string) => void;
   showLegend?: boolean;
 }
+
+const LegendItem = memo(function LegendItem({
+  item,
+  currency,
+  onItemPress,
+  styles,
+}: {
+  item: MacroCategoryItem;
+  currency: string;
+  onItemPress?: (id: string) => void;
+  styles: ReturnType<typeof createStyles>;
+}) {
+  const spring = useSpringPress(0.98);
+
+  return (
+    <Pressable
+      onPress={() => onItemPress?.(item.id)}
+      onPressIn={spring.onPressIn}
+      onPressOut={spring.onPressOut}
+      disabled={!onItemPress}
+      style={styles.legendItem}
+    >
+      <Animated.View style={[{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flex: 1 }, spring.style]}>
+        <View style={styles.legendLeft}>
+          <View style={[styles.colorDot, { backgroundColor: item.color }]} />
+          <Text style={styles.legendName} numberOfLines={1}>
+            {item.name}
+          </Text>
+        </View>
+        <Text style={styles.legendAmount} numberOfLines={1}>
+          {formatCurrency(item.amount, currency)}
+        </Text>
+      </Animated.View>
+    </Pressable>
+  );
+});
 
 export function SegmentedMacroBar({
   items,
@@ -68,22 +106,7 @@ export function SegmentedMacroBar({
       {showLegend && (
         <View style={styles.legendGrid}>
           {items.map((item) => (
-            <Pressable
-              key={item.id}
-              onPress={() => onItemPress?.(item.id)}
-              disabled={!onItemPress}
-              style={({ pressed }) => [styles.legendItem, pressed && { opacity: 0.8 }]}
-            >
-              <View style={styles.legendLeft}>
-                <View style={[styles.colorDot, { backgroundColor: item.color }]} />
-                <Text style={styles.legendName} numberOfLines={1}>
-                  {item.name}
-                </Text>
-              </View>
-              <Text style={styles.legendAmount} numberOfLines={1}>
-                {formatCurrency(item.amount, currency)}
-              </Text>
-            </Pressable>
+            <LegendItem key={item.id} item={item} currency={currency} onItemPress={onItemPress} styles={styles} />
           ))}
         </View>
       )}

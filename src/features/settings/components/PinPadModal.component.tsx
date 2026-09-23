@@ -361,6 +361,8 @@ export function PinPadModal({
                   styles.keyButton,
                   pressed && styles.keyButtonPressed,
                 ]}
+                accessibilityRole="button"
+                accessibilityLabel="Backspace"
               >
                 <AppIcon name="arrowLeft" size={20} color={theme.colors.text} />
               </Pressable>

@@ -17,10 +17,12 @@ import DraggableFlatList, {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, type Href } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated from 'react-native-reanimated';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon.component';
 import { useTheme } from '@/shared/theme';
 import { useTabBarInset } from '@/shared/hooks/useTabBarInset.hook';
 import { useScreenInsets, useBottomSafeInset } from '@/shared/hooks/useLayout.hook';
+import { useSpringPress } from '@/shared/hooks/useSpringPress.hook';
 import { ensureArray } from '@/shared/utils/listData';
 import { useFabBottom } from '@/shared/hooks/useFabBottom.hook';
 import { ScreenWrapper } from '@/shared/components/ui/layout.component';
@@ -68,20 +70,21 @@ export function BackButton({
   const stackBack = useStackBack();
   const styles = useMemo(() => createHeaderStyles(theme), [theme]);
   const compact = size === 'compact';
+  const spring = useSpringPress();
 
   return (
     <Pressable
       onPress={onPress ?? stackBack}
+      onPressIn={spring.onPressIn}
+      onPressOut={spring.onPressOut}
       hitSlop={compact ? 8 : undefined}
-      style={({ pressed }) => [
-        styles.backBtn,
-        compact && styles.backBtnCompact,
-        pressed && { opacity: 0.85 },
-      ]}
+      style={[styles.backBtn, compact && styles.backBtnCompact]}
       accessibilityRole="button"
       accessibilityLabel={label}
     >
-      <AppIcon name="arrowLeft" size={compact ? 18 : 20} color={theme.colors.primary} />
+      <Animated.View style={spring.style}>
+        <AppIcon name="arrowLeft" size={compact ? 18 : 20} color={theme.colors.primary} />
+      </Animated.View>
     </Pressable>
   );
 }
@@ -112,6 +115,7 @@ export function StackNavHeader({
   const { paddingX } = useScreenInsets();
   const styles = useMemo(() => createStackNavStyles(theme), [theme]);
   const handleBack = onBack ?? stackBack;
+  const actionSpring = useSpringPress();
 
   return (
     <View style={[styles.wrap, { paddingTop: insets.top + 6, ...paddingX }]}>
@@ -134,12 +138,16 @@ export function StackNavHeader({
         {onAction && actionIcon ? (
           <Pressable
             onPress={onAction}
+            onPressIn={actionSpring.onPressIn}
+            onPressOut={actionSpring.onPressOut}
             hitSlop={8}
-            style={({ pressed }) => [styles.actionBtn, pressed && { opacity: 0.85 }]}
+            style={styles.actionBtn}
             accessibilityRole="button"
             accessibilityLabel={actionLabel ?? 'Action'}
           >
-            <AppIcon name={actionIcon} size={18} color={theme.colors.primary} />
+            <Animated.View style={actionSpring.style}>
+              <AppIcon name={actionIcon} size={18} color={theme.colors.primary} />
+            </Animated.View>
           </Pressable>
         ) : null}
       </View>
@@ -182,6 +190,7 @@ export function FeatureHeader({
   const insets = useSafeAreaInsets();
   const { paddingX } = useScreenInsets();
   const styles = useMemo(() => createHeaderStyles(theme), [theme]);
+  const actionSpring = useSpringPress();
 
   const handleBack = onBack ?? stackBack;
 
@@ -233,16 +242,20 @@ export function FeatureHeader({
         {onAction && actionIcon ? (
           <Pressable
             onPress={onAction}
-            style={({ pressed }) => [styles.actionBtn, pressed && { opacity: 0.85 }]}
+            onPressIn={actionSpring.onPressIn}
+            onPressOut={actionSpring.onPressOut}
+            style={styles.actionBtn}
             accessibilityRole="button"
             accessibilityLabel={actionLabel ?? 'Action'}
           >
-            <LinearGradient
-              colors={[theme.colors.primary + '33', theme.colors.gradientEnd + '22']}
-              style={styles.actionGradient}
-            >
-              <AppIcon name={actionIcon} size={20} color={theme.colors.primary} />
-            </LinearGradient>
+            <Animated.View style={actionSpring.style}>
+              <LinearGradient
+                colors={[theme.colors.primary + '33', theme.colors.gradientEnd + '22']}
+                style={styles.actionGradient}
+              >
+                <AppIcon name={actionIcon} size={20} color={theme.colors.primary} />
+              </LinearGradient>
+            </Animated.View>
           </Pressable>
         ) : null}
       </View>
@@ -293,20 +306,25 @@ export function HeaderIconButton({
   const styles = useMemo(() => createIconBtnStyles(theme, variant), [theme, variant]);
   const showBadge = typeof badge === 'number' ? badge > 0 : !!badge;
   const badgeLabel = typeof badge === 'number' && badge > 0 ? String(badge > 9 ? '9+' : badge) : null;
+  const spring = useSpringPress();
 
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.btn, showBadge && styles.btnActive, pressed && { opacity: 0.88 }]}
+      onPressIn={spring.onPressIn}
+      onPressOut={spring.onPressOut}
+      style={[styles.btn, showBadge && styles.btnActive]}
       accessibilityRole="button"
       accessibilityLabel={label}
     >
-      <AppIcon name={icon} size={20} color={variant === 'solid' ? theme.colors.onPrimary : theme.colors.primary} />
-      {showBadge ? (
-        <View style={styles.badge}>
-          {badgeLabel ? <Text style={styles.badgeText}>{badgeLabel}</Text> : null}
-        </View>
-      ) : null}
+      <Animated.View style={spring.style}>
+        <AppIcon name={icon} size={20} color={variant === 'solid' ? theme.colors.onPrimary : theme.colors.primary} />
+        {showBadge ? (
+          <View style={styles.badge}>
+            {badgeLabel ? <Text style={styles.badgeText}>{badgeLabel}</Text> : null}
+          </View>
+        ) : null}
+      </Animated.View>
     </Pressable>
   );
 }
@@ -341,30 +359,111 @@ function Chip({
   disabled?: boolean;
 }) {
   const theme = useTheme();
+  const spring = useSpringPress(0.97);
   return (
     <Pressable
       onPress={disabled ? undefined : onPress}
+      onPressIn={disabled ? undefined : spring.onPressIn}
+      onPressOut={disabled ? undefined : spring.onPressOut}
       disabled={disabled}
-      style={({ pressed }) => [
+      style={[
         styles.chip,
         selected && {
           backgroundColor: accent + '22',
           borderColor: accent,
         },
         disabled && styles.chipDisabled,
-        pressed && !disabled && { opacity: 0.88, transform: [{ scale: 0.97 }] },
       ]}
       accessibilityRole="button"
       accessibilityState={{ selected }}
     >
-      {selected ? (
-        <View style={[styles.chipDot, { backgroundColor: accent }]}>
-          <AppIcon name="checkmark" size={10} color={theme.colors.onPrimary} />
-        </View>
-      ) : null}
-      <Text style={[styles.chipText, selected && { color: accent, fontWeight: '700' }]}>
-        {label}
-      </Text>
+      <Animated.View style={[{ flexDirection: 'row', alignItems: 'center', gap: 6 }, spring.style]}>
+        {selected ? (
+          <View style={[styles.chipDot, { backgroundColor: accent }]}>
+            <AppIcon name="checkmark" size={10} color={theme.colors.onPrimary} />
+          </View>
+        ) : null}
+        <Text style={[styles.chipText, selected && { color: accent, fontWeight: '700' }]}>
+          {label}
+        </Text>
+      </Animated.View>
+    </Pressable>
+  );
+}
+
+function SegmentItem({
+  selected,
+  accent,
+  label,
+  disabled,
+  onPress,
+  styles,
+}: {
+  selected: boolean;
+  accent: string;
+  label: string;
+  disabled?: boolean;
+  onPress: () => void;
+  styles: ReturnType<typeof createChipStyles>;
+}) {
+  const spring = useSpringPress();
+  return (
+    <Pressable
+      onPress={disabled ? undefined : onPress}
+      onPressIn={disabled ? undefined : spring.onPressIn}
+      onPressOut={disabled ? undefined : spring.onPressOut}
+      disabled={disabled}
+      style={[styles.segment, selected && { backgroundColor: accent + '22' }, disabled && styles.chipDisabled]}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+    >
+      <Animated.View style={spring.style}>
+        <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.85}
+          style={[styles.segmentText, selected && { color: accent }]}
+        >
+          {label}
+        </Text>
+      </Animated.View>
+    </Pressable>
+  );
+}
+
+function GridChipItem({
+  selected,
+  accent,
+  label,
+  disabled,
+  onPress,
+  styles,
+}: {
+  selected: boolean;
+  accent: string;
+  label: string;
+  disabled?: boolean;
+  onPress: () => void;
+  styles: ReturnType<typeof createChipStyles>;
+}) {
+  const spring = useSpringPress();
+  return (
+    <Pressable
+      onPress={disabled ? undefined : onPress}
+      onPressIn={disabled ? undefined : spring.onPressIn}
+      onPressOut={disabled ? undefined : spring.onPressOut}
+      disabled={disabled}
+      style={[
+        styles.chip,
+        selected && { backgroundColor: accent + '22', borderColor: accent },
+        disabled && styles.chipDisabled,
+      ]}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+    >
+      <Animated.View style={spring.style}>
+        <Text style={[styles.chipText, selected && { color: accent }]}>{label}</Text>
+      </Animated.View>
     </Pressable>
   );
 }
@@ -389,6 +488,7 @@ export function OptionChips<T extends string>({
   const theme = useTheme();
   const styles = useMemo(() => createChipStyles(theme), [theme]);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const selectSpring = useSpringPress();
   /** Shared rule with web: ≤4 segmented, 5–8 chips, >8 sheet. */
   const useSelect = options.length > 8;
   const useSegmented = options.length <= 4;
@@ -399,19 +499,19 @@ export function OptionChips<T extends string>({
       <View style={styles.container}>
         <Pressable
           onPress={disabled ? undefined : () => setSheetOpen(true)}
+          onPressIn={disabled ? undefined : selectSpring.onPressIn}
+          onPressOut={disabled ? undefined : selectSpring.onPressOut}
           disabled={disabled}
-          style={({ pressed }) => [
-            styles.selectControl,
-            disabled && styles.chipDisabled,
-            pressed && !disabled && { opacity: 0.9 },
-          ]}
+          style={[styles.selectControl, disabled && styles.chipDisabled]}
           accessibilityRole="button"
           accessibilityLabel={hasValue ? getLabel(value) : 'Choose'}
         >
-          <Text style={[styles.selectValue, !hasValue && { color: theme.colors.textTertiary }]}>
-            {hasValue ? getLabel(value) : 'Choose'}
-          </Text>
-          <AppIcon name="chevronRight" size={14} color={theme.colors.textTertiary} />
+          <Animated.View style={[{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flex: 1 }, selectSpring.style]}>
+            <Text style={[styles.selectValue, !hasValue && { color: theme.colors.textTertiary }]}>
+              {hasValue ? getLabel(value) : 'Choose'}
+            </Text>
+            <AppIcon name="chevronRight" size={14} color={theme.colors.textTertiary} />
+          </Animated.View>
         </Pressable>
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
         <ActionSheet
@@ -436,28 +536,15 @@ export function OptionChips<T extends string>({
             const selected = value === opt;
             const accent = getColor?.(opt) ?? theme.colors.primary;
             return (
-              <Pressable
+              <SegmentItem
                 key={opt}
-                onPress={disabled ? undefined : () => onChange(opt)}
+                selected={selected}
+                accent={accent}
+                label={getLabel(opt)}
                 disabled={disabled}
-                style={({ pressed }) => [
-                  styles.segment,
-                  selected && { backgroundColor: accent + '22' },
-                  disabled && styles.chipDisabled,
-                  pressed && !disabled && { opacity: 0.9 },
-                ]}
-                accessibilityRole="button"
-                accessibilityState={{ selected }}
-              >
-                <Text
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.85}
-                  style={[styles.segmentText, selected && { color: accent }]}
-                >
-                  {getLabel(opt)}
-                </Text>
-              </Pressable>
+                onPress={() => onChange(opt)}
+                styles={styles}
+              />
             );
           })}
         </View>
@@ -473,28 +560,58 @@ export function OptionChips<T extends string>({
           const selected = value === opt;
           const accent = getColor?.(opt) ?? theme.colors.primary;
           return (
-            <Pressable
+            <GridChipItem
               key={opt}
-              onPress={disabled ? undefined : () => onChange(opt)}
+              selected={selected}
+              accent={accent}
+              label={getLabel(opt)}
               disabled={disabled}
-              style={({ pressed }) => [
-                styles.chip,
-                selected && { backgroundColor: accent + '22', borderColor: accent },
-                disabled && styles.chipDisabled,
-                pressed && !disabled && { opacity: 0.9 },
-              ]}
-              accessibilityRole="button"
-              accessibilityState={{ selected }}
-            >
-              <Text style={[styles.chipText, selected && { color: accent }]}>
-                {getLabel(opt)}
-              </Text>
-            </Pressable>
+              onPress={() => onChange(opt)}
+              styles={styles}
+            />
           );
         })}
       </View>
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
+  );
+}
+
+function OptionChipListItem({
+  label,
+  accent,
+  selected,
+  disabled,
+  onPress,
+  styles,
+}: {
+  label: string;
+  accent: string;
+  selected: boolean;
+  disabled?: boolean;
+  onPress: () => void;
+  styles: ReturnType<typeof createChipStyles>;
+}) {
+  const spring = useSpringPress();
+  return (
+    <Pressable
+      onPress={disabled ? undefined : onPress}
+      onPressIn={disabled ? undefined : spring.onPressIn}
+      onPressOut={disabled ? undefined : spring.onPressOut}
+      disabled={disabled}
+      style={[
+        styles.chip,
+        selected && { backgroundColor: accent + '22', borderColor: accent },
+        disabled && styles.chipDisabled,
+      ]}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+    >
+      <Animated.View style={[{ flexDirection: 'row', alignItems: 'center', gap: 6 }, spring.style]}>
+        <View style={[styles.colorDot, { backgroundColor: accent }]} />
+        <Text style={[styles.chipText, selected && { color: accent, fontWeight: '700' }]}>{label}</Text>
+      </Animated.View>
+    </Pressable>
   );
 }
 
@@ -514,6 +631,7 @@ export function OptionChipList({
   const theme = useTheme();
   const styles = useMemo(() => createChipStyles(theme), [theme]);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const selectSpring = useSpringPress();
   const safeItems = ensureArray<{ id: string; label: string; color?: string }>(items);
   const useSelect = safeItems.length > 8;
   const selectedItem = safeItems.find((i) => i.id === selectedId);
@@ -523,22 +641,22 @@ export function OptionChipList({
       <View style={styles.container}>
         <Pressable
           onPress={disabled ? undefined : () => setSheetOpen(true)}
+          onPressIn={disabled ? undefined : selectSpring.onPressIn}
+          onPressOut={disabled ? undefined : selectSpring.onPressOut}
           disabled={disabled}
-          style={({ pressed }) => [
-            styles.selectControl,
-            disabled && styles.chipDisabled,
-            pressed && !disabled && { opacity: 0.9 },
-          ]}
+          style={[styles.selectControl, disabled && styles.chipDisabled]}
           accessibilityRole="button"
           accessibilityLabel={selectedItem?.label ?? 'Choose'}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
-            {selectedItem?.color ? (
-              <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: selectedItem.color }} />
-            ) : null}
-            <Text style={styles.selectValue}>{selectedItem?.label ?? 'Choose'}</Text>
-          </View>
-          <AppIcon name="chevronRight" size={14} color={theme.colors.textTertiary} />
+          <Animated.View style={[{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flex: 1 }, selectSpring.style]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+              {selectedItem?.color ? (
+                <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: selectedItem.color }} />
+              ) : null}
+              <Text style={styles.selectValue}>{selectedItem?.label ?? 'Choose'}</Text>
+            </View>
+            <AppIcon name="chevronRight" size={14} color={theme.colors.textTertiary} />
+          </Animated.View>
         </Pressable>
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
         <ActionSheet
@@ -562,24 +680,15 @@ export function OptionChipList({
           const selected = selectedId === item.id;
           const accent = item.color ?? theme.colors.primary;
           return (
-            <Pressable
+            <OptionChipListItem
               key={item.id}
-              onPress={disabled ? undefined : () => onSelect(item.id)}
+              label={item.label}
+              accent={accent}
+              selected={selected}
               disabled={disabled}
-              style={({ pressed }) => [
-                styles.chip,
-                selected && { backgroundColor: accent + '22', borderColor: accent },
-                disabled && styles.chipDisabled,
-                pressed && !disabled && { opacity: 0.9 },
-              ]}
-              accessibilityRole="button"
-              accessibilityState={{ selected }}
-            >
-              <View style={[styles.colorDot, { backgroundColor: accent }]} />
-              <Text style={[styles.chipText, selected && { color: accent, fontWeight: '700' }]}>
-                {item.label}
-              </Text>
-            </Pressable>
+              onPress={() => onSelect(item.id)}
+              styles={styles}
+            />
           );
         })}
       </ScrollView>
@@ -634,22 +743,27 @@ export function ActionFab({ onPress, label = 'Add' }: { onPress: () => void; lab
   const theme = useTheme();
   const bottom = useFabBottom();
   const styles = useMemo(() => createFabStyles(theme, bottom), [theme, bottom]);
+  const spring = useSpringPress(0.94);
 
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.wrap, pressed && { transform: [{ scale: 0.94 }] }]}
+      onPressIn={spring.onPressIn}
+      onPressOut={spring.onPressOut}
+      style={styles.wrap}
       accessibilityRole="button"
       accessibilityLabel={label}
     >
-      <LinearGradient
-        colors={[theme.colors.primary, theme.colors.gradientEnd]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradient}
-      >
-        <AppIcon name="add" size={26} color={theme.colors.onPrimary} />
-      </LinearGradient>
+      <Animated.View style={spring.style}>
+        <LinearGradient
+          colors={[theme.colors.primary, theme.colors.gradientEnd]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.gradient}
+        >
+          <AppIcon name="add" size={26} color={theme.colors.onPrimary} />
+        </LinearGradient>
+      </Animated.View>
     </Pressable>
   );
 }

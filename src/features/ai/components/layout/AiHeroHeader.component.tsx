@@ -1,11 +1,13 @@
 import { useMemo } from 'react';
 import { StyleSheet, View, Text, Pressable } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon } from '@/features/navigation/components/AppIcon.component';
 import { useTheme } from '@/shared/theme';
 import { useResponsive } from '@/shared/utils/responsive';
+import { useSpringPress } from '@/shared/hooks/useSpringPress.hook';
 import { createStyles } from './AiHeroHeader.styles';
 
 export function AiHeroHeader() {
@@ -14,6 +16,7 @@ export function AiHeroHeader() {
   const insets = useSafeAreaInsets();
   const { screenPaddingX } = useResponsive();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const backSpring = useSpringPress();
 
   return (
     <View style={[styles.wrap, { paddingTop: insets.top + 6, paddingHorizontal: screenPaddingX }]}>
@@ -28,11 +31,15 @@ export function AiHeroHeader() {
       <View style={styles.row}>
         <Pressable
           onPress={() => router.back()}
-          style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.75 }]}
+          onPressIn={backSpring.onPressIn}
+          onPressOut={backSpring.onPressOut}
+          style={styles.backBtn}
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
-          <AppIcon name="arrowLeft" size={18} color={theme.colors.text} />
+          <Animated.View style={backSpring.style}>
+            <AppIcon name="arrowLeft" size={18} color={theme.colors.text} />
+          </Animated.View>
         </Pressable>
 
         <View style={styles.titleGroup}>

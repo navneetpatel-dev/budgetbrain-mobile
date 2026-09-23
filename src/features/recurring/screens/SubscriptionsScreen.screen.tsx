@@ -46,9 +46,16 @@ export function SubscriptionsScreen() {
   });
   const cadence = watch('cadence');
 
-  const active = (series ?? []).filter((s) => s.active);
-  const totalMonthly = active.reduce((sum, s) => sum + monthlyEquivalent(s), 0);
-  const currency = active[0]?.currency ?? 'INR';
+  // Memoized so the create-form's own field state (watch('cadence') re-renders this
+  // component on every keystroke) doesn't re-filter/re-reduce the subscriptions list.
+  const { active, totalMonthly, currency } = useMemo(() => {
+    const activeSeries = (series ?? []).filter((s) => s.active);
+    return {
+      active: activeSeries,
+      totalMonthly: activeSeries.reduce((sum, s) => sum + monthlyEquivalent(s), 0),
+      currency: activeSeries[0]?.currency ?? 'INR',
+    };
+  }, [series]);
 
   const onSubmit = async (data: RecurringSeriesForm) => {
     if (await create(data)) {

@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { StyleSheet, View, RefreshControl, Text, FlatList, Pressable, ScrollView, type ListRenderItem } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { appHref } from '@/shared/utils/navigation';
@@ -7,6 +8,7 @@ import { TransactionItem, TransactionGroup } from '@/features/expenses/component
 import { EmptyState, ListRowsSkeleton, AppHeaderBar, FilterChipsRail } from '@/shared/components/ui';
 import { AppIcon } from '@/features/navigation/components/AppIcon.component';
 import { useTheme } from '@/shared/theme';
+import { useSpringPress } from '@/shared/hooks/useSpringPress.hook';
 import { formatCurrency } from '@/shared/utils/currency';
 import { useIncomeScreen } from '@/features/income/hooks/useIncomeScreen.hook';
 import { useTabBarInset } from '@/shared/hooks/useTabBarInset.hook';
@@ -22,6 +24,8 @@ export function IncomeScreen() {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const tabBarInset = useTabBarInset();
   const router = useRouter();
+  const headerAddSpring = useSpringPress();
+  const createBtnSpring = useSpringPress(0.98);
   const {
     transactionTotal,
     isLoading,
@@ -65,18 +69,22 @@ export function IncomeScreen() {
         rightAction={
           <Pressable
             onPress={() => router.push('/income/add')}
-            style={({ pressed }) => [styles.headerAddBtn, pressed && { opacity: 0.8 }]}
+            onPressIn={headerAddSpring.onPressIn}
+            onPressOut={headerAddSpring.onPressOut}
+            style={styles.headerAddBtn}
             accessibilityRole="button"
             accessibilityLabel="Add income"
           >
-            <LinearGradient
-              colors={[theme.colors.secondary, '#00A572']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.headerAddGradient}
-            >
-              <AppIcon name="add" size={18} color="#003824" />
-            </LinearGradient>
+            <Animated.View style={headerAddSpring.style}>
+              <LinearGradient
+                colors={[theme.colors.secondary, '#00A572']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.headerAddGradient}
+              >
+                <AppIcon name="add" size={18} color="#003824" />
+              </LinearGradient>
+            </Animated.View>
           </Pressable>
         }
       />
@@ -194,17 +202,21 @@ export function IncomeScreen() {
             <View style={styles.footerWrap}>
               <Pressable
                 onPress={() => router.push('/income/add')}
-                style={({ pressed }) => [styles.createBtnWrap, pressed && { transform: [{ scale: 0.98 }] }]}
+                onPressIn={createBtnSpring.onPressIn}
+                onPressOut={createBtnSpring.onPressOut}
+                style={styles.createBtnWrap}
               >
-                <LinearGradient
-                  colors={[theme.colors.secondary, '#00A572']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.createBtnGradient}
-                >
-                  <AppIcon name="add" size={20} color="#003824" />
-                  <Text style={styles.createBtnText}>Record Inflow / Income</Text>
-                </LinearGradient>
+                <Animated.View style={createBtnSpring.style}>
+                  <LinearGradient
+                    colors={[theme.colors.secondary, '#00A572']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.createBtnGradient}
+                  >
+                    <AppIcon name="add" size={20} color="#003824" />
+                    <Text style={styles.createBtnText}>Record Inflow / Income</Text>
+                  </LinearGradient>
+                </Animated.View>
               </Pressable>
             </View>
           )

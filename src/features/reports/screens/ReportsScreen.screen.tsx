@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { StyleSheet, View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppHeaderBar, DateInput } from '@/shared/components/ui';
@@ -9,6 +10,7 @@ import { useEntitlement, PaywallModal } from '@/features/subscriptions';
 import { DateBounds } from '@/shared/utils/dateBounds';
 import { useTheme } from '@/shared/theme';
 import { useBottomSafeInset } from '@/shared/hooks/useLayout.hook';
+import { useSpringPress } from '@/shared/hooks/useSpringPress.hook';
 import { createStyles } from './ReportsScreen.styles';
 
 export function ReportsScreen() {
@@ -18,6 +20,9 @@ export function ReportsScreen() {
   const bottomSafe = useBottomSafeInset();
   const { isEntitled, paywallVisible, openPaywall, closePaywall } = useEntitlement();
   const { startDate, setStartDate, endDate, setEndDate, loading, exportReport } = useExportReports();
+  const csvSpring = useSpringPress();
+  const excelSpring = useSpringPress();
+  const pdfSpring = useSpringPress();
 
   const handleDownloadCsv = () => {
     void exportReport('csv');
@@ -106,65 +111,77 @@ export function ReportsScreen() {
           {/* CSV Download Button */}
           <Pressable
             onPress={handleDownloadCsv}
+            onPressIn={loading ? undefined : csvSpring.onPressIn}
+            onPressOut={loading ? undefined : csvSpring.onPressOut}
             disabled={loading}
-            style={({ pressed }) => [styles.actionCard, pressed && { opacity: 0.85 }]}
+            style={styles.actionCard}
           >
-            <View style={[styles.formatIconPod, { backgroundColor: theme.colors.primary + '18' }]}>
-              <AppIcon name="category" size={20} color={theme.colors.primary} />
-            </View>
-            <View style={styles.formatTextCol}>
-              <Text style={styles.formatTitle}>Spreadsheet (CSV)</Text>
-              <Text style={styles.formatDesc}>Raw data compatible with Excel, Google Sheets, & Numbers</Text>
-            </View>
-            {loading ? (
-              <ActivityIndicator size="small" color={theme.colors.primary} />
-            ) : (
-              <AppIcon name="chevronRight" size={16} color={theme.colors.textTertiary} />
-            )}
+            <Animated.View style={[{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: 14 }, csvSpring.style]}>
+              <View style={[styles.formatIconPod, { backgroundColor: theme.colors.primary + '18' }]}>
+                <AppIcon name="category" size={20} color={theme.colors.primary} />
+              </View>
+              <View style={styles.formatTextCol}>
+                <Text style={styles.formatTitle}>Spreadsheet (CSV)</Text>
+                <Text style={styles.formatDesc}>Raw data compatible with Excel, Google Sheets, & Numbers</Text>
+              </View>
+              {loading ? (
+                <ActivityIndicator size="small" color={theme.colors.primary} />
+              ) : (
+                <AppIcon name="chevronRight" size={16} color={theme.colors.textTertiary} />
+              )}
+            </Animated.View>
           </Pressable>
 
           {/* Excel Download Button */}
           <Pressable
             onPress={handleDownloadExcel}
+            onPressIn={loading ? undefined : excelSpring.onPressIn}
+            onPressOut={loading ? undefined : excelSpring.onPressOut}
             disabled={loading}
-            style={({ pressed }) => [styles.actionCard, pressed && { opacity: 0.85 }]}
+            style={styles.actionCard}
           >
-            <View style={[styles.formatIconPod, { backgroundColor: theme.colors.success + '18' }]}>
-              <AppIcon name="document" size={20} color={theme.colors.success} />
-            </View>
-            <View style={styles.formatTextCol}>
-              <Text style={styles.formatTitle}>
-                Spreadsheet (Excel) {!isEntitled ? '★ PRO' : ''}
-              </Text>
-              <Text style={styles.formatDesc}>Formatted workbook with financial metrics (.xlsx)</Text>
-            </View>
-            {loading ? (
-              <ActivityIndicator size="small" color={theme.colors.success} />
-            ) : (
-              <AppIcon name="chevronRight" size={16} color={theme.colors.textTertiary} />
-            )}
+            <Animated.View style={[{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: 14 }, excelSpring.style]}>
+              <View style={[styles.formatIconPod, { backgroundColor: theme.colors.success + '18' }]}>
+                <AppIcon name="document" size={20} color={theme.colors.success} />
+              </View>
+              <View style={styles.formatTextCol}>
+                <Text style={styles.formatTitle}>
+                  Spreadsheet (Excel) {!isEntitled ? '★ PRO' : ''}
+                </Text>
+                <Text style={styles.formatDesc}>Formatted workbook with financial metrics (.xlsx)</Text>
+              </View>
+              {loading ? (
+                <ActivityIndicator size="small" color={theme.colors.success} />
+              ) : (
+                <AppIcon name="chevronRight" size={16} color={theme.colors.textTertiary} />
+              )}
+            </Animated.View>
           </Pressable>
 
           {/* PDF Download Button */}
           <Pressable
             onPress={handleDownloadPdf}
+            onPressIn={loading ? undefined : pdfSpring.onPressIn}
+            onPressOut={loading ? undefined : pdfSpring.onPressOut}
             disabled={loading}
-            style={({ pressed }) => [styles.actionCard, pressed && { opacity: 0.85 }]}
+            style={styles.actionCard}
           >
-            <View style={[styles.formatIconPod, { backgroundColor: theme.colors.rose + '18' }]}>
-              <AppIcon name="reports" size={20} color={theme.colors.rose} />
-            </View>
-            <View style={styles.formatTextCol}>
-              <Text style={styles.formatTitle}>
-                Executive Summary (PDF) {!isEntitled ? '★ PRO' : ''}
-              </Text>
-              <Text style={styles.formatDesc}>Formatted report with category charts and spending breakdown</Text>
-            </View>
-            {loading ? (
-              <ActivityIndicator size="small" color={theme.colors.rose} />
-            ) : (
-              <AppIcon name="chevronRight" size={16} color={theme.colors.textTertiary} />
-            )}
+            <Animated.View style={[{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: 14 }, pdfSpring.style]}>
+              <View style={[styles.formatIconPod, { backgroundColor: theme.colors.rose + '18' }]}>
+                <AppIcon name="reports" size={20} color={theme.colors.rose} />
+              </View>
+              <View style={styles.formatTextCol}>
+                <Text style={styles.formatTitle}>
+                  Executive Summary (PDF) {!isEntitled ? '★ PRO' : ''}
+                </Text>
+                <Text style={styles.formatDesc}>Formatted report with category charts and spending breakdown</Text>
+              </View>
+              {loading ? (
+                <ActivityIndicator size="small" color={theme.colors.rose} />
+              ) : (
+                <AppIcon name="chevronRight" size={16} color={theme.colors.textTertiary} />
+              )}
+            </Animated.View>
           </Pressable>
         </View>
       </ScrollView>

@@ -7,10 +7,12 @@ import {
   View,
   type ViewStyle,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppIcon } from '@/features/navigation/components/AppIcon.component';
 import { useTheme } from '@/shared/theme';
+import { useSpringPress } from '@/shared/hooks/useSpringPress.hook';
 import { createSectionStyles, createUploadStyles, createColorStyles } from './forms.styles';
 
 /** Visual grouping for related form fields */
@@ -59,6 +61,8 @@ export function ImageUploadField({
 }) {
   const theme = useTheme();
   const styles = useMemo(() => createUploadStyles(theme, height), [theme, height]);
+  const replaceSpring = useSpringPress();
+  const removeSpring = useSpringPress();
 
   return (
     <View style={[styles.container, disabled && styles.containerDisabled]}>
@@ -85,23 +89,31 @@ export function ImageUploadField({
             <View style={styles.previewActions}>
               <Pressable
                 onPress={disabled ? undefined : onPick}
+                onPressIn={disabled ? undefined : replaceSpring.onPressIn}
+                onPressOut={disabled ? undefined : replaceSpring.onPressOut}
                 disabled={disabled}
-                style={({ pressed }) => [styles.previewBtn, pressed && !disabled && { opacity: 0.85 }]}
+                style={styles.previewBtn}
                 accessibilityRole="button"
                 accessibilityLabel="Replace image"
               >
-                <AppIcon name="document" size={16} color={theme.colors.onPrimary} />
-                <Text style={styles.previewBtnText}>Replace</Text>
+                <Animated.View style={[{ flexDirection: 'row', alignItems: 'center', gap: 6 }, replaceSpring.style]}>
+                  <AppIcon name="document" size={16} color={theme.colors.onPrimary} />
+                  <Text style={styles.previewBtnText}>Replace</Text>
+                </Animated.View>
               </Pressable>
               {onRemove ? (
                 <Pressable
                   onPress={disabled ? undefined : onRemove}
+                  onPressIn={disabled ? undefined : removeSpring.onPressIn}
+                  onPressOut={disabled ? undefined : removeSpring.onPressOut}
                   disabled={disabled}
-                  style={({ pressed }) => [styles.previewBtn, styles.removeBtn, pressed && !disabled && { opacity: 0.85 }]}
+                  style={[styles.previewBtn, styles.removeBtn]}
                   accessibilityRole="button"
                   accessibilityLabel="Remove image"
                 >
-                  <AppIcon name="trash" size={16} color={theme.colors.onPrimary} />
+                  <Animated.View style={removeSpring.style}>
+                    <AppIcon name="trash" size={16} color={theme.colors.onPrimary} />
+                  </Animated.View>
                 </Pressable>
               ) : null}
             </View>

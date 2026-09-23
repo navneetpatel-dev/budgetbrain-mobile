@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { View, Text, Pressable } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +9,7 @@ import { AppIcon } from '@/features/navigation/components/AppIcon.component';
 import { useTheme } from '@/shared/theme';
 import { useAppSelector } from '@/shared/store/hooks';
 import { useScreenInsets } from '@/shared/hooks/useLayout.hook';
+import { useSpringPress } from '@/shared/hooks/useSpringPress.hook';
 import { createStyles } from './AppHeaderBar.styles';
 
 export interface AppHeaderBarProps {
@@ -37,6 +39,7 @@ export function AppHeaderBar({
     [theme, insets.top, paddingHorizontal],
   );
   const userInitial = (user?.name?.[0] ?? user?.email?.[0] ?? 'A').toUpperCase();
+  const avatarSpring = useSpringPress();
 
   const handleBack = () => {
     if (onBack) {
@@ -96,20 +99,24 @@ export function AppHeaderBar({
 
               <Pressable
                 onPress={() => router.push('/(tabs)/settings')}
-                style={({ pressed }) => [styles.avatarPressable, pressed && { opacity: 0.85 }]}
+                onPressIn={avatarSpring.onPressIn}
+                onPressOut={avatarSpring.onPressOut}
+                style={styles.avatarPressable}
                 accessibilityRole="button"
                 accessibilityLabel="Open settings and profile"
               >
-                <LinearGradient
-                  colors={[theme.colors.ocean, theme.colors.violet]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.avatarGradientRing}
-                >
-                  <View style={styles.avatarInner}>
-                    <Text style={styles.avatarText}>{userInitial}</Text>
-                  </View>
-                </LinearGradient>
+                <Animated.View style={avatarSpring.style}>
+                  <LinearGradient
+                    colors={[theme.colors.ocean, theme.colors.violet]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.avatarGradientRing}
+                  >
+                    <View style={styles.avatarInner}>
+                      <Text style={styles.avatarText}>{userInitial}</Text>
+                    </View>
+                  </LinearGradient>
+                </Animated.View>
               </Pressable>
             </>
           )}

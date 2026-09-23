@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { RefreshControl, View, Text, Pressable, FlatList, type ListRenderItem } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -14,6 +15,7 @@ import { BudgetCard } from '@/features/budgets/components/BudgetCard.component';
 import { useDeleteBudget } from '@/features/budgets/hooks/useDeleteBudget.hook';
 import { showAlert } from '@/shared/utils/confirmations';
 import { useTheme } from '@/shared/theme';
+import { useSpringPress } from '@/shared/hooks/useSpringPress.hook';
 import { formatCurrency } from '@/shared/utils/currency';
 import { useQuery } from '@tanstack/react-query';
 import { apiGet } from '@/shared/services/api';
@@ -34,6 +36,8 @@ export function BudgetsScreen() {
   const tabBarInset = useTabBarInset();
   const { isEntitled, paywallVisible, openPaywall, closePaywall } = useEntitlement();
   const { deleteBudget } = useDeleteBudget();
+  const aiActionSpring = useSpringPress();
+  const createBtnSpring = useSpringPress(0.98);
   const {
     budgets,
     isLoading,
@@ -175,10 +179,14 @@ export function BudgetsScreen() {
                 </Text>
                 <Pressable
                   onPress={() => router.push('/(tabs)/ai')}
-                  style={({ pressed }) => [styles.aiActionBtn, pressed && { opacity: 0.8 }]}
+                  onPressIn={aiActionSpring.onPressIn}
+                  onPressOut={aiActionSpring.onPressOut}
+                  style={styles.aiActionBtn}
                 >
-                  <Text style={styles.aiActionText}>Ask AI Coach</Text>
-                  <AppIcon name="chevronRight" size={14} color={theme.colors.primary} />
+                  <Animated.View style={[{ flexDirection: 'row', alignItems: 'center', gap: 4 }, aiActionSpring.style]}>
+                    <Text style={styles.aiActionText}>Ask AI Coach</Text>
+                    <AppIcon name="chevronRight" size={14} color={theme.colors.primary} />
+                  </Animated.View>
                 </Pressable>
               </View>
             </View>
@@ -197,19 +205,23 @@ export function BudgetsScreen() {
             {/* Primary Action Button to Create New Budget */}
             <Pressable
               onPress={handleAddBudget}
-              style={({ pressed }) => [styles.createBtnWrap, pressed && { transform: [{ scale: 0.98 }] }]}
+              onPressIn={createBtnSpring.onPressIn}
+              onPressOut={createBtnSpring.onPressOut}
+              style={styles.createBtnWrap}
               accessibilityRole="button"
               accessibilityLabel="New Budget Category"
             >
-              <LinearGradient
-                colors={[theme.colors.ocean, theme.colors.primaryContainer, theme.colors.violet]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.createBtnGradient}
-              >
-                <AppIcon name="add" size={20} color="#FFFFFF" />
-                <Text style={styles.createBtnText}>+ New Budget Category</Text>
-              </LinearGradient>
+              <Animated.View style={createBtnSpring.style}>
+                <LinearGradient
+                  colors={[theme.colors.ocean, theme.colors.primaryContainer, theme.colors.violet]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.createBtnGradient}
+                >
+                  <AppIcon name="add" size={20} color="#FFFFFF" />
+                  <Text style={styles.createBtnText}>+ New Budget Category</Text>
+                </LinearGradient>
+              </Animated.View>
             </Pressable>
           </View>
         }

@@ -1,11 +1,11 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { View, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppIcon } from '@/features/navigation/components/AppIcon.component';
 import { useTheme } from '@/shared/theme';
 import { createStyles } from './AiInsightCard.styles';
 
-export function AiInsightCard({ text }: { text: string }) {
+export const AiInsightCard = memo(function AiInsightCard({ text }: { text: string }) {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
@@ -23,4 +23,4 @@ export function AiInsightCard({ text }: { text: string }) {
       <Text style={styles.text}>{text}</Text>
     </View>
   );
-}
+});

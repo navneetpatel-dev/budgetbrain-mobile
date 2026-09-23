@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { View, Text } from 'react-native';
 import { AppIcon, type AppIconName } from '@/features/navigation/components/AppIcon.component';
 import { useTheme } from '@/shared/theme';
@@ -12,7 +12,7 @@ const ANOMALY_LABELS: Record<AiAnomaly['type'], { label: string; icon: AppIconNa
   unusual_transaction: { label: 'Unusual transaction', icon: 'shield' },
 };
 
-export function AiAnomalyCard({
+export const AiAnomalyCard = memo(function AiAnomalyCard({
   type,
   reason,
   meta,
@@ -37,7 +37,7 @@ export function AiAnomalyCard({
       </View>
     </View>
   );
-}
+});
 
 export function AiAnomalyClear() {
   const theme = useTheme();

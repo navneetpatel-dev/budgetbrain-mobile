@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { RefreshControl, View, Text, Pressable, FlatList, type ListRenderItem } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { EmptyState, ListRowsSkeleton, AppHeaderBar, RingGauge, FilterChipsRail } from '@/shared/components/ui';
@@ -8,6 +9,7 @@ import { GoalCard } from '@/features/goals/components/GoalCard.component';
 import { useDeleteGoal } from '@/features/goals/hooks/useDeleteGoal.hook';
 import { showAlert } from '@/shared/utils/confirmations';
 import { useTheme } from '@/shared/theme';
+import { useSpringPress } from '@/shared/hooks/useSpringPress.hook';
 import { formatCurrency } from '@/shared/utils/currency';
 import { useGoalsScreen } from '@/features/goals/hooks/useGoalsScreen.hook';
 import { useTabBarInset } from '@/shared/hooks/useTabBarInset.hook';
@@ -24,6 +26,8 @@ export function GoalsScreen() {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const tabBarInset = useTabBarInset();
   const { deleteGoal } = useDeleteGoal();
+  const headerAddSpring = useSpringPress();
+  const createBtnSpring = useSpringPress(0.98);
   const {
     isLoading,
     isError,
@@ -60,18 +64,22 @@ export function GoalsScreen() {
         rightAction={
           <Pressable
             onPress={() => router.push('/goal/add')}
-            style={({ pressed }) => [styles.headerAddBtn, pressed && { opacity: 0.8 }]}
+            onPressIn={headerAddSpring.onPressIn}
+            onPressOut={headerAddSpring.onPressOut}
+            style={styles.headerAddBtn}
             accessibilityRole="button"
             accessibilityLabel="Create goal"
           >
-            <LinearGradient
-              colors={[theme.colors.primary, theme.colors.ocean]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.headerAddGradient}
-            >
-              <AppIcon name="add" size={18} color="#FFFFFF" />
-            </LinearGradient>
+            <Animated.View style={headerAddSpring.style}>
+              <LinearGradient
+                colors={[theme.colors.primary, theme.colors.ocean]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.headerAddGradient}
+              >
+                <AppIcon name="add" size={18} color="#FFFFFF" />
+              </LinearGradient>
+            </Animated.View>
           </Pressable>
         }
       />
@@ -156,17 +164,21 @@ export function GoalsScreen() {
           <View style={styles.footerWrap}>
             <Pressable
               onPress={() => router.push('/goal/add')}
-              style={({ pressed }) => [styles.createBtnWrap, pressed && { transform: [{ scale: 0.98 }] }]}
+              onPressIn={createBtnSpring.onPressIn}
+              onPressOut={createBtnSpring.onPressOut}
+              style={styles.createBtnWrap}
             >
-              <LinearGradient
-                colors={[theme.colors.primary, theme.colors.ocean]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.createBtnGradient}
-              >
-                <AppIcon name="add" size={20} color="#FFFFFF" />
-                <Text style={styles.createBtnText}>Create New Savings Goal</Text>
-              </LinearGradient>
+              <Animated.View style={createBtnSpring.style}>
+                <LinearGradient
+                  colors={[theme.colors.primary, theme.colors.ocean]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.createBtnGradient}
+                >
+                  <AppIcon name="add" size={20} color="#FFFFFF" />
+                  <Text style={styles.createBtnText}>Create New Savings Goal</Text>
+                </LinearGradient>
+              </Animated.View>
             </Pressable>
           </View>
         }

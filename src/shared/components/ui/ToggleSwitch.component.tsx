@@ -1,5 +1,6 @@
 import { Pressable } from 'react-native';
 import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/shared/theme';
 import { styles } from './ToggleSwitch.styles';
 
@@ -31,7 +32,11 @@ export function ToggleSwitch({
 
   return (
     <Pressable
-      onPress={() => !disabled && onValueChange(!value)}
+      onPress={() => {
+        if (disabled) return;
+        void Haptics.selectionAsync();
+        onValueChange(!value);
+      }}
       disabled={disabled}
       style={[
         styles.track,
