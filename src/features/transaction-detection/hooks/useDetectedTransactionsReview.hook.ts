@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+import { useLocalSearchParams } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 import { setLearnedRule, setPendingReviewCount } from '@/shared/store/transactionDetectionSlice';
@@ -16,6 +18,8 @@ const PENDING_KEY = ['detected-transactions', 'pending'] as const;
 export function useDetectedTransactionsReview() {
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
+  // A notification about one item opens the list with that item first (plan T2.12).
+  const { focus } = useLocalSearchParams<{ focus?: string }>();
 
   const query = useQuery({
     queryKey: PENDING_KEY,
@@ -61,9 +65,15 @@ export function useDetectedTransactionsReview() {
     },
   });
 
+  const items = useMemo(() => {
+    const list = query.data ?? [];
+    const focused = focus ? list.find((item) => item.id === focus) : undefined;
+    return focused ? [focused, ...list.filter((item) => item !== focused)] : list;
+  }, [query.data, focus]);
+
   const mutationError = confirm.error ?? reject.error;
   return {
-    items: query.data ?? [],
+    items,
     isLoading: query.isLoading,
     isRefreshing: query.isRefetching,
     error: query.error

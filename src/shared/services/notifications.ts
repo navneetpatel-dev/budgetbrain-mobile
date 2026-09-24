@@ -73,7 +73,10 @@ export async function registerForPushNotifications(): Promise<string | null> {
 export function resolveNotificationDeepLink(data: Record<string, unknown> | undefined): string {
   if (data?.detectedId) {
     if (data?.status === 'pending_review') {
-      return '/transactions/review';
+      // A single item carries its server id; a batch opens the plain list.
+      return data.detectedId === 'batch'
+        ? '/transactions/review'
+        : `/transactions/review?focus=${encodeURIComponent(String(data.detectedId))}`;
     }
     return '/(tabs)/expenses';
   }

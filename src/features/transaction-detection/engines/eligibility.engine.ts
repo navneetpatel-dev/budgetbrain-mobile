@@ -1,4 +1,4 @@
-import { isFinancialSender } from '../constants/institutionKeywords';
+import type { ReasonCode } from '@budgetbrain/detection-core';
 
 const OTP_PATTERNS = [
   /\botp\b/i,
@@ -36,42 +36,25 @@ const NON_TRANSACTION_BANK_PATTERNS = [
 ];
 
 /**
- * Determines whether a message is eligible for the financial transaction pipeline.
- * Rule (Section 5): Conservative filtering. OTPs, promos, and security alerts are immediately rejected.
+ * Why a message is not eligible for the pipeline, or null when it is (spec §5).
+ * Conservative: OTPs, promos and account notices are rejected before any parsing.
  */
-export function isMessageEligible(sender: string, content: string): boolean {
-  if (!content || typeof content !== 'string') return false;
-
-  // 1. Hard Reject: OTP messages must NEVER enter the pipeline
-  if (OTP_PATTERNS.some((p) => p.test(content))) {
-    return false;
+export function eligibilityReason(content: string): ReasonCode | null {
+  if (!content || typeof content !== 'string') return 'no_money_token';
+  // OTP messages must never enter the pipeline.
+  if (OTP_PATTERNS.some((p) => p.test(content))) return 'otp_marker';
+  if (PROMOTIONAL_PATTERNS.some((p) => p.test(content))) return 'promo_marker';
+  if (NON_TRANSACTION_BANK_PATTERNS.some((p) => p.test(content))) return 'non_transaction_notice';
+  // Must contain a currency token and movement wording. An unknown sender stays eligible, but
+  // its payload is marked unverified so it can only reach review.
+  if (!/(?:Rs\.?|INR|₹|\$|EUR|USD)/i.test(content)) return 'no_money_token';
+  if (!/(?:debited|credited|spent|paid|withdrawn|received|deposited|sent|refund)/i.test(content)) {
+    return 'no_movement_wording';
   }
+  return null;
+}
 
-  // 2. Reject pure promotional and marketing spam
-  if (PROMOTIONAL_PATTERNS.some((p) => p.test(content))) {
-    return false;
-  }
-
-  // 3. Reject non-transactional account notifications
-  if (NON_TRANSACTION_BANK_PATTERNS.some((p) => p.test(content))) {
-    return false;
-  }
-
-  // 4. Must contain at least one currency or financial indicator
-  const hasCurrencySignal = /(?:Rs\.?|INR|₹|\$|EUR|USD)/i.test(content);
-  const hasMovementSignal = /(?:debited|credited|spent|paid|withdrawn|received|deposited|sent|refund)/i.test(
-    content
-  );
-
-  if (!hasCurrencySignal || !hasMovementSignal) {
-    return false;
-  }
-
-  // 5. If sender is identifiable as financial, definitely eligible
-  if (isFinancialSender(sender)) {
-    return true;
-  }
-
-  // If sender is unknown but wording strongly suggests a financial movement with amount
-  return hasCurrencySignal && hasMovementSignal;
+/** Whether a message is eligible for the financial transaction pipeline. */
+export function isMessageEligible(_sender: string, content: string): boolean {
+  return eligibilityReason(content) === null;
 }

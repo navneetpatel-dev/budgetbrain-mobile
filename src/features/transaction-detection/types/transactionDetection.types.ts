@@ -98,3 +98,29 @@ export interface HistoricalSyncProgress {
   summary?: SyncFlushSummary;
   error?: string;
 }
+
+/**
+ * What the pipeline needs to know about the user, persisted in the detection store so the
+ * headless drain can run without Redux (plan T2.5). Written by the foreground app.
+ */
+export interface DetectionContext {
+  userId: string | null;
+  isAutoTrackingEnabled: boolean;
+  selectedSimSlot: 'all' | '1' | '2';
+  excludedMerchants: string[];
+  excludedAccountTails: string[];
+  learnedRules: Record<string, LearnedMerchantRule>;
+  notificationPreference: 'all' | 'needs_review' | 'off';
+}
+
+export type DetectionCategory = { id: string; name: string };
+
+/**
+ * How detection reaches the server. The foreground app uses the axios client; the headless
+ * drain uses plain fetch so it doesn't load the Redux store.
+ */
+export interface DetectionTransport {
+  isOnline(): Promise<boolean>;
+  syncBatch(items: SyncItemPayload[], idempotencyKey: string): Promise<{ results: SyncItemResult[] }>;
+  fetchConfig(): Promise<DetectionConfig>;
+}

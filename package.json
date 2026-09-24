@@ -1,9 +1,9 @@
 {
   "name": "budgetbrain-mobile",
-  "main": "expo-router/entry",
+  "main": "index.ts",
   "version": "1.0.0",
   "dependencies": {
-    "@budgetbrain/detection-core": "github:navneetpatel-dev/budgetbrain-detection-core#6be91b8f8b530053a48600b997e881063e544b87",
+    "@budgetbrain/detection-core": "github:navneetpatel-dev/budgetbrain-detection-core#e6906750cb66d4e296bb997ed5b855ced394d388",
     "@expo-google-fonts/fraunces": "^0.4.1",
     "@expo-google-fonts/inter": "^0.4.2",
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -37,6 +37,7 @@
     "expo-secure-store": "^56.0.4",
     "expo-sharing": "~56.0.23",
     "expo-splash-screen": "~56.0.14",
+    "expo-sqlite": "~56.0.6",
     "expo-status-bar": "~56.0.4",
     "expo-symbols": "~56.0.6",
     "expo-web-browser": "~56.0.6",
@@ -59,10 +60,12 @@
   "devDependencies": {
     "@testing-library/react-native": "^14.0.1",
     "@types/react": "~19.2.2",
+    "@types/sql.js": "^1.4.11",
     "eslint": "^9.39.5",
     "eslint-config-expo": "~56.0.4",
     "jest": "~29.7.0",
     "jest-expo": "~56.0.5",
+    "sql.js": "^1.14.2",
     "typescript": "~6.0.3"
   },
   "scripts": {
