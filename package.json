@@ -3,7 +3,7 @@
   "main": "index.ts",
   "version": "1.0.0",
   "dependencies": {
-    "@budgetbrain/detection-core": "github:navneetpatel-dev/budgetbrain-detection-core#e6906750cb66d4e296bb997ed5b855ced394d388",
+    "@budgetbrain/detection-core": "github:navneetpatel-dev/budgetbrain-detection-core#0a61f4f5a2df0730787c18eef6965e2178b5f2b5",
     "@expo-google-fonts/fraunces": "^0.4.1",
     "@expo-google-fonts/inter": "^0.4.2",
     "@react-native-async-storage/async-storage": "2.2.0",

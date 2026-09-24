@@ -9,7 +9,7 @@ import {
   setSmsSenderFilter,
 } from '@/shared/services/sms/smsDetector.service';
 import { fetchCategoriesForDetection, fetchSyncState } from '../api/detectedTransactions.api';
-import { nativeSenderFilter } from '../constants/institutionKeywords';
+import { nativeSenderFilter } from './detectionPack.service';
 import type { SyncFlushSummary, SyncItemPayload } from '../types/transactionDetection.types';
 import { getDetectionConfig } from './detectionConfig.service';
 import { contextFromState, saveDetectionCategories, saveDetectionContext } from './detectionContext.service';

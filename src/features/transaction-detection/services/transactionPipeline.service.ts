@@ -1,12 +1,10 @@
 import {
-  computeFingerprint,
+  categoryForTaxonomy,
   formatMinorToDecimal,
-  isAllowedDirectionType,
-  isSupportedCurrency,
-  minorUnits,
-  scoreEvidence,
-  type DetectionEvidence,
-  type ReasonCode,
+  merchantKey,
+  processMessage,
+  type DetectedCandidate,
+  type UserContext,
 } from '@budgetbrain/detection-core';
 import type {
   DetectionCategory,
@@ -15,151 +13,89 @@ import type {
   RawIncomingMessage,
   SyncItemPayload,
 } from '../types/transactionDetection.types';
-import { eligibilityReason } from '../engines/eligibility.engine';
-import { detectFinancialMovement } from '../engines/detector.engine';
-import { extractTransactionDetails } from '../engines/extractor.engine';
-import { classifyTransactionType } from '../engines/classifier.engine';
-import { resolveMerchant } from '../engines/merchant.engine';
-import { resolveCategory, type CategoryResolutionResult } from '../engines/category.engine';
-import { validateProcessedTransaction } from '../engines/validator.engine';
-import { resolveInstitutionId } from '../constants/institutionKeywords';
+import { getCompiledPack } from './detectionPack.service';
 import { saveProcessed, type PipelineOutcome } from './store/detectionStore.service';
 
-const CATEGORY_SOURCE: Record<CategoryResolutionResult['source'], SyncItemPayload['categorySource']> = {
-  user_rule: 'rule',
-  merchant_catalog: 'knowledge_base',
-  context_keyword: 'context',
-  fallback: 'fallback',
-};
+/**
+ * Thin adapter over the core pipeline (plan T3.15): builds the core user context from the
+ * persisted detection context, runs `processMessage`, and turns the result into a sync payload
+ * or a counted outcome. All parsing rules live in `@budgetbrain/detection-core`.
+ */
 
 export type MessageEvaluation = { ok: true; payload: SyncItemPayload } | { ok: false; outcome: PipelineOutcome };
 
-/** Bodies are truncated before parsing so one huge message can't stall a run (plan §3.1). */
-const MAX_BODY_CHARS = 1000;
+const CATEGORY_SOURCE: Record<NonNullable<DetectedCandidate['categorySource']>, SyncItemPayload['categorySource']> = {
+  rule: 'rule',
+  knowledge_base: 'knowledge_base',
+  mcc: 'knowledge_base',
+  context: 'context',
+  fallback: 'fallback',
+};
+
+/** Core user context from the app's detection settings. */
+export function toUserContext(context: DetectionContext & { userId: string }): UserContext {
+  const merchantRules: Record<string, { categoryId: string }> = {};
+  for (const rule of Object.values(context.learnedRules)) {
+    const key = merchantKey(rule.merchant);
+    if (key) merchantRules[key] = { categoryId: rule.categoryId };
+  }
+  return {
+    userId: context.userId,
+    merchantRules,
+    excludedMerchants: context.excludedMerchants.map(merchantKey).filter(Boolean),
+    excludedAccountTails: context.excludedAccountTails,
+    simSlot: context.selectedSimSlot === 'all' ? null : Number(context.selectedSimSlot),
+  };
+}
+
+function toPayload(candidate: DetectedCandidate, categories: DetectionCategory[]): SyncItemPayload {
+  const categoryId = candidate.categoryId ?? categoryForTaxonomy(candidate.taxonomyCode, categories, getCompiledPack());
+  return {
+    clientId: candidate.fingerprint.slice(3, 27),
+    amount: formatMinorToDecimal(candidate.amountMinor, candidate.currency),
+    currency: candidate.currency,
+    direction: candidate.direction,
+    transactionType: candidate.transactionType,
+    subtype: candidate.subtype,
+    // The backend has no `wallet` payment method yet (see core PAYMENT_METHODS).
+    paymentMethod: candidate.paymentMethod === 'wallet' ? 'other' : candidate.paymentMethod,
+    institutionId: candidate.institutionId,
+    accountTail: candidate.accountTail,
+    referenceNumber: candidate.referenceNumber,
+    // Only the cleaned name leaves the device, never raw message text (spec §22).
+    merchantName: candidate.merchantName,
+    merchantId: candidate.merchantId,
+    taxonomyCode: candidate.taxonomyCode,
+    categoryId,
+    categorySource: candidate.categorySource ? CATEGORY_SOURCE[candidate.categorySource] : null,
+    financialAccountId: null,
+    transactionDate: candidate.transactionDate,
+    receivedAt: candidate.receivedAt,
+    evidence: candidate.evidence,
+    confidenceTier: candidate.confidenceTier,
+    dedupFingerprint: candidate.fingerprint,
+    source: candidate.source,
+  };
+}
 
 /**
- * Turns one message into a sync payload, or says where and why it stopped (plan T2.10).
- * Pure: no storage, network or Redux, so the headless drain can run it. Duplicate detection
- * happens when the result is stored (the fingerprint is UNIQUE in the local store).
- *
- * The confidence tier comes from core `scoreEvidence`, the same function the server runs, over
- * facts this code actually observed. The server recomputes it and decides what is added.
- * Low-confidence results are dropped here, never queued (spec §18).
+ * One message → a sync payload, or where and why it stopped (plan T2.10). Pure: the local
+ * duplicate check happens when the payload is stored (UNIQUE fingerprint).
  */
 export function evaluateMessage(
-  input: RawIncomingMessage,
+  message: RawIncomingMessage,
   context: DetectionContext,
   availableCategories: DetectionCategory[] = []
 ): MessageEvaluation {
-  const institutionId = resolveInstitutionId(input.sender);
-  const stop = (state: PipelineOutcome['state'], reason: ReasonCode): MessageEvaluation => ({
-    ok: false,
-    outcome: { state, reason, institutionId },
-  });
   const userId = context.userId;
-  // The server binds every fingerprint to the signed-in user, so nothing is processed without one.
-  if (!userId || !context.isAutoTrackingEnabled) return stop('INELIGIBLE', 'kill_switch');
-
-  if (context.selectedSimSlot !== 'all' && input.simSlot !== undefined) {
-    if (String(input.simSlot) !== context.selectedSimSlot) return stop('INELIGIBLE', 'sim_filtered');
+  if (!userId || !context.isAutoTrackingEnabled) {
+    return { ok: false, outcome: { state: 'INELIGIBLE', reason: 'kill_switch', institutionId: null } };
   }
-
-  const message = input.body.length > MAX_BODY_CHARS ? { ...input, body: input.body.slice(0, MAX_BODY_CHARS) } : input;
-  const ineligible = eligibilityReason(message.body);
-  if (ineligible) return stop('INELIGIBLE', ineligible);
-
-  const signals = detectFinancialMovement(message.body);
-  if (!signals.isTransaction) return stop('INELIGIBLE', 'no_movement_wording');
-  if (!signals.direction) return stop('PARSE_FAILED', 'ambiguous_direction');
-
-  const extracted = extractTransactionDetails(message.body, message.receivedAt);
-  if (!extracted.amount) return stop('PARSE_FAILED', 'no_amount');
-  if (!isSupportedCurrency(extracted.currency)) return stop('PARSE_FAILED', 'unsupported_currency');
-
-  const transactionType = classifyTransactionType(signals.direction, signals, message.body);
-  // The classifier can't yet tell every case apart; never send a pairing the server rejects.
-  if (!isAllowedDirectionType(signals.direction, transactionType)) return stop('PARSE_FAILED', 'unknown_type');
-
-  const merchant = resolveMerchant(extracted.rawMerchantCandidate);
-  const merchantName = merchant.normalizedMerchant;
-  if (merchantName && context.excludedMerchants.includes(merchantName.toLowerCase())) {
-    return stop('INELIGIBLE', 'excluded_merchant');
+  const result = processMessage(message, getCompiledPack(), toUserContext({ ...context, userId }));
+  if (result.candidate && result.terminal !== 'IGNORED') {
+    return { ok: true, payload: toPayload(result.candidate, availableCategories) };
   }
-  if (extracted.accountTail && context.excludedAccountTails.includes(extracted.accountTail)) {
-    return stop('INELIGIBLE', 'excluded_account');
-  }
-
-  const validation = validateProcessedTransaction(
-    extracted.amount,
-    extracted.currency,
-    signals.direction,
-    extracted.transactionDate
-  );
-  if (!validation.isValid) {
-    const why = validation.reason ?? '';
-    return stop('PARSE_FAILED', /future/i.test(why) ? 'future_date' : /amount/i.test(why) ? 'invalid_amount' : 'invalid_date');
-  }
-
-  const referenceNumber = extracted.referenceNumber;
-  const evidence: DetectionEvidence = {
-    templateMatched: false,
-    institutionVerified: institutionId !== null,
-    amountRoleUnique: extracted.amountCandidateCount === 1,
-    directionUnambiguous: !signals.directionAmbiguous,
-    merchantKnown: merchant.categoryHint !== null,
-    dateExtracted: extracted.dateFromMessage,
-    referencePresent: referenceNumber !== null,
-    merchantFuzzy: false,
-  };
-  const confidenceTier = scoreEvidence(evidence);
-  if (confidenceTier === 'low') {
-    return stop('PARSE_FAILED', extracted.amountCandidateCount > 1 ? 'multiple_amounts' : 'low_confidence');
-  }
-
-  const amountMinor = Math.round(extracted.amount * 10 ** minorUnits(extracted.currency));
-  const dedupFingerprint = computeFingerprint({
-    userId,
-    institutionId,
-    accountTail: extracted.accountTail,
-    amountMinor,
-    currency: extracted.currency,
-    direction: signals.direction,
-    referenceNumber,
-    transactionDate: extracted.transactionDate,
-    receivedAt: message.receivedAt,
-  });
-
-  const category =
-    transactionType === 'transfer'
-      ? null
-      : resolveCategory(merchantName, merchant.categoryHint, message.body, context.learnedRules, availableCategories);
-
-  const payload: SyncItemPayload = {
-    clientId: dedupFingerprint.slice(3, 27),
-    amount: formatMinorToDecimal(amountMinor, extracted.currency),
-    currency: extracted.currency,
-    direction: signals.direction,
-    transactionType,
-    subtype: null,
-    paymentMethod: null,
-    institutionId,
-    accountTail: extracted.accountTail,
-    referenceNumber,
-    // Only the cleaned name leaves the device, never raw message text (spec §22).
-    merchantName,
-    merchantId: null,
-    taxonomyCode: null,
-    categoryId: category?.categoryId ?? null,
-    categorySource: category ? CATEGORY_SOURCE[category.source] : null,
-    financialAccountId: null,
-    transactionDate: extracted.transactionDate,
-    receivedAt: message.receivedAt,
-    evidence,
-    confidenceTier,
-    dedupFingerprint,
-    source: message.source,
-  };
-  return { ok: true, payload };
+  return { ok: false, outcome: { state: result.stage, reason: result.reasonCode, institutionId: result.institutionId } };
 }
 
 /**
@@ -178,9 +114,7 @@ export async function processMessages(
   const payloads: SyncItemPayload[] = [];
   const outcomes: PipelineOutcome[] = [];
   if (options.config && !options.config.enabled) {
-    for (const message of messages) {
-      outcomes.push({ state: 'INELIGIBLE', reason: 'kill_switch', institutionId: resolveInstitutionId(message.sender) });
-    }
+    for (let i = 0; i < messages.length; i += 1) outcomes.push({ state: 'INELIGIBLE', reason: 'kill_switch', institutionId: null });
   } else {
     for (const message of messages) {
       try {

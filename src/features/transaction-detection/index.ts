@@ -3,24 +3,9 @@
 // Types
 export * from './types/transactionDetection.types';
 
-// Constants
-export * from './constants/transactionDetection.constants';
-export * from './constants/institutionKeywords';
-export * from './constants/merchantCatalog';
-
-// Engines
-export * from './engines/eligibility.engine';
-export * from './engines/detector.engine';
-export * from './engines/extractor.engine';
-export * from './engines/classifier.engine';
-export * from './engines/merchant.engine';
-export * from './engines/category.engine';
-export * from './engines/confidence.engine';
-export * from './engines/duplicate.engine';
-export * from './engines/validator.engine';
-
 // Services
 export * from './services/transactionPipeline.service';
+export * from './services/detectionPack.service';
 export * from './services/historicalSync.service';
 export * from './services/detectionSync.service';
 export * from './services/syncManager.service';

@@ -296,6 +296,40 @@ All pure functions with no I/O. The pack is passed in precompiled form. Each tas
 | **T3.14** | Hot-path optimization: `compilePack()` builds a `Map`/`Set` + combined `RegExp` per lexicon class once; no per-message regex construction; body truncated to 1,000 chars; benchmark in CI | performance §3.1 | Core benchmark p95 ≤ 1 ms/message in Node; Hermes measured in T9.2 |
 | **T3.15** | Replace the mobile engines with core: delete `src/features/transaction-detection/engines/*` and `constants/institutionKeywords.ts` / `merchantCatalog.ts`; the pipeline service becomes a thin adapter (store I/O + core call) | Q1, Q2, Q3 | Mobile tests are green; no duplicated engine code remains |
 
+
+### Phase 3 status (2026-09-24)
+
+| PR | Covers |
+|---|---|
+| [navneetpatel-dev/budgetbrain-detection-core#3](https://github.com/navneetpatel-dev/budgetbrain-detection-core/pull/3) | v0.4.0: parser v2 (T3.1–T3.14), corpus run in Node and in Hermes |
+| [navneetpatel-dev/budgetbrain-backend#3](https://github.com/navneetpatel-dev/budgetbrain-backend/pull/3) | the server scores with the same v0.4 rule |
+| [navneetpatel-dev/budgetbrain-mobile#4](https://github.com/navneetpatel-dev/budgetbrain-mobile/pull/4) | T3.15 |
+
+**Merge order:** core (with a merge commit) → backend and mobile.
+
+| Task | Status | Notes |
+|---|---|---|
+| T3.1 | ✅ | `processMessage` / `processBatch(msg, compiledPack, userCtx)` → `{terminal, stage, reasonCode, candidate}`. Plain-data `UserContext`. The golden corpus passes 40/40 in Node and in the Hermes CLI (0.12, older than React Native 0.85's Hermes); `corpus:hermes` runs in CI |
+| T3.2 | 🟡 | Header, whole-sender, email-domain (with subdomains) and package lookup. **Deviation:** unknown senders are ignored (`unknown_sender`), not capped at medium, because the gap-doc rows and the corpus require it. The content-based second signal (bank name, IFSC) is not built yet |
+| T3.3 | ✅ | Safety footers are stripped before OTP matching. Order: OTP → promo → failed (unless credited back as a refund or reversal) → notice → future/request |
+| T3.4 | ✅ | Money in any ISO 4217 code or known symbol (`$ € £ ₹ Rs`), lakh grouping, `Rs.1250.5`, comma decimals. Masked accounts, references, VPAs. Dates follow the country's order and are built from parts (no `toISOString()`) |
+| T3.5 | ✅ | A balance or limit phrase must lead the amount. Several amounts → review (`multiple_amounts`, low tier). Debit and credit verbs side by side → review (`ambiguous_direction`). "credit card" is a noun |
+| T3.6 | ✅ | Templates compiled per institution. A hit sets `templateMatched` and `templateId`. The shared masked-skeleton builder comes with T7.4 |
+| T3.7 | 🟡 | Card bill, cash, wallet top-up, self transfer (own tails and VPAs), P2P, refund, cashback and reversal. Transfer pairing within a batch. `refundOfTransactionId` from `recentTransactions`. The mobile app doesn't pass a recent-transaction digest yet (Phase 5) |
+| T3.8 | 🟡 | Rail, domain, legal-suffix and store-number cleanup. Exact alias on the whole name or its leading words; Jaro-Winkler ≥ 0.92 only for one-word names from the same country or a global brand. The Wikidata/domain conflict check waits for real KB data (Phase 4) |
+| T3.9 | ✅ | User rule → KB → MCC → context words → Other, for expenses and refunds only. `categoryForTaxonomy` maps by exact name, then the parent name. **Deviation:** context words are a small English list in core until packs carry them |
+| T3.10 | ✅ | **Rule change:** corroboration is any fact read from the message (template, date, reference or known merchant); a fallback date alone is never enough (F1). Incoming P2P is capped at medium. Per-field reliability is set. Two corpus cases with no corroboration now expect review |
+| T3.11 | ✅ | Unchanged v2 fingerprint. Now also correct without `TextEncoder`. Test: SMS and notification give the same fingerprint |
+| T3.12 | 🟡 | Core flags `possible_manual_duplicate` from the recent-transaction digest. Mobile doesn't pass the digest yet, and the server-side ±1-day check isn't built |
+| T3.13 | ✅ | Amount, date range (no future beyond one day, no older than 400 days) and direction/type are checked before duplicates |
+| T3.14 | ✅ | `compilePack` builds maps and one combined matcher per lexicon class. No lookbehind or `\p{}`. p95 0.2 ms/message in Node (`bench:check` in CI fails above 1 ms); 0.5 ms/message on the Hermes interpreter |
+| T3.15 | ✅ | Mobile `engines/*`, `institutionKeywords` and `merchantCatalog` are deleted. The pipeline service is an adapter over core, using core's India baseline pack. The catalog's merchants moved into that pack, minus the wrong `kirana` → Zepto alias. The Android JS bundle builds with Hermes |
+
+**Still open for Phase 3:**
+- The content-based institution signal (T3.2).
+- The recent-transaction digest from mobile, and the server-side manual-duplicate check (T3.7, T3.12).
+- More corpus cases from real messages (T0.3).
+
 ---
 
 ## 8. Phase 4 — Knowledge base and knowledge packs
