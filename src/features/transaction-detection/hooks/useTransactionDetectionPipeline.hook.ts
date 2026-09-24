@@ -3,11 +3,7 @@ import { AppState } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/shared/store';
-import {
-  addSmsCandidateListener,
-  setNotificationCaptureEnabled,
-  setSmsDetectorEnabled,
-} from '@/shared/services/sms/smsDetector.service';
+import { addSmsCandidateListener, setSmsDetectorEnabled } from '@/shared/services/sms/smsDetector.service';
 import {
   cancelScheduledFlush,
   flushDetectedQueue,
@@ -25,8 +21,6 @@ export function useTransactionDetectionPipeline() {
   const detection = useSelector((state: RootState) => state.transactionDetection);
   const userId = useSelector((state: RootState) => state.auth.user?.id ?? null);
   const isActive = detection.isAutoTrackingEnabled && userId !== null;
-  // Persisted state from before T8.1 has no such key.
-  const captureNotifications = isActive && (detection.appNotificationCaptureEnabled ?? false);
 
   // The headless drain reads these settings from the detection store, not from Redux.
   useEffect(() => {
@@ -43,11 +37,6 @@ export function useTransactionDetectionPipeline() {
     detection.ownVpas,
     detection.linkedAccountTails,
   ]);
-
-  // The listener runs only once the user grants access in Settings; this is their choice on top.
-  useEffect(() => {
-    void setNotificationCaptureEnabled(captureNotifications).catch(() => {});
-  }, [captureNotifications]);
 
   useEffect(() => {
     void setSmsDetectorEnabled(isActive).catch(() => {});

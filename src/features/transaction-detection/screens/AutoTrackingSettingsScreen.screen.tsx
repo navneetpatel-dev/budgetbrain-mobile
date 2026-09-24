@@ -15,8 +15,6 @@ import { PermissionExplainerModal } from '../components/settings/PermissionExpla
 import { HistoricalSyncModal } from '../components/settings/HistoricalSyncModal.component';
 import { MyAccountsCard } from '../components/settings/MyAccountsCard.component';
 import { TemplateLearningRow } from '../components/settings/TemplateLearningRow.component';
-import { AppNotificationsRow } from '../components/settings/AppNotificationsRow.component';
-import { NotificationAccessExplainerModal } from '../components/settings/NotificationAccessExplainerModal.component';
 import { AutoTrackingAlternativesCard } from '../components/settings/AutoTrackingAlternativesCard.component';
 import { DetectionPausedNotice } from '../components/settings/DetectionPausedNotice.component';
 import { useOwnAccounts } from '../hooks/useOwnAccounts.hook';
@@ -51,14 +49,6 @@ export function AutoTrackingSettingsScreen() {
     isIos,
     serverDetectionEnabled,
     rolledOut,
-    notificationSupported,
-    appNotificationCapture,
-    notificationAccessGranted,
-    handleToggleNotificationCapture,
-    isNotificationExplainerVisible,
-    handleConfirmNotificationExplainer,
-    dismissNotificationExplainer,
-    openNotificationAccessSettings,
   } = useAutoTrackingSettings();
   const ownAccounts = useOwnAccounts();
 
@@ -114,7 +104,7 @@ export function AutoTrackingSettingsScreen() {
 
         {isIos ? (
           <AutoTrackingAlternativesCard
-            reason="iPhones don't let apps read SMS or other apps' notifications, so transactions can't be detected automatically here."
+            reason="iPhones don't let apps read SMS, so transactions can't be detected automatically here."
             onPasteOrImport={handleNavigatePasteImport}
           />
         ) : (
@@ -128,20 +118,6 @@ export function AutoTrackingSettingsScreen() {
               setNotificationPreference(val ? 'all' : 'off')
             }
           />
-        )}
-
-        {isEnabled && notificationSupported && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Sources</Text>
-            <View style={styles.cardGroup}>
-              <AppNotificationsRow
-                enabled={appNotificationCapture}
-                accessGranted={notificationAccessGranted}
-                onToggle={handleToggleNotificationCapture}
-                onOpenSettings={openNotificationAccessSettings}
-              />
-            </View>
-          </View>
         )}
 
         {isEnabled && (
@@ -264,12 +240,6 @@ export function AutoTrackingSettingsScreen() {
         isPermanentlyDenied={permissionStatus === 'blocked'}
         onConfirm={handleConfirmExplainer}
         onDismiss={() => setIsExplainerVisible(false)}
-      />
-
-      <NotificationAccessExplainerModal
-        visible={isNotificationExplainerVisible}
-        onConfirm={handleConfirmNotificationExplainer}
-        onDismiss={dismissNotificationExplainer}
       />
 
       <HistoricalSyncModal

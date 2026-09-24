@@ -20,11 +20,6 @@ export interface TransactionDetectionState {
   ownVpas: string[];
   /** Tails of the user's financial accounts, refreshed from the server. */
   linkedAccountTails: string[];
-  /**
-   * Bank-app notification capture (plan T8.1): the user's choice. It works only while
-   * auto-tracking is on and the user has granted notification access in system Settings.
-   */
-  appNotificationCaptureEnabled: boolean;
 }
 
 const initialState: TransactionDetectionState = {
@@ -42,7 +37,6 @@ const initialState: TransactionDetectionState = {
   ownAccountTails: [],
   ownVpas: [],
   linkedAccountTails: [],
-  appNotificationCaptureEnabled: false,
 };
 
 /** A person has a handful of own accounts and UPI IDs; the settings chip rows stay short. */
@@ -57,9 +51,6 @@ export const transactionDetectionSlice = createSlice({
       if (action.payload && !state.consentGrantedAt) {
         state.consentGrantedAt = new Date().toISOString();
       }
-    },
-    setAppNotificationCapture(state, action: PayloadAction<boolean>) {
-      state.appNotificationCaptureEnabled = action.payload;
     },
     setNotificationPreference(
       state,
@@ -156,7 +147,6 @@ export const transactionDetectionSlice = createSlice({
 
 export const {
   setAutoTrackingEnabled,
-  setAppNotificationCapture,
   setNotificationPreference,
   setSelectedSimSlot,
   addExcludedMerchant,

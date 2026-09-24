@@ -505,10 +505,10 @@ All pure functions with no I/O. The pack is passed in precompiled form. Each tas
 
 | Task | Status | Notes |
 |---|---|---|
-| T8.1 | ✅ (device pass pending) | `BankNotificationListener` in the sms-detector module. It keeps only apps the pack lists for notifications (`channel: notification`, e.g. `net.one97.paytm`) whose text has a money token, the same check SMS use. It skips ongoing notifications and group summaries. It reads only the title and text, and queues them in the same candidate queue (new `source` column, DB v2) for the same WorkManager drain. Reposts are keyed on package plus text. The pipeline gets `source: 'notification'` with the package as sender. A test shows one payment seen as both a Paytm SMS and a Paytm notification is stored once. Settings: a "Bank App Notifications" row with its own explainer, which opens Android's Notification access screen. Access is re-checked when the app comes back. The listener is declared in every build variant, noSms included, where it is the only automatic source; `BUDGETBRAIN_NO_NOTIFICATIONS=1` leaves it out. The Kotlin core has JVM tests; the Android classes were not compiled here (no Android SDK) |
+| T8.1 | ⏭ Removed | Bank-app notification capture was built, then removed by decision (2026-09-24): detection reads SMS only. The listener, its filter, the settings row and explainer, and the config-plugin entry are gone; the native queue drops anything the listener had queued (DB v3). Detected items stored earlier with `source: 'notification'` still show their badge |
 | T8.2 | ⏭ Skipped | Email connector: skipped by decision (2026-09-24) |
 | T8.3 | ⏭ Skipped | Open banking: skipped by decision (2026-09-24) |
-| T8.4 | ✅ (device pass pending) | On iOS the auto-tracking screen shows why SMS and notifications can't be read there, and offers Paste or Import (the Phase 6 screen) |
+| T8.4 | ✅ (device pass pending) | On iOS the auto-tracking screen shows why SMS can't be read there, and offers Paste or Import (the Phase 6 screen) |
 
 ---
 

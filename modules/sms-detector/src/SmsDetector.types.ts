@@ -1,23 +1,17 @@
-/** One SMS or bank-app notification the native pre-filter kept (plan T2.2, T2.7, T8.1). */
+/** One SMS the native pre-filter kept (plan T2.2, T2.7). */
 export interface NativeSmsCandidate {
   /** Row id in the native candidate queue; pass it to `ackMessages` once the message is stored. */
   queueId: string;
   /** The provider `_id` for inbox messages; null for a live SMS not yet written to the inbox. */
   messageId: string | null;
-  /** SMS sender header, or the app's package name for a notification. */
   sender: string;
   body: string;
   /** Epoch milliseconds. */
   receivedAt: number;
   /** 1-based SIM slot, or null when the device doesn't report one. */
   simSlot: number | null;
-  /** Missing from builds before T8.1, which only queued SMS. */
-  source?: 'android_sms' | 'notification';
-}
-
-export interface NotificationFilter {
-  /** Android package names of bank and UPI apps, from the knowledge pack. */
-  packages: string[];
+  /** Always `android_sms`; missing from builds before T8.1. */
+  source?: 'android_sms';
 }
 
 export interface ScanInboxOptions {

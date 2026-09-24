@@ -6,7 +6,6 @@ import { invalidateMoneyQueries } from '@/shared/services/queryInvalidation';
 import {
   initSmsWatermark,
   scheduleSmsCatchUp,
-  setNotificationFilter,
   setSmsSenderFilter,
 } from '@/shared/services/sms/smsDetector.service';
 import { getApiErrorCode } from '@/shared/services/api';
@@ -17,7 +16,7 @@ import {
   uploadDetectionDiagnostics,
   uploadMessageSkeletons,
 } from '../api/detectedTransactions.api';
-import { ensureActivePack, nativeNotificationFilter, nativeSenderFilter } from './detectionPack.service';
+import { ensureActivePack, nativeSenderFilter } from './detectionPack.service';
 import { updateKnowledgePack } from './packManager.service';
 import { syncLinkedAccountTails, syncMerchantRules } from './detectionProfile.service';
 import type { SyncFlushSummary, SyncItemPayload } from '../types/transactionDetection.types';
@@ -102,10 +101,9 @@ async function refreshDigest(): Promise<void> {
   if (userId) await refreshRecentDigest(fetchRecentTransactions, userId).catch(() => false);
 }
 
-/** Hands the active pack's SMS headers and notification packages to the native pre-filters. */
+/** Hands the active pack's SMS headers, bank names and IFSC prefixes to the native pre-filter. */
 async function applyNativeFilters(): Promise<void> {
   await setSmsSenderFilter(nativeSenderFilter()).catch(() => {});
-  await setNotificationFilter(nativeNotificationFilter()).catch(() => {});
 }
 
 /** Saves the Redux settings the headless drain reads. Cheap: skipped when nothing changed. */

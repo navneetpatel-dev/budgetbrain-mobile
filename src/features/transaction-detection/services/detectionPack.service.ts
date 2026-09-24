@@ -88,14 +88,6 @@ export function nativeSenderFilter(): { headers: string[]; keywords: string[]; b
   };
 }
 
-/** The bank and UPI app packages whose notifications the native listener keeps (plan T8.1). */
-export function nativeNotificationFilter(): { packages: string[] } {
-  const packages = getActivePack()
-    .senders.filter((sender) => sender.channel === 'notification')
-    .map((sender) => sender.key.trim().toLowerCase());
-  return { packages: [...new Set(packages)] };
-}
-
 /** Test helper. */
 export function __resetActivePackForTests() {
   active = null;

@@ -1,6 +1,5 @@
 import { describe, it, expect, jest } from '@jest/globals';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import { AppNotificationsRow } from '../settings/AppNotificationsRow.component';
 import { AutoTrackingAlternativesCard } from '../settings/AutoTrackingAlternativesCard.component';
 import { DetectionPausedNotice } from '../settings/DetectionPausedNotice.component';
 
@@ -11,24 +10,6 @@ jest.mock('@/shared/theme', () => {
   const { DEFAULT_ACCENT } = jest.requireActual<typeof import('@/shared/theme/palettes')>('@/shared/theme/palettes');
   const theme = buildTheme('light', DEFAULT_ACCENT, 'light');
   return { useTheme: () => theme };
-});
-
-describe('AppNotificationsRow (T8.1)', () => {
-  it('reports the toggle and asks for access only while on without it', async () => {
-    const onToggle = jest.fn();
-    const onOpenSettings = jest.fn();
-    await render(<AppNotificationsRow enabled={false} accessGranted={false} onToggle={onToggle} onOpenSettings={onOpenSettings} />);
-    expect(screen.queryByText('Open Settings')).toBeNull();
-    await fireEvent(screen.getByLabelText('Bank app notifications'), 'valueChange', true);
-    expect(onToggle).toHaveBeenCalledWith(true);
-
-    await render(<AppNotificationsRow enabled accessGranted={false} onToggle={onToggle} onOpenSettings={onOpenSettings} />);
-    await fireEvent.press(screen.getByText('Open Settings'));
-    expect(onOpenSettings).toHaveBeenCalled();
-
-    await render(<AppNotificationsRow enabled accessGranted onToggle={onToggle} onOpenSettings={onOpenSettings} />);
-    expect(screen.queryByText('Open Settings')).toBeNull();
-  });
 });
 
 describe('AutoTrackingAlternativesCard (T8.4)', () => {

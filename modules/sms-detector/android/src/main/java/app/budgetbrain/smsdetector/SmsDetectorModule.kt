@@ -1,12 +1,8 @@
 package app.budgetbrain.smsdetector
 
 import android.Manifest
-import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.provider.Settings
-import app.budgetbrain.smsdetector.core.NotificationFilter
 import app.budgetbrain.smsdetector.core.SenderFilter
 import expo.modules.kotlin.exception.Exceptions
 import expo.modules.kotlin.modules.Module
@@ -20,10 +16,6 @@ class SenderFilterRecord : Record {
   @Field val keywords: List<String> = emptyList()
   @Field val bodyNames: List<String> = emptyList()
   @Field val ifscPrefixes: List<String> = emptyList()
-}
-
-class NotificationFilterRecord : Record {
-  @Field val packages: List<String> = emptyList()
 }
 
 class ScanInboxOptions : Record {
@@ -103,40 +95,6 @@ class SmsDetectorModule : Module() {
             "source" to CandidateQueue.SOURCE_SMS,
           )
         }
-    }
-
-    // Bank-app notifications (plan T8.1). False when the build's manifest has no listener.
-    Function("isNotificationListenerSupported") {
-      val component = ComponentName(context, BankNotificationListener::class.java)
-      try {
-        context.packageManager.getServiceInfo(component, 0)
-        true
-      } catch (e: PackageManager.NameNotFoundException) {
-        false
-      }
-    }
-
-    Function("isNotificationAccessGranted") {
-      // The same list NotificationManagerCompat reads, without pulling in androidx.core.
-      val enabled = Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners").orEmpty()
-      val ours = ComponentName(context, BankNotificationListener::class.java)
-      enabled.split(':').mapNotNull { ComponentName.unflattenFromString(it) }.any { it == ours }
-    }
-
-    // Notification access is a special permission: only the user can grant it, in Settings.
-    Function("openNotificationAccessSettings") {
-      val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-      context.startActivity(intent)
-    }
-
-    AsyncFunction("setNotificationsEnabled") { enabled: Boolean ->
-      DetectorPrefs(context).notificationsEnabled = enabled
-      if (!enabled) CandidateQueue.get(context).clearSource(CandidateQueue.SOURCE_NOTIFICATION)
-    }
-
-    AsyncFunction("setNotificationFilter") { filter: NotificationFilterRecord ->
-      val next = NotificationFilter(filter.packages)
-      if (!next.isEmpty) DetectorPrefs(context).setNotificationFilter(next)
     }
 
     AsyncFunction("initWatermark") { floorMs: Double ->
