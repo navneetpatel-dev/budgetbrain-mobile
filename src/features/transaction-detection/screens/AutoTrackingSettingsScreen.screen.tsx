@@ -14,6 +14,7 @@ import { AutoTrackingConsentCard } from '../components/settings/AutoTrackingCons
 import { PermissionExplainerModal } from '../components/settings/PermissionExplainerModal.component';
 import { HistoricalSyncModal } from '../components/settings/HistoricalSyncModal.component';
 import { MyAccountsCard } from '../components/settings/MyAccountsCard.component';
+import { TemplateLearningRow } from '../components/settings/TemplateLearningRow.component';
 import { useOwnAccounts } from '../hooks/useOwnAccounts.hook';
 import { createStyles } from './AutoTrackingSettingsScreen.styles';
 
@@ -40,6 +41,9 @@ export function AutoTrackingSettingsScreen() {
     isDeletingData,
     autoAddHighConfidence,
     setAutoAddHighConfidence,
+    templateLearning,
+    isTemplateLearningKnown,
+    setTemplateLearning,
   } = useAutoTrackingSettings();
   const ownAccounts = useOwnAccounts();
 
@@ -188,6 +192,11 @@ export function AutoTrackingSettingsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Privacy</Text>
           <View style={styles.cardGroup}>
+            <TemplateLearningRow
+              value={templateLearning}
+              disabled={!isTemplateLearningKnown}
+              onToggle={setTemplateLearning}
+            />
             <TouchableOpacity
               style={styles.actionRow}
               onPress={handleDeleteDetectedData}

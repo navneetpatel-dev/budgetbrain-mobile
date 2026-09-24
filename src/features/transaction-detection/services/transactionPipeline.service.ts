@@ -1,5 +1,6 @@
 import Constants from 'expo-constants';
 import {
+  buildSkeleton,
   categoryForTaxonomy,
   formatMinorToDecimal,
   merchantKey,
@@ -15,7 +16,7 @@ import type {
   SyncItemPayload,
 } from '../types/transactionDetection.types';
 import { ensureActivePack, getCompiledPack } from './detectionPack.service';
-import { saveProcessed, type PipelineOutcome } from './store/detectionStore.service';
+import { queueSkeletons, saveProcessed, type PipelineOutcome, type QueuedSkeleton } from './store/detectionStore.service';
 
 /**
  * Thin adapter over the core pipeline (plan T3.15): builds the core user context from the
@@ -23,7 +24,13 @@ import { saveProcessed, type PipelineOutcome } from './store/detectionStore.serv
  * or a counted outcome. All parsing rules live in `@budgetbrain/detection-core`.
  */
 
-export type MessageEvaluation = { ok: true; payload: SyncItemPayload } | { ok: false; outcome: PipelineOutcome };
+/**
+ * `learnShape`: the message came from a known institution but no template read it (parsed
+ * generically, or parsing failed), so its masked shape is useful for template learning (T7.4).
+ */
+export type MessageEvaluation =
+  | { ok: true; payload: SyncItemPayload; learnShape: boolean }
+  | { ok: false; outcome: PipelineOutcome; learnShape: boolean };
 
 const CATEGORY_SOURCE: Record<NonNullable<DetectedCandidate['categorySource']>, SyncItemPayload['categorySource']> = {
   rule: 'rule',
@@ -100,19 +107,42 @@ export function evaluateMessage(
 ): MessageEvaluation {
   const userId = context.userId;
   if (!userId || !context.isAutoTrackingEnabled) {
-    return { ok: false, outcome: { state: 'INELIGIBLE', reason: 'kill_switch', institutionId: null } };
+    return { ok: false, outcome: { state: 'INELIGIBLE', reason: 'kill_switch', institutionId: null }, learnShape: false };
   }
   const result = processMessage(message, getCompiledPack(), toUserContext({ ...context, userId }, config));
   if (result.candidate && result.terminal !== 'IGNORED') {
-    return { ok: true, payload: toPayload(result.candidate, availableCategories) };
+    return {
+      ok: true,
+      payload: toPayload(result.candidate, availableCategories),
+      learnShape: Boolean(result.institutionId) && !result.candidate.evidence.templateMatched,
+    };
   }
-  return { ok: false, outcome: { state: result.stage, reason: result.reasonCode, institutionId: result.institutionId } };
+  return {
+    ok: false,
+    outcome: { state: result.stage, reason: result.reasonCode, institutionId: result.institutionId },
+    learnShape: Boolean(result.institutionId) && result.stage === 'PARSE_FAILED',
+  };
+}
+
+/** The masked shape of a message for template learning; no digits or names (core `buildSkeleton`). */
+export function skeletonFor(message: RawIncomingMessage): QueuedSkeleton | null {
+  const pack = getCompiledPack();
+  const shape = buildSkeleton(message, pack);
+  if (!shape) return null;
+  return {
+    hash: shape.hash,
+    skeleton: shape.skeleton,
+    institutionId: shape.institutionId,
+    senderKey: shape.senderKey,
+    country: shape.institutionId ? (pack.institutions.get(shape.institutionId)?.country ?? null) : null,
+  };
 }
 
 /**
  * Runs a batch of messages through the pipeline and stores the results for sync in one write
  * transaction. The server kill switch is applied by the caller's `config` (plan T1.16).
  * Returns the payloads that were new; repeats of a stored fingerprint are counted as duplicates.
+ * With template learning on (server setting, D-5), shapes no template read are queued for upload.
  */
 export async function processMessages(
   messages: RawIncomingMessage[],
@@ -125,6 +155,8 @@ export async function processMessages(
   await ensureActivePack();
   const payloads: SyncItemPayload[] = [];
   const outcomes: PipelineOutcome[] = [];
+  const skeletons: QueuedSkeleton[] = [];
+  const learn = options.config?.templateLearning === true;
   if (options.config && !options.config.enabled) {
     for (let i = 0; i < messages.length; i += 1) outcomes.push({ state: 'INELIGIBLE', reason: 'kill_switch', institutionId: null });
   } else {
@@ -133,11 +165,18 @@ export async function processMessages(
         const result = evaluateMessage(message, context, options.categories, options.config ?? null);
         if (result.ok) payloads.push(result.payload);
         else outcomes.push(result.outcome);
+        if (learn && result.learnShape) {
+          const skeleton = skeletonFor(message);
+          if (skeleton) skeletons.push(skeleton);
+        }
       } catch {
         // One unparseable message never stops the batch.
         outcomes.push({ state: 'PARSE_FAILED', reason: 'no_amount', institutionId: null });
       }
     }
   }
-  return saveProcessed({ userId, payloads, outcomes, now: options.now });
+  const saved = await saveProcessed({ userId, payloads, outcomes, now: options.now });
+  // Best effort: a failed queue write never loses the detected transactions.
+  await queueSkeletons(skeletons, options.now).catch(() => {});
+  return saved;
 }

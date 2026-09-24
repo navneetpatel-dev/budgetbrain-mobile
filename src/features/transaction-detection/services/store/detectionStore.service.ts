@@ -11,13 +11,18 @@ import { openExpoDriver, type SqlDriver, type SqlValue } from './sqlDriver';
  *   The payload is kept only until the server answers, then set to NULL (spec §22).
  * - `detection_counters` counts terminal states and reason codes per day. No message text.
  * - `kv` holds small values: the detection context, the last server config, migration flags.
+ * - `skeleton_queue` holds masked message shapes waiting for upload, only while the user has
+ *   opted in to template learning (plan T7.4, D-5). A skeleton has no digits and no names.
  */
 
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 const DAY_MS = 24 * 60 * 60 * 1000;
 /** A fingerprint is remembered this long after the server answered (plan §3.1 TTL). */
 const ANSWERED_TTL_MS = 180 * DAY_MS;
 const COUNTER_TTL_DAYS = 30;
+const SKELETON_TTL_MS = 30 * DAY_MS;
+/** Queued shapes beyond this are dropped; the same shape from other users fills the gap. */
+const MAX_QUEUED_SKELETONS = 200;
 const BACKOFF_BASE_MS = 30 * 1000;
 const BACKOFF_MAX_MS = 30 * 60 * 1000;
 
@@ -50,6 +55,14 @@ CREATE TABLE IF NOT EXISTS detection_counters (
   PRIMARY KEY (day, state, reason, institution_id)
 );
 CREATE TABLE IF NOT EXISTS kv (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS skeleton_queue (
+  hash TEXT PRIMARY KEY,
+  skeleton TEXT NOT NULL,
+  institution_id TEXT,
+  sender_key TEXT NOT NULL,
+  country TEXT,
+  created_at INTEGER NOT NULL
+);
 PRAGMA user_version = ${SCHEMA_VERSION};
 `;
 
@@ -266,6 +279,7 @@ export async function clearDetectionData(): Promise<void> {
   await driver.transaction(async () => {
     await driver.run(`DELETE FROM detected_local`);
     await driver.run(`DELETE FROM detection_counters`);
+    await driver.run(`DELETE FROM skeleton_queue`);
   });
 }
 
@@ -274,6 +288,87 @@ export async function purgeOld(now = Date.now()): Promise<void> {
   const driver = await db();
   await driver.run(`DELETE FROM detected_local WHERE lifecycle <> 'SYNC_PENDING' AND updated_at < ?`, [now - ANSWERED_TTL_MS]);
   await driver.run(`DELETE FROM detection_counters WHERE day < ?`, [utcDay(now - COUNTER_TTL_DAYS * DAY_MS)]);
+  await driver.run(`DELETE FROM skeleton_queue WHERE created_at < ?`, [now - SKELETON_TTL_MS]);
+}
+
+export interface DiagnosticsRow {
+  day: string;
+  stage: LifecycleState;
+  reasonCode: ReasonCode;
+  institutionId: string | null;
+  count: number;
+}
+
+/** Counter rows of the finished days after `afterDay` (exclusive) and before today (plan T7.1). */
+export async function countersForUpload(afterDay: string | null, now = Date.now()): Promise<DiagnosticsRow[]> {
+  const driver = await db();
+  const rows = await driver.all<{ day: string; state: string; reason: string; institution_id: string; count: number }>(
+    `SELECT day, state, reason, institution_id, count FROM detection_counters
+     WHERE day > ? AND day < ? ORDER BY day, state, reason, institution_id`,
+    [afterDay ?? '', utcDay(now)]
+  );
+  return rows.map((row) => ({
+    day: row.day,
+    stage: row.state as LifecycleState,
+    reasonCode: row.reason as ReasonCode,
+    institutionId: row.institution_id || null,
+    count: row.count,
+  }));
+}
+
+/** A masked message shape waiting for upload (plan T7.4). */
+export interface QueuedSkeleton {
+  hash: string;
+  skeleton: string;
+  institutionId: string | null;
+  senderKey: string;
+  country: string | null;
+}
+
+/** Queues shapes once each; a shape already queued, or a full queue, is skipped. */
+export async function queueSkeletons(skeletons: QueuedSkeleton[], now = Date.now()): Promise<void> {
+  if (skeletons.length === 0) return;
+  const driver = await db();
+  await driver.transaction(async () => {
+    const [row] = await driver.all<{ n: number }>(`SELECT COUNT(*) AS n FROM skeleton_queue`);
+    let room = MAX_QUEUED_SKELETONS - (row?.n ?? 0);
+    for (const item of skeletons) {
+      if (room <= 0) break;
+      const { changes } = await driver.run(
+        `INSERT INTO skeleton_queue (hash, skeleton, institution_id, sender_key, country, created_at)
+         VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING`,
+        [item.hash, item.skeleton, item.institutionId, item.senderKey, item.country, now]
+      );
+      room -= changes;
+    }
+  });
+}
+
+export async function queuedSkeletons(limit: number): Promise<QueuedSkeleton[]> {
+  const driver = await db();
+  const rows = await driver.all<{ hash: string; skeleton: string; institution_id: string | null; sender_key: string; country: string | null }>(
+    `SELECT hash, skeleton, institution_id, sender_key, country FROM skeleton_queue ORDER BY created_at LIMIT ?`,
+    [limit]
+  );
+  return rows.map((row) => ({
+    hash: row.hash,
+    skeleton: row.skeleton,
+    institutionId: row.institution_id,
+    senderKey: row.sender_key,
+    country: row.country,
+  }));
+}
+
+export async function removeSkeletons(hashes: string[]): Promise<void> {
+  if (hashes.length === 0) return;
+  const driver = await db();
+  await driver.run(`DELETE FROM skeleton_queue WHERE hash IN (${placeholders(hashes.length)})`, hashes);
+}
+
+/** Turning template learning off drops every shape not yet sent. */
+export async function clearSkeletons(): Promise<void> {
+  const driver = await db();
+  await driver.run(`DELETE FROM skeleton_queue`);
 }
 
 export async function countersForDay(day: string): Promise<{ state: string; reason: string; institutionId: string; count: number }[]> {

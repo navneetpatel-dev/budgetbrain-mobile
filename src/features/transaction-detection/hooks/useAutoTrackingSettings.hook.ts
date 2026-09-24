@@ -23,7 +23,7 @@ import {
   type PermissionCheckResult,
 } from '@/shared/services/sms/smsPermission.service';
 import { deleteMyDetectedData, updateDetectionSettings } from '../api/detectedTransactions.api';
-import { clearDetectionData } from '../services/store/detectionStore.service';
+import { clearDetectionData, clearSkeletons } from '../services/store/detectionStore.service';
 import { resetMerchantRules } from '../services/detectionProfile.service';
 import { getDetectionConfig, setCachedDetectionConfig } from '../services/detectionConfig.service';
 import { apiTransport } from '../services/transport/apiTransport';
@@ -50,6 +50,21 @@ export function useAutoTrackingSettings() {
       queryClient.setQueryData(CONFIG_KEY, next);
       dispatch(setAutoAddHighConfidence(next.autoAddHighConfidence));
     },
+  });
+
+  // Template learning (T7.4, D-5): off by default; turning it off drops shapes not yet sent,
+  // and the server deletes what it holds.
+  const templateLearning = useMutation({
+    mutationFn: async (value: boolean) => {
+      const next = await updateDetectionSettings({ templateLearning: value });
+      if (!value) await clearSkeletons().catch(() => {});
+      return next;
+    },
+    onSuccess: (next) => {
+      void setCachedDetectionConfig(next);
+      queryClient.setQueryData(CONFIG_KEY, next);
+    },
+    onError: (error) => Alert.alert('Could not save', getApiErrorMessage(error, 'Try again when you are online.')),
   });
 
   // Keep the last known server value, so the switch is right offline and on the next launch (T5.7).
@@ -145,6 +160,9 @@ export function useAutoTrackingSettings() {
     serverDetectionEnabled: config.data?.enabled ?? true,
     autoAddHighConfidence: autoAdd.isPending ? autoAdd.variables : (serverAutoAdd ?? detection.autoAddHighConfidence),
     setAutoAddHighConfidence: (value: boolean) => autoAdd.mutate(value),
+    templateLearning: templateLearning.isPending ? templateLearning.variables : (config.data?.templateLearning ?? false),
+    isTemplateLearningKnown: config.data !== undefined && config.data !== null,
+    setTemplateLearning: (value: boolean) => templateLearning.mutate(value),
     isExplainerVisible,
     isHistoricalModalVisible,
     setIsExplainerVisible,
