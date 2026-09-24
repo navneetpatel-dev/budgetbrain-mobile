@@ -274,14 +274,6 @@ export interface AiConversation extends AiConversationSummary {
   messages: AiChatMessage[];
 }
 
-export interface ParsedTransactionPending {
-  id: string;
-  source: 'sms' | 'email' | 'csv';
-  parsedAmount: number | null;
-  parsedMerchant: string | null;
-  confidence: number;
-  createdAt: string;
-}
 
 export interface PaginationMeta {
   total: number;

@@ -32,7 +32,7 @@ const PROFILE_SCREEN_TITLES: Record<ProfileScreenKey, string> = {
   accounts: 'Accounts',
   investments: 'Investments',
   family: 'Family',
-  integrations: 'Integrations',
+  integrations: 'Paste & import',
   notifications: 'Notifications',
   support: 'Support',
   privacy: 'Privacy Policy',

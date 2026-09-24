@@ -419,6 +419,29 @@ All pure functions with no I/O. The pack is passed in precompiled form. Each tas
 | **T6.4** | web | Review inbox page (Confirm / Edit / Delete), Detected tab with Undo, rules manager (view / edit / delete), auto-tracking status page (enabled devices, last sync, pending count, "delete my detected data"), source and status filters and an auto-detected badge in the transaction list, and `Transaction.type` refund/transfer display in lists, dashboards and reports | W1, W5, W6, W7, W8 | Web tests + manual pass |
 | **T6.5** | backend + web | Statement import (CSV with column mapping, OFX/QFX, QIF, MT940, CAMT.053) through `ingest` with streaming parsing (no full file in memory), a preview before commit, and dedup through fingerprints | W4, §6.10 | A 10k-row CSV imports with flat memory usage |
 
+
+### Phase 6 status (2026-09-24)
+
+| PR | Covers |
+|---|---|
+| [navneetpatel-dev/budgetbrain-backend#6](https://github.com/navneetpatel-dev/budgetbrain-backend/pull/6) | T6.1, T6.2, T6.3 (backend), T6.5, and the API side of T6.4 |
+| [navneetpatel-dev/budgetbrain-web#2](https://github.com/navneetpatel-dev/budgetbrain-web/pull/2) | T6.4, the T6.5 import screen, and T6.3 on the web |
+| [navneetpatel-dev/budgetbrain-mobile#7](https://github.com/navneetpatel-dev/budgetbrain-mobile/pull/7) | T6.3 on mobile |
+
+**Merge order:** backend → web and mobile.
+
+| Task | Status | Notes |
+|---|---|---|
+| T6.1 | ✅ | The detection router lives in the shared module; web and mobile mount the same one. HTTP test through the real web app |
+| T6.2 | ✅ | `POST /detected-transactions/ingest` parses with core and the newest built pack (baseline fallback), then uses the sync path. A test scans every text column of every table for the pasted text (with a positive control). Sentry drops request bodies for detection routes. `GET …/institutions` for text without a sender |
+| T6.3 | 🟡 | `/integrations` removed from backend, web and mobile; its paths answer 410 Gone. **Open:** the migration that moves pending `parsed_transactions` rows into review and erases `raw_content` is not written yet; it waits for approval, because the erasure can't be undone. The table is dropped in a later release |
+| T6.4 | ✅ | Web: hub (status per source, auto-add, delete my data, paste), review with inline edit, history with Undo, rules manager, transaction list chip, `source=detected` filter and "Auto" badge. Backend: rules by id, per-source sync state, `source` filter. Browser pass against a local server (18 steps) |
+| T6.5 | ✅ | CSV (suggested mapping, preamble skipped), OFX/QFX, QIF, MT940, CAMT.053. Streamed in batches of 100 from a temp file that is deleted after each request; 10,000 rows in ~4 s with ~31 MB peak heap. Preview before commit; ledger look-alikes wait for review; stable fingerprints make re-imports no-ops. **Deviation:** the file is sent again to import instead of being kept on the server between preview and import |
+
+**Also fixed:** `DELETE /detected-transactions/rules` (Phase 5's reset) was shadowed by `DELETE /:id` and answered 400; the rules routes now come first.
+
+**Still open for Phase 6:** the `parsed_transactions` migration (above) and a device pass of the mobile Paste & import screen.
+
 ---
 
 ## 11. Phase 7 — Admin, diagnostics and learning loop
@@ -582,7 +605,8 @@ All pure functions with no I/O. The pack is passed in precompiled form. Each tas
 | `GET /detected-transactions?status=&source=` (detected list) | mobile, web | T5.5, T6.4 |
 | `DELETE /detected-transactions/me` | mobile, web | T5.7 |
 | `GET /detected-transactions/rules` (ETag), `DELETE /detected-transactions/rules` (reset), `PUT`/`DELETE …/rules/:id` | mobile, web | T5.3, T5.7, T6.4 |
-| `POST /detected-transactions/ingest` | mobile, web | T6.2 |
+| `POST /detected-transactions/ingest`, `GET /detected-transactions/institutions` | mobile, web | T6.2 |
+| `POST /detected-transactions/import/preview`, `POST /detected-transactions/import` | mobile, web | T6.5 |
 | `GET /detection/config` | mobile, web | T1.16, T4.6 |
 | `GET /detection/knowledge-pack?country=&since=` | mobile | T4.3 |
 | `POST /detection/diagnostics` | mobile | T7.1 |
