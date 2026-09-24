@@ -1,59 +1,48 @@
 import { useState, useCallback } from 'react';
-import type { ProcessedTransaction } from '../types/transactionDetection.types';
+import type { HistoricalSyncProgress, SyncFlushSummary } from '../types/transactionDetection.types';
 import { runHistoricalInboxScan } from '../services/historicalSync.service';
+import { fetchCategoriesForDetection } from '../api/detectedTransactions.api';
 
-export function useHistoricalSync(availableCategories: Array<{ id: string; name: string }> = []) {
+const IDLE: HistoricalSyncProgress = { isScanning: false, totalMessages: 0, processedCount: 0, queuedCount: 0 };
+
+export function useHistoricalSync() {
+  const [progress, setProgress] = useState<HistoricalSyncProgress>(IDLE);
   const [isScanning, setIsScanning] = useState(false);
-  const [totalMessages, setTotalMessages] = useState(0);
-  const [processedCount, setProcessedCount] = useState(0);
-  const [foundTransactions, setFoundTransactions] = useState<ProcessedTransaction[]>([]);
   const [hasFinished, setHasFinished] = useState(false);
+  const [summary, setSummary] = useState<SyncFlushSummary | null>(null);
 
-  const startScan = useCallback(
-    async (days: number) => {
-      setIsScanning(true);
-      setHasFinished(false);
-      setFoundTransactions([]);
-      setTotalMessages(0);
-      setProcessedCount(0);
-
-      try {
-        const results = await runHistoricalInboxScan(
-          days,
-          availableCategories,
-          (progress) => {
-            setTotalMessages(progress.totalMessages);
-            setProcessedCount(progress.processedCount);
-            setFoundTransactions(progress.foundTransactions);
-            if (!progress.isScanning && progress.totalMessages > 0) {
-              setHasFinished(true);
-            }
-          }
-        );
-        setFoundTransactions(results);
-      } finally {
-        setIsScanning(false);
-        setHasFinished(true);
-      }
-    },
-    [availableCategories]
-  );
+  const startScan = useCallback(async (days: number) => {
+    setIsScanning(true);
+    setHasFinished(false);
+    setSummary(null);
+    setProgress(IDLE);
+    try {
+      const categories = await fetchCategoriesForDetection().catch(() => []);
+      const result = await runHistoricalInboxScan(days, categories, setProgress);
+      setSummary(result);
+    } finally {
+      setIsScanning(false);
+      setHasFinished(true);
+    }
+  }, []);
 
   const progressPercent =
-    totalMessages > 0 ? Math.min(100, Math.round((processedCount / totalMessages) * 100)) : 0;
+    progress.totalMessages > 0 ? Math.min(100, Math.round((progress.processedCount / progress.totalMessages) * 100)) : 0;
 
   return {
     isScanning,
     hasFinished,
-    totalMessages,
-    processedCount,
+    totalMessages: progress.totalMessages,
+    processedCount: progress.processedCount,
+    queuedCount: progress.queuedCount,
     progressPercent,
-    foundTransactions,
+    summary,
     startScan,
     reset: () => {
       setIsScanning(false);
       setHasFinished(false);
-      setFoundTransactions([]);
+      setSummary(null);
+      setProgress(IDLE);
     },
   };
 }

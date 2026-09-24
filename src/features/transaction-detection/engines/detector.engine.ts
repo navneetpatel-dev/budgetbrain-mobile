@@ -6,6 +6,8 @@ export interface DetectionSignal {
   isFailedOrDeclined: boolean;
   isReversal: boolean;
   isSelfTransfer: boolean;
+  /** Both debit and credit wording appeared, so the direction was a guess (gap E7). */
+  directionAmbiguous: boolean;
 }
 
 const DEBIT_SIGNALS = [
@@ -62,6 +64,7 @@ export function detectFinancialMovement(content: string): DetectionSignal {
       isFailedOrDeclined: true,
       isReversal: false,
       isSelfTransfer: false,
+      directionAmbiguous: false,
     };
   }
 
@@ -90,5 +93,6 @@ export function detectFinancialMovement(content: string): DetectionSignal {
     isFailedOrDeclined: false,
     isReversal,
     isSelfTransfer,
+    directionAmbiguous: debitMatch && creditMatch,
   };
 }

@@ -22,7 +22,8 @@ export * from './engines/validator.engine';
 // Services
 export * from './services/transactionPipeline.service';
 export * from './services/historicalSync.service';
-export * from './services/userLearning.service';
+export * from './services/syncQueue.service';
+export * from './services/detectionConfig.service';
 
 // Hooks
 export * from './hooks/useAutoTrackingSettings.hook';

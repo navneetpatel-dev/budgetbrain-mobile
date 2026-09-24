@@ -1,109 +1,42 @@
 import { queryHistoricalSms } from '@/shared/services/sms/smsReader.service';
-import type {
-  HistoricalSyncProgress,
-  ProcessedTransaction,
-} from '../types/transactionDetection.types';
-import { store } from '@/shared/store';
-import { setSyncStatus } from '@/shared/store/transactionDetectionSlice';
-import { queryClient } from '@/shared/services/queryClient';
-import { invalidateMoneyQueries } from '@/shared/services/queryInvalidation';
-import { processIncomingMessage } from './transactionPipeline.service';
-import { syncDetectedBatch } from '../api/detectedTransactions.api';
+import type { HistoricalSyncProgress, SyncFlushSummary } from '../types/transactionDetection.types';
+import { processAndQueueMessages } from './transactionPipeline.service';
+import { flushDetectedQueue } from './syncQueue.service';
 
+const CHUNK_SIZE = 25;
+
+/**
+ * Scans the inbox for the chosen window, queues what the pipeline accepts, then sends it in
+ * batches of at most 100 (the server's limit, gap S3) and reports the server's real counts.
+ */
 export async function runHistoricalInboxScan(
   scanDays: number,
-  availableCategories: Array<{ id: string; name: string }> = [],
+  availableCategories: { id: string; name: string }[] = [],
   onProgress?: (progress: HistoricalSyncProgress) => void
-): Promise<ProcessedTransaction[]> {
+): Promise<SyncFlushSummary | null> {
   const cutoffTimestamp = Date.now() - scanDays * 24 * 60 * 60 * 1000;
-
-  // 1. Query Android SMS inbox
-  const rawMessages = await queryHistoricalSms({
-    minDateTimestamp: cutoffTimestamp,
-    maxCount: 300,
-  });
-
-  const total = rawMessages.length;
-  const found: ProcessedTransaction[] = [];
+  const messages = await queryHistoricalSms({ minDateTimestamp: cutoffTimestamp, maxCount: 300 });
+  const total = messages.length;
+  let queued = 0;
 
   if (total === 0) {
-    onProgress?.({
-      isScanning: false,
-      totalMessages: 0,
-      processedCount: 0,
-      foundTransactions: [],
-    });
-    return [];
+    onProgress?.({ isScanning: false, totalMessages: 0, processedCount: 0, queuedCount: 0 });
+    return null;
   }
 
-  // 2. Process in chunks of 25 to ensure smooth 60fps UI
-  const chunkSize = 25;
-  for (let i = 0; i < total; i += chunkSize) {
-    const chunk = rawMessages.slice(i, i + chunkSize);
-
-    for (const msg of chunk) {
-      try {
-        const tx = await processIncomingMessage(msg, availableCategories);
-        if (tx) {
-          found.push(tx);
-        }
-      } catch {
-        // Individual message failure never stops the batch
-      }
-    }
-
+  for (let i = 0; i < total; i += CHUNK_SIZE) {
+    queued += await processAndQueueMessages(messages.slice(i, i + CHUNK_SIZE), availableCategories, { flush: 'none' });
     onProgress?.({
-      isScanning: i + chunkSize < total,
+      isScanning: true,
       totalMessages: total,
-      processedCount: Math.min(i + chunkSize, total),
-      foundTransactions: [...found],
+      processedCount: Math.min(i + CHUNK_SIZE, total),
+      queuedCount: queued,
     });
-
-    // Yield control to the event loop so React Native renders progress updates smoothly
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    // Yield so the progress bar can render between chunks.
+    await new Promise((resolve) => setTimeout(resolve, 0));
   }
 
-  // 3. Batch sync newly found transactions to backend in one single network roundtrip
-  if (found.length > 0) {
-    try {
-      const itemsToSync = found.map((item) => ({
-        amount: item.amount,
-        currency: item.currency,
-        direction: item.direction,
-        transactionType: item.transactionType,
-        merchant: item.merchant,
-        normalizedMerchant: item.normalizedMerchant,
-        categoryId: item.categoryId,
-        financialAccountId: item.financialAccountId,
-        accountTail: item.accountTail,
-        referenceNumber: item.referenceNumber,
-        institutionName: item.institutionName,
-        transactionDate: item.transactionDate,
-        confidence: item.confidence,
-        dedupFingerprint: item.dedupFingerprint,
-        source: item.source,
-        status: item.status,
-      }));
-
-      await syncDetectedBatch({ items: itemsToSync });
-      invalidateMoneyQueries(queryClient);
-      store.dispatch(
-        setSyncStatus({
-          status: 'idle',
-          timestamp: new Date().toISOString(),
-        })
-      );
-    } catch {
-      // Offline fallback
-    }
-  }
-
-  onProgress?.({
-    isScanning: false,
-    totalMessages: total,
-    processedCount: total,
-    foundTransactions: found,
-  });
-
-  return found;
+  const summary = await flushDetectedQueue();
+  onProgress?.({ isScanning: false, totalMessages: total, processedCount: total, queuedCount: queued, summary });
+  return summary;
 }

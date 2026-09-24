@@ -1,4 +1,4 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import axios, { AxiosError, type AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { API_BASE_URL } from '../constants/config';
 import { store } from '../store';
@@ -115,8 +115,12 @@ export async function apiGet<T>(url: string, params?: Record<string, unknown>): 
   return data.data;
 }
 
-export async function apiPost<T>(url: string, body?: unknown): Promise<T> {
-  const { data } = await api.post<ApiResponse<T>>(url, body);
+export async function apiPost<T>(
+  url: string,
+  body?: unknown,
+  config?: Pick<AxiosRequestConfig, 'headers'>
+): Promise<T> {
+  const { data } = await api.post<ApiResponse<T>>(url, body, config);
   return data.data;
 }
 

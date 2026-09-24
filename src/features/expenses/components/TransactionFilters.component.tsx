@@ -12,12 +12,14 @@ import { FilterEntityPicker } from './FilterEntityPicker.component';
 import { useTransactionFilters } from '../hooks/useTransactionFilters.hook';
 import { createStyles } from './TransactionFilters.styles';
 
-const TYPE_OPTIONS = ['all', 'expense', 'income'] as const;
+const TYPE_OPTIONS = ['all', 'expense', 'income', 'refund', 'transfer'] as const;
 const DATE_OPTIONS = ['all', 'this_month', 'last_30', 'custom'] as const;
 
 function typeLabel(v: (typeof TYPE_OPTIONS)[number]) {
   if (v === 'all') return 'All';
   if (v === 'expense') return 'Expense';
+  if (v === 'refund') return 'Refund';
+  if (v === 'transfer') return 'Transfer';
   return 'Income';
 }
 

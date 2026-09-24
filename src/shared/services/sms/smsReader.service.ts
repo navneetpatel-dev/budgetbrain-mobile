@@ -1,5 +1,5 @@
 import { Platform, NativeModules } from 'react-native';
-import type { RawIncomingMessage } from '@/features/transaction-detection/types/transactionDetection.types';
+import type { NormalizedMessage as RawIncomingMessage } from '@budgetbrain/detection-core';
 import { isFinancialSender } from '@/features/transaction-detection/constants/institutionKeywords';
 
 export interface QuerySmsOptions {
@@ -42,7 +42,7 @@ export async function queryHistoricalSms(
                 .map((sms) => ({
                   id: String(sms._id || sms.date),
                   sender: sms.address,
-                  content: sms.body,
+                  body: sms.body,
                   receivedAt: new Date(sms.date).toISOString(),
                   source: 'android_sms',
                 }));

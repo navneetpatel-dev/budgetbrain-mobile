@@ -1,268 +1,165 @@
-import { store } from '@/shared/store';
 import {
-  recordFingerprint,
-  incrementPendingReviewCount,
-  setSyncStatus,
-} from '@/shared/store/transactionDetectionSlice';
-import { queueOfflineAction, isOnline } from '@/shared/services/offlineSync';
-import { queryClient } from '@/shared/services/queryClient';
-import { invalidateMoneyQueries } from '@/shared/services/queryInvalidation';
-import { showLocalDetectionNotification } from '@/shared/services/notifications';
-import { syncDetectedBatch } from '../api/detectedTransactions.api';
-import type {
-  ProcessedTransaction,
-  RawIncomingMessage,
-} from '../types/transactionDetection.types';
+  computeFingerprint,
+  formatMinorToDecimal,
+  isAllowedDirectionType,
+  isSupportedCurrency,
+  minorUnits,
+  scoreEvidence,
+  type DetectionEvidence,
+} from '@budgetbrain/detection-core';
+import { store } from '@/shared/store';
+import { recordFingerprint } from '@/shared/store/transactionDetectionSlice';
+import type { RawIncomingMessage, SyncItemPayload } from '../types/transactionDetection.types';
 import { isMessageEligible } from '../engines/eligibility.engine';
 import { detectFinancialMovement } from '../engines/detector.engine';
 import { extractTransactionDetails } from '../engines/extractor.engine';
 import { classifyTransactionType } from '../engines/classifier.engine';
 import { resolveMerchant } from '../engines/merchant.engine';
-import { resolveCategory } from '../engines/category.engine';
-import { evaluateConfidence } from '../engines/confidence.engine';
-import { computeClientFingerprint } from '../engines/duplicate.engine';
+import { resolveCategory, type CategoryResolutionResult } from '../engines/category.engine';
 import { validateProcessedTransaction } from '../engines/validator.engine';
+import { resolveInstitutionId } from '../constants/institutionKeywords';
+import { getDetectionConfig } from './detectionConfig.service';
+import { enqueueDetected } from './syncQueue.service';
 
-export async function processIncomingMessage(
+type AvailableCategory = { id: string; name: string };
+
+const CATEGORY_SOURCE: Record<CategoryResolutionResult['source'], SyncItemPayload['categorySource']> = {
+  user_rule: 'rule',
+  merchant_catalog: 'knowledge_base',
+  context_keyword: 'context',
+  fallback: 'fallback',
+};
+
+/**
+ * Turns one message into a sync payload, or null when it must not become a transaction.
+ * Synchronous and free of I/O: storage and network happen in the caller, once per batch.
+ *
+ * The confidence tier comes from core `scoreEvidence`, the same function the server runs, over
+ * facts this code actually observed. The server recomputes it and decides what is added.
+ * Low-confidence results are dropped here, never queued (spec §18).
+ */
+export function processIncomingMessage(
   message: RawIncomingMessage,
-  availableCategories: Array<{ id: string; name: string }> = []
-): Promise<ProcessedTransaction | null> {
+  availableCategories: AvailableCategory[] = []
+): SyncItemPayload | null {
   const state = store.getState();
-  const detectionState = state.transactionDetection;
-  const user = state.auth.user;
-  const userId = user?.id || 'local-user';
+  const detection = state.transactionDetection;
+  const userId = state.auth.user?.id;
+  // The server binds every fingerprint to the signed-in user, so nothing is processed without one.
+  if (!userId || !detection.isAutoTrackingEnabled) return null;
 
-  // 1. Feature flag / Opt-in check
-  if (!detectionState.isAutoTrackingEnabled) {
-    return null;
+  if (detection.selectedSimSlot !== 'all' && message.simSlot !== undefined) {
+    if (String(message.simSlot) !== detection.selectedSimSlot) return null;
   }
 
-  // 2. SIM slot filter check
-  if (detectionState.selectedSimSlot !== 'all' && message.simSlot !== undefined) {
-    if (String(message.simSlot) !== detectionState.selectedSimSlot) {
-      return null;
-    }
-  }
+  if (!isMessageEligible(message.sender, message.body)) return null;
 
-  // 3. Message Eligibility Filter (Section 5)
-  if (!isMessageEligible(message.sender, message.content)) {
-    return null;
-  }
+  const signals = detectFinancialMovement(message.body);
+  if (!signals.isTransaction || !signals.direction) return null;
 
-  // 4. Financial Movement Detection (Section 6, 7)
-  const signals = detectFinancialMovement(message.content);
-  if (!signals.isTransaction || !signals.direction) {
-    return null;
-  }
+  const extracted = extractTransactionDetails(message.body, message.receivedAt);
+  if (!extracted.amount || !isSupportedCurrency(extracted.currency)) return null;
 
-  // 5. Information Extraction (Section 13, 14)
-  const extracted = extractTransactionDetails(message.content, message.receivedAt);
-  if (!extracted.amount) {
-    return null;
-  }
+  const transactionType = classifyTransactionType(signals.direction, signals, message.body);
+  // The classifier can't yet tell every case apart; never send a pairing the server rejects.
+  if (!isAllowedDirectionType(signals.direction, transactionType)) return null;
 
-  // 6. Classification (Section 8, 9, 10, 11, 12)
-  const transactionType = classifyTransactionType(
-    signals.direction,
-    signals,
-    message.content
-  );
+  const merchant = resolveMerchant(extracted.rawMerchantCandidate);
+  const merchantName = merchant.normalizedMerchant;
+  if (merchantName && detection.excludedMerchants.includes(merchantName.toLowerCase())) return null;
+  if (extracted.accountTail && detection.excludedAccountTails.includes(extracted.accountTail)) return null;
 
-  // 7. Merchant Resolution & Normalization (Section 15)
-  const merchantResult = resolveMerchant(extracted.rawMerchantCandidate);
-  const normalizedMerchant = merchantResult.normalizedMerchant;
-
-  // 8. Exclusion / Blacklist check
-  if (normalizedMerchant) {
-    if (detectionState.excludedMerchants.includes(normalizedMerchant.toLowerCase())) {
-      return null;
-    }
-  }
-  if (extracted.accountTail) {
-    if (detectionState.excludedAccountTails.includes(extracted.accountTail)) {
-      return null;
-    }
-  }
-
-  // 9. Category Engine (Section 16, 17)
-  const categoryResult = resolveCategory(
-    normalizedMerchant,
-    merchantResult.categoryHint,
-    message.content,
-    detectionState.learnedRules,
-    availableCategories
-  );
-
-  // 10. Confidence Evaluation (Section 18)
-  const confidenceResult = evaluateConfidence(
-    message.sender,
-    extracted.amount,
-    signals.direction,
-    normalizedMerchant,
-    extracted.referenceNumber,
-    extracted.transactionDate
-  );
-
-  // If low confidence, do not create transaction (fail-safe)
-  if (confidenceResult.tier === 'low') {
-    return null;
-  }
-
-  // 11. Deduplication Identity Fingerprint (Section 19)
-  const fingerprint = computeClientFingerprint(
-    userId,
-    extracted.amount,
-    extracted.currency,
-    signals.direction,
-    transactionType,
-    normalizedMerchant,
-    extracted.accountTail,
-    extracted.referenceNumber || extracted.transactionDate
-  );
-
-  if (detectionState.recentFingerprints.includes(fingerprint)) {
-    return null; // duplicate dropped
-  }
-
-  // 12. Transaction Validation (Section 30)
   const validation = validateProcessedTransaction(
     extracted.amount,
     extracted.currency,
     signals.direction,
     extracted.transactionDate
   );
+  if (!validation.isValid) return null;
 
-  if (!validation.isValid) {
-    return null;
-  }
+  const institutionId = resolveInstitutionId(message.sender);
+  const referenceNumber = extracted.referenceNumber;
+  const evidence: DetectionEvidence = {
+    templateMatched: false,
+    institutionVerified: institutionId !== null,
+    amountRoleUnique: extracted.amountCandidateCount === 1,
+    directionUnambiguous: !signals.directionAmbiguous,
+    merchantKnown: merchant.categoryHint !== null,
+    dateExtracted: extracted.dateFromMessage,
+    referencePresent: referenceNumber !== null,
+    merchantFuzzy: false,
+  };
+  const confidenceTier = scoreEvidence(evidence);
+  if (confidenceTier === 'low') return null;
 
-  // 13. Build Processed Transaction
-  const isHighConfidence = confidenceResult.tier === 'high';
-  const status = isHighConfidence ? 'auto_approved' : 'pending_review';
-  const localId = `detected-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  const amountMinor = Math.round(extracted.amount * 10 ** minorUnits(extracted.currency));
+  const dedupFingerprint = computeFingerprint({
+    userId,
+    institutionId,
+    accountTail: extracted.accountTail,
+    amountMinor,
+    currency: extracted.currency,
+    direction: signals.direction,
+    referenceNumber,
+    transactionDate: extracted.transactionDate,
+    receivedAt: message.receivedAt,
+  });
+  if (detection.recentFingerprints.includes(dedupFingerprint)) return null;
+  store.dispatch(recordFingerprint(dedupFingerprint));
 
-  const processed: ProcessedTransaction = {
-    id: localId,
-    amount: extracted.amount,
+  const category =
+    transactionType === 'transfer'
+      ? null
+      : resolveCategory(merchantName, merchant.categoryHint, message.body, detection.learnedRules, availableCategories);
+
+  return {
+    clientId: dedupFingerprint.slice(3, 27),
+    amount: formatMinorToDecimal(amountMinor, extracted.currency),
     currency: extracted.currency,
     direction: signals.direction,
     transactionType,
-    merchant: extracted.rawMerchantCandidate,
-    normalizedMerchant,
-    categoryId: categoryResult.categoryId,
-    categoryName: categoryResult.categoryName,
-    financialAccountId: null,
+    subtype: null,
+    paymentMethod: null,
+    institutionId,
     accountTail: extracted.accountTail,
-    referenceNumber: extracted.referenceNumber,
-    institutionName: message.sender,
+    referenceNumber,
+    // Only the cleaned name leaves the device, never raw message text (spec §22).
+    merchantName,
+    merchantId: null,
+    taxonomyCode: null,
+    categoryId: category?.categoryId ?? null,
+    categorySource: category ? CATEGORY_SOURCE[category.source] : null,
+    financialAccountId: null,
     transactionDate: extracted.transactionDate,
-    confidence: confidenceResult.score,
-    dedupFingerprint: fingerprint,
+    receivedAt: message.receivedAt,
+    evidence,
+    confidenceTier,
+    dedupFingerprint,
     source: message.source,
-    status,
-    isSynced: false,
-    notes: 'Auto-detected from bank message',
-    tags: ['auto-detected', message.source],
-    createdAt: new Date().toISOString(),
   };
+}
 
-  // Record fingerprint in local Redux ring buffer
-  store.dispatch(recordFingerprint(fingerprint));
+/**
+ * Runs a batch of messages through the pipeline and queues the results for sync.
+ * Checks the server kill switch once per batch (plan task T1.16). Returns how many were queued.
+ */
+export async function processAndQueueMessages(
+  messages: RawIncomingMessage[],
+  availableCategories: AvailableCategory[] = [],
+  options: { flush?: 'debounced' | 'none' } = {}
+): Promise<number> {
+  const config = await getDetectionConfig();
+  if (config && !config.enabled) return 0;
 
-  if (!isHighConfidence) {
-    store.dispatch(incrementPendingReviewCount());
-  }
-
-  // 14. Live sync with backend (or offline queue if disconnected)
-  try {
-    const isConn = await isOnline();
-    if (isConn) {
-      await syncDetectedBatch({
-        items: [
-          {
-            amount: processed.amount,
-            currency: processed.currency,
-            direction: processed.direction,
-            transactionType: processed.transactionType,
-            merchant: processed.merchant,
-            normalizedMerchant: processed.normalizedMerchant,
-            categoryId: processed.categoryId,
-            financialAccountId: processed.financialAccountId,
-            accountTail: processed.accountTail,
-            referenceNumber: processed.referenceNumber,
-            institutionName: processed.institutionName,
-            transactionDate: processed.transactionDate,
-            confidence: processed.confidence,
-            dedupFingerprint: processed.dedupFingerprint,
-            source: processed.source,
-            status: processed.status,
-          },
-        ],
-      });
-      processed.isSynced = true;
-      store.dispatch(
-        setSyncStatus({
-          status: 'idle',
-          timestamp: new Date().toISOString(),
-        })
-      );
-      if (isHighConfidence) {
-        invalidateMoneyQueries(queryClient);
-      }
-    } else {
-      // Offline fallback: queue offline action
-      queueOfflineAction(
-        'create',
-        {
-          amount: processed.amount,
-          currency: processed.currency,
-          type: processed.transactionType === 'income' ? 'income' : 'expense',
-          date: processed.transactionDate,
-          merchant: processed.normalizedMerchant || processed.merchant,
-          categoryId: processed.categoryId,
-          tags: ['auto-detected', processed.source],
-          notes: 'Auto-detected from bank message',
-        },
-        'transaction'
-      );
+  const payloads: SyncItemPayload[] = [];
+  for (const message of messages) {
+    try {
+      const payload = processIncomingMessage(message, availableCategories);
+      if (payload) payloads.push(payload);
+    } catch {
+      // One unparseable message never stops the batch.
     }
-  } catch {
-    // Network error fallback
-    queueOfflineAction(
-      'create',
-      {
-        amount: processed.amount,
-        currency: processed.currency,
-        type: processed.transactionType === 'income' ? 'income' : 'expense',
-        date: processed.transactionDate,
-        merchant: processed.normalizedMerchant || processed.merchant,
-        categoryId: processed.categoryId,
-        tags: ['auto-detected', processed.source],
-        notes: 'Auto-detected from bank message',
-      },
-      'transaction'
-    );
   }
-
-  // 15. Trigger native local notification if user preferences permit
-  const notifPref = detectionState.notificationPreference;
-  if (notifPref === 'all' || (notifPref === 'needs_review' && !isHighConfidence)) {
-    const symbol = processed.currency === 'INR' ? '₹' : processed.currency;
-    const title = isHighConfidence
-      ? `${processed.transactionType === 'income' ? 'Income Added' : 'Expense Added'}: ${symbol}${processed.amount.toLocaleString()}`
-      : `Transaction Needs Review: ${symbol}${processed.amount.toLocaleString()}`;
-
-    const body = `${processed.normalizedMerchant || 'Bank Transaction'} • ${processed.categoryName || 'General'}`;
-
-    showLocalDetectionNotification({
-      title,
-      body,
-      data: {
-        detectedId: processed.id,
-        status: processed.status,
-      },
-    }).catch(() => {});
-  }
-
-  return processed;
+  await enqueueDetected(payloads, options);
+  return payloads.length;
 }

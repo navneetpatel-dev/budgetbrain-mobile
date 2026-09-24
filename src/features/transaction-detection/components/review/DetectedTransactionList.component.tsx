@@ -1,15 +1,16 @@
 import React, { useMemo } from 'react';
 import { View, Text, FlatList, RefreshControl } from 'react-native';
 import { useTheme } from '@/shared/theme';
-import type { DetectedTransaction } from '../../types/transactionDetection.types';
+import type { DetectedTransactionDto } from '../../types/transactionDetection.types';
 import { DetectedTransactionRow } from './DetectedTransactionRow.component';
 import { createStyles } from './DetectedTransactionList.styles';
 
 export interface DetectedTransactionListProps {
-  data: DetectedTransaction[];
-  onConfirm: (id: string, categoryId?: string) => void;
+  data: DetectedTransactionDto[];
+  onConfirm: (id: string) => void;
   onDismiss: (id: string) => void;
-  onPress?: (transaction: DetectedTransaction) => void;
+  /** Row currently being confirmed or ignored. */
+  busyId?: string;
   onRefresh?: () => void;
   refreshing?: boolean;
   ListHeaderComponent?: React.ReactElement | null;
@@ -19,7 +20,7 @@ export function DetectedTransactionList({
   data,
   onConfirm,
   onDismiss,
-  onPress,
+  busyId,
   onRefresh,
   refreshing = false,
   ListHeaderComponent,
@@ -27,16 +28,11 @@ export function DetectedTransactionList({
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
-  const renderItem = ({ item }: { item: DetectedTransaction }) => (
-    <DetectedTransactionRow
-      transaction={item}
-      onConfirm={onConfirm}
-      onDismiss={onDismiss}
-      onPress={onPress}
-    />
+  const renderItem = ({ item }: { item: DetectedTransactionDto }) => (
+    <DetectedTransactionRow transaction={item} onConfirm={onConfirm} onDismiss={onDismiss} busy={item.id === busyId} />
   );
 
-  const keyExtractor = (item: DetectedTransaction) => item.id;
+  const keyExtractor = (item: DetectedTransactionDto) => item.id;
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>

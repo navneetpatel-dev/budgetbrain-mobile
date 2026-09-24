@@ -1,6 +1,26 @@
-export type DetectedTransactionDirection = 'DEBIT' | 'CREDIT';
-export type DetectedTransactionType = 'expense' | 'income' | 'refund' | 'transfer';
-export type DetectedTransactionSource = 'android_sms' | 'notification' | 'email' | 'csv' | 'bank_api';
+import type {
+  ConfidenceTier,
+  Direction,
+  MessageSource,
+  NormalizedMessage,
+  SyncItemPayload,
+  SyncItemResult,
+  TransactionType,
+} from '@budgetbrain/detection-core';
+
+// Shared pipeline types come from @budgetbrain/detection-core so mobile, backend and web agree.
+export type {
+  ConfidenceTier,
+  Direction as DetectedTransactionDirection,
+  MessageSource as DetectedTransactionSource,
+  SyncItemPayload,
+  SyncItemResult,
+  TransactionType as DetectedTransactionType,
+};
+
+/** A message as the access layer delivers it (spec §4). */
+export type RawIncomingMessage = NormalizedMessage;
+
 export type DetectedTransactionStatus =
   | 'auto_approved'
   | 'pending_review'
@@ -8,56 +28,34 @@ export type DetectedTransactionStatus =
   | 'rejected'
   | 'duplicate';
 
-export interface RawIncomingMessage {
-  id?: string;
-  sender: string;
-  content: string;
-  receivedAt: string; // ISO string
-  source: DetectedTransactionSource;
-  simSlot?: number;
-}
-
-export interface ExtractedInfo {
-  amount: number | null;
+/**
+ * A detected transaction as the server returns it. `amount` is a decimal string; parse it with
+ * core `parseMoney` and never with `Number(...).toFixed` (gap P0-7).
+ */
+export interface DetectedTransactionDto {
+  id: string;
+  amount: string;
   currency: string;
-  direction: DetectedTransactionDirection | null;
-  transactionType: DetectedTransactionType;
-  rawMerchant: string | null;
-  normalizedMerchant: string | null;
-  accountTail: string | null;
-  referenceNumber: string | null;
-  institutionName: string | null;
-  transactionDate: string; // YYYY-MM-DD
-  confidence: number;
-}
-
-export interface ProcessedTransaction {
-  id: string; // local temp UUID or server UUID
-  amount: number;
-  currency: string;
-  direction: DetectedTransactionDirection;
-  transactionType: DetectedTransactionType;
+  direction: Direction;
+  transactionType: TransactionType;
+  subtype: string | null;
+  paymentMethod: string | null;
   merchant: string | null;
-  normalizedMerchant: string | null;
   categoryId: string | null;
-  categoryName?: string | null;
+  categoryName: string | null;
   financialAccountId: string | null;
+  financialAccountName: string | null;
   accountTail: string | null;
   referenceNumber: string | null;
-  institutionName: string | null;
+  institutionId: string | null;
   transactionDate: string;
-  confidence: number;
-  dedupFingerprint: string;
-  source: DetectedTransactionSource;
+  confidenceTier: ConfidenceTier | null;
+  reviewReason: string | null;
   status: DetectedTransactionStatus;
-  isSynced: boolean;
-  createdTransactionId?: string | null;
-  notes?: string | null;
-  tags?: string[] | null;
+  source: MessageSource;
+  createdTransactionId: string | null;
   createdAt: string;
 }
-
-export type DetectedTransaction = ProcessedTransaction;
 
 export interface LearnedMerchantRule {
   merchant: string;
@@ -72,10 +70,31 @@ export interface SyncStateData {
   pendingReviewCount: number;
 }
 
+/** Server kill switches plus the user's own preference (plan task T1.16). */
+export interface DetectionConfig {
+  enabled: boolean;
+  autoCreateEnabled: boolean;
+  minAppVersion: string | null;
+  autoAddHighConfidence: boolean;
+}
+
+/** Totals from one flush of the sync queue. */
+export interface SyncFlushSummary {
+  sent: number;
+  created: number;
+  needsReview: number;
+  alreadySynced: number;
+  rejected: number;
+  /** Items still queued because the network or server failed; retried later. */
+  remaining: number;
+}
+
 export interface HistoricalSyncProgress {
   isScanning: boolean;
   totalMessages: number;
   processedCount: number;
-  foundTransactions: ProcessedTransaction[];
+  /** Items the pipeline queued for sync (not yet confirmed by the server). */
+  queuedCount: number;
+  summary?: SyncFlushSummary;
   error?: string;
 }
