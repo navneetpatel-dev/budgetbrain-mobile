@@ -2,6 +2,7 @@ package app.budgetbrain.smsdetector
 
 import android.content.Context
 import android.content.SharedPreferences
+import app.budgetbrain.smsdetector.core.NotificationFilter
 import app.budgetbrain.smsdetector.core.SenderFilter
 import app.budgetbrain.smsdetector.core.Watermark
 
@@ -13,6 +14,23 @@ internal class DetectorPrefs(context: Context) {
   var enabled: Boolean
     get() = prefs.getBoolean(KEY_ENABLED, false)
     set(value) = prefs.edit().putBoolean(KEY_ENABLED, value).apply()
+
+  /** Bank-app notification capture (plan T8.1): its own opt-in, on top of `enabled`. */
+  var notificationsEnabled: Boolean
+    get() = prefs.getBoolean(KEY_NOTIFICATIONS, false)
+    set(value) = prefs.edit().putBoolean(KEY_NOTIFICATIONS, value).apply()
+
+  fun notificationFilter(): NotificationFilter {
+    cachedNotificationFilter?.let { return it }
+    val filter = NotificationFilter.deserialize(prefs.getString(KEY_NOTIFICATION_FILTER, null))
+    cachedNotificationFilter = filter
+    return filter
+  }
+
+  fun setNotificationFilter(filter: NotificationFilter) {
+    prefs.edit().putString(KEY_NOTIFICATION_FILTER, filter.serialize()).apply()
+    cachedNotificationFilter = filter
+  }
 
   fun senderFilter(): SenderFilter {
     cachedFilter?.let { return it }
@@ -47,8 +65,11 @@ internal class DetectorPrefs(context: Context) {
     private const val KEY_FILTER = "sender_filter"
     private const val KEY_FLOOR = "watermark_floor"
     private const val KEY_WATERMARK = "watermark"
+    private const val KEY_NOTIFICATIONS = "notifications_enabled"
+    private const val KEY_NOTIFICATION_FILTER = "notification_filter"
 
     /** Parsed once per process; the receiver runs for every SMS. */
     @Volatile private var cachedFilter: SenderFilter? = null
+    @Volatile private var cachedNotificationFilter: NotificationFilter? = null
   }
 }

@@ -6,6 +6,7 @@ import { invalidateMoneyQueries } from '@/shared/services/queryInvalidation';
 import {
   initSmsWatermark,
   scheduleSmsCatchUp,
+  setNotificationFilter,
   setSmsSenderFilter,
 } from '@/shared/services/sms/smsDetector.service';
 import { getApiErrorCode } from '@/shared/services/api';
@@ -15,7 +16,7 @@ import {
   uploadDetectionDiagnostics,
   uploadMessageSkeletons,
 } from '../api/detectedTransactions.api';
-import { ensureActivePack, nativeSenderFilter } from './detectionPack.service';
+import { ensureActivePack, nativeNotificationFilter, nativeSenderFilter } from './detectionPack.service';
 import { updateKnowledgePack } from './packManager.service';
 import { syncLinkedAccountTails, syncMerchantRules } from './detectionProfile.service';
 import type { SyncFlushSummary, SyncItemPayload } from '../types/transactionDetection.types';
@@ -70,9 +71,9 @@ export async function prepareForegroundDetection(): Promise<void> {
   await migrateLegacyDetectionState().catch(() => {});
   await persistDetectionContext().catch(() => {});
   await ensureActivePack();
-  await setSmsSenderFilter(nativeSenderFilter()).catch(() => {});
-  // Daily, on Wi-Fi or while charging; a new pack also updates the native sender filter.
-  void updateKnowledgePack({ onActivated: () => setSmsSenderFilter(nativeSenderFilter()).catch(() => {}) });
+  await applyNativeFilters();
+  // Daily, on Wi-Fi or while charging; a new pack also updates the native filters.
+  void updateKnowledgePack({ onActivated: applyNativeFilters });
   // Fresh install: catch-up starts now; older messages come only from the inbox scan the user chooses.
   await initSmsWatermark(Date.now()).catch(() => {});
   await scheduleSmsCatchUp().catch(() => {});
@@ -90,6 +91,12 @@ export async function prepareForegroundDetection(): Promise<void> {
     await purgeOld().catch(() => {});
     await setKv(LAST_PURGE_KEY, Date.now()).catch(() => {});
   }
+}
+
+/** Hands the active pack's SMS headers and notification packages to the native pre-filters. */
+async function applyNativeFilters(): Promise<void> {
+  await setSmsSenderFilter(nativeSenderFilter()).catch(() => {});
+  await setNotificationFilter(nativeNotificationFilter()).catch(() => {});
 }
 
 /** Saves the Redux settings the headless drain reads. Cheap: skipped when nothing changed. */

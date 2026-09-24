@@ -434,7 +434,7 @@ All pure functions with no I/O. The pack is passed in precompiled form. Each tas
 |---|---|---|
 | T6.1 | ✅ | The detection router lives in the shared module; web and mobile mount the same one. HTTP test through the real web app |
 | T6.2 | ✅ | `POST /detected-transactions/ingest` parses with core and the newest built pack (baseline fallback), then uses the sync path. A test scans every text column of every table for the pasted text (with a positive control). Sentry drops request bodies for detection routes. `GET …/institutions` for text without a sender |
-| T6.3 | ✅ | `/integrations` removed from backend, web and mobile; its paths answer 410 Gone. [navneetpatel-dev/budgetbrain-backend#7](https://github.com/navneetpatel-dev/budgetbrain-backend/pull/7) moves pending `parsed_transactions` rows into review (`legacy_import`) and sets `raw_content` to NULL on every row (runs on deploy; can't be undone). **Next release:** drop the table and its model |
+| T6.3 | ✅ | `/integrations` removed from backend, web and mobile; its paths answer 410 Gone. [navneetpatel-dev/budgetbrain-backend#7](https://github.com/navneetpatel-dev/budgetbrain-backend/pull/7) moves pending `parsed_transactions` rows into review (`legacy_import`) and sets `raw_content` to NULL on every row (runs on deploy; can't be undone). The follow-up migration `20260929000000-drop-parsed-transactions` drops the table and its enum types, and the model is removed |
 | T6.4 | ✅ | Web: hub (status per source, auto-add, delete my data, paste), review with inline edit, history with Undo, rules manager, transaction list chip, `source=detected` filter and "Auto" badge. Backend: rules by id, per-source sync state, `source` filter. Browser pass against a local server (18 steps) |
 | T6.5 | ✅ | CSV (suggested mapping, preamble skipped), OFX/QFX, QIF, MT940, CAMT.053. Streamed in batches of 100 from a temp file that is deleted after each request; 10,000 rows in ~4 s with ~31 MB peak heap. Preview before commit; ledger look-alikes wait for review; stable fingerprints make re-imports no-ops. **Deviation:** the file is sent again to import instead of being kept on the server between preview and import |
 
@@ -479,7 +479,11 @@ All pure functions with no I/O. The pack is passed in precompiled form. Each tas
 | T7.6 | ✅ | Export endpoint; account deletion removes detection rows, diagnostics and skeletons; nightly retention (rejected or duplicate > 90 days, diagnostics > 180 days, skeletons 30 or 180 days); admin view of deletion requests |
 | T7.7 | ✅ | `DETECTION_AUTO_CREATE` (one row per sync batch; the constant-query bound is now 11), plus `KB_CHANGE`, `KB_PUBLISH`, `KB_PACK_BUILD` and `KILL_SWITCH_CHANGE`. The admin audit page can filter by these actions |
 
-**Still open for Phase 7:** a device pass of the new settings switch; `corrected_field` in skeleton uploads.
+**Follow-ups (2026-09-24):**
+- `corrected_field` is now sent. While the user has opted in, each detected item keeps its masked shape locally for 30 days. When the user confirms an item after changing the merchant, the type or the account, that shape is queued again naming the field. The server records the field on the submission it already has. Admins see it as "corrected fields" on the queue.
+- The `parsed_transactions` table, its enum types and its model are dropped (see T6.3).
+
+**Still open for Phase 7:** a device pass of the settings switch. A render test covers the row for now.
 
 ---
 
@@ -495,6 +499,16 @@ All pure functions with no I/O. The pack is passed in precompiled form. Each tas
 | **T9.2** | all | Verify every budget in §3: Perfetto traces for the headless run, battery historian over a 24 h soak, backend k6 load and `EXPLAIN ANALYZE` for each new query; record the results in this file | performance | All budgets met, or a documented exception |
 | **T9.3** | all | Staged rollout with kill switches: internal → 5 % → 25 % → 100 %, per country, watching the T7.2 dashboards (correction rate, undo rate) | — | Go/no-go checklist signed |
 | **T9.4** | all | Guards that protect what's already right: keep and test the D1 unique index; a log and telemetry scrubber (winston redaction on the backend, Sentry `beforeSend` on mobile and web) plus a test that no message body reaches logs (P1); typecheck in CI for every repo (Q7) | D1, P1, Q7 | Guard tests in CI |
+
+
+### Phase 8 status (2026-09-24)
+
+| Task | Status | Notes |
+|---|---|---|
+| T8.1 | ✅ (device pass pending) | `BankNotificationListener` in the sms-detector module. It keeps only apps the pack lists for notifications (`channel: notification`, e.g. `net.one97.paytm`) whose text has a money token, the same check SMS use. It skips ongoing notifications and group summaries. It reads only the title and text, and queues them in the same candidate queue (new `source` column, DB v2) for the same WorkManager drain. Reposts are keyed on package plus text. The pipeline gets `source: 'notification'` with the package as sender. A test shows one payment seen as both a Paytm SMS and a Paytm notification is stored once. Settings: a "Bank App Notifications" row with its own explainer, which opens Android's Notification access screen. Access is re-checked when the app comes back. The listener is declared in every build variant, noSms included, where it is the only automatic source; `BUDGETBRAIN_NO_NOTIFICATIONS=1` leaves it out. The Kotlin core has JVM tests; the Android classes were not compiled here (no Android SDK) |
+| T8.2 | ⏭ Skipped | Email connector: skipped by decision (2026-09-24) |
+| T8.3 | ⏭ Skipped | Open banking: skipped by decision (2026-09-24) |
+| T8.4 | ✅ (device pass pending) | On iOS the auto-tracking screen shows why SMS and notifications can't be read there, and offers Paste or Import (the Phase 6 screen) |
 
 ---
 

@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { createSqlJsDriver } from '@/shared/testing/sqlJsDriver';
 import {
   __useDetectionDriverForTests,
+  applySyncResults,
   clearDetectionData,
+  clearSkeletons,
   getKv,
   purgeOld,
   queueSkeletons,
@@ -10,14 +12,17 @@ import {
   saveProcessed,
   type QueuedSkeleton,
 } from '../store/detectionStore.service';
+import { __resetDetectionConfigForTests, setCachedDetectionConfig } from '../detectionConfig.service';
+import { processMessages } from '../transactionPipeline.service';
 import {
   diagnosticsBatches,
+  reportCorrection,
   uploadDetectionTelemetry,
   uploadDiagnostics,
   uploadSkeletons,
   type TelemetryUploader,
 } from '../detectionTelemetry.service';
-import type { DiagnosticsUploadRow, SkeletonUploadItem } from '../../types/transactionDetection.types';
+import type { DetectionContext, DiagnosticsUploadRow, SkeletonUploadItem } from '../../types/transactionDetection.types';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const NOW = Date.parse('2026-09-24T10:00:00.000Z');
@@ -59,6 +64,7 @@ async function count(day: number, reason: 'otp_marker' | 'promo_marker', institu
 
 beforeEach(async () => {
   await __useDetectionDriverForTests(await createSqlJsDriver());
+  __resetDetectionConfigForTests();
 });
 
 describe('diagnostics upload (T7.1)', () => {
@@ -169,5 +175,74 @@ describe('skeleton upload (T7.4)', () => {
     await queueSkeletons([shape(3)], NOW);
     await purgeOld(NOW);
     expect((await queuedSkeletons(10)).map((item) => item.hash)).toEqual([shape(3).hash]);
+  });
+});
+
+describe('corrections on learned shapes (T7.4)', () => {
+  const CONFIG = { enabled: true, autoCreateEnabled: true, minAppVersion: null, autoAddHighConfidence: true };
+  const DEBIT = 'Rs.1,250.00 debited from a/c **1234 on 23-09-26 to VPA swiggy@icici Ref 425612345678. Avl Bal Rs 20,500.00';
+  const context: DetectionContext = {
+    userId: 'u1',
+    isAutoTrackingEnabled: true,
+    selectedSimSlot: 'all',
+    excludedMerchants: [],
+    excludedAccountTails: [],
+    learnedRules: {},
+    notificationPreference: 'all',
+  };
+  const sms = { sender: 'VM-HDFCBK', body: DEBIT, receivedAt: '2026-09-23T04:30:00.000Z', source: 'android_sms' as const };
+
+  async function detectAndSync(templateLearning: boolean) {
+    await setCachedDetectionConfig({ ...CONFIG, templateLearning });
+    const [payload] = await processMessages([sms], context, { config: { ...CONFIG, templateLearning } });
+    await applySyncResults(
+      [{ clientId: payload!.clientId, fingerprint: payload!.dedupFingerprint, status: 'needs_review', detectedId: 'srv-1' }],
+      NOW
+    );
+  }
+
+  it('sends the shape of a corrected item again, naming the field', async () => {
+    await detectAndSync(true);
+    // The generic shape was queued once on detection; send it.
+    const up = uploader();
+    await uploadSkeletons(up.value, true);
+    expect(up.skeletons.flat().map((item) => item.correctedField)).toEqual([null]);
+
+    expect(await reportCorrection('srv-1', { categoryId: 'food' })).toBe(false);
+    expect(await reportCorrection('srv-1', { merchant: 'Swiggy' })).toBe(true);
+    const again = uploader();
+    await uploadSkeletons(again.value, true);
+    const [sent] = again.skeletons.flat();
+    expect(sent).toMatchObject({ correctedField: 'merchant', institutionId: 'in.hdfc_bank' });
+    expect(sent!.skeleton).not.toMatch(/\d|swiggy/i);
+  });
+
+  it('keeps no shape when learning is off, and forgets kept shapes when it is turned off', async () => {
+    await detectAndSync(false);
+    expect(await reportCorrection('srv-1', { merchant: 'Swiggy' })).toBe(false);
+
+    await clearDetectionData();
+    await detectAndSync(true);
+    await clearSkeletons();
+    await setCachedDetectionConfig({ ...CONFIG, templateLearning: true });
+    expect(await reportCorrection('srv-1', { merchant: 'Swiggy' })).toBe(false);
+    expect(await queuedSkeletons(10)).toEqual([]);
+  });
+
+  it('adds the new columns to a store created by an earlier version', async () => {
+    const old = await createSqlJsDriver();
+    await old.exec(`CREATE TABLE detected_local (client_id TEXT PRIMARY KEY, user_id TEXT NOT NULL, fingerprint TEXT NOT NULL UNIQUE,
+      payload TEXT, lifecycle TEXT NOT NULL, reason TEXT, awaiting_review INTEGER NOT NULL DEFAULT 0, server_id TEXT,
+      transaction_id TEXT, attempts INTEGER NOT NULL DEFAULT 0, next_attempt_at INTEGER NOT NULL DEFAULT 0,
+      created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL);
+      CREATE TABLE skeleton_queue (hash TEXT PRIMARY KEY, skeleton TEXT NOT NULL, institution_id TEXT,
+      sender_key TEXT NOT NULL, country TEXT, created_at INTEGER NOT NULL);`);
+    await __useDetectionDriverForTests(old);
+    const names = async (table: string) => (await old.all<{ name: string }>(`PRAGMA table_info(${table})`)).map((c) => c.name);
+    expect(await names('detected_local')).toContain('skeleton');
+    expect(await names('skeleton_queue')).toContain('corrected_field');
+    // Opening again is a no-op.
+    await __useDetectionDriverForTests(old);
+    expect((await names('detected_local')).filter((n) => n === 'skeleton')).toHaveLength(1);
   });
 });

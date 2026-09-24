@@ -1,8 +1,12 @@
 package app.budgetbrain.smsdetector
 
 import android.Manifest
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.provider.Settings
+import app.budgetbrain.smsdetector.core.NotificationFilter
 import app.budgetbrain.smsdetector.core.SenderFilter
 import expo.modules.kotlin.exception.Exceptions
 import expo.modules.kotlin.modules.Module
@@ -14,6 +18,10 @@ import java.lang.ref.WeakReference
 class SenderFilterRecord : Record {
   @Field val headers: List<String> = emptyList()
   @Field val keywords: List<String> = emptyList()
+}
+
+class NotificationFilterRecord : Record {
+  @Field val packages: List<String> = emptyList()
 }
 
 class ScanInboxOptions : Record {
@@ -68,6 +76,7 @@ class SmsDetectorModule : Module() {
           "body" to candidate.body,
           "receivedAt" to candidate.receivedAt.toDouble(),
           "simSlot" to candidate.simSlot,
+          "source" to candidate.source,
         )
       }
     }
@@ -89,8 +98,43 @@ class SmsDetectorModule : Module() {
             "body" to message.body,
             "receivedAt" to message.date.toDouble(),
             "simSlot" to slot,
+            "source" to CandidateQueue.SOURCE_SMS,
           )
         }
+    }
+
+    // Bank-app notifications (plan T8.1). False when the build's manifest has no listener.
+    Function("isNotificationListenerSupported") {
+      val component = ComponentName(context, BankNotificationListener::class.java)
+      try {
+        context.packageManager.getServiceInfo(component, 0)
+        true
+      } catch (e: PackageManager.NameNotFoundException) {
+        false
+      }
+    }
+
+    Function("isNotificationAccessGranted") {
+      // The same list NotificationManagerCompat reads, without pulling in androidx.core.
+      val enabled = Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners").orEmpty()
+      val ours = ComponentName(context, BankNotificationListener::class.java)
+      enabled.split(':').mapNotNull { ComponentName.unflattenFromString(it) }.any { it == ours }
+    }
+
+    // Notification access is a special permission: only the user can grant it, in Settings.
+    Function("openNotificationAccessSettings") {
+      val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+      context.startActivity(intent)
+    }
+
+    AsyncFunction("setNotificationsEnabled") { enabled: Boolean ->
+      DetectorPrefs(context).notificationsEnabled = enabled
+      if (!enabled) CandidateQueue.get(context).clearSource(CandidateQueue.SOURCE_NOTIFICATION)
+    }
+
+    AsyncFunction("setNotificationFilter") { filter: NotificationFilterRecord ->
+      val next = NotificationFilter(filter.packages)
+      if (!next.isEmpty) DetectorPrefs(context).setNotificationFilter(next)
     }
 
     AsyncFunction("initWatermark") { floorMs: Double ->

@@ -1,8 +1,12 @@
+import type { ConfirmPayload } from '../api/detectedTransactions.api';
 import type { DiagnosticsUploadRow, SkeletonUploadItem } from '../types/transactionDetection.types';
+import { correctedFieldOf } from '../utils/confirmOverrides';
+import { getStoredDetectionConfig } from './detectionConfig.service';
 import {
   clearSkeletons,
   countersForUpload,
   getKv,
+  queueCorrection,
   queuedSkeletons,
   removeSkeletons,
   setKv,
@@ -82,7 +86,7 @@ export async function uploadSkeletons(uploader: TelemetryUploader, enabled: bool
           senderKey: item.senderKey,
           country: item.country,
           language: null,
-          correctedField: null,
+          correctedField: item.correctedField ?? null,
         }))
       );
     } catch (error) {
@@ -103,4 +107,17 @@ export async function uploadDetectionTelemetry(
 ): Promise<void> {
   await uploadDiagnostics(uploader, options.now).catch(() => {});
   if (options.templateLearning !== null) await uploadSkeletons(uploader, options.templateLearning).catch(() => {});
+}
+
+/**
+ * After the user confirms an item with changes (plan T7.4): if template learning is on and the
+ * change fixed something the parser read, queue that item's shape naming the field. It goes out
+ * with the next upload. Returns whether anything was queued.
+ */
+export async function reportCorrection(serverId: string, overrides: ConfirmPayload): Promise<boolean> {
+  const field = correctedFieldOf(overrides);
+  if (!field) return false;
+  const config = await getStoredDetectionConfig();
+  if (config?.templateLearning !== true) return false;
+  return queueCorrection(serverId, field);
 }

@@ -15,6 +15,9 @@ import { PermissionExplainerModal } from '../components/settings/PermissionExpla
 import { HistoricalSyncModal } from '../components/settings/HistoricalSyncModal.component';
 import { MyAccountsCard } from '../components/settings/MyAccountsCard.component';
 import { TemplateLearningRow } from '../components/settings/TemplateLearningRow.component';
+import { AppNotificationsRow } from '../components/settings/AppNotificationsRow.component';
+import { NotificationAccessExplainerModal } from '../components/settings/NotificationAccessExplainerModal.component';
+import { AutoTrackingAlternativesCard } from '../components/settings/AutoTrackingAlternativesCard.component';
 import { useOwnAccounts } from '../hooks/useOwnAccounts.hook';
 import { createStyles } from './AutoTrackingSettingsScreen.styles';
 
@@ -44,6 +47,15 @@ export function AutoTrackingSettingsScreen() {
     templateLearning,
     isTemplateLearningKnown,
     setTemplateLearning,
+    isIos,
+    notificationSupported,
+    appNotificationCapture,
+    notificationAccessGranted,
+    handleToggleNotificationCapture,
+    isNotificationExplainerVisible,
+    handleConfirmNotificationExplainer,
+    dismissNotificationExplainer,
+    openNotificationAccessSettings,
   } = useAutoTrackingSettings();
   const ownAccounts = useOwnAccounts();
 
@@ -64,6 +76,9 @@ export function AutoTrackingSettingsScreen() {
 
   const handleNavigateReview = () => {
     router.push(appHref('/transactions/review'));
+  };
+  const handleNavigatePasteImport = () => {
+    router.push(appHref('/integrations'));
   };
   const handleNavigateHistory = () => {
     router.push(appHref('/transactions/detected'));
@@ -90,16 +105,37 @@ export function AutoTrackingSettingsScreen() {
           />
         )}
 
-        <AutoTrackingConsentCard
-          isEnabled={isEnabled}
-          autoAddHighConfidence={autoAddHighConfidence}
-          notifyOnDetection={notificationPreference !== 'off'}
-          onToggleEnabled={handleToggleTracking}
-          onToggleAutoAdd={setAutoAddHighConfidence}
-          onToggleNotify={(val) =>
-            setNotificationPreference(val ? 'all' : 'off')
-          }
-        />
+        {isIos ? (
+          <AutoTrackingAlternativesCard
+            reason="iPhones don't let apps read SMS or other apps' notifications, so transactions can't be detected automatically here."
+            onPasteOrImport={handleNavigatePasteImport}
+          />
+        ) : (
+          <AutoTrackingConsentCard
+            isEnabled={isEnabled}
+            autoAddHighConfidence={autoAddHighConfidence}
+            notifyOnDetection={notificationPreference !== 'off'}
+            onToggleEnabled={handleToggleTracking}
+            onToggleAutoAdd={setAutoAddHighConfidence}
+            onToggleNotify={(val) =>
+              setNotificationPreference(val ? 'all' : 'off')
+            }
+          />
+        )}
+
+        {isEnabled && notificationSupported && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Sources</Text>
+            <View style={styles.cardGroup}>
+              <AppNotificationsRow
+                enabled={appNotificationCapture}
+                accessGranted={notificationAccessGranted}
+                onToggle={handleToggleNotificationCapture}
+                onOpenSettings={openNotificationAccessSettings}
+              />
+            </View>
+          </View>
+        )}
 
         {isEnabled && (
           <View style={styles.section}>
@@ -221,6 +257,12 @@ export function AutoTrackingSettingsScreen() {
         isPermanentlyDenied={permissionStatus === 'blocked'}
         onConfirm={handleConfirmExplainer}
         onDismiss={() => setIsExplainerVisible(false)}
+      />
+
+      <NotificationAccessExplainerModal
+        visible={isNotificationExplainerVisible}
+        onConfirm={handleConfirmNotificationExplainer}
+        onDismiss={dismissNotificationExplainer}
       />
 
       <HistoricalSyncModal
