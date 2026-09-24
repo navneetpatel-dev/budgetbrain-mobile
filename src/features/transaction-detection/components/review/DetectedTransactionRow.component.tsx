@@ -10,6 +10,7 @@ import { createStyles } from './DetectedTransactionRow.styles';
 export interface DetectedTransactionRowProps {
   transaction: DetectedTransactionDto;
   onConfirm: (id: string) => void;
+  onEdit: (id: string) => void;
   onDismiss: (id: string) => void;
   busy?: boolean;
 }
@@ -25,7 +26,7 @@ const REASON_LABEL: Record<string, string> = {
 
 const TYPE_LABEL = { expense: 'Expense', income: 'Income', refund: 'Refund', transfer: 'Transfer' } as const;
 
-export function DetectedTransactionRow({ transaction, onConfirm, onDismiss, busy = false }: DetectedTransactionRowProps) {
+export function DetectedTransactionRow({ transaction, onConfirm, onEdit, onDismiss, busy = false }: DetectedTransactionRowProps) {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
@@ -56,6 +57,7 @@ export function DetectedTransactionRow({ transaction, onConfirm, onDismiss, busy
 
   const handleConfirm = () => onConfirm(transaction.id);
   const handleDismiss = () => onDismiss(transaction.id);
+  const handleEdit = () => onEdit(transaction.id);
 
   // The card itself is not a button: confirming takes an explicit tap on "Add" (gap R2).
   return (
@@ -101,9 +103,20 @@ export function DetectedTransactionRow({ transaction, onConfirm, onDismiss, busy
           disabled={busy}
           activeOpacity={0.7}
           accessibilityRole="button"
-          accessibilityLabel="Ignore detected transaction"
+          accessibilityLabel="Delete detected transaction"
         >
-          <Text style={styles.dismissText}>Ignore</Text>
+          <Text style={styles.dismissText}>Delete</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.dismissButton}
+          onPress={handleEdit}
+          disabled={busy}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="Edit detected transaction before adding"
+        >
+          <Text style={styles.dismissText}>Edit</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -112,9 +125,9 @@ export function DetectedTransactionRow({ transaction, onConfirm, onDismiss, busy
           disabled={busy}
           activeOpacity={0.8}
           accessibilityRole="button"
-          accessibilityLabel="Add detected transaction"
+          accessibilityLabel="Confirm detected transaction"
         >
-          <Text style={styles.confirmText}>Add Transaction</Text>
+          <Text style={styles.confirmText}>Confirm</Text>
         </TouchableOpacity>
       </View>
     </View>

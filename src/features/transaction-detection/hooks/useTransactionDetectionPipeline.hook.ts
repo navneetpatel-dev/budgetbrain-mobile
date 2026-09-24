@@ -33,6 +33,9 @@ export function useTransactionDetectionPipeline() {
     detection.excludedAccountTails,
     detection.learnedRules,
     detection.notificationPreference,
+    detection.ownAccountTails,
+    detection.ownVpas,
+    detection.linkedAccountTails,
   ]);
 
   useEffect(() => {

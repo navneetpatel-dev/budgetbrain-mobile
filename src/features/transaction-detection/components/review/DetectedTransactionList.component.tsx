@@ -1,14 +1,17 @@
 import React, { useMemo } from 'react';
 import { View, Text, FlatList, RefreshControl } from 'react-native';
 import { useTheme } from '@/shared/theme';
-import type { DetectedTransactionDto } from '../../types/transactionDetection.types';
+import type { ReviewItem } from '../../hooks/useDetectedTransactionsReview.hook';
 import { DetectedTransactionRow } from './DetectedTransactionRow.component';
+import { LocalDetectedRow } from './LocalDetectedRow.component';
 import { createStyles } from './DetectedTransactionList.styles';
 
 export interface DetectedTransactionListProps {
-  data: DetectedTransactionDto[];
+  data: ReviewItem[];
   onConfirm: (id: string) => void;
+  onEdit: (id: string) => void;
   onDismiss: (id: string) => void;
+  onDiscardLocal: (clientId: string) => void;
   /** Row currently being confirmed or ignored. */
   busyId?: string;
   onRefresh?: () => void;
@@ -19,7 +22,9 @@ export interface DetectedTransactionListProps {
 export function DetectedTransactionList({
   data,
   onConfirm,
+  onEdit,
   onDismiss,
+  onDiscardLocal,
   busyId,
   onRefresh,
   refreshing = false,
@@ -28,11 +33,20 @@ export function DetectedTransactionList({
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
-  const renderItem = ({ item }: { item: DetectedTransactionDto }) => (
-    <DetectedTransactionRow transaction={item} onConfirm={onConfirm} onDismiss={onDismiss} busy={item.id === busyId} />
-  );
+  const renderItem = ({ item }: { item: ReviewItem }) =>
+    item.kind === 'server' ? (
+      <DetectedTransactionRow
+        transaction={item.item}
+        onConfirm={onConfirm}
+        onEdit={onEdit}
+        onDismiss={onDismiss}
+        busy={item.id === busyId}
+      />
+    ) : (
+      <LocalDetectedRow item={item.item} onDiscard={onDiscardLocal} />
+    );
 
-  const keyExtractor = (item: DetectedTransactionDto) => item.id;
+  const keyExtractor = (item: ReviewItem) => item.id;
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>

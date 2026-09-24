@@ -17,6 +17,8 @@ import { useTheme } from '@/shared/theme';
 import { useTabBarInset } from '@/shared/hooks/useTabBarInset.hook';
 import { useSpringPress } from '@/shared/hooks/useSpringPress.hook';
 import { useExpensesScreen } from '@/features/expenses/hooks/useExpensesScreen.hook';
+import { useReviewChip } from '@/features/transaction-detection/hooks/useReviewChip.hook';
+import { NeedsReviewChip } from '@/features/transaction-detection/components/badge/NeedsReviewChip.component';
 import { createStyles } from './ExpensesScreen.styles';
 import type { Transaction } from '@/shared/types';
 
@@ -53,6 +55,7 @@ export function ExpensesScreen() {
   const tabBarInset = useTabBarInset();
   const filterSpring = useSpringPress(0.95);
   const exportSpring = useSpringPress(0.95);
+  const reviewChip = useReviewChip();
   const {
     total,
     isLoading,
@@ -194,6 +197,9 @@ export function ExpensesScreen() {
                 </Animated.View>
               </Pressable>
             </View>
+
+            {/* Detected transactions waiting for review (T5.6) */}
+            <NeedsReviewChip count={reviewChip.count} onPress={reviewChip.open} />
 
             {/* Filter Chips Horizontal Rail */}
             <FilterChipsRail

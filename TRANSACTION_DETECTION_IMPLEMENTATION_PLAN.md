@@ -383,6 +383,30 @@ All pure functions with no I/O. The pack is passed in precompiled form. Each tas
 | **T5.8** | Permission explainer rewrite: which messages are read, which fields are extracted (amount, date, merchant, masked account, reference), what is stored where (on the device vs on the server; never the message text), how to disable and delete, and that iOS isn't supported (offer email / import); the claim about ignoring personal messages rephrased to match the real behaviour | P4, P5, spec §23 | Copy reviewed against the spec checklist |
 | **T5.9** | Upload minimization: only the **cleaned** merchant name leaves the device (never the raw capture); `institution_id` instead of the raw sender | P3, X6 | Payload test: no raw message fragments |
 
+
+### Phase 5 status (2026-09-24)
+
+| PR | Covers |
+|---|---|
+| [navneetpatel-dev/budgetbrain-backend#5](https://github.com/navneetpatel-dev/budgetbrain-backend/pull/5) | T5.2, T5.3, T5.4, and the server side of T5.7 |
+| [navneetpatel-dev/budgetbrain-mobile#6](https://github.com/navneetpatel-dev/budgetbrain-mobile/pull/6) | T5.1–T5.3, T5.5–T5.9 |
+
+**Merge order:** backend → mobile.
+
+| Task | Status | Notes |
+|---|---|---|
+| T5.1 | ✅ | Delete / Edit / Confirm on each item. The Edit sheet covers merchant, type (limited by direction), category, account and note, and sends only changed fields. Unsynced local items show offline and can be deleted (never sent; the fingerprint stays so the message isn't detected again) |
+| T5.2 | ✅ | The server learns on confirm only when the category or merchant changed. The client `POST /rules` call is gone |
+| T5.3 | ✅ | Rules are fetched on login, daily, and after a correction, with an ETag. The server list replaces the device's. **Addition:** `DELETE /detected-transactions/rules`, so "Reset learned preferences" isn't undone by the next sync |
+| T5.4 | ✅ | `updateTransaction` updates the linked detected row, and learns the rule, when the category or merchant changes |
+| T5.5 | ✅ | `/transactions/detected`: added / auto / confirmed / transfers filters, with Undo |
+| T5.6 | 🟡 | A "N to review" chip on the transactions screen opens the review inbox. The row badge already existed (`auto-detected` tag). **Open:** visual check on iOS and Android |
+| T5.7 | ✅ | Auto-add is kept on the server and in the slice. My accounts: manual tails and VPAs (max 8 each), plus linked-account tails, feed core's transfer detection. Delete my detected data clears the server (`DELETE /detected-transactions/me`) and the device store. Turning tracking off clears the local store, queue and fingerprints. **Deviation:** excluded account tails stay as an exclusion list; own accounts are a separate list |
+| T5.8 | ✅ | The explainer lists what is read, extracted, sent and stored, how to turn off and delete, and says iOS isn't supported. The personal-messages claim now matches the sender filter |
+| T5.9 | ✅ | Payload test: an exact key allow-list, no sender, no 10-character run of the message outside the extracted fields, a cleaned merchant, `institutionId` |
+
+**Still open for Phase 5:** a device pass over the new screens.
+
 ---
 
 ## 10. Phase 6 — Web app and legacy consolidation
@@ -557,7 +581,7 @@ All pure functions with no I/O. The pack is passed in precompiled form. Each tas
 | `POST /detected-transactions/:id/undo`, `DELETE /detected-transactions/:id` | mobile, web | T1.8 |
 | `GET /detected-transactions?status=&source=` (detected list) | mobile, web | T5.5, T6.4 |
 | `DELETE /detected-transactions/me` | mobile, web | T5.7 |
-| `GET /detected-transactions/rules` (ETag), `PUT`/`DELETE …/rules/:id` | mobile, web | T5.3, T6.4 |
+| `GET /detected-transactions/rules` (ETag), `DELETE /detected-transactions/rules` (reset), `PUT`/`DELETE …/rules/:id` | mobile, web | T5.3, T5.7, T6.4 |
 | `POST /detected-transactions/ingest` | mobile, web | T6.2 |
 | `GET /detection/config` | mobile, web | T1.16, T4.6 |
 | `GET /detection/knowledge-pack?country=&since=` | mobile | T4.3 |

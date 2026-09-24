@@ -50,6 +50,8 @@ export function toUserContext(context: DetectionContext & { userId: string }, co
     excludedMerchants: context.excludedMerchants.map(merchantKey).filter(Boolean),
     excludedAccountTails: context.excludedAccountTails,
     simSlot: context.selectedSimSlot === 'all' ? null : Number(context.selectedSimSlot),
+    ownAccountTails: context.ownAccountTails ?? [],
+    ownVpas: context.ownVpas ?? [],
     // Server kill switches apply on top of the pack's own (plan T4.6).
     killSwitches: config?.killSwitches ?? [],
     appVersion: appVersion(),

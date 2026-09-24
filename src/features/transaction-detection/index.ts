@@ -20,6 +20,7 @@ export * from './hooks/useTransactionDetectionPipeline.hook';
 
 // Components
 export { AutoDetectedBadge } from './components/badge/AutoDetectedBadge.component';
+export { NeedsReviewChip } from './components/badge/NeedsReviewChip.component';
 export { SyncStatusPill } from './components/sync/SyncStatusPill.component';
 export { PermissionWarningBanner } from './components/permission/PermissionWarningBanner.component';
 export { DetectedTransactionRow } from './components/review/DetectedTransactionRow.component';
@@ -31,3 +32,4 @@ export { HistoricalSyncModal } from './components/settings/HistoricalSyncModal.c
 // Screens
 export { AutoTrackingSettingsScreen } from './screens/AutoTrackingSettingsScreen.screen';
 export { DetectedTransactionsReviewScreen } from './screens/DetectedTransactionsReviewScreen.screen';
+export { DetectedHistoryScreen } from './screens/DetectedHistoryScreen.screen';

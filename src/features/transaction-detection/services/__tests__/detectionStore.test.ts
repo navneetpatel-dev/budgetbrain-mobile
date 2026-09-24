@@ -4,9 +4,12 @@ import {
   __useDetectionDriverForTests,
   applySyncResults,
   backoffDelayMs,
+  clearDetectionData,
   countersForDay,
+  discardLocal,
   getKv,
   importLegacyState,
+  listLocalPending,
   markAttemptFailed,
   pendingCount,
   pendingForSync,
@@ -115,5 +118,38 @@ describe('detection store (T2.8)', () => {
     await setKv('k', { a: 1 });
     await setKv('k', { a: 2 });
     expect(await getKv('k')).toEqual({ a: 2 });
+  });
+});
+
+describe('local review items (T5.1, T5.7)', () => {
+  it('lists unsent items newest first, per user, with their payload', async () => {
+    await saveProcessed({ userId: 'u1', payloads: [makeSyncPayload(1)], outcomes: [], now: NOW });
+    await saveProcessed({ userId: 'u1', payloads: [makeSyncPayload(2)], outcomes: [], now: NOW + 1000 });
+    await saveProcessed({ userId: 'u2', payloads: [makeSyncPayload(3)], outcomes: [], now: NOW });
+    const items = await listLocalPending('u1');
+    expect(items.map((i) => i.payload.clientId)).toEqual(['c2', 'c1']);
+    expect(items[0]).toMatchObject({ createdAt: NOW + 1000, payload: { amount: '10.00' } });
+  });
+
+  it('a discarded item is never sent and its message is not detected again', async () => {
+    await saveProcessed({ userId: 'u1', payloads: [makeSyncPayload(1), makeSyncPayload(2)], outcomes: [], now: NOW });
+    await discardLocal('c1', NOW);
+    expect((await pendingForSync('u1', 10, NOW)).map((p) => p.clientId)).toEqual(['c2']);
+    expect(await listLocalPending('u1')).toHaveLength(1);
+    expect(await saveProcessed({ userId: 'u1', payloads: [makeSyncPayload(1)], outcomes: [], now: NOW })).toHaveLength(0);
+  });
+
+  it('clearing detection data removes items and counters but keeps settings', async () => {
+    await saveProcessed({
+      userId: 'u1',
+      payloads: [makeSyncPayload(1)],
+      outcomes: [{ state: 'PARSE_FAILED', reason: 'no_amount', institutionId: null }],
+      now: NOW,
+    });
+    await setKv('active_pack', { version: 3 });
+    await clearDetectionData();
+    expect(await pendingCount('u1')).toBe(0);
+    expect(await countersForDay(DAY)).toEqual([]);
+    expect(await getKv('active_pack')).toEqual({ version: 3 });
   });
 });

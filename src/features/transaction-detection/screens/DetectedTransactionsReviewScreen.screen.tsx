@@ -4,6 +4,7 @@ import { useTheme } from '@/shared/theme';
 import { StackNavHeader } from '@/shared/components/ui';
 import { useDetectedTransactionsReview } from '../hooks/useDetectedTransactionsReview.hook';
 import { DetectedTransactionList } from '../components/review/DetectedTransactionList.component';
+import { DetectedEditSheet } from '../components/review/DetectedEditSheet.component';
 import { createStyles } from './DetectedTransactionsReviewScreen.styles';
 
 export function DetectedTransactionsReviewScreen() {
@@ -18,13 +19,17 @@ export function DetectedTransactionsReviewScreen() {
     refresh,
     confirmTransaction,
     rejectTransaction,
+    discardLocalItem,
+    editing,
+    openEdit,
+    closeEdit,
+    isSaving,
     busyId,
   } = useDetectedTransactionsReview();
 
   const handleConfirm = (id: string) => {
-    const item = items.find((i) => i.id === id);
-    if (!item) return;
-    confirmTransaction(item);
+    const row = items.find((i) => i.id === id);
+    if (row?.kind === 'server') confirmTransaction(row.item);
   };
 
   const handleDismiss = (id: string) => {
@@ -60,13 +65,17 @@ export function DetectedTransactionsReviewScreen() {
         <DetectedTransactionList
           data={items}
           onConfirm={handleConfirm}
+          onEdit={openEdit}
           onDismiss={handleDismiss}
+          onDiscardLocal={discardLocalItem}
           busyId={busyId}
           onRefresh={refresh}
           refreshing={isRefreshing}
           ListHeaderComponent={renderHeader()}
         />
       )}
+
+      <DetectedEditSheet item={editing} saving={isSaving} onSave={confirmTransaction} onClose={closeEdit} />
     </View>
   );
 }

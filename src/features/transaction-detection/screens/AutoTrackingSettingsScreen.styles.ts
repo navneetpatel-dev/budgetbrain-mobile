@@ -64,6 +64,11 @@ export function createStyles(theme: AppTheme) {
       fontSize: 11,
       fontWeight: '700',
     },
+    actionDanger: {
+      ...theme.typography.caption,
+      color: theme.colors.danger,
+      marginTop: 2,
+    },
     chevron: {
       ...theme.typography.body,
       color: theme.colors.textTertiary,
