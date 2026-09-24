@@ -12,6 +12,7 @@ import {
 import { getApiErrorCode } from '@/shared/services/api';
 import {
   fetchCategoriesForDetection,
+  fetchRecentTransactions,
   fetchSyncState,
   uploadDetectionDiagnostics,
   uploadMessageSkeletons,
@@ -23,6 +24,7 @@ import type { SyncFlushSummary, SyncItemPayload } from '../types/transactionDete
 import { getDetectionConfig } from './detectionConfig.service';
 import { contextFromState, saveDetectionCategories, saveDetectionContext } from './detectionContext.service';
 import { drainAndSync } from './detectionDrain.service';
+import { refreshRecentDigest } from './recentDigest.service';
 import { notifyDetectionSummary } from './detectionNotifier.service';
 import { uploadDetectionTelemetry, type TelemetryUploader } from './detectionTelemetry.service';
 import { getKv, importLegacyState, purgeOld, resetBackoff, setKv } from './store/detectionStore.service';
@@ -85,12 +87,19 @@ export async function prepareForegroundDetection(): Promise<void> {
   // Rules on login and daily (T5.3); account tails for transfer detection (T5.7).
   await syncMerchantRules().catch(() => {});
   await syncLinkedAccountTails().catch(() => {});
+  await refreshDigest();
   await persistDetectionContext().catch(() => {});
   const lastPurge = (await getKv<number>(LAST_PURGE_KEY).catch(() => null)) ?? 0;
   if (Date.now() - lastPurge > WEEK_MS) {
     await purgeOld().catch(() => {});
     await setKv(LAST_PURGE_KEY, Date.now()).catch(() => {});
   }
+}
+
+/** Recent transactions for core's duplicate and pairing checks (T3.7, T3.12); at most every 15 minutes. */
+async function refreshDigest(): Promise<void> {
+  const userId = store.getState().auth.user?.id;
+  if (userId) await refreshRecentDigest(fetchRecentTransactions, userId).catch(() => false);
 }
 
 /** Hands the active pack's SMS headers and notification packages to the native pre-filters. */
@@ -111,6 +120,8 @@ export async function flushDetectedQueue(options: { resetBackoff?: boolean } = {
   await persistDetectionContext();
   if (options.resetBackoff) await resetBackoff(userId);
   const config = await getDetectionConfig(apiTransport);
+  // Before the drain, so new alerts are checked against what the user entered by hand.
+  await refreshDigest();
 
   store.dispatch(setSyncStatus({ status: 'syncing' }));
   let summary: SyncFlushSummary = EMPTY;

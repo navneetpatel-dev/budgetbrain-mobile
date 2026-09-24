@@ -308,6 +308,8 @@ export async function clearDetectionData(): Promise<void> {
     await driver.run(`DELETE FROM detected_local`);
     await driver.run(`DELETE FROM detection_counters`);
     await driver.run(`DELETE FROM skeleton_queue`);
+    // The recent-transaction digest (recentDigest.service).
+    await driver.run(`DELETE FROM kv WHERE key = 'recent_digest'`);
   });
 }
 

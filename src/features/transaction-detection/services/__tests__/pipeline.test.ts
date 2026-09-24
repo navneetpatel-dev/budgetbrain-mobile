@@ -3,6 +3,7 @@ import { computeFingerprint } from '@budgetbrain/detection-core';
 import { createSqlJsDriver } from '@/shared/testing/sqlJsDriver';
 import { __useDetectionDriverForTests, countersForDay, pendingCount, queuedSkeletons } from '../store/detectionStore.service';
 import { evaluateMessage, processMessages } from '../transactionPipeline.service';
+import { nativeSenderFilter } from '../detectionPack.service';
 import type { DetectionContext, RawIncomingMessage } from '../../types/transactionDetection.types';
 
 const RECEIVED = '2026-09-23T04:30:00.000Z';
@@ -209,5 +210,15 @@ describe('processMessages', () => {
       });
       expect(evaluateMessage(sms(DEBIT, 'VM-RANDOM'), context())).toMatchObject({ learnShape: false });
     });
+  });
+});
+
+describe('native sender filter (T2.2, T3.2)', () => {
+  it('hands the native side the pack headers plus the bank names and IFSC prefixes for unknown headers', () => {
+    const filter = nativeSenderFilter();
+    expect(filter.headers).toContain('HDFCBK');
+    expect(filter.bodyNames).toContain('HDFC BANK');
+    expect(filter.bodyNames.every((name) => name.includes(' ') && name === name.toUpperCase())).toBe(true);
+    expect(filter.ifscPrefixes).toEqual(expect.arrayContaining(['HDFC', 'ICIC', 'SBIN']));
   });
 });

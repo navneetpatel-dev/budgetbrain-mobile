@@ -74,11 +74,18 @@ export function getCompiledPack(): CompiledPack {
  * What the native pre-filter keeps (plan T2.2): the SMS headers of every institution in the
  * active pack. Unknown senders are ignored by the pipeline anyway, so nothing else needs to reach JS.
  */
-export function nativeSenderFilter(): { headers: string[]; keywords: string[] } {
+export function nativeSenderFilter(): { headers: string[]; keywords: string[]; bodyNames: string[]; ifscPrefixes: string[] } {
   const headers = getActivePack()
     .senders.filter((sender) => sender.channel === 'sms' && sender.match === 'header')
     .map((sender) => sender.key.toUpperCase());
-  return { headers: [...new Set(headers)], keywords: [] };
+  // An unknown header naming a known bank reaches core's content signal (plan T3.2).
+  const compiled = getCompiledPack();
+  return {
+    headers: [...new Set(headers)],
+    keywords: [],
+    bodyNames: [...new Set(compiled.contentNames.map((entry) => entry.needle))],
+    ifscPrefixes: [...compiled.ifscPrefixes.keys()],
+  };
 }
 
 /** The bank and UPI app packages whose notifications the native listener keeps (plan T8.1). */

@@ -1,5 +1,5 @@
 import { api, apiDelete, apiGet, apiPatch, apiPost } from '@/shared/services/api';
-import type { ApiResponse, Category } from '@/shared/types';
+import type { ApiResponse, Category, Transaction } from '@/shared/types';
 import type {
   DetectedTransactionDto,
   DetectionConfig,
@@ -129,4 +129,10 @@ export async function deleteMyDetectedData(): Promise<{ deleted: number }> {
 export async function fetchCategoriesForDetection(): Promise<Pick<Category, 'id' | 'name'>[]> {
   const res = await apiGet<{ categories: Category[] }>('/categories', { limit: 100 });
   return (res.categories ?? []).map(({ id, name }) => ({ id, name }));
+}
+
+/** One page of the user's transactions since `startDate` (`YYYY-MM-DD`), all types, for the recent digest. */
+export async function fetchRecentTransactions(startDate: string, page: number, limit = 100): Promise<Transaction[]> {
+  const res = await apiGet<{ transactions?: Transaction[] }>('/expenses', { startDate, page, limit });
+  return res.transactions ?? [];
 }
