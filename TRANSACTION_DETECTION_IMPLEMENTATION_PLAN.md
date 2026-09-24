@@ -136,7 +136,7 @@ These targets are **acceptance criteria** (verified in T9.2), not aspirations.
 | Task | Status | Result |
 |---|---|---|
 | T0.1 | ✅ Done | Decisions signed off (§1) |
-| T0.2 | ✅ Done, not yet pushed | Package with ESM + CJS builds, strict TS, vitest (82 tests), eslint including `eslint-plugin-regexp` backtracking rules, CI on Node 20 and 22. Contains the shared types, money helpers (integer minor units, ISO 4217 minor-unit table) and fingerprint v2. **Verified to install and run in mobile (jest-expo), backend (CommonJS, TS 5.7, Node `require`) and web (TS 6)**, and the fingerprint test vector is identical on all three. Moving the mobile SMS services onto these types (A2) happens when mobile adopts the package in T1.13 / T2.1 |
+| T0.2 | ✅ | Package with ESM + CJS builds, strict TS, vitest (82 tests), eslint including `eslint-plugin-regexp` backtracking rules, CI on Node 20 and 22. Contains the shared types, money helpers (integer minor units, ISO 4217 minor-unit table) and fingerprint v2. **Verified to install and run in mobile (jest-expo), backend (CommonJS, TS 5.7, Node `require`) and web (TS 6)**, and the fingerprint test vector is identical on all three. Moving the mobile SMS services onto these types (A2) happens when mobile adopts the package in T1.13 / T2.1 |
 | T0.3 | 🟡 Framework done; corpus partly filled | Case format, validator, runner and regression baseline (`corpus/baseline.json`), plus `scripts/anonymize-message.ts` for converting real messages. **40 cases:** all 13 gap-doc §4 messages with corrected expectations, and 27 synthetic cases covering every reason code and behaviour (OTP footer, mandates, collect requests, multiple amounts, lakh grouping, Hindi, USD, reversal, cashback, ATM, card-bill legs, own-account transfers, email source). **Still open:** the plan's 200+ field messages across the top 30 Indian institutions need real messages from test devices, anonymized with the script; synthetic cases can't stand in for real bank formats |
 | T0.4 | ✅ Done | Pack types, JSON Schema (draft 2020-12), cross-reference validator (a test keeps it in step with the schema), canonical-JSON Ed25519 signing with key ids for rotation, and a signed sample India pack (6 institutions, 10 senders, 21 lexicons, 2 templates, 6 merchants, 11 aliases) using a public **test-only** key |
 | T0.5 | 🟡 Harness done; device and server runs pending | Core benchmark results below. The Perfetto trace (`perf/android/`) needs the native module from T2.1, and the k6 test (`perf/backend/sync-load.k6.js`) needs the rewritten `/sync` from T1.6; both get run and recorded at those tasks |
@@ -262,11 +262,11 @@ One PR per repo, all with CI green:
 | T2.5 | ✅ | `index.headless.ts` registers `TransactionDetectionDrain` with a lazy require. The task uses a `fetch` transport with the SecureStore token. A test walks its import graph: no Redux, axios, expo-router, `src/app` or UI |
 | T2.6 | 🟡 | 6-hourly catch-up (`requiresBatteryNotLow`), with a projection, `date > watermark`, ascending, pages of 200, and the filter applied natively. **Deviation:** one date watermark instead of one per SIM, because a single date-ordered query covers every SIM. The fresh-install floor is "now"; older messages come only from the scan the user chooses |
 | T2.7 | ✅ | `messageId`, 1-based `simSlot` (from the subscription id), sender, date and body passed to JS. SIM filter test |
-| T2.8 | 🟡 | expo-sqlite (WAL): `detected_local` (UNIQUE fingerprint = local dedup, rows scoped per user, payload set to NULL once answered, 180-day TTL), `detection_counters`, `kv`. The Phase 1 AsyncStorage queue and Redux fingerprints are imported once; `recentFingerprints` is gone from Redux. **Deviation:** no separate `fingerprints` table, because the UNIQUE column does the job. Tests run on sql.js. **Open:** the lists don't yet show items waiting to sync while offline; that UI comes with Phase 5 |
+| T2.8 | ✅ | expo-sqlite (WAL): `detected_local` (UNIQUE fingerprint = local dedup, rows scoped per user, payload set to NULL once answered, 180-day TTL), `detection_counters`, `kv`. The Phase 1 AsyncStorage queue and Redux fingerprints are imported once; `recentFingerprints` is gone from Redux. **Deviation:** no separate `fingerprints` table, because the UNIQUE column does the job. Tests run on sql.js. Items waiting to sync while offline show in the lists (Phase 5) |
 | T2.9 | ✅ | `syncManager.service.ts` has no Redux dependency: batches of 100, a stable idempotency key, backoff from 30 s to 30 min, retry of unanswered items, `maxRequests` (1 for headless runs). Tested for every result status |
 | T2.10 | ✅ | Every rejection returns a lifecycle state and a reason code, counted per day. Sync results map through core `lifecycleForSyncResult` |
 | T2.11 | ✅ | `docs/SMS_PERMISSION_DECLARATION.md`. `BUDGETBRAIN_NO_SMS=1` / `production-nosms` and `preview-nosms` EAS profiles remove the receiver and mark both permissions `tools:node="remove"` (checked with prebuild); `BUILD_APK.md` updated. Building both variants needs the Android SDK |
-| T2.12 | 🟡 | One counts-only summary per run on a `detection` channel with `VISIBILITY_PRIVATE`. One review item deep-links with `?focus=<id>` and the review list puts that item first; a detail view for the item comes with T5.1 |
+| T2.12 | ✅ | One counts-only summary per run on a `detection` channel with `VISIBILITY_PRIVATE`. One review item deep-links with `?focus=<id>` and the review list puts that item first; the item opens in the review edit sheet (T5.1) |
 
 **Still open for Phase 2:**
 - Compile and run on a device. Allowing `dl.google.com` in the environment's network settings would let the Android build run here. Otherwise, check with an EAS dev build on Android 10–15: killed app plus 5 SMS in 10 s gives one headless run and one sync request.
@@ -316,7 +316,7 @@ All pure functions with no I/O. The pack is passed in precompiled form. Each tas
 | T3.5 | ✅ | A balance or limit phrase must lead the amount. Several amounts → review (`multiple_amounts`, low tier). Debit and credit verbs side by side → review (`ambiguous_direction`). "credit card" is a noun |
 | T3.6 | ✅ | Templates compiled per institution. A hit sets `templateMatched` and `templateId`. The shared masked-skeleton builder comes with T7.4 |
 | T3.7 | ✅ | Card bill, cash, wallet top-up, self transfer (own tails and VPAs), P2P, refund, cashback and reversal. Transfer pairing within a batch. `refundOfTransactionId` from `recentTransactions`. The app keeps a digest of the last 10 days of transactions (up to 200, refreshed at most every 15 minutes in the foreground, stored for the headless drain, per user, dropped after 14 days and by "delete my data") and passes it to core |
-| T3.8 | 🟡 | Rail, domain, legal-suffix and store-number cleanup. Exact alias on the whole name or its leading words; Jaro-Winkler ≥ 0.92 only for one-word names from the same country or a global brand. The Wikidata/domain conflict check waits for real KB data (Phase 4) |
+| T3.8 | ✅ | Rail, domain (including a leading `www.`), legal-suffix and store-number cleanup. Exact alias on the whole name or its leading words. Fuzzy only for one-word names: Jaro-Winkler ≥ 0.92, same first letter, same country or a global brand. **Never across brands (core v0.8.0):** when close aliases belong to different brands (different Wikidata ids, else domains, else merchant ids) nothing is guessed, and a name carrying its own web domain never matches a brand with another domain |
 | T3.9 | ✅ | User rule → KB → MCC → context words → Other, for expenses and refunds only. `categoryForTaxonomy` maps by exact name, then the parent name. **Deviation:** context words are a small English list in core until packs carry them |
 | T3.10 | ✅ | **Rule change:** corroboration is any fact read from the message (template, date, reference or known merchant); a fallback date alone is never enough (F1). Incoming P2P is capped at medium. Per-field reliability is set. Two corpus cases with no corroboration now expect review |
 | T3.11 | ✅ | Unchanged v2 fingerprint. Now also correct without `TextEncoder`. Test: SMS and notification give the same fingerprint |
@@ -325,10 +325,7 @@ All pure functions with no I/O. The pack is passed in precompiled form. Each tas
 | T3.14 | ✅ | `compilePack` builds maps and one combined matcher per lexicon class. No lookbehind or `\p{}`. p95 0.2 ms/message in Node (`bench:check` in CI fails above 1 ms); 0.5 ms/message on the Hermes interpreter |
 | T3.15 | ✅ | Mobile `engines/*`, `institutionKeywords` and `merchantCatalog` are deleted. The pipeline service is an adapter over core, using core's India baseline pack. The catalog's merchants moved into that pack, minus the wrong `kirana` → Zepto alias. The Android JS bundle builds with Hermes |
 
-**Still open for Phase 3:**
-- The content-based institution signal (T3.2).
-- The recent-transaction digest from mobile, and the server-side manual-duplicate check (T3.7, T3.12).
-- More corpus cases from real messages (T0.3).
+**Still open for Phase 3:** more corpus cases from real messages (T0.3).
 
 ---
 
@@ -365,7 +362,7 @@ All pure functions with no I/O. The pack is passed in precompiled form. Each tas
 | T4.6 | ✅ | `kb_kill_switches`, included in the pack and in `/detected-transactions/config` (cached 60 s). Core applies them on top of the pack's, including `app_version` semver ranges. Mobile passes the config switches and its app version to core |
 | T4.7 | ✅ | `MerchantEnrichmentProvider` interface and registry. `MERCHANT_ENRICHMENT_PROVIDER=none` by default, and a test shows no request is made. Results would be queued as `review` aliases with `source = 'enrichment'` |
 
-**Still open for Phase 4:** the per-source fetchers (T4.2) and a device check of the download path.
+**Still open for Phase 4:** a device check of the pack download path, and one registry import against its live source.
 
 ---
 
@@ -440,7 +437,7 @@ All pure functions with no I/O. The pack is passed in precompiled form. Each tas
 
 **Also fixed:** `DELETE /detected-transactions/rules` (Phase 5's reset) was shadowed by `DELETE /:id` and answered 400; the rules routes now come first.
 
-**Still open for Phase 6:** dropping the `parsed_transactions` table in the next release, and a device pass of the mobile Paste & import screen.
+**Still open for Phase 6:** a device pass of the mobile Paste & import screen. (The `parsed_transactions` table was dropped with the Phase 7 follow-up.)
 
 ---
 
