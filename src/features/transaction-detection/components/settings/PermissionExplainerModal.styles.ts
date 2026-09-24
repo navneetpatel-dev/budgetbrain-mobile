@@ -16,6 +16,7 @@ export function createStyles(theme: AppTheme) {
       padding: theme.spacing.xl,
       width: '100%',
       maxWidth: 400,
+      maxHeight: '90%',
     },
     iconHeader: {
       width: 56,
@@ -41,6 +42,10 @@ export function createStyles(theme: AppTheme) {
       color: theme.colors.textSecondary,
       textAlign: 'center',
       marginBottom: theme.spacing.lg,
+    },
+    bulletScroll: {
+      flexGrow: 0,
+      flexShrink: 1,
     },
     bulletList: {
       gap: theme.spacing.md,

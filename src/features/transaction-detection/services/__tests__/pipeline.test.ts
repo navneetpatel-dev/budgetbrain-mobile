@@ -80,6 +80,44 @@ describe('evaluateMessage', () => {
     expect(JSON.stringify(payloadOf(sms(DEBIT)))).not.toContain('Avl Bal');
   });
 
+  it('sends only the extracted fields: no message fragments, no sender, a cleaned merchant (T5.9)', () => {
+    const ALLOWED_KEYS = [
+      'accountTail', 'amount', 'categoryId', 'categorySource', 'clientId', 'confidenceTier', 'currency',
+      'dedupFingerprint', 'direction', 'evidence', 'financialAccountId', 'institutionId', 'merchantId',
+      'merchantName', 'paymentMethod', 'receivedAt', 'referenceNumber', 'source', 'subtype', 'taxonomyCode',
+      'transactionDate', 'transactionType',
+    ];
+    const messages = [
+      sms(DEBIT),
+      sms('Rs 4,999.00 spent on HDFC Bank Card xx1111 at CROMA RETAIL on 2026-09-20. Ref 123456789012. Not you? Call 18002586161 to block', 'AD-HDFCBK'),
+      sms('INR 15,000.00 credited to A/c XX9876 on 22-09-26 by NEFT from RAHUL SHARMA. Ref N265123456789. Avl Bal INR 35,500.00', 'JM-HDFCBK'),
+    ];
+    for (const message of messages) {
+      const payload = payloadOf(message);
+      expect(Object.keys(payload).sort()).toEqual(ALLOWED_KEYS);
+      // The sender ID is replaced by the institution the knowledge pack resolved.
+      expect(payload.institutionId).toBe('in.hdfc_bank');
+      const sent = Object.entries(payload)
+        .filter(([key]) => !['referenceNumber', 'merchantName', 'transactionDate'].includes(key))
+        .map(([, value]) => JSON.stringify(value))
+        .join('\n');
+      expect(sent).not.toContain(message.sender);
+      expect(sent).not.toContain(message.sender.slice(3));
+      // No run of 10 characters from the message survives outside the extracted fields, and those
+      // are a normalized reference, an ISO date and a cleaned merchant, never a longer piece of text.
+      const body = message.body.toLowerCase();
+      for (let i = 0; i + 10 <= body.length; i += 1) {
+        expect(sent.toLowerCase()).not.toContain(body.slice(i, i + 10));
+      }
+      if (payload.referenceNumber) expect(payload.referenceNumber).toMatch(/^[A-Z0-9]{6,22}$/i);
+      if (payload.transactionDate) expect(payload.transactionDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      if (payload.merchantName) {
+        expect(payload.merchantName).not.toMatch(/\d{4,}|\bon\b|ref/i);
+        expect(payload.merchantName.length).toBeLessThanOrEqual(40);
+      }
+    }
+  });
+
   it('ignores senders that are not in the knowledge pack (gap E2, E5)', () => {
     expect(reasonOf(sms(DEBIT, 'VM-ABCDEF'))).toMatchObject({ state: 'INELIGIBLE', reason: 'unknown_sender' });
   });

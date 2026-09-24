@@ -230,6 +230,45 @@ export async function resetBackoff(userId: string): Promise<void> {
   await driver.run(`UPDATE detected_local SET next_attempt_at = 0 WHERE user_id = ? AND lifecycle = 'SYNC_PENDING'`, [userId]);
 }
 
+/** An item detected on this device that hasn't reached the server yet (plan T5.1, offline review). */
+export interface LocalPendingItem {
+  payload: SyncItemPayload;
+  createdAt: number;
+}
+
+export async function listLocalPending(userId: string, limit = 100): Promise<LocalPendingItem[]> {
+  const driver = await db();
+  const rows = await driver.all<{ payload: string; created_at: number }>(
+    `SELECT payload, created_at FROM detected_local
+     WHERE user_id = ? AND lifecycle = 'SYNC_PENDING' AND payload IS NOT NULL
+     ORDER BY created_at DESC LIMIT ?`,
+    [userId, limit]
+  );
+  return rows.map((row) => ({ payload: JSON.parse(row.payload) as SyncItemPayload, createdAt: row.created_at }));
+}
+
+/**
+ * The user deleted an item before it synced: it is never sent, and its fingerprint stays so the
+ * same message isn't detected again.
+ */
+export async function discardLocal(clientId: string, now = Date.now()): Promise<void> {
+  const driver = await db();
+  await driver.run(
+    `UPDATE detected_local SET lifecycle = 'IGNORED', reason = NULL, payload = NULL, updated_at = ?
+     WHERE client_id = ? AND lifecycle = 'SYNC_PENDING'`,
+    [now, clientId]
+  );
+}
+
+/** "Delete my detected data" and turning detection off (plan T5.7): items, fingerprints and counters. */
+export async function clearDetectionData(): Promise<void> {
+  const driver = await db();
+  await driver.transaction(async () => {
+    await driver.run(`DELETE FROM detected_local`);
+    await driver.run(`DELETE FROM detection_counters`);
+  });
+}
+
 /** Weekly cleanup: forgets answered fingerprints after 180 days and counters after 30. */
 export async function purgeOld(now = Date.now()): Promise<void> {
   const driver = await db();

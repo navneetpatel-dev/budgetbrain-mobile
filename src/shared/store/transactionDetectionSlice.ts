@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { normalizeAccountTail, normalizeVpa } from '@/features/transaction-detection/utils/ownAccounts';
 import type { LearnedMerchantRule } from '@/features/transaction-detection/types/transactionDetection.types';
 
 export interface TransactionDetectionState {
@@ -12,6 +13,13 @@ export interface TransactionDetectionState {
   pendingReviewCount: number;
   lastSyncedAt: string | null;
   syncStatus: 'idle' | 'syncing' | 'error';
+  /** Last known server value, so the setting shows correctly offline (plan T5.7). */
+  autoAddHighConfidence: boolean;
+  /** "My accounts" (plan T5.7): tails and UPI ids the user added, used for transfer detection. */
+  ownAccountTails: string[];
+  ownVpas: string[];
+  /** Tails of the user's financial accounts, refreshed from the server. */
+  linkedAccountTails: string[];
 }
 
 const initialState: TransactionDetectionState = {
@@ -25,7 +33,14 @@ const initialState: TransactionDetectionState = {
   pendingReviewCount: 0,
   lastSyncedAt: null,
   syncStatus: 'idle',
+  autoAddHighConfidence: true,
+  ownAccountTails: [],
+  ownVpas: [],
+  linkedAccountTails: [],
 };
+
+/** A person has a handful of own accounts and UPI IDs; the settings chip rows stay short. */
+export const MAX_OWN_ENTRIES = 8;
 
 export const transactionDetectionSlice = createSlice({
   name: 'transactionDetection',
@@ -72,6 +87,36 @@ export const transactionDetectionSlice = createSlice({
     resetLearnedRules(state) {
       state.learnedRules = {};
     },
+    /** Replaces every rule with the server's list (plan T5.3); the server is the source of truth. */
+    replaceLearnedRules(state, action: PayloadAction<LearnedMerchantRule[]>) {
+      const next: Record<string, LearnedMerchantRule> = {};
+      for (const rule of action.payload) next[rule.merchant.trim().toLowerCase()] = rule;
+      state.learnedRules = next;
+    },
+    setAutoAddHighConfidence(state, action: PayloadAction<boolean>) {
+      state.autoAddHighConfidence = action.payload;
+    },
+    addOwnAccountTail(state, action: PayloadAction<string>) {
+      const tail = normalizeAccountTail(action.payload);
+      if (tail && !state.ownAccountTails.includes(tail) && state.ownAccountTails.length < MAX_OWN_ENTRIES) {
+        state.ownAccountTails.push(tail);
+      }
+    },
+    removeOwnAccountTail(state, action: PayloadAction<string>) {
+      state.ownAccountTails = state.ownAccountTails.filter((t) => t !== action.payload);
+    },
+    addOwnVpa(state, action: PayloadAction<string>) {
+      const vpa = normalizeVpa(action.payload);
+      if (vpa && !state.ownVpas.includes(vpa) && state.ownVpas.length < MAX_OWN_ENTRIES) {
+        state.ownVpas.push(vpa);
+      }
+    },
+    removeOwnVpa(state, action: PayloadAction<string>) {
+      state.ownVpas = state.ownVpas.filter((v) => v !== action.payload);
+    },
+    setLinkedAccountTails(state, action: PayloadAction<string[]>) {
+      state.linkedAccountTails = [...new Set(action.payload)];
+    },
     setPendingReviewCount(state, action: PayloadAction<number>) {
       state.pendingReviewCount = Math.max(0, action.payload);
     },
@@ -115,6 +160,13 @@ export const {
   decrementPendingReviewCount,
   setSyncStatus,
   clearLegacyFingerprints,
+  replaceLearnedRules,
+  setAutoAddHighConfidence,
+  addOwnAccountTail,
+  removeOwnAccountTail,
+  addOwnVpa,
+  removeOwnVpa,
+  setLinkedAccountTails,
 } = transactionDetectionSlice.actions;
 
 export default transactionDetectionSlice.reducer;

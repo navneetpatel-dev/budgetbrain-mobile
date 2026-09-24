@@ -42,7 +42,7 @@ const base: DetectedTransactionDto = {
 
 describe('DetectedTransactionRow', () => {
   it('renders a string amount, the category name and the review reason (gap P0-7)', async () => {
-    await render(<DetectedTransactionRow transaction={base} onConfirm={jest.fn()} onDismiss={jest.fn()} />);
+    await render(<DetectedTransactionRow transaction={base} onConfirm={jest.fn()} onEdit={jest.fn()} onDismiss={jest.fn()} />);
     // Formatted with the app's own currency rules (INR shows no decimals).
     expect(screen.getByText(`−${formatCurrency(1250.5, 'INR')}`)).toBeTruthy();
     expect(screen.getByText('Food')).toBeTruthy();
@@ -54,22 +54,28 @@ describe('DetectedTransactionRow', () => {
       <DetectedTransactionRow
         transaction={{ ...base, direction: 'CREDIT', transactionType: 'refund' }}
         onConfirm={jest.fn()}
-        onDismiss={jest.fn()}
+        onEdit={jest.fn()} onDismiss={jest.fn()}
       />
     );
     expect(screen.getByText(/^\+/)).toBeTruthy();
     await render(
-      <DetectedTransactionRow transaction={{ ...base, transactionType: 'transfer' }} onConfirm={jest.fn()} onDismiss={jest.fn()} />
+      <DetectedTransactionRow transaction={{ ...base, transactionType: 'transfer' }} onConfirm={jest.fn()} onEdit={jest.fn()} onDismiss={jest.fn()} />
     );
     expect(screen.getByText(/^⇄/)).toBeTruthy();
   });
 
-  it('only confirms through the Add button, never by tapping the card (gap R2)', async () => {
+  it('confirms, edits and deletes only through their buttons, never by tapping the card (gap R2, T5.1)', async () => {
     const onConfirm = jest.fn();
-    await render(<DetectedTransactionRow transaction={base} onConfirm={onConfirm} onDismiss={jest.fn()} />);
+    const onEdit = jest.fn();
+    const onDismiss = jest.fn();
+    await render(<DetectedTransactionRow transaction={base} onConfirm={onConfirm} onEdit={onEdit} onDismiss={onDismiss} />);
     fireEvent.press(screen.getByText('Swiggy'));
     expect(onConfirm).not.toHaveBeenCalled();
-    fireEvent.press(screen.getByLabelText('Add detected transaction'));
+    fireEvent.press(screen.getByLabelText('Confirm detected transaction'));
     expect(onConfirm).toHaveBeenCalledWith('d1');
+    fireEvent.press(screen.getByLabelText('Edit detected transaction before adding'));
+    expect(onEdit).toHaveBeenCalledWith('d1');
+    fireEvent.press(screen.getByLabelText('Delete detected transaction'));
+    expect(onDismiss).toHaveBeenCalledWith('d1');
   });
 });

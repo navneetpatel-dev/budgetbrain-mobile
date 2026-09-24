@@ -11,6 +11,7 @@ import {
 import { fetchCategoriesForDetection, fetchSyncState } from '../api/detectedTransactions.api';
 import { ensureActivePack, nativeSenderFilter } from './detectionPack.service';
 import { updateKnowledgePack } from './packManager.service';
+import { syncLinkedAccountTails, syncMerchantRules } from './detectionProfile.service';
 import type { SyncFlushSummary, SyncItemPayload } from '../types/transactionDetection.types';
 import { getDetectionConfig } from './detectionConfig.service';
 import { contextFromState, saveDetectionCategories, saveDetectionContext } from './detectionContext.service';
@@ -67,6 +68,10 @@ export async function prepareForegroundDetection(): Promise<void> {
   } catch {
     // Keep the saved list.
   }
+  // Rules on login and daily (T5.3); account tails for transfer detection (T5.7).
+  await syncMerchantRules().catch(() => {});
+  await syncLinkedAccountTails().catch(() => {});
+  await persistDetectionContext().catch(() => {});
   const lastPurge = (await getKv<number>(LAST_PURGE_KEY).catch(() => null)) ?? 0;
   if (Date.now() - lastPurge > WEEK_MS) {
     await purgeOld().catch(() => {});

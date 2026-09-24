@@ -59,9 +59,10 @@ export interface DetectedTransactionDto {
 }
 
 export interface LearnedMerchantRule {
+  /** Normalized merchant key, as the server stores it. */
   merchant: string;
   categoryId: string;
-  categoryName?: string;
+  categoryName?: string | null;
   updatedAt: string;
 }
 
@@ -124,6 +125,9 @@ export interface DetectionContext {
   excludedAccountTails: string[];
   learnedRules: Record<string, LearnedMerchantRule>;
   notificationPreference: 'all' | 'needs_review' | 'off';
+  /** The user's own accounts, cards and UPI ids, for transfer detection (plan T5.7). */
+  ownAccountTails?: string[];
+  ownVpas?: string[];
 }
 
 export type DetectionCategory = { id: string; name: string };

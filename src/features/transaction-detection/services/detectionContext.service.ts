@@ -9,9 +9,14 @@ let lastSaved: string | null = null;
 /** Builds the context from the app's Redux state. Only the fields the pipeline reads. */
 export function contextFromState(state: {
   auth: { user: { id: string } | null };
-  transactionDetection: Omit<DetectionContext, 'userId'>;
+  transactionDetection: Omit<DetectionContext, 'userId' | 'ownAccountTails' | 'ownVpas'> & {
+    ownAccountTails?: string[];
+    linkedAccountTails?: string[];
+    ownVpas?: string[];
+  };
 }): DetectionContext {
   const detection = state.transactionDetection;
+  const tails = [...new Set([...(detection.ownAccountTails ?? []), ...(detection.linkedAccountTails ?? [])])];
   return {
     userId: state.auth.user?.id ?? null,
     isAutoTrackingEnabled: detection.isAutoTrackingEnabled,
@@ -20,6 +25,8 @@ export function contextFromState(state: {
     excludedAccountTails: detection.excludedAccountTails,
     learnedRules: detection.learnedRules,
     notificationPreference: detection.notificationPreference,
+    ownAccountTails: tails,
+    ownVpas: detection.ownVpas ?? [],
   };
 }
 

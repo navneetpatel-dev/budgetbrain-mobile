@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector, useDispatch } from 'react-redux';
@@ -11,15 +11,20 @@ import {
   removeExcludedMerchant,
   addExcludedAccountTail,
   removeExcludedAccountTail,
-  resetLearnedRules,
+  setAutoAddHighConfidence,
+  setPendingReviewCount,
 } from '@/shared/store/transactionDetectionSlice';
+import { getApiErrorMessage } from '@/shared/services/api';
+import { invalidateMoneyQueries } from '@/shared/services/queryInvalidation';
 import {
   checkSmsPermissions,
   requestSmsPermissions,
   openAppSettings,
   type PermissionCheckResult,
 } from '@/shared/services/sms/smsPermission.service';
-import { updateDetectionSettings } from '../api/detectedTransactions.api';
+import { deleteMyDetectedData, updateDetectionSettings } from '../api/detectedTransactions.api';
+import { clearDetectionData } from '../services/store/detectionStore.service';
+import { resetMerchantRules } from '../services/detectionProfile.service';
 import { getDetectionConfig, setCachedDetectionConfig } from '../services/detectionConfig.service';
 import { apiTransport } from '../services/transport/apiTransport';
 
@@ -43,12 +48,65 @@ export function useAutoTrackingSettings() {
     onSuccess: (next) => {
       void setCachedDetectionConfig(next);
       queryClient.setQueryData(CONFIG_KEY, next);
+      dispatch(setAutoAddHighConfidence(next.autoAddHighConfidence));
     },
   });
+
+  // Keep the last known server value, so the switch is right offline and on the next launch (T5.7).
+  const serverAutoAdd = config.data?.autoAddHighConfidence;
+  useEffect(() => {
+    if (serverAutoAdd !== undefined) dispatch(setAutoAddHighConfidence(serverAutoAdd));
+  }, [dispatch, serverAutoAdd]);
+
+  // Removes every detected transaction the server holds and this device's unsent queue (T5.7).
+  // Transactions already added to the ledger stay; they are the user's records now.
+  const deleteData = useMutation({
+    mutationFn: async () => {
+      const result = await deleteMyDetectedData();
+      await clearDetectionData();
+      return result;
+    },
+    onSuccess: () => {
+      dispatch(setPendingReviewCount(0));
+      void queryClient.invalidateQueries({ queryKey: ['detected-transactions'] });
+      invalidateMoneyQueries(queryClient);
+    },
+    onError: (error) => Alert.alert('Could not delete', getApiErrorMessage(error, 'Try again when you are online.')),
+  });
+
+  const resetRules = useMutation({
+    mutationFn: resetMerchantRules,
+    onError: (error) => Alert.alert('Could not reset', getApiErrorMessage(error, 'Try again when you are online.')),
+  });
+
+  const handleResetLearning = () => {
+    Alert.alert(
+      'Reset learned preferences',
+      'This removes every merchant-to-category rule learned from your corrections, on this phone and on our servers.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Reset', style: 'destructive', onPress: () => resetRules.mutate() },
+      ]
+    );
+  };
+
+  const handleDeleteDetectedData = () => {
+    Alert.alert(
+      'Delete detected data',
+      'This deletes every detected transaction waiting for review or in your detection history, on this phone and on our servers. Transactions you already added stay in your ledger.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: () => deleteData.mutate() },
+      ]
+    );
+  };
 
   const handleToggleTracking = async (value: boolean) => {
     if (!value) {
       dispatch(setAutoTrackingEnabled(false));
+      // Turning tracking off drops what this device detected but hasn't sent (T5.7).
+      void clearDetectionData().catch(() => {});
+      void queryClient.invalidateQueries({ queryKey: ['detected-transactions', 'local'] });
       return;
     }
     const currentStatus = await checkSmsPermissions();
@@ -85,7 +143,7 @@ export function useAutoTrackingSettings() {
     excludedAccountTails: detection.excludedAccountTails,
     learnedRulesCount: Object.keys(detection.learnedRules).length,
     serverDetectionEnabled: config.data?.enabled ?? true,
-    autoAddHighConfidence: autoAdd.isPending ? autoAdd.variables : (config.data?.autoAddHighConfidence ?? true),
+    autoAddHighConfidence: autoAdd.isPending ? autoAdd.variables : (serverAutoAdd ?? detection.autoAddHighConfidence),
     setAutoAddHighConfidence: (value: boolean) => autoAdd.mutate(value),
     isExplainerVisible,
     isHistoricalModalVisible,
@@ -101,6 +159,8 @@ export function useAutoTrackingSettings() {
     removeExcludedMerchant: (m: string) => dispatch(removeExcludedMerchant(m)),
     addExcludedAccountTail: (tail: string) => dispatch(addExcludedAccountTail(tail)),
     removeExcludedAccountTail: (tail: string) => dispatch(removeExcludedAccountTail(tail)),
-    resetLearnedRules: () => dispatch(resetLearnedRules()),
+    handleResetLearning,
+    handleDeleteDetectedData,
+    isDeletingData: deleteData.isPending,
   };
 }

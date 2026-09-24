@@ -1,5 +1,5 @@
-import { apiDelete, apiGet, apiPatch, apiPost } from '@/shared/services/api';
-import type { Category } from '@/shared/types';
+import { api, apiDelete, apiGet, apiPatch, apiPost } from '@/shared/services/api';
+import type { ApiResponse, Category } from '@/shared/types';
 import type {
   DetectedTransactionDto,
   DetectionConfig,
@@ -79,12 +79,36 @@ export async function deleteDetectedTransaction(id: string): Promise<DetectedTra
   return await apiDelete<DetectedTransactionDto>(`/detected-transactions/${id}`);
 }
 
-export async function fetchLearnedMerchantRules(): Promise<LearnedMerchantRule[]> {
-  return await apiGet<LearnedMerchantRule[]>('/detected-transactions/rules');
+/**
+ * Learned rules with their ETag (plan T5.3); `null` when the server answers 304 Not Modified.
+ * Rules are only ever written by the server, when the user corrects a detection (T5.2).
+ */
+export async function fetchLearnedMerchantRules(etag?: string): Promise<{ rules: LearnedMerchantRule[]; etag: string | null } | null> {
+  const response = await api.get<ApiResponse<LearnedMerchantRule[]>>('/detected-transactions/rules', {
+    headers: etag ? { 'If-None-Match': etag } : {},
+    validateStatus: (status) => status === 200 || status === 304,
+  });
+  if (response.status === 304) return null;
+  return { rules: response.data.data, etag: (response.headers.etag as string | undefined) ?? null };
 }
 
-export async function saveLearnedMerchantRule(merchant: string, categoryId: string): Promise<LearnedMerchantRule> {
-  return await apiPost<LearnedMerchantRule>('/detected-transactions/rules', { merchant, categoryId });
+/** "Reset learned preferences" (plan T5.7): the server holds the rules, so they are cleared there. */
+export async function deleteLearnedMerchantRules(): Promise<{ deleted: number }> {
+  return await apiDelete<{ deleted: number }>('/detected-transactions/rules');
+}
+
+/** Detected items by status, for the "Detected" history (plan T5.5). */
+export async function fetchDetected(
+  status: DetectedTransactionDto['status'] | undefined,
+  page = 1,
+  limit = 50
+): Promise<DetectedListResponse> {
+  return await apiGet<DetectedListResponse>('/detected-transactions', { ...(status ? { status } : {}), page, limit });
+}
+
+/** "Delete my detected data" (plan T5.7). */
+export async function deleteMyDetectedData(): Promise<{ deleted: number }> {
+  return await apiDelete<{ deleted: number }>('/detected-transactions/me');
 }
 
 /** Categories used to map detected merchants to the user's own categories. */
