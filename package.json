@@ -3,6 +3,7 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
+    "@budgetbrain/detection-core": "github:navneetpatel-dev/budgetbrain-detection-core#6be91b8f8b530053a48600b997e881063e544b87",
     "@expo-google-fonts/fraunces": "^0.4.1",
     "@expo-google-fonts/inter": "^0.4.2",
     "@react-native-async-storage/async-storage": "2.2.0",

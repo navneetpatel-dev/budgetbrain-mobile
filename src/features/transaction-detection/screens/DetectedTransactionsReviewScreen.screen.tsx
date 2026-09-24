@@ -4,7 +4,6 @@ import { useTheme } from '@/shared/theme';
 import { StackNavHeader } from '@/shared/components/ui';
 import { useDetectedTransactionsReview } from '../hooks/useDetectedTransactionsReview.hook';
 import { DetectedTransactionList } from '../components/review/DetectedTransactionList.component';
-import type { ProcessedTransaction } from '../types/transactionDetection.types';
 import { createStyles } from './DetectedTransactionsReviewScreen.styles';
 
 export function DetectedTransactionsReviewScreen() {
@@ -19,21 +18,17 @@ export function DetectedTransactionsReviewScreen() {
     refresh,
     confirmTransaction,
     rejectTransaction,
+    busyId,
   } = useDetectedTransactionsReview();
 
-  const handleConfirm = (id: string, categoryId?: string) => {
+  const handleConfirm = (id: string) => {
     const item = items.find((i) => i.id === id);
     if (!item) return;
-    confirmTransaction(item, { categoryId });
+    confirmTransaction(item);
   };
 
   const handleDismiss = (id: string) => {
     rejectTransaction(id);
-  };
-
-  const handlePressItem = (transaction: ProcessedTransaction) => {
-    // When pressed, user could edit category or details
-    handleConfirm(transaction.id, transaction.categoryId || undefined);
   };
 
   const renderHeader = () => {
@@ -66,7 +61,7 @@ export function DetectedTransactionsReviewScreen() {
           data={items}
           onConfirm={handleConfirm}
           onDismiss={handleDismiss}
-          onPress={handlePressItem}
+          busyId={busyId}
           onRefresh={refresh}
           refreshing={isRefreshing}
           ListHeaderComponent={renderHeader()}

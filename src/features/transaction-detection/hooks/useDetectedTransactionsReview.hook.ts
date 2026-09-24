@@ -1,84 +1,80 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
-import { decrementPendingReviewCount } from '@/shared/store/transactionDetectionSlice';
-import type { ProcessedTransaction } from '../types/transactionDetection.types';
+import { setLearnedRule, setPendingReviewCount } from '@/shared/store/transactionDetectionSlice';
+import { getApiErrorMessage } from '@/shared/services/api';
+import { invalidateMoneyQueries } from '@/shared/services/queryInvalidation';
+import type { DetectedTransactionDto } from '../types/transactionDetection.types';
 import {
-  fetchPendingDetected,
   confirmDetectedTransaction,
+  fetchPendingDetected,
   rejectDetectedTransaction,
   type ConfirmPayload,
 } from '../api/detectedTransactions.api';
-import { queryClient } from '@/shared/services/queryClient';
-import { invalidateMoneyQueries } from '@/shared/services/queryInvalidation';
-import { learnMerchantCategoryPreference } from '../services/userLearning.service';
+
+const PENDING_KEY = ['detected-transactions', 'pending'] as const;
 
 export function useDetectedTransactionsReview() {
   const dispatch = useDispatch();
-  const [items, setItems] = useState<ProcessedTransaction[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const loadPending = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setIsRefreshing(true);
-    else setIsLoading(true);
-    setError(null);
-
-    try {
+  const query = useQuery({
+    queryKey: PENDING_KEY,
+    queryFn: async () => {
       const res = await fetchPendingDetected(1, 50);
-      setItems(res.items || []);
-    } catch {
-      setError('Unable to load pending review items');
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  }, []);
+      dispatch(setPendingReviewCount(res.pagination.total));
+      return res.items;
+    },
+  });
 
-  useEffect(() => {
-    loadPending();
-  }, [loadPending]);
+  const removeLocally = (id: string) => {
+    queryClient.setQueryData<DetectedTransactionDto[]>(PENDING_KEY, (items) => (items ?? []).filter((i) => i.id !== id));
+  };
 
-  const handleConfirm = async (item: ProcessedTransaction, overrides: ConfirmPayload = {}) => {
-    try {
-      await confirmDetectedTransaction(item.id, overrides);
-
-      // Learn preference if merchant and category exist
-      const merchantToLearn = overrides.merchant || item.normalizedMerchant || item.merchant;
-      const categoryToLearn = overrides.categoryId || item.categoryId;
-      if (merchantToLearn && categoryToLearn && overrides.learnMerchantCategory !== false) {
-        await learnMerchantCategoryPreference(
-          merchantToLearn,
-          categoryToLearn,
-          item.categoryName || undefined
+  const confirm = useMutation({
+    mutationFn: ({ item, overrides }: { item: DetectedTransactionDto; overrides: ConfirmPayload }) =>
+      confirmDetectedTransaction(item.id, overrides),
+    onSuccess: (confirmed, { item, overrides }) => {
+      // The server learns merchant → category only when the user changed it (gap L3); keep the
+      // on-device rule cache in step so local categorisation matches.
+      const changed = overrides.categoryId !== undefined && overrides.categoryId !== item.categoryId;
+      if (changed && overrides.categoryId && confirmed.merchant) {
+        dispatch(
+          setLearnedRule({
+            merchant: confirmed.merchant,
+            categoryId: overrides.categoryId,
+            categoryName: confirmed.categoryName ?? undefined,
+            updatedAt: new Date().toISOString(),
+          })
         );
       }
-
-      setItems((prev) => prev.filter((i) => i.id !== item.id));
-      dispatch(decrementPendingReviewCount());
+      removeLocally(item.id);
       invalidateMoneyQueries(queryClient);
-    } catch {
-      // Handled gracefully in UI
-    }
-  };
+      void queryClient.invalidateQueries({ queryKey: PENDING_KEY });
+    },
+  });
 
-  const handleReject = async (id: string) => {
-    try {
-      await rejectDetectedTransaction(id);
-      setItems((prev) => prev.filter((i) => i.id !== id));
-      dispatch(decrementPendingReviewCount());
-    } catch {
-      // Handled gracefully in UI
-    }
-  };
+  const reject = useMutation({
+    mutationFn: (id: string) => rejectDetectedTransaction(id),
+    onSuccess: (_dto, id) => {
+      removeLocally(id);
+      void queryClient.invalidateQueries({ queryKey: PENDING_KEY });
+    },
+  });
 
+  const mutationError = confirm.error ?? reject.error;
   return {
-    items,
-    isLoading,
-    isRefreshing,
-    error,
-    refresh: () => loadPending(true),
-    confirmTransaction: handleConfirm,
-    rejectTransaction: handleReject,
+    items: query.data ?? [],
+    isLoading: query.isLoading,
+    isRefreshing: query.isRefetching,
+    error: query.error
+      ? 'Unable to load pending review items'
+      : mutationError
+        ? getApiErrorMessage(mutationError, 'Could not update this transaction')
+        : null,
+    refresh: () => query.refetch(),
+    confirmTransaction: (item: DetectedTransactionDto, overrides: ConfirmPayload = {}) =>
+      confirm.mutate({ item, overrides }),
+    rejectTransaction: (id: string) => reject.mutate(id),
+    busyId: confirm.isPending ? confirm.variables?.item.id : reject.isPending ? reject.variables : undefined,
   };
 }

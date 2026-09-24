@@ -4,12 +4,17 @@ export interface ExtractedDetails {
   accountTail: string | null;
   referenceNumber: string | null;
   transactionDate: string; // YYYY-MM-DD
+  /** False when the date fell back to the received time. */
+  dateFromMessage: boolean;
   rawMerchantCandidate: string | null;
+  /** Money amounts in the message that are not balances or limits (1 means unambiguous, gap X2). */
+  amountCandidateCount: number;
 }
 
 // Patterns that identify account or balance amounts that must NOT be confused with transaction amount
 const BALANCE_REGEX =
-  /(?:avbl?\s*bal|available\s*balance|bal\s*is|curr\s*bal|balance)\s*(?::|is)?\s*(?:Rs\.?|INR|₹)?\s*([\d,]+(?:\.\d{2})?)/gi;
+  // "Avl Bal", "Avbl Bal", "Avl. Bal", "Available balance", "Bal is", "Curr Bal"
+  /(?:av(?:b)?l\.?\s*bal|available\s*balance|bal\s*is|curr\s*bal|balance)\s*(?::|is)?\s*(?:Rs\.?|INR|₹)?\s*([\d,]+(?:\.\d{2})?)/gi;
 
 const PRIMARY_AMOUNT_PATTERNS = [
   // "debited by Rs. 1,250.00" / "spent Rs 500"
@@ -122,16 +127,26 @@ export function extractTransactionDetails(
 
   // 6. Extract transaction date
   let transactionDate = fallbackTimestamp.split('T')[0];
+  let dateFromMessage = false;
   for (const pattern of DATE_PATTERNS) {
     const dMatch = content.match(pattern);
     if (dMatch) {
       const parsedDate = new Date(dMatch[1]);
       if (!isNaN(parsedDate.getTime())) {
         transactionDate = parsedDate.toISOString().split('T')[0];
+        dateFromMessage = true;
         break;
       }
     }
   }
+
+  // 7. Count amount candidates that are not balances or credit limits.
+  const allAmounts = [...content.matchAll(/(?:Rs\.?|INR|₹)\s*([\d,]+(?:\.\d{1,2})?)/gi)].map((m) => m[1].replace(/,/g, ''));
+  const limitAmounts = [...content.matchAll(/(?:avl\s*lmt|available\s*limit|credit\s*limit)\s*(?::|is)?\s*(?:Rs\.?|INR|₹)?\s*([\d,]+(?:\.\d{1,2})?)/gi)].map((m) =>
+    m[1].replace(/,/g, '')
+  );
+  const excluded = [...balancesFound, ...limitAmounts];
+  const amountCandidateCount = new Set(allAmounts.filter((a) => !excluded.includes(a))).size;
 
   return {
     amount,
@@ -139,6 +154,8 @@ export function extractTransactionDetails(
     accountTail,
     referenceNumber,
     transactionDate,
+    dateFromMessage,
     rawMerchantCandidate,
+    amountCandidateCount,
   };
 }

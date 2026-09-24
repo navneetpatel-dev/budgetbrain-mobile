@@ -1,5 +1,5 @@
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
-import type { RawIncomingMessage } from '@/features/transaction-detection/types/transactionDetection.types';
+import type { NormalizedMessage as RawIncomingMessage } from '@budgetbrain/detection-core';
 import { isFinancialSender } from '@/features/transaction-detection/constants/institutionKeywords';
 
 type MessageHandler = (message: RawIncomingMessage) => void;
@@ -28,7 +28,7 @@ export function startSmsListener(onMessageReceived: MessageHandler): () => void 
 
           onMessageReceived({
             sender,
-            content,
+            body: content,
             receivedAt: event.timestamp
               ? new Date(event.timestamp).toISOString()
               : new Date().toISOString(),

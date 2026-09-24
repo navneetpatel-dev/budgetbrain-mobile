@@ -52,24 +52,36 @@ export const TransactionItem = memo(function TransactionItem({
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const isExpense = transaction.type === 'expense';
-  const accent =
-    (isExpense ? transaction.category?.color : undefined) ??
-    (isExpense ? theme.colors.rose : theme.colors.secondary);
+  const isRefund = transaction.type === 'refund';
+  const isTransfer = transaction.type === 'transfer';
+  const isIncome = transaction.type === 'income';
+  // Refunds belong to a spending category; transfers are neither spending nor income.
+  const hasCategory = isExpense || isRefund;
+  const accent = isTransfer
+    ? theme.colors.textSecondary
+    : ((hasCategory ? transaction.category?.color : undefined) ??
+      (isExpense ? theme.colors.rose : theme.colors.secondary));
 
   const formattedAmount = formatCurrency(Number(transaction.amount), transaction.currency);
-  const title = isExpense
-    ? (transaction.merchant ?? transaction.category?.name ?? 'Expense')
-    : (transaction.incomeSource?.name ?? transaction.merchant ?? 'Income');
+  const title = isIncome
+    ? (transaction.incomeSource?.name ?? transaction.merchant ?? 'Income')
+    : (transaction.merchant ??
+      (hasCategory ? transaction.category?.name : undefined) ??
+      (isRefund ? 'Refund' : isTransfer ? 'Transfer' : 'Expense'));
   const dateLabel = formatDate(transaction.date);
-  const entityLabel = isExpense
-    ? transaction.category?.name
-    : transaction.incomeSource?.name;
+  const entityLabel = isIncome
+    ? transaction.incomeSource?.name
+    : isTransfer
+      ? 'Transfer'
+      : transaction.category?.name;
+  const amountSign = isExpense ? '−' : isTransfer ? '⇄ ' : '+';
+  const statusLabel = isExpense ? 'Completed' : isRefund ? 'Refund' : isTransfer ? 'Transfer' : 'Verified';
 
   const paymentLabel = transaction.paymentMethod
     ? transaction.paymentMethod.toUpperCase()
     : 'Card';
 
-  const iconName = getCategoryIcon(entityLabel ?? title, isExpense);
+  const iconName = getCategoryIcon(entityLabel ?? title, hasCategory);
 
   return (
     <Pressable
@@ -84,7 +96,7 @@ export const TransactionItem = memo(function TransactionItem({
       accessibilityRole={onPress ? 'button' : undefined}
       accessibilityLabel={`${title}, ${formattedAmount}`}
     >
-      {!isExpense && <View style={styles.incomeAccentStrip} pointerEvents="none" />}
+      {isIncome && <View style={styles.incomeAccentStrip} pointerEvents="none" />}
 
       {/* 44px Rounded Icon Pod with Corner Glyph Badge */}
       <View style={[styles.iconPod, { backgroundColor: accent + '1E' }]}>
@@ -133,18 +145,21 @@ export const TransactionItem = memo(function TransactionItem({
 
       {/* Trailing Tabular Amount & Subtitle */}
       <View style={styles.trailing}>
-        <Text style={[styles.amount, isExpense ? styles.expense : styles.income]} numberOfLines={1}>
-          {isExpense ? '−' : '+'}
+        <Text
+          style={[styles.amount, isExpense ? styles.expense : styles.income, isTransfer && { color: theme.colors.textSecondary }]}
+          numberOfLines={1}
+        >
+          {amountSign}
           {formattedAmount}
         </Text>
         <Text
           style={[
             styles.statusSub,
-            !isExpense && { color: theme.colors.secondary },
+            (isIncome || isRefund) && { color: theme.colors.secondary },
           ]}
           numberOfLines={1}
         >
-          {isExpense ? 'Completed' : 'Verified'}
+          {statusLabel}
         </Text>
       </View>
     </Pressable>

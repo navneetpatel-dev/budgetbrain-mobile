@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSelector } from 'react-redux';
@@ -34,6 +34,8 @@ export function AutoTrackingSettingsScreen() {
     openSettings,
     setNotificationPreference,
     resetLearnedRules,
+    autoAddHighConfidence,
+    setAutoAddHighConfidence,
   } = useAutoTrackingSettings();
 
   const pendingReviewCount = useSelector(
@@ -43,13 +45,11 @@ export function AutoTrackingSettingsScreen() {
     (state: RootState) => state.transactionDetection.lastSyncedAt
   );
 
-  const [autoAddHighConfidence, setAutoAddHighConfidence] = useState(true);
-
   const {
     isScanning,
     processedCount,
     totalMessages,
-    foundTransactions,
+    queuedCount,
     startScan,
   } = useHistoricalSync();
 
@@ -174,7 +174,7 @@ export function AutoTrackingSettingsScreen() {
         progress={{
           total: totalMessages,
           processed: processedCount,
-          detected: foundTransactions.length,
+          detected: queuedCount,
         }}
         onStartSync={startScan}
         onDismiss={() => setIsHistoricalModalVisible(false)}
