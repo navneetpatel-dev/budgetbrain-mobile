@@ -249,7 +249,7 @@ One PR per repo, all with CI green:
 |---|---|
 | [navneetpatel-dev/budgetbrain-detection-core#2](https://github.com/navneetpatel-dev/budgetbrain-detection-core/pull/2) | core v0.3.0: `assertTransition`, `lifecycleForSyncResult`, reason code `server_rejected` |
 | [navneetpatel-dev/budgetbrain-backend#2](https://github.com/navneetpatel-dev/budgetbrain-backend/pull/2) | Phase 1 follow-up: the T1.7 daily cap |
-| mobile PR from `claude/ecstatic-carson-56kt0p` | T2.1–T2.12, and the T1.17 add-expense form |
+| [navneetpatel-dev/budgetbrain-mobile#3](https://github.com/navneetpatel-dev/budgetbrain-mobile/pull/3) | T2.1–T2.12, and the T1.17 add-expense form |
 
 **Merge order:** core (with a merge commit) → mobile. The backend follow-up is independent.
 
