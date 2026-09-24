@@ -1,7 +1,13 @@
 import { requireOptionalNativeModule, type NativeModule } from 'expo';
-import type { NativeSmsCandidate, ScanInboxOptions, SenderFilter, SmsDetectorEvents } from './src/SmsDetector.types';
+import type {
+  NativeSmsCandidate,
+  NotificationFilter,
+  ScanInboxOptions,
+  SenderFilter,
+  SmsDetectorEvents,
+} from './src/SmsDetector.types';
 
-export type { NativeSmsCandidate, ScanInboxOptions, SenderFilter } from './src/SmsDetector.types';
+export type { NativeSmsCandidate, NotificationFilter, ScanInboxOptions, SenderFilter } from './src/SmsDetector.types';
 
 /**
  * JS side of the `SmsDetector` Expo module (plan T2.1). Android only; every call is a no-op
@@ -16,6 +22,11 @@ declare class SmsDetectorModule extends NativeModule<SmsDetectorEvents> {
   scanInbox(options: ScanInboxOptions): Promise<NativeSmsCandidate[]>;
   initWatermark(floorMs: number): Promise<void>;
   scheduleCatchUp(): Promise<void>;
+  isNotificationListenerSupported(): boolean;
+  isNotificationAccessGranted(): boolean;
+  openNotificationAccessSettings(): void;
+  setNotificationsEnabled(enabled: boolean): Promise<void>;
+  setNotificationFilter(filter: NotificationFilter): Promise<void>;
 }
 
 const native = requireOptionalNativeModule<SmsDetectorModule>('SmsDetector');
@@ -69,4 +80,43 @@ export async function scheduleCatchUp(): Promise<void> {
 export function addCandidateListener(listener: () => void): { remove: () => void } {
   if (!native) return { remove: () => {} };
   return native.addListener('onCandidateQueued', listener);
+}
+
+/** True when this build declares the bank-app notification listener (plan T8.1). */
+export function isNotificationListenerSupported(): boolean {
+  if (!native) return false;
+  try {
+    return native.isNotificationListenerSupported();
+  } catch {
+    return false;
+  }
+}
+
+/** Whether the user granted notification access to this app in system Settings. */
+export function isNotificationAccessGranted(): boolean {
+  if (!native) return false;
+  try {
+    return native.isNotificationAccessGranted();
+  } catch {
+    return false;
+  }
+}
+
+/** Opens the system screen where the user grants notification access; there is no dialog for it. */
+export function openNotificationAccessSettings(): void {
+  try {
+    native?.openNotificationAccessSettings();
+  } catch {
+    // No such screen on this device; nothing to open.
+  }
+}
+
+/** Turns notification capture on or off. Off also drops queued notifications. */
+export async function setNotificationsEnabled(enabled: boolean): Promise<void> {
+  await native?.setNotificationsEnabled(enabled);
+}
+
+/** The app packages whose notifications the native pre-filter keeps (from the pack). */
+export async function setNotificationFilter(filter: NotificationFilter): Promise<void> {
+  await native?.setNotificationFilter(filter);
 }

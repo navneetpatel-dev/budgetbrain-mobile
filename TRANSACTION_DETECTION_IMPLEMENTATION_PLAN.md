@@ -500,6 +500,16 @@ All pure functions with no I/O. The pack is passed in precompiled form. Each tas
 | **T9.3** | all | Staged rollout with kill switches: internal → 5 % → 25 % → 100 %, per country, watching the T7.2 dashboards (correction rate, undo rate) | — | Go/no-go checklist signed |
 | **T9.4** | all | Guards that protect what's already right: keep and test the D1 unique index; a log and telemetry scrubber (winston redaction on the backend, Sentry `beforeSend` on mobile and web) plus a test that no message body reaches logs (P1); typecheck in CI for every repo (Q7) | D1, P1, Q7 | Guard tests in CI |
 
+
+### Phase 8 status (2026-09-24)
+
+| Task | Status | Notes |
+|---|---|---|
+| T8.1 | ✅ (device pass pending) | `BankNotificationListener` in the sms-detector module. It keeps only apps the pack lists for notifications (`channel: notification`, e.g. `net.one97.paytm`) whose text has a money token, the same check SMS use. It skips ongoing notifications and group summaries. It reads only the title and text, and queues them in the same candidate queue (new `source` column, DB v2) for the same WorkManager drain. Reposts are keyed on package plus text. The pipeline gets `source: 'notification'` with the package as sender. A test shows one payment seen as both a Paytm SMS and a Paytm notification is stored once. Settings: a "Bank App Notifications" row with its own explainer, which opens Android's Notification access screen. Access is re-checked when the app comes back. The listener is declared in every build variant, noSms included, where it is the only automatic source; `BUDGETBRAIN_NO_NOTIFICATIONS=1` leaves it out. The Kotlin core has JVM tests; the Android classes were not compiled here (no Android SDK) |
+| T8.2 | ⏭ Skipped | Email connector: skipped by decision (2026-09-24) |
+| T8.3 | ⏭ Skipped | Open banking: skipped by decision (2026-09-24) |
+| T8.4 | ✅ (device pass pending) | On iOS the auto-tracking screen shows why SMS and notifications can't be read there, and offers Paste or Import (the Phase 6 screen) |
+
 ---
 
 ## 13. Traceability matrix (every gap → task)

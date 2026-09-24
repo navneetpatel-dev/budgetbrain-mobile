@@ -5,6 +5,7 @@ import {
   addOwnVpa,
   removeOwnAccountTail,
   replaceLearnedRules,
+  setAppNotificationCapture,
   setAutoAddHighConfidence,
   setLinkedAccountTails,
   transactionDetectionSlice,
@@ -37,5 +38,12 @@ describe('transaction detection slice (Phase 5)', () => {
     expect(reducer(initial, setLinkedAccountTails(['1234', '1234', '987'])).linkedAccountTails).toEqual(['1234', '987']);
     expect(initial.autoAddHighConfidence).toBe(true);
     expect(reducer(initial, setAutoAddHighConfidence(false)).autoAddHighConfidence).toBe(false);
+  });
+});
+
+describe('bank-app notification capture (T8.1)', () => {
+  it('is off until the user turns it on', () => {
+    expect(initial.appNotificationCaptureEnabled).toBe(false);
+    expect(reducer(initial, setAppNotificationCapture(true)).appNotificationCaptureEnabled).toBe(true);
   });
 });

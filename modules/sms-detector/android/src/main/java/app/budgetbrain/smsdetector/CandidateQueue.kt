@@ -13,6 +13,8 @@ internal data class Candidate(
   val body: String,
   val receivedAt: Long,
   val simSlot: Int?,
+  /** `android_sms` or `notification` (plan T8.1). */
+  val source: String,
 )
 
 /**
@@ -23,7 +25,7 @@ internal data class Candidate(
  * are purged after 7 days too.
  */
 internal class CandidateQueue private constructor(context: Context) :
-  SQLiteOpenHelper(context.applicationContext, "sms_candidates.db", null, 1) {
+  SQLiteOpenHelper(context.applicationContext, "sms_candidates.db", null, 2) {
 
   override fun onCreate(db: SQLiteDatabase) {
     db.execSQL(
@@ -37,17 +39,29 @@ internal class CandidateQueue private constructor(context: Context) :
         received_at INTEGER NOT NULL,
         sim_slot INTEGER,
         queued_at INTEGER NOT NULL,
-        acked INTEGER NOT NULL DEFAULT 0
+        acked INTEGER NOT NULL DEFAULT 0,
+        source TEXT NOT NULL DEFAULT 'android_sms'
       )
       """.trimIndent()
     )
     db.execSQL("CREATE INDEX candidates_pending ON candidates (acked, id)")
   }
 
-  override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
+  override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+    // v2: bank-app notifications share the queue (plan T8.1).
+    if (oldVersion < 2) db.execSQL("ALTER TABLE candidates ADD COLUMN source TEXT NOT NULL DEFAULT 'android_sms'")
+  }
 
   /** Returns true when the message was new. */
-  fun enqueue(key: String, messageId: String?, sender: String, body: String, receivedAt: Long, simSlot: Int?): Boolean {
+  fun enqueue(
+    key: String,
+    messageId: String?,
+    sender: String,
+    body: String,
+    receivedAt: Long,
+    simSlot: Int?,
+    source: String = SOURCE_SMS,
+  ): Boolean {
     val values = ContentValues().apply {
       put("msg_key", key)
       put("message_id", messageId)
@@ -56,6 +70,7 @@ internal class CandidateQueue private constructor(context: Context) :
       put("received_at", receivedAt)
       if (simSlot != null) put("sim_slot", simSlot) else putNull("sim_slot")
       put("queued_at", System.currentTimeMillis())
+      put("source", source)
     }
     return writableDatabase.insertWithOnConflict("candidates", null, values, SQLiteDatabase.CONFLICT_IGNORE) != -1L
   }
@@ -66,7 +81,7 @@ internal class CandidateQueue private constructor(context: Context) :
   fun peek(limit: Int): List<Candidate> {
     val result = ArrayList<Candidate>()
     readableDatabase.rawQuery(
-      "SELECT id, message_id, sender, body, received_at, sim_slot FROM candidates WHERE acked = 0 AND body IS NOT NULL ORDER BY id LIMIT ?",
+      "SELECT id, message_id, sender, body, received_at, sim_slot, source FROM candidates WHERE acked = 0 AND body IS NOT NULL ORDER BY id LIMIT ?",
       arrayOf(limit.coerceIn(1, 200).toString())
     ).use { cursor ->
       while (cursor.moveToNext()) {
@@ -77,6 +92,7 @@ internal class CandidateQueue private constructor(context: Context) :
           body = cursor.getString(3),
           receivedAt = cursor.getLong(4),
           simSlot = if (cursor.isNull(5)) null else cursor.getInt(5),
+          source = cursor.getString(6),
         )
       }
     }
@@ -107,7 +123,15 @@ internal class CandidateQueue private constructor(context: Context) :
     writableDatabase.execSQL("DELETE FROM candidates WHERE queued_at < ?", arrayOf(cutoffMs))
   }
 
+  /** Drops what the notification listener queued, when the user turns it off. */
+  fun clearSource(source: String) {
+    writableDatabase.execSQL("DELETE FROM candidates WHERE source = ?", arrayOf(source))
+  }
+
   companion object {
+    const val SOURCE_SMS = "android_sms"
+    const val SOURCE_NOTIFICATION = "notification"
+
     @Volatile private var instance: CandidateQueue? = null
 
     fun get(context: Context): CandidateQueue =
