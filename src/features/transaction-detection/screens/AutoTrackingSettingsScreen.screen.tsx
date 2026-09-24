@@ -18,6 +18,7 @@ import { TemplateLearningRow } from '../components/settings/TemplateLearningRow.
 import { AppNotificationsRow } from '../components/settings/AppNotificationsRow.component';
 import { NotificationAccessExplainerModal } from '../components/settings/NotificationAccessExplainerModal.component';
 import { AutoTrackingAlternativesCard } from '../components/settings/AutoTrackingAlternativesCard.component';
+import { DetectionPausedNotice } from '../components/settings/DetectionPausedNotice.component';
 import { useOwnAccounts } from '../hooks/useOwnAccounts.hook';
 import { createStyles } from './AutoTrackingSettingsScreen.styles';
 
@@ -48,6 +49,8 @@ export function AutoTrackingSettingsScreen() {
     isTemplateLearningKnown,
     setTemplateLearning,
     isIos,
+    serverDetectionEnabled,
+    rolledOut,
     notificationSupported,
     appNotificationCapture,
     notificationAccessGranted,
@@ -96,6 +99,10 @@ export function AutoTrackingSettingsScreen() {
           <SyncStatusPill
             lastSyncAt={lastSyncedAt}
           />
+        )}
+
+        {isEnabled && !isIos && !serverDetectionEnabled && (
+          <DetectionPausedNotice rolledOut={rolledOut} onPasteOrImport={handleNavigatePasteImport} />
         )}
 
         {isEnabled && isPermissionDenied && (

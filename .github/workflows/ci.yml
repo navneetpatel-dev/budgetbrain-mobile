@@ -18,6 +18,19 @@ jobs:
       - run: npm ci
       - run: npx tsc --noEmit
 
+  # Plan T9.1: lint and the Jest suite (hooks, sync manager, store, pipeline adapter, components).
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test -- --ci
+
   # Pure-Kotlin core of the SMS detector (pre-filter, multipart join, watermark) on a plain JVM.
   sms-detector-core:
     runs-on: ubuntu-latest

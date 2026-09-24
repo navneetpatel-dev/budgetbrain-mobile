@@ -2,6 +2,7 @@ import { describe, it, expect, jest } from '@jest/globals';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { AppNotificationsRow } from '../settings/AppNotificationsRow.component';
 import { AutoTrackingAlternativesCard } from '../settings/AutoTrackingAlternativesCard.component';
+import { DetectionPausedNotice } from '../settings/DetectionPausedNotice.component';
 
 // ThemeContext imports the Redux hooks (ESM react-redux, not transformed by jest-expo); use the
 // real theme builder directly instead. (jest.mock is hoisted above the imports.)
@@ -38,5 +39,17 @@ describe('AutoTrackingAlternativesCard (T8.4)', () => {
     expect(screen.getByText('Import a statement')).toBeTruthy();
     await fireEvent.press(screen.getByText('Paste or Import'));
     expect(onPasteOrImport).toHaveBeenCalled();
+  });
+});
+
+describe('DetectionPausedNotice (T9.3)', () => {
+  it('says the rollout has not reached the account, or that detection is paused', async () => {
+    const onPasteOrImport = jest.fn();
+    await render(<DetectionPausedNotice rolledOut={false} onPasteOrImport={onPasteOrImport} />);
+    expect(screen.getByText('Coming to your account soon')).toBeTruthy();
+    await fireEvent.press(screen.getByText('Paste or Import'));
+    expect(onPasteOrImport).toHaveBeenCalled();
+    await render(<DetectionPausedNotice rolledOut onPasteOrImport={onPasteOrImport} />);
+    expect(screen.getByText('Automatic detection is paused')).toBeTruthy();
   });
 });

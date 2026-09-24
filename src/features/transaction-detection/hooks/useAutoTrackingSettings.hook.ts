@@ -202,6 +202,7 @@ export function useAutoTrackingSettings() {
     excludedAccountTails: detection.excludedAccountTails,
     learnedRulesCount: Object.keys(detection.learnedRules).length,
     serverDetectionEnabled: config.data?.enabled ?? true,
+    rolledOut: config.data?.rolledOut ?? true,
     autoAddHighConfidence: autoAdd.isPending ? autoAdd.variables : (serverAutoAdd ?? detection.autoAddHighConfidence),
     setAutoAddHighConfidence: (value: boolean) => autoAdd.mutate(value),
     templateLearning: templateLearning.isPending ? templateLearning.variables : (config.data?.templateLearning ?? false),

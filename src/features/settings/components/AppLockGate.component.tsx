@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useAppSelector } from '@/shared/store/hooks';
 import { useAppLock } from '@/features/settings/hooks/useAppLock.hook';
@@ -20,7 +20,8 @@ export function AppLockGate({ children }: Props) {
   const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
   const hasPin = !!appLockPin;
   const hasLock = biometricEnabled || hasPin;
-  const [needsPinSetup, setNeedsPinSetup] = useState(false);
+  // Set once the PIN is saved, until the store reports it (hasPin).
+  const [pinSetupDone, setPinSetupDone] = useState(false);
   const signOut = useLogoutAction();
 
   const { locked, checked, unlockWithPin, unlockWithBiometrics } = useAppLock(
@@ -29,11 +30,8 @@ export function AppLockGate({ children }: Props) {
     isAuthenticated
   );
 
-  useEffect(() => {
-    if (!locked && isAuthenticated && biometricEnabled && !hasPin) {
-      setNeedsPinSetup(true);
-    }
-  }, [locked, isAuthenticated, biometricEnabled, hasPin]);
+  // Biometric unlock needs a PIN fallback: ask for one once the app is unlocked without it.
+  const needsPinSetup = !pinSetupDone && !locked && isAuthenticated && biometricEnabled && !hasPin;
 
   const handleBiometricUnlock = async () => {
     await unlockWithBiometrics();
@@ -67,7 +65,7 @@ export function AppLockGate({ children }: Props) {
           mode="set"
           onClose={() => {}}
           onSuccess={() => {
-            setNeedsPinSetup(false);
+            setPinSetupDone(true);
             unlockWithPin();
           }}
         />

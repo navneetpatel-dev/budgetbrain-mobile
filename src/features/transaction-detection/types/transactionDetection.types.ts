@@ -75,6 +75,8 @@ export interface SyncStateData {
 /** Server kill switches plus the user's own preference (plan task T1.16). */
 export interface DetectionConfig {
   enabled: boolean;
+  /** Whether the staged rollout (plan T9.3) includes this account; missing on older servers. */
+  rolledOut?: boolean;
   autoCreateEnabled: boolean;
   minAppVersion: string | null;
   autoAddHighConfidence: boolean;
