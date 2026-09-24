@@ -78,8 +78,30 @@ export interface DetectionConfig {
   autoCreateEnabled: boolean;
   minAppVersion: string | null;
   autoAddHighConfidence: boolean;
+  /** Opt-in upload of masked message shapes (plan T7.4, D-5); off by default. */
+  templateLearning?: boolean;
   /** Per institution, template, country, pack and app version (plan T4.6); core applies them. */
   killSwitches?: PackKillSwitch[];
+}
+
+/** One row of `POST /detected-transactions/diagnostics` (plan T7.1): counts only, no text. */
+export interface DiagnosticsUploadRow {
+  day: string;
+  stage: string;
+  reasonCode: string;
+  institutionId: string | null;
+  count: number;
+}
+
+/** One item of `POST /detected-transactions/skeletons` (plan T7.4). */
+export interface SkeletonUploadItem {
+  skeletonHash: string;
+  skeleton: string;
+  institutionId: string | null;
+  senderKey: string;
+  country: string | null;
+  language: string | null;
+  correctedField: null;
 }
 
 /** `GET /detected-transactions/knowledge-pack` (plan T4.3). */

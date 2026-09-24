@@ -434,13 +434,13 @@ All pure functions with no I/O. The pack is passed in precompiled form. Each tas
 |---|---|---|
 | T6.1 | ✅ | The detection router lives in the shared module; web and mobile mount the same one. HTTP test through the real web app |
 | T6.2 | ✅ | `POST /detected-transactions/ingest` parses with core and the newest built pack (baseline fallback), then uses the sync path. A test scans every text column of every table for the pasted text (with a positive control). Sentry drops request bodies for detection routes. `GET …/institutions` for text without a sender |
-| T6.3 | 🟡 | `/integrations` removed from backend, web and mobile; its paths answer 410 Gone. **Open:** the migration that moves pending `parsed_transactions` rows into review and erases `raw_content` is not written yet; it waits for approval, because the erasure can't be undone. The table is dropped in a later release |
+| T6.3 | ✅ | `/integrations` removed from backend, web and mobile; its paths answer 410 Gone. [navneetpatel-dev/budgetbrain-backend#7](https://github.com/navneetpatel-dev/budgetbrain-backend/pull/7) moves pending `parsed_transactions` rows into review (`legacy_import`) and sets `raw_content` to NULL on every row (runs on deploy; can't be undone). **Next release:** drop the table and its model |
 | T6.4 | ✅ | Web: hub (status per source, auto-add, delete my data, paste), review with inline edit, history with Undo, rules manager, transaction list chip, `source=detected` filter and "Auto" badge. Backend: rules by id, per-source sync state, `source` filter. Browser pass against a local server (18 steps) |
 | T6.5 | ✅ | CSV (suggested mapping, preamble skipped), OFX/QFX, QIF, MT940, CAMT.053. Streamed in batches of 100 from a temp file that is deleted after each request; 10,000 rows in ~4 s with ~31 MB peak heap. Preview before commit; ledger look-alikes wait for review; stable fingerprints make re-imports no-ops. **Deviation:** the file is sent again to import instead of being kept on the server between preview and import |
 
 **Also fixed:** `DELETE /detected-transactions/rules` (Phase 5's reset) was shadowed by `DELETE /:id` and answered 400; the rules routes now come first.
 
-**Still open for Phase 6:** the `parsed_transactions` migration (above) and a device pass of the mobile Paste & import screen.
+**Still open for Phase 6:** dropping the `parsed_transactions` table in the next release, and a device pass of the mobile Paste & import screen.
 
 ---
 
@@ -455,6 +455,31 @@ All pure functions with no I/O. The pack is passed in precompiled form. Each tas
 | **T7.5** | backend + admin | Alias crowd-learning: aliases confirmed by ≥ k users become candidates for global aliases in the admin queue; personal rules always win | §6.6, spec rule 8 | Test: a personal rule overrides a global alias |
 | **T7.6** | backend + admin | Privacy tooling: user export and delete include `detected_transactions`, `merchant_category_rules`, diagnostics and skeleton submissions; retention cron (rejected or ignored > 90 days, diagnostics > 180 days); an admin view of deletion requests | AD7, P7 | Delete-account test leaves no detection rows |
 | **T7.7** | backend | Audit actions `DETECTION_AUTO_CREATE`, `DETECTION_CONFIRM`, `DETECTION_REJECT`, `DETECTION_UNDO`, `KB_PUBLISH`, `KILL_SWITCH_CHANGE` shown on the admin audit page | AD5 | Rows are visible in admin |
+
+---
+
+### Phase 7 status (2026-09-24)
+
+| PR | Covers |
+|---|---|
+| [navneetpatel-dev/budgetbrain-detection-core#5](https://github.com/navneetpatel-dev/budgetbrain-detection-core/pull/5) | T7.4: `buildSkeleton` (v0.6.0) |
+| [navneetpatel-dev/budgetbrain-backend#8](https://github.com/navneetpatel-dev/budgetbrain-backend/pull/8) | T7.1–T7.7 (server) |
+| [navneetpatel-dev/budgetbrain-mobile#8](https://github.com/navneetpatel-dev/budgetbrain-mobile/pull/8) | T7.1, T7.4 (device) |
+| [navneetpatel-dev/budgetbrain-admin#1](https://github.com/navneetpatel-dev/budgetbrain-admin/pull/1) | T7.3–T7.7 (admin UI) |
+
+**Merge order:** core (merge commit) → backend → mobile and admin.
+
+| Task | Status | Notes |
+|---|---|---|
+| T7.1 | ✅ | After a sync that succeeds, the device uploads each finished day of `detection_counters`. Every request carries whole days and advances a kv watermark. The server replaces each day it receives. No text, no amounts |
+| T7.2 | ✅ | Hourly rollup into `detection_daily_stats`, incremental on an `updated_at` watermark. Each affected day is recomputed in full. Undo is recorded as `review_reason = 'undone'` |
+| T7.3 | ✅ | Dashboard, catalog (8 entities, draft → review → published, history), pack build, kill-switch console, user Detection tab, adoption in feature usage. Admin e2e test: a published alias appears in the next pack |
+| T7.4 | ✅ | Opt-in switch, off by default (D-5). Messages from a known institution that no template read are masked with core `buildSkeleton`. They are queued in `skeleton_queue` (capped at 200 rows, 30-day TTL) and uploaded 50 at a time. The server re-hashes each skeleton and stores an HMAC user hash. Admins see only shapes submitted by at least k users (default 10). A shape can become a draft template only with a sample message it matches. **Deviation:** `corrected_field` is always null for now, because the device keeps no link between an edited item and its shape |
+| T7.5 | ✅ | Candidates are merchant names that at least k users gave a category rule to. Promoting one creates a draft global alias; personal rules still win |
+| T7.6 | ✅ | Export endpoint; account deletion removes detection rows, diagnostics and skeletons; nightly retention (rejected or duplicate > 90 days, diagnostics > 180 days, skeletons 30 or 180 days); admin view of deletion requests |
+| T7.7 | ✅ | `DETECTION_AUTO_CREATE` (one row per sync batch; the constant-query bound is now 11), plus `KB_CHANGE`, `KB_PUBLISH`, `KB_PACK_BUILD` and `KILL_SWITCH_CHANGE`. The admin audit page can filter by these actions |
+
+**Still open for Phase 7:** a device pass of the new settings switch; `corrected_field` in skeleton uploads.
 
 ---
 

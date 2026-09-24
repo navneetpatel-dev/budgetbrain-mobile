@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { computeFingerprint } from '@budgetbrain/detection-core';
 import { createSqlJsDriver } from '@/shared/testing/sqlJsDriver';
-import { __useDetectionDriverForTests, countersForDay, pendingCount } from '../store/detectionStore.service';
+import { __useDetectionDriverForTests, countersForDay, pendingCount, queuedSkeletons } from '../store/detectionStore.service';
 import { evaluateMessage, processMessages } from '../transactionPipeline.service';
 import type { DetectionContext, RawIncomingMessage } from '../../types/transactionDetection.types';
 
@@ -181,5 +181,33 @@ describe('processMessages', () => {
   it('does nothing without a signed-in user or with tracking off', async () => {
     expect(await processMessages([sms(DEBIT)], context({ userId: null }))).toHaveLength(0);
     expect(await processMessages([sms(DEBIT)], context({ isAutoTrackingEnabled: false }))).toHaveLength(0);
+  });
+
+  describe('template learning (T7.4)', () => {
+    const base = { enabled: true, autoCreateEnabled: true, minAppVersion: null, autoAddHighConfidence: true };
+
+    it('queues the masked shape of a message no template read, once, only when opted in', async () => {
+      const message = sms(DEBIT);
+      expect(evaluateMessage(message, context())).toMatchObject({ learnShape: true });
+
+      await processMessages([message], context(), { config: base });
+      expect(await queuedSkeletons(10)).toEqual([]);
+
+      await processMessages([message, sms(DEBIT.replace('1,250.00', '99.00'))], context(), {
+        config: { ...base, templateLearning: true },
+      });
+      const queued = await queuedSkeletons(10);
+      expect(queued).toHaveLength(1);
+      expect(queued[0]).toMatchObject({ institutionId: 'in.hdfc_bank', country: 'IN' });
+      expect(queued[0].skeleton).not.toMatch(/\d/);
+      expect(queued[0].skeleton).not.toMatch(/swiggy/i);
+    });
+
+    it('never learns from ineligible messages or unknown senders', async () => {
+      expect(evaluateMessage(sms('Your OTP is 123456. Do not share. Rs 10 debited'), context())).toMatchObject({
+        learnShape: false,
+      });
+      expect(evaluateMessage(sms(DEBIT, 'VM-RANDOM'), context())).toMatchObject({ learnShape: false });
+    });
   });
 });

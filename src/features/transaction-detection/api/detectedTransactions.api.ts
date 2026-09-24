@@ -3,7 +3,9 @@ import type { ApiResponse, Category } from '@/shared/types';
 import type {
   DetectedTransactionDto,
   DetectionConfig,
+  DiagnosticsUploadRow,
   LearnedMerchantRule,
+  SkeletonUploadItem,
   SyncItemPayload,
   SyncItemResult,
   SyncStateData,
@@ -42,8 +44,20 @@ export async function fetchDetectionConfig(): Promise<DetectionConfig> {
   return await apiGet<DetectionConfig>('/detected-transactions/config');
 }
 
-export async function updateDetectionSettings(settings: { autoAddHighConfidence: boolean }): Promise<DetectionConfig> {
+export async function updateDetectionSettings(
+  settings: { autoAddHighConfidence: boolean } | { templateLearning: boolean }
+): Promise<DetectionConfig> {
   return await apiPatch<DetectionConfig>('/detected-transactions/settings', settings);
+}
+
+/** Daily stage and reason counts (plan T7.1). The server replaces the days it receives. */
+export async function uploadDetectionDiagnostics(rows: DiagnosticsUploadRow[]): Promise<{ days: number; rows: number }> {
+  return await apiPost<{ days: number; rows: number }>('/detected-transactions/diagnostics', { rows });
+}
+
+/** Masked message shapes, only with template learning on (plan T7.4). At most 50 per call. */
+export async function uploadMessageSkeletons(items: SkeletonUploadItem[]): Promise<{ accepted: number }> {
+  return await apiPost<{ accepted: number }>('/detected-transactions/skeletons', { items });
 }
 
 export async function fetchSyncState(): Promise<SyncStateData> {

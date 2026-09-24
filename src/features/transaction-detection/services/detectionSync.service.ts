@@ -8,7 +8,13 @@ import {
   scheduleSmsCatchUp,
   setSmsSenderFilter,
 } from '@/shared/services/sms/smsDetector.service';
-import { fetchCategoriesForDetection, fetchSyncState } from '../api/detectedTransactions.api';
+import { getApiErrorCode } from '@/shared/services/api';
+import {
+  fetchCategoriesForDetection,
+  fetchSyncState,
+  uploadDetectionDiagnostics,
+  uploadMessageSkeletons,
+} from '../api/detectedTransactions.api';
 import { ensureActivePack, nativeSenderFilter } from './detectionPack.service';
 import { updateKnowledgePack } from './packManager.service';
 import { syncLinkedAccountTails, syncMerchantRules } from './detectionProfile.service';
@@ -17,6 +23,7 @@ import { getDetectionConfig } from './detectionConfig.service';
 import { contextFromState, saveDetectionCategories, saveDetectionContext } from './detectionContext.service';
 import { drainAndSync } from './detectionDrain.service';
 import { notifyDetectionSummary } from './detectionNotifier.service';
+import { uploadDetectionTelemetry, type TelemetryUploader } from './detectionTelemetry.service';
 import { getKv, importLegacyState, purgeOld, resetBackoff, setKv } from './store/detectionStore.service';
 import { apiTransport } from './transport/apiTransport';
 
@@ -32,6 +39,12 @@ const LAST_PURGE_KEY = 'last_purge_at';
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 /** Live SMS are drained after this idle time, so a burst becomes one sync request. */
 const FLUSH_DEBOUNCE_MS = 2000;
+
+const telemetryUploader: TelemetryUploader = {
+  uploadDiagnostics: uploadDetectionDiagnostics,
+  uploadSkeletons: uploadMessageSkeletons,
+  errorCode: getApiErrorCode,
+};
 
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -105,6 +118,8 @@ export async function flushDetectedQueue(options: { resetBackoff?: boolean } = {
         await refreshPendingCount();
         await notifyDetectionSummary({ ...counts, reviewIds }, result.notificationPreference);
       }
+      // Diagnostics of finished days and opt-in shapes ride along with a working sync (T7.1, T7.4).
+      if (!failed) await uploadDetectionTelemetry(telemetryUploader, { templateLearning: config ? config.templateLearning === true : null });
     } else {
       store.dispatch(setSyncStatus({ status: 'idle' }));
     }
