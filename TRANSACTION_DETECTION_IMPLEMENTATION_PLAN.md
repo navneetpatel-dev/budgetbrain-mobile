@@ -189,6 +189,46 @@ The v1 engines are fast because they do very little, not because they're right (
 
 ---
 
+### Phase 1 status (2026-09-24)
+
+One PR per repo, all with CI green:
+
+| PR | Covers |
+|---|---|
+| [navneetpatel-dev/budgetbrain-detection-core#1](https://github.com/navneetpatel-dev/budgetbrain-detection-core/pull/1) | core v0.2.0: `scoreEvidence`, `minTier`, `isAllowedDirectionType`, `balanceSign`, `SyncItemPayload.receivedAt` |
+| [navneetpatel-dev/budgetbrain-backend#1](https://github.com/navneetpatel-dev/budgetbrain-backend/pull/1) | T1.1–T1.11, backend part of T1.16 |
+| [navneetpatel-dev/budgetbrain-mobile#2](https://github.com/navneetpatel-dev/budgetbrain-mobile/pull/2) | T1.12–T1.17 |
+| [navneetpatel-dev/budgetbrain-web#1](https://github.com/navneetpatel-dev/budgetbrain-web/pull/1) | refund/transfer display on web (so W5 doesn't regress) |
+
+**Merge order:** core (with a merge commit, so the pinned SHA stays reachable) → backend → mobile and web.
+
+| Task | Status | Notes |
+|---|---|---|
+| T1.1 | ✅ | Idempotent migration; tested on an existing and a fresh database |
+| T1.2 | ✅ | Money totals, category breakdown, budgets, alerts and reports are net of refunds. AI insights, anomalies, recap, streak and trends stay expense-only (still never inflated) |
+| T1.3 | ✅ | `createTransactionsBulk`: **10 queries per batch for 2 or 60 items** (asserted in a test) |
+| T1.4 | ✅ | Validation v2, plus: a bank can't count as verified without an `institutionId` |
+| T1.5 | ✅ | Server tier = `min(client, scoreEvidence(evidence))`; `users.detection_auto_add` is enforced by the server |
+| T1.6 | ✅ | `ON CONFLICT DO NOTHING`; 3 concurrent syncs of one message produce exactly 1 row (test) |
+| T1.7 | ✅ | Per-user limit, 60 requests/min. **Deviation:** the plan's 2,000-items/day cap isn't implemented yet |
+| T1.8 | ✅ | Reject guarded to pending items; `undo` restores the balance; `DELETE` = reject (the row is kept for dedup) |
+| T1.9 | ✅ | **Deviation:** reuses the existing normalized `merchant` key (lowercase/trim, as manual entries already store it) instead of adding a `merchant_key` column; the migration lowercases detection-written rules |
+| T1.10 | ✅ | DTO: decimal-string amount, flattened category/account names |
+| T1.11 | ✅ | One `COUNT … FILTER` query, cached for 30 s in Redis |
+| T1.12 | ✅ | Interim AsyncStorage queue (500 cap) until the T2.8 SQLite store |
+| T1.13 | ✅ | |
+| T1.14 | ✅ | |
+| T1.15 | ✅ | Tapping the card no longer confirms it; opening a detail view comes with the T5.1 edit sheet. One lint error remains in `AppLockGate.component.tsx`, which is also on `main` and unrelated |
+| T1.16 | ✅ | Env kill switches via `GET /detected-transactions/config` (at that path rather than `/detection/config`), checked per batch |
+| T1.17 | 🟡 | Display, filters and navigation done on mobile and web. **Still open:** creating a refund or transfer from the add-expense form, which needs a type/direction selector and a device pass |
+
+**Still open for Phase 1:**
+- The rest of T1.17 (the add-expense form).
+- The per-user daily item cap from T1.7.
+- A device/simulator pass for the review row and transaction row (this environment has no emulator).
+
+---
+
 ## 6. Phase 2 — Native access layer and background processing (mobile)
 
 | Task | Work | Closes | Acceptance criteria |
