@@ -18,6 +18,8 @@ This plan closes **every gap** in `TRANSACTION_DETECTION_GAP_ANALYSIS.md` (the "
 
 ## 1. Decisions to sign off before starting
 
+**Status: all eight signed off on 2026-09-24 as recommended (T0.1 done).**
+
 Each has a recommendation. The plan below assumes the recommendation; if you choose differently, only the listed tasks change.
 
 | # | Decision | Recommendation | Why | Affects |
@@ -126,6 +128,33 @@ These targets are **acceptance criteria** (verified in T9.2), not aspirations.
 | **T0.3** | core | **Golden corpus**: `corpus/<country>/<institution>/*.json` with `{sender, body, receivedAt, locale, expected}`, where every body is anonymized (fake names, digits and references). Seed it with all 13 sample messages from gap-doc §4, with their **correct** expected output, plus at least 200 messages across the top 30 Indian institutions and at least 20 per non-IN market before that market launches | CI runs the corpus; any regression fails the build |
 | **T0.4** | core | Knowledge-pack schema (JSON Schema): version, country, generatedAt, Ed25519 signature, and sections for institutions, senders, lexicons, templates, merchants, aliases, currencies, rails, taxonomy, MCC map, kill switches | Schema validated in CI; the sample pack signs and verifies |
 | **T0.5** | core + mobile + backend | Performance harness: a core micro-benchmark (Node + Hermes), an Android macrobenchmark script (Perfetto trace for a headless run), backend load test (k6/autocannon) for `/sync` | Baseline numbers recorded in this file |
+
+### Phase 0 status (2026-09-24)
+
+`budgetbrain-detection-core` v0.1.0 is built and committed locally (tag `v0.1.0`). **It isn't on GitHub yet:** this session's GitHub integration can't create repositories. Once an empty `navneetpatel-dev/budgetbrain-detection-core` exists, it gets pushed as-is.
+
+| Task | Status | Result |
+|---|---|---|
+| T0.1 | ✅ Done | Decisions signed off (§1) |
+| T0.2 | ✅ Done, not yet pushed | Package with ESM + CJS builds, strict TS, vitest (82 tests), eslint including `eslint-plugin-regexp` backtracking rules, CI on Node 20 and 22. Contains the shared types, money helpers (integer minor units, ISO 4217 minor-unit table) and fingerprint v2. **Verified to install and run in mobile (jest-expo), backend (CommonJS, TS 5.7, Node `require`) and web (TS 6)**, and the fingerprint test vector is identical on all three. Moving the mobile SMS services onto these types (A2) happens when mobile adopts the package in T1.13 / T2.1 |
+| T0.3 | 🟡 Framework done; corpus partly filled | Case format, validator, runner and regression baseline (`corpus/baseline.json`), plus `scripts/anonymize-message.ts` for converting real messages. **40 cases:** all 13 gap-doc §4 messages with corrected expectations, and 27 synthetic cases covering every reason code and behaviour (OTP footer, mandates, collect requests, multiple amounts, lakh grouping, Hindi, USD, reversal, cashback, ATM, card-bill legs, own-account transfers, email source). **Still open:** the plan's 200+ field messages across the top 30 Indian institutions need real messages from test devices, anonymized with the script; synthetic cases can't stand in for real bank formats |
+| T0.4 | ✅ Done | Pack types, JSON Schema (draft 2020-12), cross-reference validator (a test keeps it in step with the schema), canonical-JSON Ed25519 signing with key ids for rotation, and a signed sample India pack (6 institutions, 10 senders, 21 lexicons, 2 templates, 6 merchants, 11 aliases) using a public **test-only** key |
+| T0.5 | 🟡 Harness done; device and server runs pending | Core benchmark results below. The Perfetto trace (`perf/android/`) needs the native module from T2.1, and the k6 test (`perf/backend/sync-load.k6.js`) needs the rewritten `/sync` from T1.6; both get run and recorded at those tasks |
+
+**Deviation from D-2:** the package also uses `@noble/curves` (Ed25519, same audited author and no other dependencies) alongside `@noble/hashes`. Both are **bundled into the build**, so consumers install zero runtime dependencies and the CommonJS backend doesn't need `require(esm)`.
+
+**Baseline (Node 22, 4-core Xeon 2.1 GHz, 40 corpus messages):**
+
+| Benchmark | Mean | p95 | p99 |
+|---|---|---|---|
+| fingerprint v2 (SHA-256) | 8.9 µs | 12 µs | 33 µs |
+| parseDecimalToMinor | 0.5 µs | 0.7 µs | 0.9 µs |
+| pack canonicalJson (IN sample) | 0.20 ms | 0.43 ms | 0.74 ms |
+| pack validate (IN sample) | 0.05 ms | 0.07 ms | 0.46 ms |
+| pack verify signature + validate (IN sample) | 2.0 ms | 2.7 ms | 3.5 ms |
+| current mobile v1 engines, whole message | 15 µs | 29 µs | 56 µs |
+
+The v1 engines are fast because they do very little, not because they're right (gap doc §4). The Phase 3 parser's budget is p95 ≤ 1 ms/message in Node (T3.14) and ≤ 5 ms on a mid-range phone (§3.1). Pack verification runs once per downloaded pack, not per message.
 
 ---
 
