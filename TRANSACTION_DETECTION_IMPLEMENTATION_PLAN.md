@@ -349,9 +349,9 @@ All pure functions with no I/O. The pack is passed in precompiled form. Each tas
 
 | PR | Covers |
 |---|---|
-| core `claude/phase-4-packs` | v0.5.0: pack deltas, runtime and app-version kill switches |
-| backend `claude/phase-4-knowledge-base` | T4.1–T4.3, T4.6, T4.7 |
-| mobile `claude/ecstatic-carson-56kt0p` | T4.4, T4.5, and the mobile side of T4.6 |
+| [navneetpatel-dev/budgetbrain-detection-core#4](https://github.com/navneetpatel-dev/budgetbrain-detection-core/pull/4) | v0.5.0: pack deltas, runtime and app-version kill switches |
+| [navneetpatel-dev/budgetbrain-backend#4](https://github.com/navneetpatel-dev/budgetbrain-backend/pull/4) | T4.1–T4.3, T4.6, T4.7 |
+| [navneetpatel-dev/budgetbrain-mobile#5](https://github.com/navneetpatel-dev/budgetbrain-mobile/pull/5) | T4.4, T4.5, and the mobile side of T4.6 |
 
 **Merge order:** core (with a merge commit) → backend and mobile.
 
