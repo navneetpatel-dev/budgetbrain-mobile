@@ -512,6 +512,49 @@ All pure functions with no I/O. The pack is passed in precompiled form. Each tas
 
 ---
 
+### Phase 9 status (2026-09-24)
+
+| Task | Status | Notes |
+|---|---|---|
+| T9.1 | ✅ | Every repo's CI now runs lint, typecheck and tests on each PR (table below). The backend runs Postgres 16 and Redis 7 as GitHub Actions services and migrates before testing |
+| T9.2 | 🟡 Backend done, device pending | Backend measured (table below). The mobile budgets (§3.1) need a device: Perfetto trace of the headless run, a 24 h Battery Historian soak, and headless peak memory. Core's per-message budget is already checked in its CI (`bench:check`) |
+| T9.3 | ✅ Mechanism ready; rollout itself pending | `detection_rollout` per country, with a default row and stages internal (admins) → 5 % → 25 % → 100 %. A user's bucket is a stable hash, so raising the percentage only adds users. `/config` returns `enabled: false` outside the rollout, and the app says so and offers Paste or Import. Admin: a Staged rollout card on the Kill switches page; every change is audited (`kb.rollout_change`). No rows means everyone, as before |
+| T9.4 | ✅ | Log redaction on the backend's root logger. Invalid JSON gets a 400 and is not logged. Sentry scrubbing on the backend and mobile (web has no Sentry). Tests show no pasted text reaches any log line; the D1 unique index is tested. Typecheck runs in CI for every repo |
+
+**CI per repo (T9.1, T9.4 Q7)**
+
+| Repo | Lint | Typecheck | Tests | Other |
+|---|---|---|---|---|
+| core | ✅ | ✅ | ✅ unit + corpus | Hermes regex check, performance bench |
+| backend | ✅ | ✅ (build) | ✅ with Postgres and Redis | migrations applied from scratch |
+| mobile | ✅ (new) | ✅ | ✅ Jest (new) | Kotlin core on the JVM |
+| web | ✅ (new) | ✅ (new) | ✅ (new) | production build (new) |
+| admin | ✅ | ✅ (new) | ✅ (new) | production build |
+
+**Backend budgets (T9.2, §3.2)**, from `npm run perf:detection` against the test database: about 104,000 `detected_transactions`, Postgres 16, one local core.
+
+| Check | Result | Budget | Verdict |
+|---|---|---|---|
+| `/sync`, 100 items (service + DB), p50 / p95 over 30 batches | 39–46 ms / 89–293 ms (the highest p95 was the cold first run) | p95 ≤ 300 ms | ✅ |
+| `/sync` queries per batch | 10 (+1 audit row when something is created, T7.7) | ≤ 10 | ✅ with the documented audit row |
+| sync-state queries, cold / cached | 1 / 0 | 1 / 0 | ✅ |
+| Knowledge-pack response queries | 0 | 0 | ✅ |
+| Admin dashboard | 6 queries, 6 ms: five rollup-table queries plus one single-row read of the rollup state (adoption) | ≤ 5 indexed | ⚠️ Documented exception: the sixth is a primary-key read of one row |
+| Review inbox page | Index scan on the partial pending index, 0.07 ms | — | ✅ |
+| Detected history, sync state, hourly rollup | Index scans (`user_date`, `updated_at`), all under 2 ms | — | ✅ |
+| Skeleton queue | Index-only scan on the new partial index `(skeleton_hash, user_hash) WHERE status = 'new'` once the table is large | — | ✅ |
+
+**Go / no-go checklist, per country and per step (T9.3)**
+
+1. The previous stage has run at least 7 days.
+2. On the admin Overview, for that country, the correction rate (rejected + undone) is within 2 points of the previous stage, and the undo rate is under 3 %.
+3. No new `server_rejected` or `PARSE_FAILED` spike for an institution in the device diagnostics. If there is one, add a kill switch for that institution or template first.
+4. Error rates and `/sync` p95 are unchanged in monitoring. Nothing in Sentry mentions message text (scrubbing is on).
+5. Support has no open detection-data incident.
+6. Take the step with **Next** on the Staged rollout card. It is audited. Stepping back is the same control.
+
+**Still open for Phase 9:** the device measurements in T9.2, and running the rollout.
+
 ## 13. Traceability matrix (every gap → task)
 
 ### Blockers
