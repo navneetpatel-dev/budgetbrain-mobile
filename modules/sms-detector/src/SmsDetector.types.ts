@@ -33,6 +33,13 @@ export interface SenderFilter {
   headers: string[];
   /** Uppercase substrings of a header, e.g. `HDFC`. */
   keywords: string[];
+  /**
+   * Multi-word institution names (`HDFC BANK`). With a money token, an unknown business header
+   * whose body names one is kept too; core then caps it below the high tier (plan T3.2).
+   */
+  bodyNames?: string[];
+  /** 4-letter IFSC prefixes (`HDFC`); an IFSC code in the body counts like a name. */
+  ifscPrefixes?: string[];
 }
 
 export type SmsDetectorEvents = {

@@ -44,6 +44,27 @@ class SenderFilterTest {
     assertTrue(SenderFilter.deserialize(null).isEmpty)
   }
 
+  @Test fun keepsAnUnknownBusinessHeaderThatNamesABank() {
+    val content = SenderFilter(listOf("HDFCBK"), emptyList(), listOf("HDFC Bank", "Axis Bank", "SBI"), listOf("HDFC", "hdf"))
+    val debit = "Rs.1,250.00 debited from your HDFC Bank a/c **1234"
+    assertTrue(content.accepts("VM-NEWHDR", debit))
+    assertTrue(content.accepts("AX-XYZPAY", "INR 500 sent to HDFC0001234 via NEFT"))
+    // Whole words only, a money token still required, and never from a phone number.
+    assertFalse(content.accepts("VM-NEWHDR", "Rs 500 at XHDFC BANKS store"))
+    assertFalse(content.accepts("VM-NEWHDR", "Visit your HDFC Bank branch today"))
+    assertFalse(content.accepts("+919876543210", debit))
+    assertFalse(content.accepts("98765 43210", debit))
+    // One-word names and malformed prefixes are not kept: too broad for a pre-filter.
+    assertFalse(content.accepts("VM-NEWHDR", "Rs 500 paid, SBI"))
+    assertFalse(content.accepts("VM-NEWHDR", "Rs 500 to HDF00001234"))
+    // The pre-filter without names behaves as before.
+    assertFalse(filter.accepts("VM-NEWHDR", debit))
+    val restored = SenderFilter.deserialize(content.serialize())
+    assertTrue(restored.accepts("VM-NEWHDR", debit))
+    assertTrue(restored.accepts("AX-XYZPAY", "INR 500 sent to HDFC0001234 via NEFT"))
+    assertFalse(SenderFilter(emptyList(), emptyList(), listOf("AXIS BANK"), emptyList()).isEmpty)
+  }
+
   @Test fun keepsNothingUntilThePackSendersArrive() {
     assertTrue(SenderFilter.EMPTY.isEmpty)
     assertFalse(SenderFilter.EMPTY.accepts("VM-HDFCBK", "Rs 100 debited"))

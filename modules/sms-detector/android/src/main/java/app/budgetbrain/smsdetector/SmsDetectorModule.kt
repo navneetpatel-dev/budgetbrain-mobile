@@ -18,6 +18,8 @@ import java.lang.ref.WeakReference
 class SenderFilterRecord : Record {
   @Field val headers: List<String> = emptyList()
   @Field val keywords: List<String> = emptyList()
+  @Field val bodyNames: List<String> = emptyList()
+  @Field val ifscPrefixes: List<String> = emptyList()
 }
 
 class NotificationFilterRecord : Record {
@@ -63,7 +65,7 @@ class SmsDetectorModule : Module() {
     }
 
     AsyncFunction("setSenderFilter") { filter: SenderFilterRecord ->
-      val next = SenderFilter(filter.headers, filter.keywords)
+      val next = SenderFilter(filter.headers, filter.keywords, filter.bodyNames, filter.ifscPrefixes)
       if (!next.isEmpty) DetectorPrefs(context).setSenderFilter(next)
     }
 
