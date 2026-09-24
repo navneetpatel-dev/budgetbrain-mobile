@@ -6,6 +6,7 @@ import {
   merchantKey,
   processMessage,
   type DetectedCandidate,
+  type RecentTransaction,
   type UserContext,
 } from '@budgetbrain/detection-core';
 import type {
@@ -16,6 +17,7 @@ import type {
   SyncItemPayload,
 } from '../types/transactionDetection.types';
 import { ensureActivePack, getCompiledPack } from './detectionPack.service';
+import { loadRecentDigest } from './recentDigest.service';
 import { queueSkeletons, saveProcessed, type PipelineOutcome, type QueuedSkeleton } from './store/detectionStore.service';
 
 /**
@@ -45,7 +47,11 @@ function appVersion(): string | undefined {
 }
 
 /** Core user context from the app's detection settings and the server config. */
-export function toUserContext(context: DetectionContext & { userId: string }, config: DetectionConfig | null = null): UserContext {
+export function toUserContext(
+  context: DetectionContext & { userId: string },
+  config: DetectionConfig | null = null,
+  recentTransactions: readonly RecentTransaction[] = []
+): UserContext {
   const merchantRules: Record<string, { categoryId: string }> = {};
   for (const rule of Object.values(context.learnedRules)) {
     const key = merchantKey(rule.merchant);
@@ -59,6 +65,8 @@ export function toUserContext(context: DetectionContext & { userId: string }, co
     simSlot: context.selectedSimSlot === 'all' ? null : Number(context.selectedSimSlot),
     ownAccountTails: context.ownAccountTails ?? [],
     ownVpas: context.ownVpas ?? [],
+    // Manual look-alikes go to review; refunds and transfer legs pair with what's there (T3.7, T3.12).
+    recentTransactions,
     // Server kill switches apply on top of the pack's own (plan T4.6).
     killSwitches: config?.killSwitches ?? [],
     appVersion: appVersion(),
@@ -103,13 +111,14 @@ export function evaluateMessage(
   message: RawIncomingMessage,
   context: DetectionContext,
   availableCategories: DetectionCategory[] = [],
-  config: DetectionConfig | null = null
+  config: DetectionConfig | null = null,
+  recent: readonly RecentTransaction[] = []
 ): MessageEvaluation {
   const userId = context.userId;
   if (!userId || !context.isAutoTrackingEnabled) {
     return { ok: false, outcome: { state: 'INELIGIBLE', reason: 'kill_switch', institutionId: null }, learnShape: false };
   }
-  const result = processMessage(message, getCompiledPack(), toUserContext({ ...context, userId }, config));
+  const result = processMessage(message, getCompiledPack(), toUserContext({ ...context, userId }, config, recent));
   if (result.candidate && result.terminal !== 'IGNORED') {
     return {
       ok: true,
@@ -147,7 +156,13 @@ export function skeletonFor(message: RawIncomingMessage): QueuedSkeleton | null 
 export async function processMessages(
   messages: RawIncomingMessage[],
   context: DetectionContext,
-  options: { categories?: DetectionCategory[]; config?: DetectionConfig | null; now?: number } = {}
+  options: {
+    categories?: DetectionCategory[];
+    config?: DetectionConfig | null;
+    now?: number;
+    /** Defaults to the stored digest of this user's recent transactions. */
+    recent?: readonly RecentTransaction[];
+  } = {}
 ): Promise<SyncItemPayload[]> {
   const userId = context.userId;
   if (!userId || !context.isAutoTrackingEnabled || messages.length === 0) return [];
@@ -162,9 +177,10 @@ export async function processMessages(
   if (options.config && !options.config.enabled) {
     for (let i = 0; i < messages.length; i += 1) outcomes.push({ state: 'INELIGIBLE', reason: 'kill_switch', institutionId: null });
   } else {
+    const recent = options.recent ?? (await loadRecentDigest(userId, options.now));
     for (const message of messages) {
       try {
-        const result = evaluateMessage(message, context, options.categories, options.config ?? null);
+        const result = evaluateMessage(message, context, options.categories, options.config ?? null, recent);
         if (result.ok) payloads.push(result.payload);
         else outcomes.push(result.outcome);
         if (learn && (result.ok || result.learnShape)) {
