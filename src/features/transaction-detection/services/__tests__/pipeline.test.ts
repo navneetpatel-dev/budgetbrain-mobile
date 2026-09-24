@@ -80,18 +80,26 @@ describe('evaluateMessage', () => {
     expect(JSON.stringify(payloadOf(sms(DEBIT)))).not.toContain('Avl Bal');
   });
 
-  it('marks unknown senders as unverified, so they can only reach review', () => {
-    const result = evaluateMessage(sms(DEBIT, 'VM-ABCDEF'), context());
-    if (result.ok) {
-      expect(result.payload.evidence.institutionVerified).toBe(false);
-      expect(result.payload.confidenceTier).not.toBe('high');
-    }
+  it('ignores senders that are not in the knowledge pack (gap E2, E5)', () => {
+    expect(reasonOf(sms(DEBIT, 'VM-ABCDEF'))).toMatchObject({ state: 'INELIGIBLE', reason: 'unknown_sender' });
   });
 
-  it('drops messages with several amounts instead of guessing, with a reason code', () => {
-    expect(reasonOf(sms('Rs 500 and Rs 300 debited from a/c XX1234 on 23-09-26'))).toMatchObject({
-      state: 'PARSE_FAILED',
-    });
+  it('sends several amounts to review at low confidence instead of guessing', () => {
+    const payload = payloadOf(sms('Rs 500 and Rs 300 debited from a/c XX1234 on 23-09-26'));
+    expect(payload.confidenceTier).toBe('low');
+    expect(payload.evidence.amountRoleUnique).toBe(false);
+  });
+
+  it('maps the knowledge-base taxonomy to the user category of the same name', () => {
+    const payload = payloadOf(sms(DEBIT), context());
+    expect(payload).toMatchObject({ merchantId: 'm.swiggy', taxonomyCode: 'FOOD_AND_DRINK.RESTAURANT', categoryId: null });
+    const result = evaluateMessage(sms(DEBIT), context(), [{ id: 'cat-food', name: 'Food' }]);
+    expect(result.ok && result.payload.categoryId).toBe('cat-food');
+  });
+
+  it('applies learned merchant rules by the normalized merchant key', () => {
+    const learned = { swiggy: { merchant: 'Swiggy', categoryId: 'cat-takeaway', updatedAt: '2026-09-01T00:00:00Z' } };
+    expect(payloadOf(sms(DEBIT), context({ learnedRules: learned }))).toMatchObject({ categoryId: 'cat-takeaway', categorySource: 'rule' });
   });
 
   it('gives every rejection a state and a reason code (T2.10)', () => {
