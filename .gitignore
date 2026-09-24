@@ -49,3 +49,8 @@ yarn-error.*
 
 # Test / coverage
 coverage/
+
+# SMS detector JVM test build
+modules/sms-detector/jvm-test/.gradle/
+modules/sms-detector/jvm-test/.kotlin/
+modules/sms-detector/jvm-test/build/

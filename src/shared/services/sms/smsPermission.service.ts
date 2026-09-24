@@ -1,9 +1,14 @@
 import { PermissionsAndroid, Platform, Linking } from 'react-native';
+import { isSmsDetectorAvailable } from './smsDetector.service';
 
 export type PermissionCheckResult = 'granted' | 'denied' | 'blocked' | 'unsupported';
 
+/**
+ * 'unsupported' off Android, in Expo Go (no native detector) and in the noSms build variant,
+ * so the settings screen explains instead of asking for a permission the build can't hold.
+ */
 export async function checkSmsPermissions(): Promise<PermissionCheckResult> {
-  if (Platform.OS !== 'android') {
+  if (Platform.OS !== 'android' || !isSmsDetectorAvailable()) {
     return 'unsupported';
   }
 
@@ -25,7 +30,7 @@ export async function checkSmsPermissions(): Promise<PermissionCheckResult> {
 }
 
 export async function requestSmsPermissions(): Promise<PermissionCheckResult> {
-  if (Platform.OS !== 'android') {
+  if (Platform.OS !== 'android' || !isSmsDetectorAvailable()) {
     return 'unsupported';
   }
 

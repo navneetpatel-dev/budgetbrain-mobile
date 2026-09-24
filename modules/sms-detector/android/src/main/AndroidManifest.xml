@@ -1,0 +1,3 @@
+<!-- The SMS receiver and permissions are added by plugins/withSmsDetector.js, so the noSms
+     build variant (plan T2.11) ships none of them. -->
+<manifest />

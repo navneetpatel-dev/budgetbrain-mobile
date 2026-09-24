@@ -8,6 +8,7 @@ export type { NativeSmsCandidate, ScanInboxOptions, SenderFilter } from './src/S
  * where the native module isn't linked (iOS, web, Expo Go, tests).
  */
 declare class SmsDetectorModule extends NativeModule<SmsDetectorEvents> {
+  isSmsSupported(): boolean;
   setEnabled(enabled: boolean): Promise<void>;
   setSenderFilter(filter: SenderFilter): Promise<void>;
   drainQueue(limit: number): Promise<NativeSmsCandidate[]>;
@@ -19,8 +20,14 @@ declare class SmsDetectorModule extends NativeModule<SmsDetectorEvents> {
 
 const native = requireOptionalNativeModule<SmsDetectorModule>('SmsDetector');
 
+/** True when the native module is linked and this build declares the SMS permissions. */
 export function isSmsDetectorAvailable(): boolean {
-  return native !== null;
+  if (!native) return false;
+  try {
+    return native.isSmsSupported();
+  } catch {
+    return false;
+  }
 }
 
 /** Turns the receiver and the periodic catch-up on or off. Off also clears the native queue. */

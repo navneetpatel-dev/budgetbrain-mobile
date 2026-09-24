@@ -1,0 +1,20 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'app.budgetbrain'
+version = '0.1.0'
+
+android {
+  namespace "app.budgetbrain.smsdetector"
+  defaultConfig {
+    versionCode 1
+    versionName '0.1.0'
+  }
+}
+
+dependencies {
+  implementation "androidx.work:work-runtime-ktx:2.10.1"
+  testImplementation "junit:junit:4.13.2"
+}

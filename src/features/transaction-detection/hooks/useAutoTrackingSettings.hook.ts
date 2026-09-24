@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Alert } from 'react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '@/shared/store';
@@ -54,6 +55,11 @@ export function useAutoTrackingSettings() {
     queryClient.setQueryData(PERMISSION_KEY, currentStatus);
     if (currentStatus === 'granted') {
       dispatch(setAutoTrackingEnabled(true));
+      return;
+    }
+    if (currentStatus === 'unsupported') {
+      // iOS, Expo Go, or the noSms build (plan T2.11): there is no permission to ask for.
+      Alert.alert('Not available', "Automatic SMS tracking isn't available in this version of the app. You can still add transactions manually.");
       return;
     }
     // Explain before asking for the system permission (spec §23).
