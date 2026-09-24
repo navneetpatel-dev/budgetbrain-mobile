@@ -344,6 +344,29 @@ All pure functions with no I/O. The pack is passed in precompiled form. Each tas
 | **T4.6** | backend + core | Kill switches in the pack and `/detection/config`: per institution, template, country, pack version and app version; core respects them (`IGNORED`, `kill_switch`) | AD3 | Flipping a switch stops auto-create within one config refresh |
 | **T4.7** | backend | Optional merchant-enrichment adapter interface (Plaid Enrich / Ntropy / …), **disabled by default** (D-7), server-side only, sends only the normalized merchant string, results cached in `kb_merchant_aliases` as `source='enrichment'` | §6.5 | Off by default; no request leaves the server when disabled |
 
+
+### Phase 4 status (2026-09-24)
+
+| PR | Covers |
+|---|---|
+| [navneetpatel-dev/budgetbrain-detection-core#4](https://github.com/navneetpatel-dev/budgetbrain-detection-core/pull/4) | v0.5.0: pack deltas, runtime and app-version kill switches |
+| [navneetpatel-dev/budgetbrain-backend#4](https://github.com/navneetpatel-dev/budgetbrain-backend/pull/4) | T4.1–T4.3, T4.6, T4.7 |
+| [navneetpatel-dev/budgetbrain-mobile#5](https://github.com/navneetpatel-dev/budgetbrain-mobile/pull/5) | T4.4, T4.5, and the mobile side of T4.6 |
+
+**Merge order:** core (with a merge commit) → backend and mobile.
+
+| Task | Status | Notes |
+|---|---|---|
+| T4.1 | ✅ | One migration, 13 `kb_*` tables. Every catalog row has `status` (draft → review → published), `version` and `source`. Indexes per §3.3, with the `pg_trgm` alias index optional where the database refuses the extension. Tested down → up → up. **Deviation:** a raw-SQL repository (one bulk `jsonb_to_recordset` upsert per table) instead of 13 Sequelize models |
+| T4.2 | 🟡 | Idempotent importers recorded in `kb_import_runs` with source, licence and fetch time: `seed-pack` (core's India baseline), `iso4217`, `csv-institutions`, `csv-merchants`, `csv-mcc`. A re-run creates no duplicates and bumps `version` only for rows that changed. Coverage report per country (`npm run kb -- coverage`). **Still open:** the fetch-and-convert step for each public source (RBI, IFSC, NPCI, DLT, GLEIF, FDIC, NCUA, FCA, ECB, BCB, NSI/Wikidata); their URLs and licences are listed in `KB_SOURCES` and each feeds one of the CSV importers |
+| T4.3 | ✅ | Builds from published rows, signs with `PACK_SIGNING_KEY`, stores in S3 (gzip, `Content-Encoding`) or local `uploads/`. No new version when content is unchanged. Deltas from the last five versions, verified on the client with the full target signature. `GET /detected-transactions/knowledge-pack?country=&since=` answers from a Redis manifest (0 DB queries, tested), with ETag and 304. Nightly BullMQ build at 03:30 and `npm run kb -- build`. **Deviations:** gzip instead of brotli (the phones' HTTP stacks decode gzip natively); no separate `senders` file, because the app builds the native filter from the pack |
+| T4.4 | ✅ | `packManager.service`: checks at most daily, on Wi-Fi/unmetered networks or while charging. Asks with its ETag and version, applies a delta when offered, and verifies every download against `EXPO_PUBLIC_PACK_PUBLIC_KEYS`. Writes a versioned file, switches the SQLite pointer, then deletes the old file. A tampered download is rejected and the last good pack stays active (tested). The headless drain loads the stored pack too. The new pack's senders go to the native filter |
+| T4.5 | ✅ | The Kotlin default sender list is gone: the native filter keeps nothing until the app sends the pack's senders. No bank or merchant lists remain in app code |
+| T4.6 | ✅ | `kb_kill_switches`, included in the pack and in `/detected-transactions/config` (cached 60 s). Core applies them on top of the pack's, including `app_version` semver ranges. Mobile passes the config switches and its app version to core |
+| T4.7 | ✅ | `MerchantEnrichmentProvider` interface and registry. `MERCHANT_ENRICHMENT_PROVIDER=none` by default, and a test shows no request is made. Results would be queued as `review` aliases with `source = 'enrichment'` |
+
+**Still open for Phase 4:** the per-source fetchers (T4.2) and a device check of the download path.
+
 ---
 
 ## 9. Phase 5 — Learning, review and correction UX (mobile)

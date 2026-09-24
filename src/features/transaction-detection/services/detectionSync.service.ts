@@ -9,7 +9,8 @@ import {
   setSmsSenderFilter,
 } from '@/shared/services/sms/smsDetector.service';
 import { fetchCategoriesForDetection, fetchSyncState } from '../api/detectedTransactions.api';
-import { nativeSenderFilter } from './detectionPack.service';
+import { ensureActivePack, nativeSenderFilter } from './detectionPack.service';
+import { updateKnowledgePack } from './packManager.service';
 import type { SyncFlushSummary, SyncItemPayload } from '../types/transactionDetection.types';
 import { getDetectionConfig } from './detectionConfig.service';
 import { contextFromState, saveDetectionCategories, saveDetectionContext } from './detectionContext.service';
@@ -54,7 +55,10 @@ export function cancelScheduledFlush() {
 export async function prepareForegroundDetection(): Promise<void> {
   await migrateLegacyDetectionState().catch(() => {});
   await persistDetectionContext().catch(() => {});
+  await ensureActivePack();
   await setSmsSenderFilter(nativeSenderFilter()).catch(() => {});
+  // Daily, on Wi-Fi or while charging; a new pack also updates the native sender filter.
+  void updateKnowledgePack({ onActivated: () => setSmsSenderFilter(nativeSenderFilter()).catch(() => {}) });
   // Fresh install: catch-up starts now; older messages come only from the inbox scan the user chooses.
   await initSmsWatermark(Date.now()).catch(() => {});
   await scheduleSmsCatchUp().catch(() => {});

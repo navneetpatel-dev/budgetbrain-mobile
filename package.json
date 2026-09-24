@@ -3,7 +3,7 @@
   "main": "index.ts",
   "version": "1.0.0",
   "dependencies": {
-    "@budgetbrain/detection-core": "github:navneetpatel-dev/budgetbrain-detection-core#0a61f4f5a2df0730787c18eef6965e2178b5f2b5",
+    "@budgetbrain/detection-core": "github:navneetpatel-dev/budgetbrain-detection-core#2026b7906527a04e36ac3cdf76f8a530b9a3f29b",
     "@expo-google-fonts/fraunces": "^0.4.1",
     "@expo-google-fonts/inter": "^0.4.2",
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -21,6 +21,7 @@
     "expo-apple-authentication": "~56.0.4",
     "expo-asset": "~56.0.21",
     "expo-auth-session": "~56.0.16",
+    "expo-battery": "~56.0.4",
     "expo-constants": "~56.0.18",
     "expo-device": "~56.0.4",
     "expo-document-picker": "~56.0.4",
