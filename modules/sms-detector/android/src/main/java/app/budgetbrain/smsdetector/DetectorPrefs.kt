@@ -17,7 +17,7 @@ internal class DetectorPrefs(context: Context) {
   fun senderFilter(): SenderFilter {
     cachedFilter?.let { return it }
     val stored = prefs.getString(KEY_FILTER, null)
-    val filter = if (stored.isNullOrEmpty()) SenderFilter.DEFAULT else SenderFilter.deserialize(stored)
+    val filter = if (stored.isNullOrEmpty()) SenderFilter.EMPTY else SenderFilter.deserialize(stored)
     cachedFilter = filter
     return filter
   }

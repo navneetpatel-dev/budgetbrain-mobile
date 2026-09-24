@@ -44,8 +44,8 @@ class SenderFilterTest {
     assertTrue(SenderFilter.deserialize(null).isEmpty)
   }
 
-  @Test fun defaultCoversTheMappedBanks() {
-    assertTrue(SenderFilter.DEFAULT.matchesSender("VM-SBIINB"))
-    assertFalse(SenderFilter.DEFAULT.matchesSender("VM-AMAZON"))
+  @Test fun keepsNothingUntilThePackSendersArrive() {
+    assertTrue(SenderFilter.EMPTY.isEmpty)
+    assertFalse(SenderFilter.EMPTY.accepts("VM-HDFCBK", "Rs 100 debited"))
   }
 }

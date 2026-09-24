@@ -116,6 +116,7 @@ The mobile app only reads these runtime keys. `build.base.env` already has every
 | `EXPO_PUBLIC_GOOGLE_CLIENT_ID` | Google Sign-In — must be the **Web** client ID the backend verifies |
 | `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Same Web client (native `webClientId`) |
 | `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID` | Android OAuth client (package + SHA-1 in Cloud Console) |
+| `EXPO_PUBLIC_PACK_PUBLIC_KEYS` | Knowledge-pack updates for SMS detection: `{"<key id>":"<base64 public key>"}` for the server's `PACK_KEY_ID` (backend `DEPLOY.md` §6a). Without it the app keeps its built-in India pack and downloads nothing |
 
 Leave these out until you actually have values — empty keys disable the feature, they do not break the app:
 

@@ -55,10 +55,11 @@ class SenderFilter(headers: Collection<String>, keywords: Collection<String>) {
       return SenderFilter(headers, keywords)
     }
 
-    /** Used until JS sends the filter: the eight headers this app version maps to banks. */
-    val DEFAULT = SenderFilter(
-      listOf("HDFCBK", "ICICIB", "SBIINB", "SBIPSG", "CBSSBI", "AXISBK", "KOTAKB", "PAYTMB"),
-      emptyList()
-    )
+    /**
+     * Until JS hands over the knowledge pack's senders (plan T4.5), nothing is kept: bank lists
+     * live only in the pack, never in the app. Detection starts from the app, which sends the
+     * filter before it turns the receiver on.
+     */
+    val EMPTY = SenderFilter(emptyList(), emptyList())
   }
 }

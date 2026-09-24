@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import {
   categoryForTaxonomy,
   formatMinorToDecimal,
@@ -13,7 +14,7 @@ import type {
   RawIncomingMessage,
   SyncItemPayload,
 } from '../types/transactionDetection.types';
-import { getCompiledPack } from './detectionPack.service';
+import { ensureActivePack, getCompiledPack } from './detectionPack.service';
 import { saveProcessed, type PipelineOutcome } from './store/detectionStore.service';
 
 /**
@@ -32,8 +33,12 @@ const CATEGORY_SOURCE: Record<NonNullable<DetectedCandidate['categorySource']>, 
   fallback: 'fallback',
 };
 
-/** Core user context from the app's detection settings. */
-export function toUserContext(context: DetectionContext & { userId: string }): UserContext {
+function appVersion(): string | undefined {
+  return Constants.expoConfig?.version ?? undefined;
+}
+
+/** Core user context from the app's detection settings and the server config. */
+export function toUserContext(context: DetectionContext & { userId: string }, config: DetectionConfig | null = null): UserContext {
   const merchantRules: Record<string, { categoryId: string }> = {};
   for (const rule of Object.values(context.learnedRules)) {
     const key = merchantKey(rule.merchant);
@@ -45,6 +50,9 @@ export function toUserContext(context: DetectionContext & { userId: string }): U
     excludedMerchants: context.excludedMerchants.map(merchantKey).filter(Boolean),
     excludedAccountTails: context.excludedAccountTails,
     simSlot: context.selectedSimSlot === 'all' ? null : Number(context.selectedSimSlot),
+    // Server kill switches apply on top of the pack's own (plan T4.6).
+    killSwitches: config?.killSwitches ?? [],
+    appVersion: appVersion(),
   };
 }
 
@@ -85,13 +93,14 @@ function toPayload(candidate: DetectedCandidate, categories: DetectionCategory[]
 export function evaluateMessage(
   message: RawIncomingMessage,
   context: DetectionContext,
-  availableCategories: DetectionCategory[] = []
+  availableCategories: DetectionCategory[] = [],
+  config: DetectionConfig | null = null
 ): MessageEvaluation {
   const userId = context.userId;
   if (!userId || !context.isAutoTrackingEnabled) {
     return { ok: false, outcome: { state: 'INELIGIBLE', reason: 'kill_switch', institutionId: null } };
   }
-  const result = processMessage(message, getCompiledPack(), toUserContext({ ...context, userId }));
+  const result = processMessage(message, getCompiledPack(), toUserContext({ ...context, userId }, config));
   if (result.candidate && result.terminal !== 'IGNORED') {
     return { ok: true, payload: toPayload(result.candidate, availableCategories) };
   }
@@ -111,6 +120,7 @@ export async function processMessages(
   const userId = context.userId;
   if (!userId || !context.isAutoTrackingEnabled || messages.length === 0) return [];
 
+  await ensureActivePack();
   const payloads: SyncItemPayload[] = [];
   const outcomes: PipelineOutcome[] = [];
   if (options.config && !options.config.enabled) {
@@ -118,7 +128,7 @@ export async function processMessages(
   } else {
     for (const message of messages) {
       try {
-        const result = evaluateMessage(message, context, options.categories);
+        const result = evaluateMessage(message, context, options.categories, options.config ?? null);
         if (result.ok) payloads.push(result.payload);
         else outcomes.push(result.outcome);
       } catch {

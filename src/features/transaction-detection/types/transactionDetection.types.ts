@@ -3,6 +3,7 @@ import type {
   Direction,
   MessageSource,
   NormalizedMessage,
+  PackKillSwitch,
   SyncItemPayload,
   SyncItemResult,
   TransactionType,
@@ -76,6 +77,18 @@ export interface DetectionConfig {
   autoCreateEnabled: boolean;
   minAppVersion: string | null;
   autoAddHighConfidence: boolean;
+  /** Per institution, template, country, pack and app version (plan T4.6); core applies them. */
+  killSwitches?: PackKillSwitch[];
+}
+
+/** `GET /detected-transactions/knowledge-pack` (plan T4.3). */
+export interface KnowledgePackInfo {
+  country: string;
+  version: number;
+  etag: string;
+  url: string;
+  bytes: number;
+  delta: { baseVersion: number; url: string; bytes: number } | null;
 }
 
 /** Totals from one flush of the sync queue. */
