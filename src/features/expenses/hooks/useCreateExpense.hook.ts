@@ -12,6 +12,7 @@ import { queuePendingReceiptUpload, ReceiptTooLargeError } from '@/shared/servic
 import { trackEvent } from '@/shared/services/analytics';
 import type { Transaction } from '@/shared/types';
 import type { CreateExpenseResult, ExpenseForm, Receipt } from '@/features/expenses/types/expenses.types';
+import { buildExpensePayload } from '@/features/expenses/utils/expensePayload';
 
 /**
  * Queues a receipt for upload once its offline-created expense syncs. The expense itself
@@ -45,20 +46,11 @@ export function useCreateExpense() {
 
   const create = async (data: ExpenseForm, receipt?: Receipt | null): Promise<CreateExpenseResult> => {
     setSubmitError(null);
-    if (!data.categoryId) {
+    const built = buildExpensePayload(data);
+    if (!built.ok) {
       return { ok: false, error: 'validation' };
     }
-
-    const payload = {
-      type: 'expense' as const,
-      amount: Number(data.amount),
-      merchant: data.merchant || undefined,
-      notes: data.notes || undefined,
-      categoryId: data.categoryId,
-      paymentMethod: data.paymentMethod,
-      date: data.date,
-      tags: data.tags?.length ? data.tags : undefined,
-    };
+    const payload = built.payload;
 
     setLoading(true);
     try {
@@ -80,7 +72,7 @@ export function useCreateExpense() {
         await uploadReceipt(transaction.id, receipt.uri, receipt.name, receipt.type);
       }
 
-      trackEvent('expense_created', { amount: payload.amount, hasReceipt: !!receipt });
+      trackEvent('expense_created', { amount: payload.amount, hasReceipt: !!receipt, kind: payload.type });
       invalidateMoneyQueries(queryClient);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setJustSaved(true);

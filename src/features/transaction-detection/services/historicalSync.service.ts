@@ -1,22 +1,33 @@
-import { queryHistoricalSms } from '@/shared/services/sms/smsReader.service';
-import type { HistoricalSyncProgress, SyncFlushSummary } from '../types/transactionDetection.types';
-import { processAndQueueMessages } from './transactionPipeline.service';
-import { flushDetectedQueue } from './syncQueue.service';
+import { store } from '@/shared/store';
+import { scanSmsInbox, toNormalizedMessage } from '@/shared/services/sms/smsDetector.service';
+import type { DetectionCategory, HistoricalSyncProgress, SyncFlushSummary } from '../types/transactionDetection.types';
+import { contextFromState } from './detectionContext.service';
+import { getDetectionConfig } from './detectionConfig.service';
+import { processMessages } from './transactionPipeline.service';
+import { flushDetectedQueue } from './detectionSync.service';
+import { apiTransport } from './transport/apiTransport';
 
-const CHUNK_SIZE = 25;
+const CHUNK_SIZE = 50;
+const MAX_MESSAGES = 1000;
 
 /**
- * Scans the inbox for the chosen window, queues what the pipeline accepts, then sends it in
- * batches of at most 100 (the server's limit, gap S3) and reports the server's real counts.
+ * Scans the inbox for the chosen window (sender pre-filter runs natively), stores what the
+ * pipeline accepts in chunks of 50, then sends it in batches of at most 100 (gap S3) and reports
+ * the server's real counts. Messages already stored are dropped by their fingerprint.
  */
 export async function runHistoricalInboxScan(
   scanDays: number,
-  availableCategories: { id: string; name: string }[] = [],
+  availableCategories: DetectionCategory[] = [],
   onProgress?: (progress: HistoricalSyncProgress) => void
 ): Promise<SyncFlushSummary | null> {
-  const cutoffTimestamp = Date.now() - scanDays * 24 * 60 * 60 * 1000;
-  const messages = await queryHistoricalSms({ minDateTimestamp: cutoffTimestamp, maxCount: 300 });
-  const total = messages.length;
+  const context = contextFromState(store.getState());
+  const simSlot = context.selectedSimSlot === 'all' ? null : Number(context.selectedSimSlot);
+  const candidates = await scanSmsInbox({
+    sinceMs: Date.now() - scanDays * 24 * 60 * 60 * 1000,
+    limit: MAX_MESSAGES,
+    simSlot,
+  });
+  const total = candidates.length;
   let queued = 0;
 
   if (total === 0) {
@@ -24,8 +35,10 @@ export async function runHistoricalInboxScan(
     return null;
   }
 
+  const config = await getDetectionConfig(apiTransport);
   for (let i = 0; i < total; i += CHUNK_SIZE) {
-    queued += await processAndQueueMessages(messages.slice(i, i + CHUNK_SIZE), availableCategories, { flush: 'none' });
+    const chunk = candidates.slice(i, i + CHUNK_SIZE).map(toNormalizedMessage);
+    queued += (await processMessages(chunk, context, { categories: availableCategories, config })).length;
     onProgress?.({
       isScanning: true,
       totalMessages: total,
@@ -36,7 +49,7 @@ export async function runHistoricalInboxScan(
     await new Promise((resolve) => setTimeout(resolve, 0));
   }
 
-  const summary = await flushDetectedQueue();
+  const summary = await flushDetectedQueue({ resetBackoff: true });
   onProgress?.({ isScanning: false, totalMessages: total, processedCount: total, queuedCount: queued, summary });
   return summary;
 }

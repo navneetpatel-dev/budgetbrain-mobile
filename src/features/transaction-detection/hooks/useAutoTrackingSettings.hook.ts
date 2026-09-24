@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Alert } from 'react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '@/shared/store';
@@ -20,6 +21,7 @@ import {
 } from '@/shared/services/sms/smsPermission.service';
 import { updateDetectionSettings } from '../api/detectedTransactions.api';
 import { getDetectionConfig, setCachedDetectionConfig } from '../services/detectionConfig.service';
+import { apiTransport } from '../services/transport/apiTransport';
 
 const PERMISSION_KEY = ['sms-permission'] as const;
 const CONFIG_KEY = ['detected-transactions', 'config'] as const;
@@ -35,11 +37,11 @@ export function useAutoTrackingSettings() {
   const permissionStatus: PermissionCheckResult = permission.data ?? 'unsupported';
 
   // Server kill switches and the user's auto-add preference (plan tasks T1.16, T1.5).
-  const config = useQuery({ queryKey: CONFIG_KEY, queryFn: () => getDetectionConfig({ force: true }) });
+  const config = useQuery({ queryKey: CONFIG_KEY, queryFn: () => getDetectionConfig(apiTransport, { force: true }) });
   const autoAdd = useMutation({
     mutationFn: (value: boolean) => updateDetectionSettings({ autoAddHighConfidence: value }),
     onSuccess: (next) => {
-      setCachedDetectionConfig(next);
+      void setCachedDetectionConfig(next);
       queryClient.setQueryData(CONFIG_KEY, next);
     },
   });
@@ -53,6 +55,11 @@ export function useAutoTrackingSettings() {
     queryClient.setQueryData(PERMISSION_KEY, currentStatus);
     if (currentStatus === 'granted') {
       dispatch(setAutoTrackingEnabled(true));
+      return;
+    }
+    if (currentStatus === 'unsupported') {
+      // iOS, Expo Go, or the noSms build (plan T2.11): there is no permission to ask for.
+      Alert.alert('Not available', "Automatic SMS tracking isn't available in this version of the app. You can still add transactions manually.");
       return;
     }
     // Explain before asking for the system permission (spec §23).

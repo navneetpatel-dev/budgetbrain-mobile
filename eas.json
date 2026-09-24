@@ -31,6 +31,18 @@
     "production": {
       "extends": "base",
       "autoIncrement": true
+    },
+    "production-nosms": {
+      "extends": "production",
+      "env": {
+        "BUDGETBRAIN_NO_SMS": "1"
+      }
+    },
+    "preview-nosms": {
+      "extends": "preview",
+      "env": {
+        "BUDGETBRAIN_NO_SMS": "1"
+      }
     }
   },
   "submit": {

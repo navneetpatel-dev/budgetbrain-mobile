@@ -138,6 +138,29 @@ Download the APK from the Expo dashboard when the build finishes.
 
 Google Sign-In on an EAS APK uses Expo's keystore, not the local debug keystore. After the first build, run `eas credentials -p android` and paste that SHA-1 into the Android OAuth client (package `app.budgetbrain.mobile`).
 
+## SMS auto-tracking and the `noSms` variant
+
+Bank-SMS detection is a local Expo module, `modules/sms-detector` (Kotlin). `./plugins/withSmsDetector` adds the SMS receiver and the `RECEIVE_SMS` / `READ_SMS` permissions to the manifest. Expo Go has no native module, so detection stays off there. Use a dev client or a release build to try it.
+
+If Google Play rejects the SMS permission declaration (see `docs/SMS_PERMISSION_DECLARATION.md`), ship the variant without SMS. It declares no SMS permission, and the app falls back to manual entry:
+
+```bash
+# Local
+BUDGETBRAIN_NO_SMS=1 npx expo prebuild --platform android --clean
+cd android && ./gradlew assembleRelease
+
+# EAS
+eas build --platform android --profile production-nosms   # or preview-nosms for an APK
+```
+
+After prebuild, `android/app/src/main/AndroidManifest.xml` should have no `SmsReceiver`, and both SMS permissions should be marked `tools:node="remove"`.
+
+The detector's pure-Kotlin logic (pre-filter, multipart join, watermark) has JVM tests that run without the Android SDK:
+
+```bash
+gradle -p modules/sms-detector/jvm-test test
+```
+
 ## Troubleshooting
 
 - **Cannot reach the server** — `.env` still has `localhost` or `10.0.2.2`, or the phone is not on a network that can reach the host. Rebuild after fixing `.env`.

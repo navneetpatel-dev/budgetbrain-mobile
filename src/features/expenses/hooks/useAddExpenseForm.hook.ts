@@ -66,6 +66,8 @@ export function useAddExpenseForm() {
 
   const form = useForm<ExpenseForm>({
     defaultValues: {
+      kind: 'expense',
+      direction: 'DEBIT',
       amount: params.amount ?? '',
       merchant: params.merchant ?? '',
       notes: '',
@@ -78,6 +80,7 @@ export function useAddExpenseForm() {
   const { control, handleSubmit, setValue, watch, formState } = form;
 
   const selectedPayment = watch('paymentMethod');
+  const currentKind = watch('kind');
   const currentCategoryId = watch('categoryId');
   const currentAmount = watch('amount');
   const currentDate = watch('date');
@@ -198,6 +201,7 @@ export function useAddExpenseForm() {
     showDatePicker,
     setShowDatePicker,
     selectedPayment,
+    currentKind,
     currentCategoryId,
     currentDate,
     currentTags,

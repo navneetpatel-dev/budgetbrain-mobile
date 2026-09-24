@@ -1,4 +1,10 @@
+/** What the user is logging from the add-expense screen (spec §8–12). */
+export type ExpenseKind = 'expense' | 'refund' | 'transfer';
+
 export interface ExpenseForm {
+  kind: ExpenseKind;
+  /** Transfers only: money leaving (DEBIT) or entering (CREDIT) the account. */
+  direction: 'DEBIT' | 'CREDIT';
   amount: string;
   merchant: string;
   notes: string;

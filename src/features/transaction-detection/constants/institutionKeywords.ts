@@ -55,3 +55,15 @@ export function isFinancialSender(sender: string): boolean {
   if (!sender) return false;
   return FINANCIAL_SENDER_PATTERNS.some((pattern) => pattern.test(sender));
 }
+
+/**
+ * What the native pre-filter keeps (plan T2.2): exact DLT headers, plus header keywords for
+ * banks not yet mapped, whose messages can then reach review as unverified. The knowledge
+ * pack replaces both lists in Phase 4.
+ */
+export function nativeSenderFilter(): { headers: string[]; keywords: string[] } {
+  return {
+    headers: Object.keys(INSTITUTION_BY_SMS_HEADER),
+    keywords: FINANCIAL_SENDER_PATTERNS.map((pattern) => pattern.source.toUpperCase()),
+  };
+}

@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Controller } from 'react-hook-form';
-import { AppHeaderBar, DateInput, ToggleSwitch, FormErrorBanner, FormSuccessBanner } from '@/shared/components/ui';
+import { AppHeaderBar, DateInput, ToggleSwitch, FormErrorBanner, FormSuccessBanner, OptionChips } from '@/shared/components/ui';
 import { AppIcon } from '@/features/navigation/components/AppIcon.component';
 import { useTheme } from '@/shared/theme';
 import { useBottomSafeInset } from '@/shared/hooks/useLayout.hook';
@@ -17,6 +17,22 @@ import {
   PAYMENT_METHODS,
 } from '@/features/expenses/hooks/useAddExpenseForm.hook';
 import { categoryIconTint, createStyles, scrollBottomInset } from './AddExpenseScreen.styles';
+
+const KIND_OPTIONS = ['expense', 'refund', 'transfer'] as const;
+const DIRECTION_OPTIONS = ['DEBIT', 'CREDIT'] as const;
+const KIND_LABEL: Record<(typeof KIND_OPTIONS)[number], string> = {
+  expense: 'Expense',
+  refund: 'Refund',
+  transfer: 'Transfer',
+};
+
+function kindLabel(kind: (typeof KIND_OPTIONS)[number]) {
+  return KIND_LABEL[kind];
+}
+
+function directionLabel(direction: (typeof DIRECTION_OPTIONS)[number]) {
+  return direction === 'DEBIT' ? 'Money out' : 'Money in';
+}
 
 export function AddExpenseScreen() {
   const theme = useTheme();
@@ -46,6 +62,7 @@ export function AddExpenseScreen() {
     addFifty,
     addOneHundred,
     blurMerchantField,
+    currentKind,
     currentCategoryId,
     currentDate,
     currentTags,
@@ -60,7 +77,7 @@ export function AddExpenseScreen() {
   return (
     <View style={styles.screenWrapper}>
       {/* Top Header */}
-      <AppHeaderBar title="Log Transaction" subtitle="Expense" showBack={true} />
+      <AppHeaderBar title="Log Transaction" subtitle={KIND_LABEL[currentKind]} showBack={true} />
 
       <ScrollView
         contentContainerStyle={[
@@ -238,53 +255,82 @@ export function AddExpenseScreen() {
           </ScrollView>
         </View>
 
-        {/* Category Selector 4x2 Grid */}
+        {/* Transaction type: a fixed set of three, so a segmented chip row, not a list. */}
         <View style={styles.sectionWrap}>
-          <View style={styles.sectionHeaderBetween}>
-            <Text style={styles.sectionEyebrow}>Category</Text>
-            {suggestedCategoryId && currentCategoryId === suggestedCategoryId ? (
-              <Text style={styles.suggestedHint}>Auto-Suggested</Text>
-            ) : null}
-          </View>
-
-          {/* Fixed 4x2 category grid, capped at 8 tiles. */}
+          <Text style={styles.sectionEyebrow}>Type</Text>
           <Controller
             control={control}
-            name="categoryId"
+            name="kind"
             render={({ field: { onChange, value } }) => (
-              <View style={styles.categoryGrid}>
-                {categoryTiles.map((cat) => {
-                  const isSelected = value === cat.id;
-
-                  return (
-                    <Pressable
-                      key={cat.id}
-                      onPress={() => onChange(cat.id)}
-                      style={({ pressed }) => [
-                        styles.categoryTile,
-                        isSelected && styles.categoryTileSelected,
-                        pressed && styles.tilePressed,
-                      ]}
-                      accessibilityRole="button"
-                    >
-                      <View
-                        style={[styles.catIconCircle, categoryIconTint(cat.color)]}
-                      >
-                        <AppIcon name={cat.icon} size={18} color={cat.color} />
-                      </View>
-                      <Text
-                        style={[styles.catTileLabel, isSelected && styles.catTileLabelSelected]}
-                        numberOfLines={1}
-                      >
-                        {cat.name}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
+              <OptionChips options={[...KIND_OPTIONS]} value={value} onChange={onChange} getLabel={kindLabel} disabled={disabled} />
             )}
           />
+          {currentKind === 'transfer' ? (
+            <Controller
+              control={control}
+              name="direction"
+              render={({ field: { onChange, value } }) => (
+                <OptionChips
+                  options={[...DIRECTION_OPTIONS]}
+                  value={value}
+                  onChange={onChange}
+                  getLabel={directionLabel}
+                  disabled={disabled}
+                />
+              )}
+            />
+          ) : null}
         </View>
+
+        {/* Category Selector 4x2 Grid (transfers have no spending category) */}
+        {currentKind !== 'transfer' ? (
+          <View style={styles.sectionWrap}>
+            <View style={styles.sectionHeaderBetween}>
+              <Text style={styles.sectionEyebrow}>Category</Text>
+              {suggestedCategoryId && currentCategoryId === suggestedCategoryId ? (
+                <Text style={styles.suggestedHint}>Auto-Suggested</Text>
+              ) : null}
+            </View>
+
+            {/* Fixed 4x2 category grid, capped at 8 tiles. */}
+            <Controller
+              control={control}
+              name="categoryId"
+              render={({ field: { onChange, value } }) => (
+                <View style={styles.categoryGrid}>
+                  {categoryTiles.map((cat) => {
+                    const isSelected = value === cat.id;
+
+                    return (
+                      <Pressable
+                        key={cat.id}
+                        onPress={() => onChange(cat.id)}
+                        style={({ pressed }) => [
+                          styles.categoryTile,
+                          isSelected && styles.categoryTileSelected,
+                          pressed && styles.tilePressed,
+                        ]}
+                        accessibilityRole="button"
+                      >
+                        <View
+                          style={[styles.catIconCircle, categoryIconTint(cat.color)]}
+                        >
+                          <AppIcon name={cat.icon} size={18} color={cat.color} />
+                        </View>
+                        <Text
+                          style={[styles.catTileLabel, isSelected && styles.catTileLabelSelected]}
+                          numberOfLines={1}
+                        >
+                          {cat.name}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              )}
+            />
+          </View>
+        ) : null}
 
         {/* Payment Method Selector (4 segmented cards) */}
         <View style={styles.sectionWrap}>

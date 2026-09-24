@@ -12,7 +12,6 @@ export interface TransactionDetectionState {
   pendingReviewCount: number;
   lastSyncedAt: string | null;
   syncStatus: 'idle' | 'syncing' | 'error';
-  recentFingerprints: string[];
 }
 
 const initialState: TransactionDetectionState = {
@@ -26,7 +25,6 @@ const initialState: TransactionDetectionState = {
   pendingReviewCount: 0,
   lastSyncedAt: null,
   syncStatus: 'idle',
-  recentFingerprints: [],
 };
 
 export const transactionDetectionSlice = createSlice({
@@ -92,14 +90,12 @@ export const transactionDetectionSlice = createSlice({
         state.lastSyncedAt = action.payload.timestamp;
       }
     },
-    recordFingerprint(state, action: PayloadAction<string>) {
-      if (!state.recentFingerprints.includes(action.payload)) {
-        state.recentFingerprints.push(action.payload);
-        // Keep ring buffer at max 500 items
-        if (state.recentFingerprints.length > 500) {
-          state.recentFingerprints.shift();
-        }
-      }
+    /**
+     * Drops the Phase 1 fingerprint ring buffer from persisted state once it has been imported
+     * into the detection store (plan T2.8). Fingerprints no longer live in Redux.
+     */
+    clearLegacyFingerprints(state) {
+      delete (state as { recentFingerprints?: string[] }).recentFingerprints;
     },
   },
 });
@@ -118,7 +114,7 @@ export const {
   incrementPendingReviewCount,
   decrementPendingReviewCount,
   setSyncStatus,
-  recordFingerprint,
+  clearLegacyFingerprints,
 } = transactionDetectionSlice.actions;
 
 export default transactionDetectionSlice.reducer;

@@ -210,7 +210,7 @@ One PR per repo, all with CI green:
 | T1.4 | ✅ | Validation v2, plus: a bank can't count as verified without an `institutionId` |
 | T1.5 | ✅ | Server tier = `min(client, scoreEvidence(evidence))`; `users.detection_auto_add` is enforced by the server |
 | T1.6 | ✅ | `ON CONFLICT DO NOTHING`; 3 concurrent syncs of one message produce exactly 1 row (test) |
-| T1.7 | ✅ | Per-user limit, 60 requests/min. **Deviation:** the plan's 2,000-items/day cap isn't implemented yet |
+| T1.7 | ✅ | Per-user limit of 60 requests/min, plus a 2,000 items/day cap in Redis (429 `DETECTION_DAILY_LIMIT`; replays don't use up the cap) — follow-up [navneetpatel-dev/budgetbrain-backend#2](https://github.com/navneetpatel-dev/budgetbrain-backend/pull/2) |
 | T1.8 | ✅ | Reject guarded to pending items; `undo` restores the balance; `DELETE` = reject (the row is kept for dedup) |
 | T1.9 | ✅ | **Deviation:** reuses the existing normalized `merchant` key (lowercase/trim, as manual entries already store it) instead of adding a `merchant_key` column; the migration lowercases detection-written rules |
 | T1.10 | ✅ | DTO: decimal-string amount, flattened category/account names |
@@ -220,12 +220,9 @@ One PR per repo, all with CI green:
 | T1.14 | ✅ | |
 | T1.15 | ✅ | Tapping the card no longer confirms it; opening a detail view comes with the T5.1 edit sheet. One lint error remains in `AppLockGate.component.tsx`, which is also on `main` and unrelated |
 | T1.16 | ✅ | Env kill switches via `GET /detected-transactions/config` (at that path rather than `/detection/config`), checked per batch |
-| T1.17 | 🟡 | Display, filters and navigation done on mobile and web. **Still open:** creating a refund or transfer from the add-expense form, which needs a type/direction selector and a device pass |
+| T1.17 | ✅ | Display, filters and navigation on mobile and web. The add-expense form has a Type selector (Expense/Refund/Transfer) and money-in/out for transfers (`buildExpensePayload`, tested); ships in the Phase 2 mobile PR. A device pass is still needed |
 
-**Still open for Phase 1:**
-- The rest of T1.17 (the add-expense form).
-- The per-user daily item cap from T1.7.
-- A device/simulator pass for the review row and transaction row (this environment has no emulator).
+**Still open for Phase 1:** only a device/simulator pass for the review row, the transaction row and the add-expense Type selector. This environment has no emulator.
 
 ---
 
@@ -245,6 +242,35 @@ One PR per repo, all with CI green:
 | **T2.10** | Lifecycle state machine (in core, persisted locally): `RECEIVED → ELIGIBLE → PARSED → CLASSIFIED → VALIDATED → DEDUP_CHECKED → CREATED → SYNC_PENDING → SYNCED`, with the side states `NEEDS_REVIEW`, `PARSE_FAILED → IGNORED`, `DUPLICATE → IGNORED`, `INELIGIBLE → IGNORED`. Each has a reason code; no message text is stored | S6, S7 | Every corpus message ends in exactly one terminal state with a reason code |
 | **T2.11** | Google Play compliance: SMS permission declaration text, a demo video checklist, and a **`noSms` build variant** (the config plugin toggles off SMS) in case Play rejects the declaration; `BUILD_APK.md` updated | P0-1 (release) | Both variants build |
 | **T2.12** | Notifications: one grouped summary per run, `VISIBILITY_PRIVATE` (hide amount on the lock screen, toggle in settings), deep link with the server id (or local id until synced, resolved by the store) | P6, R6 | Tap opens the exact item |
+
+### Phase 2 status (2026-09-24)
+
+| PR | Covers |
+|---|---|
+| [navneetpatel-dev/budgetbrain-detection-core#2](https://github.com/navneetpatel-dev/budgetbrain-detection-core/pull/2) | core v0.3.0: `assertTransition`, `lifecycleForSyncResult`, reason code `server_rejected` |
+| [navneetpatel-dev/budgetbrain-backend#2](https://github.com/navneetpatel-dev/budgetbrain-backend/pull/2) | Phase 1 follow-up: the T1.7 daily cap |
+| [navneetpatel-dev/budgetbrain-mobile#3](https://github.com/navneetpatel-dev/budgetbrain-mobile/pull/3) | T2.1–T2.12, and the T1.17 add-expense form |
+
+**Merge order:** core (with a merge commit) → mobile. The backend follow-up is independent.
+
+| Task | Status | Notes |
+|---|---|---|
+| T2.1 | 🟡 | Expo local module `modules/sms-detector` plus `plugins/withSmsDetector.js`. Autolinking and prebuild were checked here (the manifest gets the receiver with the `BROADCAST_SMS` guard). **Not compiled:** the Android SDK host `dl.google.com` is blocked in this environment. **Deviation:** permission check/request stay in JS (`PermissionsAndroid`); the module reports `isSmsSupported` instead |
+| T2.2 | ✅ | `SenderFilter`: DLT prefix/suffix stripped, exact `HashSet` header lookup plus header keywords, and a money-token regex over the first 1,000 chars. JS sends the list (`setSenderFilter`); the knowledge pack replaces it in Phase 4. 6 JVM tests |
+| T2.3 | ✅ | `CandidateQueue` (app-private SQLite). An ack deletes the body at once; a 7-day tombstone stops a catch-up scan from re-queuing what the receiver already delivered |
+| T2.4 | 🟡 | WorkManager unique work `sms-detect-drain` (KEEP, 45 s). **Deviation:** `DrainWorker` runs the headless task inside the worker (what `HeadlessJsTaskService` does internally) instead of starting that service, because Android 8+ can refuse a background `startService`. JS drain is tested; the native path needs a device |
+| T2.5 | ✅ | `index.headless.ts` registers `TransactionDetectionDrain` with a lazy require. The task uses a `fetch` transport with the SecureStore token. A test walks its import graph: no Redux, axios, expo-router, `src/app` or UI |
+| T2.6 | 🟡 | 6-hourly catch-up (`requiresBatteryNotLow`), with a projection, `date > watermark`, ascending, pages of 200, and the filter applied natively. **Deviation:** one date watermark instead of one per SIM, because a single date-ordered query covers every SIM. The fresh-install floor is "now"; older messages come only from the scan the user chooses |
+| T2.7 | ✅ | `messageId`, 1-based `simSlot` (from the subscription id), sender, date and body passed to JS. SIM filter test |
+| T2.8 | 🟡 | expo-sqlite (WAL): `detected_local` (UNIQUE fingerprint = local dedup, rows scoped per user, payload set to NULL once answered, 180-day TTL), `detection_counters`, `kv`. The Phase 1 AsyncStorage queue and Redux fingerprints are imported once; `recentFingerprints` is gone from Redux. **Deviation:** no separate `fingerprints` table, because the UNIQUE column does the job. Tests run on sql.js. **Open:** the lists don't yet show items waiting to sync while offline; that UI comes with Phase 5 |
+| T2.9 | ✅ | `syncManager.service.ts` has no Redux dependency: batches of 100, a stable idempotency key, backoff from 30 s to 30 min, retry of unanswered items, `maxRequests` (1 for headless runs). Tested for every result status |
+| T2.10 | ✅ | Every rejection returns a lifecycle state and a reason code, counted per day. Sync results map through core `lifecycleForSyncResult` |
+| T2.11 | ✅ | `docs/SMS_PERMISSION_DECLARATION.md`. `BUDGETBRAIN_NO_SMS=1` / `production-nosms` and `preview-nosms` EAS profiles remove the receiver and mark both permissions `tools:node="remove"` (checked with prebuild); `BUILD_APK.md` updated. Building both variants needs the Android SDK |
+| T2.12 | 🟡 | One counts-only summary per run on a `detection` channel with `VISIBILITY_PRIVATE`. One review item deep-links with `?focus=<id>` and the review list puts that item first; a detail view for the item comes with T5.1 |
+
+**Still open for Phase 2:**
+- Compile and run on a device. Allowing `dl.google.com` in the environment's network settings would let the Android build run here. Otherwise, check with an EAS dev build on Android 10–15: killed app plus 5 SMS in 10 s gives one headless run and one sync request.
+- Profile the pre-filter on a device (< 1 ms per SMS) as part of T9.2.
 
 ---
 
