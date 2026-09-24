@@ -458,6 +458,31 @@ All pure functions with no I/O. The pack is passed in precompiled form. Each tas
 
 ---
 
+### Phase 7 status (2026-09-24)
+
+| PR | Covers |
+|---|---|
+| [navneetpatel-dev/budgetbrain-detection-core#5](https://github.com/navneetpatel-dev/budgetbrain-detection-core/pull/5) | T7.4: `buildSkeleton` (v0.6.0) |
+| [navneetpatel-dev/budgetbrain-backend#8](https://github.com/navneetpatel-dev/budgetbrain-backend/pull/8) | T7.1–T7.7 (server) |
+| [navneetpatel-dev/budgetbrain-mobile#8](https://github.com/navneetpatel-dev/budgetbrain-mobile/pull/8) | T7.1, T7.4 (device) |
+| [navneetpatel-dev/budgetbrain-admin#1](https://github.com/navneetpatel-dev/budgetbrain-admin/pull/1) | T7.3–T7.7 (admin UI) |
+
+**Merge order:** core (merge commit) → backend → mobile and admin.
+
+| Task | Status | Notes |
+|---|---|---|
+| T7.1 | ✅ | After a sync that succeeds, the device uploads each finished day of `detection_counters`. Every request carries whole days and advances a kv watermark. The server replaces each day it receives. No text, no amounts |
+| T7.2 | ✅ | Hourly rollup into `detection_daily_stats`, incremental on an `updated_at` watermark. Each affected day is recomputed in full. Undo is recorded as `review_reason = 'undone'` |
+| T7.3 | ✅ | Dashboard, catalog (8 entities, draft → review → published, history), pack build, kill-switch console, user Detection tab, adoption in feature usage. Admin e2e test: a published alias appears in the next pack |
+| T7.4 | ✅ | Opt-in switch, off by default (D-5). Messages from a known institution that no template read are masked with core `buildSkeleton`. They are queued in `skeleton_queue` (capped at 200 rows, 30-day TTL) and uploaded 50 at a time. The server re-hashes each skeleton and stores an HMAC user hash. Admins see only shapes submitted by at least k users (default 10). A shape can become a draft template only with a sample message it matches. **Deviation:** `corrected_field` is always null for now, because the device keeps no link between an edited item and its shape |
+| T7.5 | ✅ | Candidates are merchant names that at least k users gave a category rule to. Promoting one creates a draft global alias; personal rules still win |
+| T7.6 | ✅ | Export endpoint; account deletion removes detection rows, diagnostics and skeletons; nightly retention (rejected or duplicate > 90 days, diagnostics > 180 days, skeletons 30 or 180 days); admin view of deletion requests |
+| T7.7 | ✅ | `DETECTION_AUTO_CREATE` (one row per sync batch; the constant-query bound is now 11), plus `KB_CHANGE`, `KB_PUBLISH`, `KB_PACK_BUILD` and `KILL_SWITCH_CHANGE`. The admin audit page can filter by these actions |
+
+**Still open for Phase 7:** a device pass of the new settings switch; `corrected_field` in skeleton uploads.
+
+---
+
 ## 12. Phase 8 — More sources, then Phase 9 — hardening and release
 
 | Task | Repo | Work | Closes | Acceptance criteria |
