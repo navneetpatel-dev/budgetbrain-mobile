@@ -434,13 +434,13 @@ All pure functions with no I/O. The pack is passed in precompiled form. Each tas
 |---|---|---|
 | T6.1 | ✅ | The detection router lives in the shared module; web and mobile mount the same one. HTTP test through the real web app |
 | T6.2 | ✅ | `POST /detected-transactions/ingest` parses with core and the newest built pack (baseline fallback), then uses the sync path. A test scans every text column of every table for the pasted text (with a positive control). Sentry drops request bodies for detection routes. `GET …/institutions` for text without a sender |
-| T6.3 | 🟡 | `/integrations` removed from backend, web and mobile; its paths answer 410 Gone. **Open:** the migration that moves pending `parsed_transactions` rows into review and erases `raw_content` is not written yet; it waits for approval, because the erasure can't be undone. The table is dropped in a later release |
+| T6.3 | ✅ | `/integrations` removed from backend, web and mobile; its paths answer 410 Gone. [navneetpatel-dev/budgetbrain-backend#7](https://github.com/navneetpatel-dev/budgetbrain-backend/pull/7) moves pending `parsed_transactions` rows into review (`legacy_import`) and sets `raw_content` to NULL on every row (runs on deploy; can't be undone). **Next release:** drop the table and its model |
 | T6.4 | ✅ | Web: hub (status per source, auto-add, delete my data, paste), review with inline edit, history with Undo, rules manager, transaction list chip, `source=detected` filter and "Auto" badge. Backend: rules by id, per-source sync state, `source` filter. Browser pass against a local server (18 steps) |
 | T6.5 | ✅ | CSV (suggested mapping, preamble skipped), OFX/QFX, QIF, MT940, CAMT.053. Streamed in batches of 100 from a temp file that is deleted after each request; 10,000 rows in ~4 s with ~31 MB peak heap. Preview before commit; ledger look-alikes wait for review; stable fingerprints make re-imports no-ops. **Deviation:** the file is sent again to import instead of being kept on the server between preview and import |
 
 **Also fixed:** `DELETE /detected-transactions/rules` (Phase 5's reset) was shadowed by `DELETE /:id` and answered 400; the rules routes now come first.
 
-**Still open for Phase 6:** the `parsed_transactions` migration (above) and a device pass of the mobile Paste & import screen.
+**Still open for Phase 6:** dropping the `parsed_transactions` table in the next release, and a device pass of the mobile Paste & import screen.
 
 ---
 
