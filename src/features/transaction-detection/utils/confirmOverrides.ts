@@ -1,5 +1,5 @@
 import type { ConfirmPayload } from '../api/detectedTransactions.api';
-import type { DetectedTransactionDto } from '../types/transactionDetection.types';
+import type { CorrectedField, DetectedTransactionDto } from '../types/transactionDetection.types';
 
 export type EditableType = DetectedTransactionDto['transactionType'];
 
@@ -38,4 +38,15 @@ export function buildConfirmOverrides(item: DetectedTransactionDto, values: Dete
   if (accountId !== (item.financialAccountId ?? null)) overrides.financialAccountId = accountId;
   if (values.notes.trim()) overrides.notes = values.notes.trim();
   return overrides;
+}
+
+/**
+ * The parsing field a correction fixed, for template learning (plan T7.4): the merchant first,
+ * then the type, then the account. A category or note change isn't a parsing error.
+ */
+export function correctedFieldOf(overrides: ConfirmPayload): CorrectedField | null {
+  if (overrides.merchant !== undefined) return 'merchant';
+  if (overrides.transactionType !== undefined) return 'type';
+  if (overrides.financialAccountId !== undefined) return 'account';
+  return null;
 }

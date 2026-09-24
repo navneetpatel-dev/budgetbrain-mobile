@@ -1,5 +1,5 @@
 import { lifecycleForSyncResult, type LifecycleState, type ReasonCode } from '@budgetbrain/detection-core';
-import type { SyncItemPayload, SyncItemResult } from '../../types/transactionDetection.types';
+import type { CorrectedField, SyncItemPayload, SyncItemResult } from '../../types/transactionDetection.types';
 import { openExpoDriver, type SqlDriver, type SqlValue } from './sqlDriver';
 
 /**
@@ -13,9 +13,11 @@ import { openExpoDriver, type SqlDriver, type SqlValue } from './sqlDriver';
  * - `kv` holds small values: the detection context, the last server config, migration flags.
  * - `skeleton_queue` holds masked message shapes waiting for upload, only while the user has
  *   opted in to template learning (plan T7.4, D-5). A skeleton has no digits and no names.
+ *   While opted in, `detected_local.skeleton` keeps each item's shape for 30 days, so a later
+ *   correction can be sent with the field the user fixed.
  */
 
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 const DAY_MS = 24 * 60 * 60 * 1000;
 /** A fingerprint is remembered this long after the server answered (plan §3.1 TTL). */
 const ANSWERED_TTL_MS = 180 * DAY_MS;
@@ -37,6 +39,7 @@ CREATE TABLE IF NOT EXISTS detected_local (
   awaiting_review INTEGER NOT NULL DEFAULT 0,
   server_id TEXT,
   transaction_id TEXT,
+  skeleton TEXT,
   attempts INTEGER NOT NULL DEFAULT 0,
   next_attempt_at INTEGER NOT NULL DEFAULT 0,
   created_at INTEGER NOT NULL,
@@ -61,6 +64,7 @@ CREATE TABLE IF NOT EXISTS skeleton_queue (
   institution_id TEXT,
   sender_key TEXT NOT NULL,
   country TEXT,
+  corrected_field TEXT,
   created_at INTEGER NOT NULL
 );
 PRAGMA user_version = ${SCHEMA_VERSION};
@@ -84,10 +88,24 @@ export interface SyncApplySummary {
 
 let driverPromise: Promise<SqlDriver> | null = null;
 
+/** Columns added after a table first shipped; CREATE TABLE IF NOT EXISTS doesn't add them. */
+const ADDED_COLUMNS: { table: string; column: string; type: string }[] = [
+  { table: 'detected_local', column: 'skeleton', type: 'TEXT' },
+  { table: 'skeleton_queue', column: 'corrected_field', type: 'TEXT' },
+];
+
+async function prepare(driver: SqlDriver): Promise<void> {
+  await driver.exec(SCHEMA);
+  for (const { table, column, type } of ADDED_COLUMNS) {
+    const columns = await driver.all<{ name: string }>(`PRAGMA table_info(${table})`);
+    if (!columns.some((c) => c.name === column)) await driver.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+  }
+}
+
 function db(): Promise<SqlDriver> {
   if (!driverPromise) {
     driverPromise = openExpoDriver().then(async (driver) => {
-      await driver.exec(SCHEMA);
+      await prepare(driver);
       return driver;
     });
     // A failed open is retried on the next call instead of being cached.
@@ -138,6 +156,8 @@ export async function saveProcessed(params: {
   userId: string;
   payloads: SyncItemPayload[];
   outcomes: PipelineOutcome[];
+  /** Masked shapes by client id, kept only while template learning is on. */
+  skeletons?: Map<string, QueuedSkeleton>;
   now?: number;
 }): Promise<SyncItemPayload[]> {
   const now = params.now ?? Date.now();
@@ -147,9 +167,17 @@ export async function saveProcessed(params: {
   await driver.transaction(async () => {
     for (const payload of params.payloads) {
       const { changes } = await driver.run(
-        `INSERT INTO detected_local (client_id, user_id, fingerprint, payload, lifecycle, created_at, updated_at)
-         VALUES (?, ?, ?, ?, 'SYNC_PENDING', ?, ?) ON CONFLICT DO NOTHING`,
-        [payload.clientId, params.userId, payload.dedupFingerprint, JSON.stringify(payload), now, now]
+        `INSERT INTO detected_local (client_id, user_id, fingerprint, payload, lifecycle, skeleton, created_at, updated_at)
+         VALUES (?, ?, ?, ?, 'SYNC_PENDING', ?, ?, ?) ON CONFLICT DO NOTHING`,
+        [
+          payload.clientId,
+          params.userId,
+          payload.dedupFingerprint,
+          JSON.stringify(payload),
+          skeletonJson(params.skeletons?.get(payload.clientId)),
+          now,
+          now,
+        ]
       );
       if (changes > 0) inserted.push(payload);
       else outcomes.push({ state: 'DUPLICATE', reason: 'duplicate_fingerprint', institutionId: payload.institutionId });
@@ -283,12 +311,19 @@ export async function clearDetectionData(): Promise<void> {
   });
 }
 
+function skeletonJson(skeleton: QueuedSkeleton | undefined): string | null {
+  return skeleton ? JSON.stringify({ ...skeleton, correctedField: null }) : null;
+}
+
 /** Weekly cleanup: forgets answered fingerprints after 180 days and counters after 30. */
 export async function purgeOld(now = Date.now()): Promise<void> {
   const driver = await db();
   await driver.run(`DELETE FROM detected_local WHERE lifecycle <> 'SYNC_PENDING' AND updated_at < ?`, [now - ANSWERED_TTL_MS]);
   await driver.run(`DELETE FROM detection_counters WHERE day < ?`, [utcDay(now - COUNTER_TTL_DAYS * DAY_MS)]);
   await driver.run(`DELETE FROM skeleton_queue WHERE created_at < ?`, [now - SKELETON_TTL_MS]);
+  await driver.run(`UPDATE detected_local SET skeleton = NULL WHERE skeleton IS NOT NULL AND created_at < ?`, [
+    now - SKELETON_TTL_MS,
+  ]);
 }
 
 export interface DiagnosticsRow {
@@ -323,7 +358,10 @@ export interface QueuedSkeleton {
   institutionId: string | null;
   senderKey: string;
   country: string | null;
+  /** What the user fixed in an item parsed from this shape, if anything. */
+  correctedField?: CorrectedField | null;
 }
+
 
 /** Queues shapes once each; a shape already queued, or a full queue, is skipped. */
 export async function queueSkeletons(skeletons: QueuedSkeleton[], now = Date.now()): Promise<void> {
@@ -335,9 +373,9 @@ export async function queueSkeletons(skeletons: QueuedSkeleton[], now = Date.now
     for (const item of skeletons) {
       if (room <= 0) break;
       const { changes } = await driver.run(
-        `INSERT INTO skeleton_queue (hash, skeleton, institution_id, sender_key, country, created_at)
-         VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING`,
-        [item.hash, item.skeleton, item.institutionId, item.senderKey, item.country, now]
+        `INSERT INTO skeleton_queue (hash, skeleton, institution_id, sender_key, country, corrected_field, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING`,
+        [item.hash, item.skeleton, item.institutionId, item.senderKey, item.country, item.correctedField ?? null, now]
       );
       room -= changes;
     }
@@ -346,8 +384,15 @@ export async function queueSkeletons(skeletons: QueuedSkeleton[], now = Date.now
 
 export async function queuedSkeletons(limit: number): Promise<QueuedSkeleton[]> {
   const driver = await db();
-  const rows = await driver.all<{ hash: string; skeleton: string; institution_id: string | null; sender_key: string; country: string | null }>(
-    `SELECT hash, skeleton, institution_id, sender_key, country FROM skeleton_queue ORDER BY created_at LIMIT ?`,
+  const rows = await driver.all<{
+    hash: string;
+    skeleton: string;
+    institution_id: string | null;
+    sender_key: string;
+    country: string | null;
+    corrected_field: CorrectedField | null;
+  }>(
+    `SELECT hash, skeleton, institution_id, sender_key, country, corrected_field FROM skeleton_queue ORDER BY created_at LIMIT ?`,
     [limit]
   );
   return rows.map((row) => ({
@@ -356,6 +401,7 @@ export async function queuedSkeletons(limit: number): Promise<QueuedSkeleton[]> 
     institutionId: row.institution_id,
     senderKey: row.sender_key,
     country: row.country,
+    correctedField: row.corrected_field,
   }));
 }
 
@@ -365,10 +411,41 @@ export async function removeSkeletons(hashes: string[]): Promise<void> {
   await driver.run(`DELETE FROM skeleton_queue WHERE hash IN (${placeholders(hashes.length)})`, hashes);
 }
 
-/** Turning template learning off drops every shape not yet sent. */
+/**
+ * The user corrected `field` in the item the server knows as `serverId` (plan T7.4): queues
+ * that item's shape again naming the field. Returns false when the item has no stored shape
+ * (template learning was off when it was detected, or it came from another device).
+ */
+export async function queueCorrection(serverId: string, field: CorrectedField, now = Date.now()): Promise<boolean> {
+  const driver = await db();
+  const [row] = await driver.all<{ skeleton: string }>(
+    `SELECT skeleton FROM detected_local WHERE server_id = ? AND skeleton IS NOT NULL LIMIT 1`,
+    [serverId]
+  );
+  if (!row) return false;
+  let shape: QueuedSkeleton;
+  try {
+    shape = JSON.parse(row.skeleton) as QueuedSkeleton;
+  } catch {
+    return false;
+  }
+  // A correction replaces a queued plain copy of the shape; it is never dropped for room.
+  await driver.run(
+    `INSERT INTO skeleton_queue (hash, skeleton, institution_id, sender_key, country, corrected_field, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT (hash) DO UPDATE SET corrected_field = excluded.corrected_field`,
+    [shape.hash, shape.skeleton, shape.institutionId, shape.senderKey, shape.country, field, now]
+  );
+  return true;
+}
+
+/** Turning template learning off drops every shape not yet sent, and the ones kept per item. */
 export async function clearSkeletons(): Promise<void> {
   const driver = await db();
-  await driver.run(`DELETE FROM skeleton_queue`);
+  await driver.transaction(async () => {
+    await driver.run(`DELETE FROM skeleton_queue`);
+    await driver.run(`UPDATE detected_local SET skeleton = NULL WHERE skeleton IS NOT NULL`);
+  });
 }
 
 export async function countersForDay(day: string): Promise<{ state: string; reason: string; institutionId: string; count: number }[]> {
@@ -435,6 +512,6 @@ export async function __useDetectionDriverForTests(driver: SqlDriver | null): Pr
     driverPromise = null;
     return;
   }
-  await driver.exec(SCHEMA);
+  await prepare(driver);
   driverPromise = Promise.resolve(driver);
 }

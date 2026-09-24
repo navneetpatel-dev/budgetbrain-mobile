@@ -156,6 +156,8 @@ export async function processMessages(
   const payloads: SyncItemPayload[] = [];
   const outcomes: PipelineOutcome[] = [];
   const skeletons: QueuedSkeleton[] = [];
+  // Every detected item's shape is kept with it while learning is on, for a later correction.
+  const itemShapes = new Map<string, QueuedSkeleton>();
   const learn = options.config?.templateLearning === true;
   if (options.config && !options.config.enabled) {
     for (let i = 0; i < messages.length; i += 1) outcomes.push({ state: 'INELIGIBLE', reason: 'kill_switch', institutionId: null });
@@ -165,9 +167,10 @@ export async function processMessages(
         const result = evaluateMessage(message, context, options.categories, options.config ?? null);
         if (result.ok) payloads.push(result.payload);
         else outcomes.push(result.outcome);
-        if (learn && result.learnShape) {
+        if (learn && (result.ok || result.learnShape)) {
           const skeleton = skeletonFor(message);
-          if (skeleton) skeletons.push(skeleton);
+          if (skeleton && result.learnShape) skeletons.push(skeleton);
+          if (skeleton && result.ok) itemShapes.set(result.payload.clientId, skeleton);
         }
       } catch {
         // One unparseable message never stops the batch.
@@ -175,7 +178,7 @@ export async function processMessages(
       }
     }
   }
-  const saved = await saveProcessed({ userId, payloads, outcomes, now: options.now });
+  const saved = await saveProcessed({ userId, payloads, outcomes, skeletons: itemShapes, now: options.now });
   // Best effort: a failed queue write never loses the detected transactions.
   await queueSkeletons(skeletons, options.now).catch(() => {});
   return saved;

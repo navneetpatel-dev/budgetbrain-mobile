@@ -15,6 +15,7 @@ import {
 } from '../api/detectedTransactions.api';
 import { discardLocal, listLocalPending, type LocalPendingItem } from '../services/store/detectionStore.service';
 import { syncMerchantRules } from '../services/detectionProfile.service';
+import { reportCorrection } from '../services/detectionTelemetry.service';
 
 const PENDING_KEY = ['detected-transactions', 'pending'] as const;
 const LOCAL_KEY = ['detected-transactions', 'local'] as const;
@@ -58,9 +59,10 @@ export function useDetectedTransactionsReview() {
   const confirm = useMutation({
     mutationFn: ({ item, overrides }: { item: DetectedTransactionDto; overrides: ConfirmPayload }) =>
       confirmDetectedTransaction(item.id, overrides),
-    onSuccess: (_confirmed, { item }) => {
+    onSuccess: (_confirmed, { item, overrides }) => {
       // The server learned from the correction, if there was one (T5.2); fetch the rules it keeps.
       void syncMerchantRules({ force: true }).catch(() => {});
+      void reportCorrection(item.id, overrides).catch(() => {});
       removeLocally(item.id);
       setEditingId(null);
       invalidateMoneyQueries(queryClient);

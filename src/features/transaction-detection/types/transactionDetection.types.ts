@@ -93,6 +93,9 @@ export interface DiagnosticsUploadRow {
   count: number;
 }
 
+/** Fields the server accepts as corrections on a shape (backend skeletonUploadSchema). */
+export type CorrectedField = 'amount' | 'date' | 'merchant' | 'type' | 'account' | 'direction';
+
 /** One item of `POST /detected-transactions/skeletons` (plan T7.4). */
 export interface SkeletonUploadItem {
   skeletonHash: string;
@@ -101,7 +104,7 @@ export interface SkeletonUploadItem {
   senderKey: string;
   country: string | null;
   language: string | null;
-  correctedField: null;
+  correctedField: CorrectedField | null;
 }
 
 /** `GET /detected-transactions/knowledge-pack` (plan T4.3). */

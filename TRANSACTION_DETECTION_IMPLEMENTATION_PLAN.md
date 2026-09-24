@@ -434,7 +434,7 @@ All pure functions with no I/O. The pack is passed in precompiled form. Each tas
 |---|---|---|
 | T6.1 | ✅ | The detection router lives in the shared module; web and mobile mount the same one. HTTP test through the real web app |
 | T6.2 | ✅ | `POST /detected-transactions/ingest` parses with core and the newest built pack (baseline fallback), then uses the sync path. A test scans every text column of every table for the pasted text (with a positive control). Sentry drops request bodies for detection routes. `GET …/institutions` for text without a sender |
-| T6.3 | ✅ | `/integrations` removed from backend, web and mobile; its paths answer 410 Gone. [navneetpatel-dev/budgetbrain-backend#7](https://github.com/navneetpatel-dev/budgetbrain-backend/pull/7) moves pending `parsed_transactions` rows into review (`legacy_import`) and sets `raw_content` to NULL on every row (runs on deploy; can't be undone). **Next release:** drop the table and its model |
+| T6.3 | ✅ | `/integrations` removed from backend, web and mobile; its paths answer 410 Gone. [navneetpatel-dev/budgetbrain-backend#7](https://github.com/navneetpatel-dev/budgetbrain-backend/pull/7) moves pending `parsed_transactions` rows into review (`legacy_import`) and sets `raw_content` to NULL on every row (runs on deploy; can't be undone). The follow-up migration `20260929000000-drop-parsed-transactions` drops the table and its enum types, and the model is removed |
 | T6.4 | ✅ | Web: hub (status per source, auto-add, delete my data, paste), review with inline edit, history with Undo, rules manager, transaction list chip, `source=detected` filter and "Auto" badge. Backend: rules by id, per-source sync state, `source` filter. Browser pass against a local server (18 steps) |
 | T6.5 | ✅ | CSV (suggested mapping, preamble skipped), OFX/QFX, QIF, MT940, CAMT.053. Streamed in batches of 100 from a temp file that is deleted after each request; 10,000 rows in ~4 s with ~31 MB peak heap. Preview before commit; ledger look-alikes wait for review; stable fingerprints make re-imports no-ops. **Deviation:** the file is sent again to import instead of being kept on the server between preview and import |
 
@@ -479,7 +479,11 @@ All pure functions with no I/O. The pack is passed in precompiled form. Each tas
 | T7.6 | ✅ | Export endpoint; account deletion removes detection rows, diagnostics and skeletons; nightly retention (rejected or duplicate > 90 days, diagnostics > 180 days, skeletons 30 or 180 days); admin view of deletion requests |
 | T7.7 | ✅ | `DETECTION_AUTO_CREATE` (one row per sync batch; the constant-query bound is now 11), plus `KB_CHANGE`, `KB_PUBLISH`, `KB_PACK_BUILD` and `KILL_SWITCH_CHANGE`. The admin audit page can filter by these actions |
 
-**Still open for Phase 7:** a device pass of the new settings switch; `corrected_field` in skeleton uploads.
+**Follow-ups (2026-09-24):**
+- `corrected_field` is now sent. While the user has opted in, each detected item keeps its masked shape locally for 30 days. When the user confirms an item after changing the merchant, the type or the account, that shape is queued again naming the field. The server records the field on the submission it already has. Admins see it as "corrected fields" on the queue.
+- The `parsed_transactions` table, its enum types and its model are dropped (see T6.3).
+
+**Still open for Phase 7:** a device pass of the settings switch. A render test covers the row for now.
 
 ---
 

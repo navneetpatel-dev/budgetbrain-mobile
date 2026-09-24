@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { buildConfirmOverrides, type DetectedEditValues } from '../confirmOverrides';
+import { buildConfirmOverrides, correctedFieldOf, type DetectedEditValues } from '../confirmOverrides';
 import type { DetectedTransactionDto } from '../../types/transactionDetection.types';
 
 const ITEM = {
@@ -34,5 +34,15 @@ describe('buildConfirmOverrides (T5.1, T5.2)', () => {
     expect(buildConfirmOverrides(ITEM, { ...unchanged, transactionType: 'transfer', categoryId: 'office' })).toEqual({
       transactionType: 'transfer',
     });
+  });
+});
+
+describe('correctedFieldOf (T7.4)', () => {
+  it('names the parsing field a correction fixed, merchant first', () => {
+    expect(correctedFieldOf({})).toBeNull();
+    expect(correctedFieldOf({ categoryId: 'x', notes: 'n' })).toBeNull();
+    expect(correctedFieldOf({ financialAccountId: 'a' })).toBe('account');
+    expect(correctedFieldOf({ transactionType: 'transfer', financialAccountId: 'a' })).toBe('type');
+    expect(correctedFieldOf({ merchant: 'Swiggy', transactionType: 'transfer' })).toBe('merchant');
   });
 });
