@@ -301,9 +301,9 @@ All pure functions with no I/O. The pack is passed in precompiled form. Each tas
 
 | PR | Covers |
 |---|---|
-| core `claude/phase-3-parser` | v0.4.0: parser v2 (T3.1–T3.14), corpus run in Node and in Hermes |
-| backend `claude/core-v0.4` | the server scores with the same v0.4 rule |
-| mobile `claude/ecstatic-carson-56kt0p` | T3.15 |
+| [navneetpatel-dev/budgetbrain-detection-core#3](https://github.com/navneetpatel-dev/budgetbrain-detection-core/pull/3) | v0.4.0: parser v2 (T3.1–T3.14), corpus run in Node and in Hermes |
+| [navneetpatel-dev/budgetbrain-backend#3](https://github.com/navneetpatel-dev/budgetbrain-backend/pull/3) | the server scores with the same v0.4 rule |
+| [navneetpatel-dev/budgetbrain-mobile#4](https://github.com/navneetpatel-dev/budgetbrain-mobile/pull/4) | T3.15 |
 
 **Merge order:** core (with a merge commit) → backend and mobile.
 
