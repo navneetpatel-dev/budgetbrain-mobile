@@ -13,7 +13,7 @@ internal data class Candidate(
   val body: String,
   val receivedAt: Long,
   val simSlot: Int?,
-  /** `android_sms` or `notification` (plan T8.1). */
+  /** Always `android_sms` now; the column stays from the bank-app notification capture (v2). */
   val source: String,
 )
 
@@ -25,7 +25,7 @@ internal data class Candidate(
  * are purged after 7 days too.
  */
 internal class CandidateQueue private constructor(context: Context) :
-  SQLiteOpenHelper(context.applicationContext, "sms_candidates.db", null, 2) {
+  SQLiteOpenHelper(context.applicationContext, "sms_candidates.db", null, 3) {
 
   override fun onCreate(db: SQLiteDatabase) {
     db.execSQL(
@@ -50,6 +50,8 @@ internal class CandidateQueue private constructor(context: Context) :
   override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
     // v2: bank-app notifications share the queue (plan T8.1).
     if (oldVersion < 2) db.execSQL("ALTER TABLE candidates ADD COLUMN source TEXT NOT NULL DEFAULT 'android_sms'")
+    // v3: bank-app notification capture was removed (SMS only); drop anything it queued.
+    if (oldVersion < 3) db.execSQL("DELETE FROM candidates WHERE source <> 'android_sms'")
   }
 
   /** Returns true when the message was new. */
@@ -123,14 +125,8 @@ internal class CandidateQueue private constructor(context: Context) :
     writableDatabase.execSQL("DELETE FROM candidates WHERE queued_at < ?", arrayOf(cutoffMs))
   }
 
-  /** Drops what the notification listener queued, when the user turns it off. */
-  fun clearSource(source: String) {
-    writableDatabase.execSQL("DELETE FROM candidates WHERE source = ?", arrayOf(source))
-  }
-
   companion object {
     const val SOURCE_SMS = "android_sms"
-    const val SOURCE_NOTIFICATION = "notification"
 
     @Volatile private var instance: CandidateQueue? = null
 

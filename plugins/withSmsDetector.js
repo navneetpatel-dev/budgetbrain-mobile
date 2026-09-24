@@ -13,13 +13,11 @@ const LISTENER = 'app.budgetbrain.smsdetector.BankNotificationListener';
  * profile does) or pass `{ enabled: false }`. That build ships no SMS permission at all, and
  * the app falls back to manual entry.
  *
- * The bank-app notification listener (plan T8.1) is declared in every variant, the noSms one
- * included, since it needs no SMS permission: the user grants notification access in system
- * Settings. `{ notifications: false }` or BUDGETBRAIN_NO_NOTIFICATIONS=1 leaves it out.
+ * The bank-app notification listener (plan T8.1) was removed: detection reads SMS only. A
+ * listener entry left in an already prebuilt manifest is taken out.
  */
 function withSmsDetector(config, props = {}) {
   const enabled = props.enabled !== false && process.env.BUDGETBRAIN_NO_SMS !== '1';
-  const notifications = props.notifications !== false && process.env.BUDGETBRAIN_NO_NOTIFICATIONS !== '1';
 
   return withAndroidManifest(config, (mod) => {
     const manifest = mod.modResults;
@@ -31,20 +29,6 @@ function withSmsDetector(config, props = {}) {
     );
     app.receiver = (app.receiver || []).filter((entry) => entry.$['android:name'] !== RECEIVER);
     app.service = (app.service || []).filter((entry) => entry.$['android:name'] !== LISTENER);
-    if (notifications) {
-      app.service.push({
-        $: {
-          'android:name': LISTENER,
-          'android:label': '@string/app_name',
-          'android:exported': 'true',
-          // Only the system can bind it, and only after the user grants notification access.
-          'android:permission': 'android.permission.BIND_NOTIFICATION_LISTENER_SERVICE',
-        },
-        'intent-filter': [
-          { action: [{ $: { 'android:name': 'android.service.notification.NotificationListenerService' } }] },
-        ],
-      });
-    }
 
     if (enabled) {
       for (const name of SMS_PERMISSIONS) permissions.push({ $: { 'android:name': name } });

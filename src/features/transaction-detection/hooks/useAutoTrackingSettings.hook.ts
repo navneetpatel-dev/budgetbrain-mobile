@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Alert, AppState, Platform } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '@/shared/store';
 import {
   setAutoTrackingEnabled,
-  setAppNotificationCapture,
   setNotificationPreference,
   setSelectedSimSlot,
   addExcludedMerchant,
@@ -23,11 +22,6 @@ import {
   openAppSettings,
   type PermissionCheckResult,
 } from '@/shared/services/sms/smsPermission.service';
-import {
-  isNotificationAccessGranted,
-  isNotificationListenerSupported,
-  openNotificationAccessSettings,
-} from '@/shared/services/sms/smsDetector.service';
 import { deleteMyDetectedData, updateDetectionSettings } from '../api/detectedTransactions.api';
 import { clearDetectionData, clearSkeletons } from '../services/store/detectionStore.service';
 import { resetMerchantRules } from '../services/detectionProfile.service';
@@ -36,7 +30,6 @@ import { apiTransport } from '../services/transport/apiTransport';
 
 const PERMISSION_KEY = ['sms-permission'] as const;
 const CONFIG_KEY = ['detected-transactions', 'config'] as const;
-const NOTIFICATION_ACCESS_KEY = ['notification-access'] as const;
 
 export function useAutoTrackingSettings() {
   const dispatch = useDispatch();
@@ -44,26 +37,6 @@ export function useAutoTrackingSettings() {
   const detection = useSelector((state: RootState) => state.transactionDetection);
   const [isExplainerVisible, setIsExplainerVisible] = useState(false);
   const [isHistoricalModalVisible, setIsHistoricalModalVisible] = useState(false);
-  const [isNotificationExplainerVisible, setIsNotificationExplainerVisible] = useState(false);
-
-  // Bank-app notifications (plan T8.1): Android builds that declare the listener. Access is
-  // granted in system Settings, so it is read again whenever the user comes back to the app.
-  const notificationSupported = Platform.OS === 'android' && isNotificationListenerSupported();
-  const notificationAccess = useQuery({
-    queryKey: NOTIFICATION_ACCESS_KEY,
-    queryFn: async () => isNotificationAccessGranted(),
-    enabled: notificationSupported,
-  });
-  useEffect(() => {
-    if (!notificationSupported) return;
-    const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') void queryClient.invalidateQueries({ queryKey: NOTIFICATION_ACCESS_KEY });
-    });
-    return () => sub.remove();
-  }, [notificationSupported, queryClient]);
-  const notificationAccessGranted = notificationAccess.data ?? false;
-  // Persisted state from before T8.1 has no such key.
-  const appNotificationCapture = detection.appNotificationCaptureEnabled ?? false;
 
   const permission = useQuery({ queryKey: PERMISSION_KEY, queryFn: checkSmsPermissions });
   const permissionStatus: PermissionCheckResult = permission.data ?? 'unsupported';
@@ -157,13 +130,6 @@ export function useAutoTrackingSettings() {
       dispatch(setAutoTrackingEnabled(true));
       return;
     }
-    if (currentStatus === 'unsupported' && notificationSupported) {
-      // The noSms build (plan T2.11) can still track through bank-app notifications (T8.1).
-      dispatch(setAutoTrackingEnabled(true));
-      dispatch(setAppNotificationCapture(true));
-      if (!notificationAccessGranted) setIsNotificationExplainerVisible(true);
-      return;
-    }
     if (currentStatus === 'unsupported') {
       // iOS, Expo Go, or the noSms build (plan T2.11): there is no permission to ask for.
       Alert.alert('Not available', "Automatic SMS tracking isn't available in this version of the app. You can still add transactions manually.");
@@ -171,16 +137,6 @@ export function useAutoTrackingSettings() {
     }
     // Explain before asking for the system permission (spec §23).
     setIsExplainerVisible(true);
-  };
-
-  const handleToggleNotificationCapture = (value: boolean) => {
-    dispatch(setAppNotificationCapture(value));
-    if (value && !notificationAccessGranted) setIsNotificationExplainerVisible(true);
-  };
-
-  const handleConfirmNotificationExplainer = () => {
-    setIsNotificationExplainerVisible(false);
-    openNotificationAccessSettings();
   };
 
   const handleConfirmExplainer = async () => {
@@ -210,16 +166,8 @@ export function useAutoTrackingSettings() {
     setTemplateLearning: (value: boolean) => templateLearning.mutate(value),
     isExplainerVisible,
     isHistoricalModalVisible,
-    // iPhones can't read SMS or other apps' notifications (plan T8.4).
+    // iPhones can't read SMS (plan T8.4).
     isIos: Platform.OS === 'ios',
-    notificationSupported,
-    appNotificationCapture,
-    notificationAccessGranted,
-    handleToggleNotificationCapture,
-    isNotificationExplainerVisible,
-    handleConfirmNotificationExplainer,
-    dismissNotificationExplainer: () => setIsNotificationExplainerVisible(false),
-    openNotificationAccessSettings,
     setIsExplainerVisible,
     setIsHistoricalModalVisible,
     handleToggleTracking,
