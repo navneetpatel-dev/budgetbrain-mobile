@@ -33,6 +33,8 @@ export function AutoTrackingConsentCard({
           </Text>
         </View>
         <Switch
+          testID="auto-tracking-switch"
+          accessibilityLabel="SMS transaction tracking"
           value={isEnabled}
           onValueChange={onToggleEnabled}
           trackColor={{ false: theme.colors.surfaceContainerHighest, true: theme.colors.primary }}
@@ -59,6 +61,8 @@ export function AutoTrackingConsentCard({
               </Text>
             </View>
             <Switch
+              testID="auto-add-switch"
+              accessibilityLabel="Auto-add verified transactions"
               value={autoAddHighConfidence}
               onValueChange={onToggleAutoAdd}
               trackColor={{ false: theme.colors.surfaceContainerHighest, true: theme.colors.primary }}

@@ -1,0 +1,36 @@
+# Turning on SMS auto-tracking shows the management section. The SMS permission is either
+# already granted (Maestro's default on launch) or granted through the explainer and the
+# system dialog.
+appId: app.budgetbrain.mobile
+name: detection-01-enable-tracking
+tags: [detection]
+---
+- runFlow: subflows/login.yaml
+- openLink: budgetbrain://settings/auto-tracking
+- extendedWaitUntil:
+    visible: "SMS Transaction Tracking"
+    timeout: 15000
+- assertNotVisible: "Pending Review"
+- tapOn:
+    id: "auto-tracking-switch"
+- runFlow:
+    when:
+      visible: "Auto-Detect Your Expenses"
+    commands:
+      - assertVisible: "Only messages from known banks"
+      - tapOn: "Allow Access"
+- repeat:
+    times: 2
+    while:
+      visible: "Allow"
+    commands:
+      - tapOn: "Allow"
+- extendedWaitUntil:
+    visible: "Pending Review"
+    timeout: 15000
+- assertVisible: "Auto-add Verified Transactions"
+- assertVisible: "Detected Transactions"
+- assertVisible: "Scan Past Messages"
+# The server must have detection on and this account in the rollout.
+- assertNotVisible: "Automatic detection is paused"
+- assertNotVisible: "Coming to your account soon"

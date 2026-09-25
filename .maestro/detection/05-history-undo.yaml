@@ -1,0 +1,18 @@
+# Detected history lists what was added (the Zomato item confirmed in flow 03), not what was
+# deleted (Uber, flow 04), and Undo takes the added transaction back out.
+appId: app.budgetbrain.mobile
+name: detection-05-history-undo
+tags: [detection]
+---
+- runFlow: subflows/login.yaml
+- openLink: budgetbrain://transactions/detected
+- extendedWaitUntil:
+    visible: "Zomato"
+    timeout: 15000
+- assertVisible: "Confirmed by you"
+- assertNotVisible: "Uber"
+- tapOn: "Undo this detected transaction"
+- extendedWaitUntil:
+    notVisible: "Zomato"
+    timeout: 15000
+- assertVisible: "Nothing here yet. Transactions added from your bank messages will show up here."

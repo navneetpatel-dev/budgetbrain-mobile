@@ -1,0 +1,11 @@
+# Maestro workspace for BudgetBrain. Run with scripts/e2e/run-detection-e2e.sh (see .maestro/README.md).
+flows:
+  - "detection/*"
+executionOrder:
+  continueOnFailure: false
+  flowsOrder:
+    - detection-01-enable-tracking
+    - detection-02-paste-ignored
+    - detection-03-paste-review-confirm
+    - detection-04-paste-review-delete
+    - detection-05-history-undo

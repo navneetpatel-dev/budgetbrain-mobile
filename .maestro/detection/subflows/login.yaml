@@ -1,0 +1,27 @@
+# Fresh start and sign-in as the seeded test user. Credentials come from the runner script
+# (E2E_EMAIL / E2E_PASSWORD); the defaults match the backend seed (npm run db:seed).
+appId: app.budgetbrain.mobile
+env:
+  E2E_EMAIL: priya@budgetbrain.app
+  E2E_PASSWORD: Admin123!
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: "Sign In"
+    timeout: 60000
+- tapOn: "you@example.com"
+- inputText: ${E2E_EMAIL}
+- tapOn: "Your password"
+- inputText: ${E2E_PASSWORD}
+- hideKeyboard
+- tapOn: "Sign In"
+- extendedWaitUntil:
+    notVisible: "Sign In"
+    timeout: 30000
+# Android 13+ may ask for notification permission once signed in.
+- runFlow:
+    when:
+      visible: "Allow"
+    commands:
+      - tapOn: "Allow"

@@ -1,0 +1,17 @@
+# Opens Paste & Import and pastes ${SMS_TEXT} as a bank SMS with no sender.
+appId: app.budgetbrain.mobile
+---
+- openLink: budgetbrain://integrations
+- extendedWaitUntil:
+    visible: "Add from a message"
+    timeout: 15000
+- scrollUntilVisible:
+    element: "Paste the bank's message here"
+    direction: DOWN
+- tapOn: "Paste the bank's message here"
+- inputText: ${SMS_TEXT}
+- hideKeyboard
+- scrollUntilVisible:
+    element: "Read message"
+    direction: DOWN
+- tapOn: "Read message"
