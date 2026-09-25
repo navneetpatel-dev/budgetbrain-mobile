@@ -1,0 +1,24 @@
+# A bank SMS pasted without its sender: the bank is recognised from the text (HDFC Bank),
+# which is never trusted enough to add on its own, so it waits in Review. Confirming adds it.
+appId: app.budgetbrain.mobile
+name: detection-03-paste-review-confirm
+tags: [detection]
+---
+- runFlow: subflows/login.yaml
+- runFlow:
+    file: subflows/paste-sms.yaml
+    env:
+      SMS_TEXT: "Rs.499.00 debited from your HDFC Bank a/c **1234 to VPA zomato@hdfcbank Ref 425699900011"
+- extendedWaitUntil:
+    visible: "Found a transaction. It is waiting for you in Review."
+    timeout: 15000
+- openLink: budgetbrain://transactions/review
+- extendedWaitUntil:
+    visible: "Zomato"
+    timeout: 15000
+- assertVisible: "1 auto-detected transactions to review"
+- assertVisible: "Needs a look"
+- tapOn: "Confirm detected transaction"
+- extendedWaitUntil:
+    visible: "All Caught Up!"
+    timeout: 15000

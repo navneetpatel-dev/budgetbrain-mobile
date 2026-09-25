@@ -1,0 +1,17 @@
+# A one-time password is never a transaction: the paste form says so and nothing is stored.
+appId: app.budgetbrain.mobile
+name: detection-02-paste-ignored
+tags: [detection]
+---
+- runFlow: subflows/login.yaml
+- runFlow:
+    file: subflows/paste-sms.yaml
+    env:
+      SMS_TEXT: "Your OTP for transaction is 123456. Do not share it with anyone. - HDFC Bank"
+- extendedWaitUntil:
+    visible: "This looks like a one-time password, not a transaction."
+    timeout: 15000
+- openLink: budgetbrain://transactions/review
+- extendedWaitUntil:
+    visible: "All Caught Up!"
+    timeout: 15000

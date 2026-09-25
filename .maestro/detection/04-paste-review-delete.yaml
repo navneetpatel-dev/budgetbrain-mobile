@@ -1,0 +1,21 @@
+# Deleting a detected transaction from Review removes it without adding anything.
+appId: app.budgetbrain.mobile
+name: detection-04-paste-review-delete
+tags: [detection]
+---
+- runFlow: subflows/login.yaml
+- runFlow:
+    file: subflows/paste-sms.yaml
+    env:
+      SMS_TEXT: "Rs.320.00 debited from your HDFC Bank a/c **1234 to VPA uber@axisbank Ref 425699900022"
+- extendedWaitUntil:
+    visible: "Found a transaction. It is waiting for you in Review."
+    timeout: 15000
+- openLink: budgetbrain://transactions/review
+- extendedWaitUntil:
+    visible: "Uber"
+    timeout: 15000
+- tapOn: "Delete detected transaction"
+- extendedWaitUntil:
+    visible: "All Caught Up!"
+    timeout: 15000
